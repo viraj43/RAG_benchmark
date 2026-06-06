@@ -1,0 +1,2175 @@
+Title: React Hooks Explained Simply
+![close icon](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/660181cd9172335cd80c4ad9__Mini%20X_.svg)
+
+![daily.dev platform](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/660180848a3e21c9ad344747_daily.dev%20Feed%20-%201280x560%20(1).png)
+
+#### Discover more from daily.dev
+
+Personalized news feed, dev communities and search, much better than what’s out there. Maybe ;)
+
+[**Start reading** - Free forever](https://play.google.com/store/apps/details?id=dev.daily)[**Start reading** - Free forever](https://api.daily.dev/get)
+
+Continue reading >
+
+[![Daily Logo](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/5f1d8b1b9c7814aae6b69044_Daily%20Full%20logo.svg)](/?r=0)[Start reading **- Free forever**](https://api.daily.dev/get)[Start now](https://app.daily.dev/?utm_source=landing&utm_medium=cta&utm_campaign=landing_conversions)
+
+![Hamburger](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/5e1c903d4b6c08145d84ed87_Hamburger.svg)
+
+[Home](/?r=0)![arrow-down](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa1092c2681854cb7d9e94_Arrow%20Down.svg)[Blog](/blog-superold)![arrow-down](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa1092c2681854cb7d9e94_Arrow%20Down.svg)[Get into tech](/categories/get-into-tech)
+
+# React Hooks Explained Simply
+
+Apr 22, 2024
+
+![React Hooks Explained Simply](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/6625ecdaf70b73d7da345ad7_6625af7db1d581f127d2ca9d-11bd652d61629296807f9c0a7ed9eb33.jpeg)
+
+[![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)
+
+Nimrod Kramer](https://app.daily.dev/kramer)
+
+Related tags on daily.dev
+
+![toc](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa101034a8ea4254921ef1_Unread.svg)
+
+Table of contents
+
+![arrow-down](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa1092c2681854cb7d9e94_Arrow%20Down.svg)
+
+[Read more on daily.dev
+
+![open link icon](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65fc45c5f1fa2162fa715b91__Open%20Link_.svg)](https://app.daily.dev/?utm_source=landing&utm_medium=blog&utm_campaign=toc)
+
+🎯
+
+Learn about React Hooks, how they simplify code, manage state, and share logic in function components. Explore common pitfalls, core hooks, rules, refactoring tips, and best practices for using React Hooks effectively.
+
+[React Hooks](https://daily.dev/blog/form-react-hook-essentials-for-developers#redux-form) are tools that allow you to use state and other React features without writing class components. They're designed to simplify your code and make it easier to share logic across components. Here's a quick overview of what you need to know about React Hooks:
+
+* **Simplify Your Code**: Avoid the complexity of class components.
+* **Reusable Logic**: Easily share and reuse stateful logic.
+* **Built-in [Hooks](https://reactjs.org/docs/hooks-reference.html)**: Such as `useState`, `useEffect`, and `useContext` for managing state, side effects, and context.
+* **[Custom Hooks](https://app.daily.dev/posts/PnJlI6roI)**: Create your own hooks for custom reusable logic.
+* **Rules of Hooks**: Use them at the top level of your components and only in React functions.
+* **Common Pitfalls**: Understand common issues and how to avoid them, like stale closures in `useEffect`.
+* **Refactoring**: How to convert class components to function components using hooks.
+* **Best Practices**: Tips for using hooks effectively, like keeping them small and focused.
+
+Whether you're a beginner or an experienced developer, understanding and applying React Hooks can greatly improve your React applications by making your code cleaner, more modular, and easier to understand.
+
+### Class Component Challenges
+
+Class components in React are strong tools but they can make things like keeping track of changes and sharing code a bit tough:
+
+* **Complex lifecycle methods** - Components have a bunch of steps like `componentDidMount`, `componentDidUpdate`, and more. Keeping up with all these can be tricky.
+* **Difficult to reuse logic** - If you want to share code that deals with state between components, you usually need complex patterns. These can make your components harder to understand.
+* **Confusing 'this' binding** - Classes sometimes make using `this` a headache, making it hard to keep track of what it refers to.
+
+### The Introduction of [Hooks](https://reactjs.org/docs/hooks-reference.html)
+
+React Hooks were made to tackle these issues, letting you handle state and other React features without needing classes:
+
+* Hooks let you manage state and more without classes, which means you don't have to deal with the confusing parts of `this`.
+* You can create custom hooks to split out logic for things like state, effects, and context. This makes it much easier to use the same code in different places.
+* You don't have to juggle lifecycle methods anymore. Things like `useEffect` take care of that for you.
+
+Overall, Hooks give you a simpler and more flexible way to work with React. By moving away from complex patterns, they help make your code easier to read and share. This means you can reuse code more easily and keep your components neat.
+
+## What Are React Hooks?
+
+React Hooks are like special tools that let you add features such as keeping track of data (state) and doing things when your component loads or updates, all from within function components. This means you can do a lot without needing to write class components.
+
+Here’s what you should know about React Hooks:
+
+* **They are just functions** - But they have to follow two rules:
+* You can only use them inside function components.
+* You have to use them at the top of your component, not inside loops or conditions.
+* **They let function components have their own state** - With the `useState` hook, your components can remember things and change what they show based on that memory.
+* **You can share logic between components** - By making your own hooks, you can take some logic about state out of your components and use it elsewhere. This is handy for things like fetching data.
+* **They replace the old ways of doing things when your component loads or updates** - The `useEffect` hook helps you do stuff like fetching data or setting up subscriptions, similar to how you might have used `componentDidMount` or `componentDidUpdate` in class components.
+
+In short, React Hooks let you do more with function components, like keeping track of data and reacting to changes. They make it easier to share logic across different parts of your app and simplify how you work with React. This means less repeating yourself and clearer, simpler code.
+
+## Core React Hooks Explained
+
+React Hooks let you use state and other React features in function components. This means you can do things like keep track of data or perform actions at certain times without writing class components. Here are three main Hooks you should know about:
+
+### useState
+
+The `useState` Hook lets you keep track of data in your components. Here's how you use it:
+
+```
+import { useState } from 'react'; function MyComponent() { const [count, setCount] = useState(0); return (
+
+You clicked {count} times
+
+); } 
+```
+
+In this example, `useState(0)` starts the `count` at 0. The `setCount` function updates it. `useState` gives back an array with the current state and a function to change it, which is why we use array destructuring to get `count` and `setCount`.
+
+### useEffect
+
+The `useEffect` Hook lets you do things after your component renders. For example, you can fetch data, set up subscriptions, or manually change the DOM. Here's how you might fetch data:
+
+```
+import { useState, useEffect } from 'react'; function MyComponent() { const [data, setData] = useState(null); useEffect(() => { fetch('/api/data') .then(res => res.json()) .then(data => setData(data)); }, []); // ... } 
+```
+
+`useEffect` needs two things: a function to run and an array of values it depends on. If the array is empty `[]`, it means the effect runs only once when the component is first shown and when it goes away.
+
+### useContext
+
+The `useContext` Hook lets you use context in your components. Context is a way to pass data through your component tree without having to pass props down manually at every level.
+
+Here's a simple example:
+
+```
+const ThemeContext = React.createContext('light'); function MyComponent() { const theme = useContext(ThemeContext); return
+
+The theme is {theme}
+
+; } 
+```
+
+With `useContext`, `MyComponent` can use the theme value from context easily.
+
+These three Hooks - `useState`, `useEffect`, and `useContext` - are key for managing state, side effects, and context in your function components. They make your code simpler and more straightforward.
+
+## Additional Hooks
+
+React has more handy hooks beyond `useState` and `useEffect` that help you do even more cool stuff in your components. Let's go over a few more that are super useful:
+
+### useReducer
+
+Think of `useReducer` as a more powerful version of `useState`, perfect for when your component's state gets complex. It works well for states that have multiple parts or when the new state depends on the old one.
+
+Here's a peek at how `useReducer` works:
+
+```
+const [state, dispatch] = useReducer(reducer, initialState); function reducer(state, action) { switch (action.type) { case 'increment': return {...state, count: state.count + 1}; case 'decrement': return {...state, count: state.count - 1}; default: return state; } } 
+```
+
+### useRef
+
+`useRef` gives you a way to hang onto something (like a DOM element) that doesn't get wiped out when your component re-renders. It's like keeping a sticky note on something you don't want to lose.
+
+Example time:
+
+```
+const inputEl = useRef(null); ; // To get the DOM node: inputEl.current; 
+```
+
+### useMemo
+
+`useMemo` is like a brainy assistant that remembers the result of a heavy-duty function so you don't have to run it again unless absolutely necessary. It helps keep things running smoothly and quickly.
+
+Example:
+
+```
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]); 
+```
+
+### useCallback
+
+`useCallback` keeps your functions remembered so they don't get recreated every time your component re-renders. This is especially handy for functions that need to stick around, like event handlers.
+
+Here's how it looks:
+
+```
+const handleClick = useCallback(() => { // Something to do here }, []); 
+```
+
+While there are even more hooks like `useImperativeHandle`, `useDebugValue`, and `useTransition` for special situations, the ones we've talked about are the big players. They make your components smarter and your code cleaner, without the need for classes. Getting the hang of these hooks will equip you with everything you need for most things you'll do in React.
+
+## Rules of Hooks
+
+When you're using React Hooks like `useState`, `useEffect`, or any others, there are two important rules you need to follow to avoid problems:
+
+* **Only Call Hooks at the Top Level**
+
+Don't put Hooks inside loops, conditions, or nested functions. Instead, always use them at the top of your component. This helps React keep track of your Hooks in the right order, which is crucial for things like keeping your component's state consistent across re-renders.
+
+Here's a no-go:
+
+```
+// Wrong function MyComponent() { const items = [1, 2, 3]; items.forEach(item => { const [count, setCount] = useState(0); // Oops, inside a loop }); } 
+```
+
+And the right way:
+
+```
+// Correct function MyComponent() { const [count, setCount] = useState(0); // Up top where it belongs const items = [1, 2, 3]; items.forEach(item => { // It's cool to use state here }); } 
+```
+
+* **Only Call Hooks from React Functions**
+
+You can only use Hooks inside React function components or your own custom Hooks. They won't work in regular JavaScript functions.
+
+This won't fly:
+
+```
+// Won't work function someFunction() { const [count, setCount] = useState(0); // Trying this outside React } 
+```
+
+But this is perfect:
+
+```
+function useCounter() { const [count, setCount] = useState(0); // This is a custom Hook return { count, setCount }; } function MyComponent() { const { count, setCount } = useCounter(); // Using the custom Hook here } 
+```
+
+Sticking to these rules makes sure your Hooks work as expected, keeping your components running smoothly. There's also a handy tool, [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks), that can help you stick to these rules without having to think too hard about it.
+
+###### sbb-itb-bfaad5b
+
+## Common Pitfalls and Solutions
+
+React Hooks are super handy, but there are a few common mistakes that can trip you up if you're not careful. Let's talk about these mistakes and how to fix them so you can avoid any headaches.
+
+### Stale Closures in useEffect
+
+A common mistake with `useEffect` is ending up with a stale closure. This means you're accidentally using an old value of something that has changed, and it can lead to weird results.
+
+For instance:
+
+```
+function MyComponent() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => { console.log(count); // Oops - using an old count value }, 1000); return () => clearInterval(id); }, []); return ( // Buttons to change count ); } 
+```
+
+In this example, the `count` inside `setInterval` doesn't update because it's stuck with the value from the first render.
+
+**How to fix it:** Make sure your callback gets the latest value by including it in the `useEffect` dependency array:
+
+```
+useEffect(() => { const id = setInterval(() => { console.log(count); }, 1000); return () => clearInterval(id); }, [count]); 
+```
+
+Now, `count` will always be current.
+
+### Forgetting to Clean Up Subscriptions
+
+Not cleaning up after yourself, like forgetting to unsubscribe from something, can lead to memory leaks.
+
+Example problem:
+
+```
+function MyComponent() { const [data, setData] = useState(null); useEffect(() => { const channel = subscribeToData(data => setData(data) ); // Oops, forgot the cleanup }, []); // ... } 
+```
+
+**Solution:** Always include a cleanup function in your `useEffect` to prevent issues:
+
+```
+useEffect(() => { const channel = subscribeToData(data => setData(data) ); return () => { channel.unsubscribe(); }; }, []); 
+```
+
+### Overusing useEffect
+
+It's easy to want to put everything into `useEffect`, but doing so can cause unnecessary updates and slow things down.
+
+**What to do instead:** Keep things that aren't side effects out of `useEffect`. For example, if you're just filtering items, do it outside of `useEffect`:
+
+```
+function MyComponent({ items }) { const [filteredItems, setFilteredItems] = useState( filterItems(items) ); // ... } 
+```
+
+This way, you keep your component running smoothly.
+
+Understanding these common mistakes and how to fix them can make working with React Hooks a lot easier. Keeping an eye on closures, cleaning up properly, and using `useEffect` wisely will help you avoid problems.
+
+## Refactoring Class Components
+
+Refactoring your existing React class components to use Hooks can make your code cleaner and more straightforward. Let's walk through how to change a class component into a function component using Hooks.
+
+### Before - Class Component
+
+Here's a basic class component that shows a counter with buttons to add or subtract:
+
+```
+{this.state.count}
+```
+
+This component works well but it's a bit too complex for what it does. Using Hooks, we can make it simpler.
+
+### After - Function Component with Hooks
+
+Now, let's convert that component to use the `useState` Hook:
+
+```
+{count}
+```
+
+With `useState`, we can keep track of the `count` without needing a class. Our component is now a straightforward function that manages state with `useState`.
+
+Here's why this is better:
+
+* It's simpler and has less code.
+* You don't have to worry about binding event handlers.
+* All the state stuff is done with just `useState`.
+* If you want to use the counter logic somewhere else, it's easier to make a custom hook.
+
+In short, changing class components to use Hooks makes them easier to get, work with, and maintain. By cutting out the complex parts, your components are more focused on what they do best: showing stuff on the screen and handling user input.
+
+## Best Practices
+
+When you're working with React Hooks, it's smart to keep things simple, direct, and ready to be used again. Here are some handy tips:
+
+### Keep Hooks Small and Focused
+
+**Do:**
+
+* Create hooks for just one job, like keeping track of data or getting data from the internet
+* Give your hooks clear names that say what they do
+* Make sure the inside of your hooks is easy to follow
+
+**Don't:**
+
+* Try to do too much in one hook
+* Make hooks that are big and complicated
+* Pick names for your hooks that don't make it clear what they do
+
+Small, focused hooks are easier to check, fix, and use in other places.
+
+### Extract Shared Logic into Custom Hooks
+
+If you see the same logic in more than one component, like getting data or handling state, pull it out into its own hook.
+
+**Benefits:**
+
+* Keeps your components simple
+* Stops you from writing the same code over and over
+* Lets you use and combine logical parts easily
+
+Here's how you might do it:
+
+```
+function useFetch(url) { const [data, setData] = useState(null); useEffect(() => { fetch(url) .then(res => res.json()) .then(setData); }, [url]); return data; } function ComponentA() { const data = useFetch('/api/a'); // ... } function ComponentB() { const data = useFetch('/api/b'); // ... } 
+```
+
+Now, both components can use the same logic for fetching data!
+
+### Follow React Hook Rules
+
+Make sure to stick to the [Rules of Hooks](https://reactjs.org/docs/hooks-rules.html) to keep away from bugs:
+
+* Use hooks at the top level, not inside loops or if statements
+* Only use hooks in React components or custom hooks
+
+Adding [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks) to your project can help you automatically spot problems.
+
+By keeping your hooks straightforward, pulling out common logic, and following the rules, you'll create reliable, reusable hooks that make working with components much easier.
+
+## Conclusion
+
+React Hooks are like special tools that make it easier to add features to your function components, without the need for complex class components. They help you manage state, deal with component updates, and share logic across your app in a simpler way.
+
+Here's what you should remember:
+
+* Hooks help you deal with common issues like managing state and reusing logic without getting lost in complex class components.
+* Basic hooks like `useState`, `useEffect`, and `useContext` are your go-to for handling most of the work with state, updates, and context.
+* It's important to follow certain rules with hooks, like using them at the top of your components, to avoid running into problems.
+* Creating your own custom hooks can make your code cleaner by pulling out reusable logic into separate functions.
+* Keeping hooks small, focusing on one thing, and sticking to the rules can make your code better and your life easier.
+* Switching from class components to function components using hooks can make your code simpler and easier to understand.
+
+In short, React Hooks offer a more straightforward way to work with React features like state and lifecycles in your function components. By choosing hooks over more complicated setups, your code becomes easier to handle, test, and share.
+
+If this guide was helpful or if you have more questions about React Hooks, feel free to drop a comment. I'm always here to help with your React journey.
+
+## Related Questions
+
+### What is Hooks in React in simple words?
+
+Hooks are special functions in React that let you use features like state (a way to remember things) and do things when your component loads or updates, all from within function components. This means you can do a lot more with simple functions without needing to write class components. Hooks help you reuse code and make your components smarter.
+
+### What is React with Hooks for beginners?
+
+For beginners, here are a few things to know about React Hooks:
+
+* Hooks let function components use React features that were only available in class components before, like keeping track of data.
+* Common hooks such as `useState`, `useEffect`, and `useContext` are used for managing state, doing things after rendering, and accessing global data easily.
+* You should only use hooks at the top level of your components and not inside loops or conditions.
+* Custom hooks are a way to pull out component logic into reusable functions, making your components neater.
+* Learning hooks doesn't mean forgetting React basics. They're just another way to use React's features in your function components.
+
+### What are the 10 React Hooks?
+
+Here are ten commonly used React hooks:
+
+* `useState` - Lets you track state changes.
+* `useEffect` - Runs code after render.
+* `useContext` - Accesses context data.
+* `useReducer` - Manages complex state logic.
+* `useCallback` - Caches functions.
+* `useMemo` - Caches values.
+* `useRef` - References DOM elements.
+* `useImperativeHandle` - Customizes ref values.
+* `useLayoutEffect` - Runs synchronously after DOM updates.
+* `useDebugValue` - Labels custom hooks in React DevTools.
+
+### What are the 15 Hooks in react JS?
+
+Besides the built-in hooks, there are also custom hooks for various tasks:
+
+* `useIdle` - Detects user inactivity.
+* `useInterval` - Sets intervals.
+* `useScroll` - Handles scroll events.
+* `useToggle` - Toggles between states.
+* `useTitle` - Changes the document title.
+* `usePrevious` - Retrieves previous state or props.
+* `useSetState` - Combines state updates.
+* `useCookie` - Manages cookies.
+* `useSpeech` - Converts text to speech.
+* `useGeolocation` - Gets user location.
+* `useMutationObserver` - Observes changes in the DOM.
+* `useWebSocket` - Manages WebSocket connections.
+* `useLocalStorage` - Stores data in local storage.
+* `useCss` - Applies CSS dynamically.
+* `useMediaQuery` - Uses media queries.
+
+## Related Blog Posts
+
+* [Form React Hook Essentials for Developers](/blog/form-react-hook-essentials-for-developers/)
+* [React Hook Form Errors Not Working: Troubleshooting Tips](/blog/react-hook-form-errors-not-working-troubleshooting-tips/)
+* [Form React Hook Basics for Beginners](/blog/form-react-hook-basics-for-beginners/)
+* [Form on React: Best Practices](/blog/form-on-react-best-practices/)
+
+Author
+
+[![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)
+
+Nimrod Kramer
+
+@NimrodKramer](https://app.daily.dev/kramer)
+
+Related tags on daily.dev
+
+![toc](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa101034a8ea4254921ef1_Unread.svg)
+
+Table of contents
+
+[Read more on daily.dev
+
+![open link icon](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65fc45c5f1fa2162fa715b91__Open%20Link_.svg)](https://api.daily.dev/get)
+
+[![daily.dev platform](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65fc443cac134dd95826e584_daily.dev.jpg)
+
+Why not level up your reading with daily.dev?
+
+Stay up-to-date with the latest developer news every time you open a new tab.
+
+Start reading - Free forever](https://api.daily.dev/get)
+
+## Why not level up your reading with daily.dev?
+
+Stay up-to-date with the latest developer news every time you open a new tab.
+
+![browsers logos](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65802a0f2f75540ff5e8c82c_Vectors-Wrapper.svg)[Start reading - Free forever](https://api.daily.dev/get)
+
+## Read more
+
+[![How we built a Linear coding agent: the hard parts](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/69c1278b8fc4633e16725415_huginn-cover-3.png)
+
+AI
+
+How we built a Linear coding agent: the hard parts
+
+Building a production coding agent that lives in Linear. Wrapping Claude Code and Codex as child processes, surviving state loss from archived threads, chaining three fallback parsers for structured LLM output, debugging session IDs that break on working directory changes, and testing everything against in-memory replicas of Linear and GitHub.
+
+![ Ido Shamun](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/5ef3b1b308700b8f3eebc271_dcb9e522-dd0a-4bdb-9ee8-9344a30c99a6.jpg)
+
+Ido Shamun
+
+March 23, 2026](/blog/how-we-built-a-linear-coding-agent-the-hard-parts)
+
+[![SQLite for Production: When and How to Use It Beyond Prototyping](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/69e98ba28d6844c27cfbd89a_69e9655f09e6c77f4f7e6447-1776911791528.jpeg)
+
+Get into tech
+
+SQLite for Production: When and How to Use It Beyond Prototyping
+
+Practical guide to running SQLite in production: performance, limits, tuning (WAL/PRAGMA), replication tools and migration signs.
+
+![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)
+
+Nimrod Kramer
+
+April 23, 2026](/blog/sqlite-production-guide-when-how-to-use-beyond-prototyping)
+
+[![The Developer Guide to API Security: OAuth 2.1, JWT Best Practices, and Common Vulnerabilities](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/69e88becf2ba7423cefd8b99_69e879d109e6c77f4f7e5940-1776846158611.png)
+
+Get into tech
+
+The Developer Guide to API Security: OAuth 2.1, JWT Best Practices, and Common Vulnerabilities
+
+Practical API security guide covering OAuth 2.1 with PKCE, JWT signing and storage, authorization models, gateways, and testing tools.
+
+![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)
+
+Nimrod Kramer
+
+April 22, 2026](/blog/dev-guide-api-security-oauth-2-1-jwt-vulnerabilities)
+
+[See more on daily.dev](https://api.daily.dev/get)
+
+---
+
+Title: React Hooks: context, state and effects
+# React Hooks: context, state and effects | by David Flanagan | Medium
+
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![Image 1: Nazario A. Ayala](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+1
+
+1
+
+1
+
+Press enter or click to view image in full size
+
+![Image 2](https://miro.medium.com/v2/resize:fit:700/1*45iMjFgUMOphJSci3qMpyQ.png)
+
+# React Hooks: context, state and effects
+
+## A case study
+
+[![Image 3: David Flanagan](https://miro.medium.com/v2/resize:fill:32:32/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---byline--aa899d8c8014---------------------------------------)
+
+[David Flanagan](https://medium.com/@__davidflanagan?source=post_page---byline--aa899d8c8014---------------------------------------)
+
+Follow
+
+14 min read
+
+·
+
+Apr 1, 2019
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Faa899d8c8014&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&user=David+Flanagan&userId=70b3d287f497&source=---header_actions--aa899d8c8014---------------------clap_footer------------------)
+
+268
+
+4
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Faa899d8c8014&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---header_actions--aa899d8c8014---------------------bookmark_footer------------------)
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3Daa899d8c8014&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---header_actions--aa899d8c8014---------------------post_audio_button------------------)
+
+Share
+
+More than one website I’ve worked on has suffered from a problem that is common for sites that allow user logins. When a user is logged in, the server produces customized output for the user. It does this most obviously by displaying the user’s profile picture instead of a “Sign in” link. For users who are not logged in, the server does no customization and serves up the same page every time. This means that we can use a CDN to serve static pages to logged-out users faster than we can serve customized pages to logged-in users. We’d like more users to log in, and rewarding them with a slower site seems wrong.
+
+My current team is working to fix this on our site. Instead of making user-specific customizations (such as displaying a profile picture) on the server, we plan do those customizations on the client side, with JavaScript. This will allow us to serve the same static pages, via CDN, to all users. Once those pages load, client-side JavaScript can query the server to find out whether the user is logged in and (if so) what the URL to their profile photo is. When the response to this query arrives, the client-side JavaScript can either insert the user’s photo into the page or insert a “Sign in” link if the user is not logged in.
+
+There are a number of different ways to do this kind of client-side customization. We’ve chosen to use the React framework because of its ubiquity (we’re betting that this will make it easier to find contractor to help us with our work) and its robust and relatively mature ecosystem of tools.
+
+I began the profile picture customization work shortly after React 16.8 was released. 16.8 was an important release for the React team because it defines a powerful new way to define components, using a mechanism known as _hooks_. The use of React’s new hooks feature is entirely optional, and there is no need for React developers to convert their existing components to use them. But because I was beginning a new project, I chose to use hooks and found that I really liked this new model of React programming. My work to move the profile picture customization from the server to the client allowed me to use hooks to manage context, state and effects, and I think that makes it an interesting case study to share with readers who use React.
+
+## Introduction to Hooks
+
+Simple React components can be written as functions that take a properties object as its input and return a string or a JSX element to be rendered. For example:
+
+function Link({href, children}) {
+
+ return <a href={href}>{children}</a>;
+
+}
+Before the introduction of hooks in React 16.8, however, functional components were quite limited: they could not define local state variables, and they could not perform side effects when first rendered (or “mounted”) or when re-rendered. In order to create components that could do those things, we had to define them as classes that inherit from React.Component. The render() method of such a class would take a properties object as its input and would return the content to be rendered. In addition, however, this `render()`method could use the properties of the `this.state` object to customize its output. React components defined as classes inherit a `setState()` method from the superclass. If the `render()` method outputs HTML elements with event handlers, one of those handlers might call `setState()` to alter the `this.state` object and cause the component to be re-rendered in its new state. Finally, class-based components can define “lifecycle methods” such as `componentDidMount()` (called by React after the first render) and `componentDidUpdate()` (called by React after subsequent renders). A `componentDidMount()` method could be used to register global event handlers or to request data with a `fetch()` call, for example.
+
+In React 16.8, hooks allow us to use state and define lifecycle effects in functional React components. Hooks are just functions–imported from the React module–that you call within your component. By convention hook functions have names that begin with `use`: in this blog post we’ll describe the `useContext()`, `useState()`, and `useEffect()` hooks. There are also important conventions (the React documentations calls them “The Rules of Hooks”) that govern how you can call hooks: you can only use them within functional React components, not class-based components. And they must be called at the top-level of your component functions: you cannot use them within conditionals, loops, or nested functions.
+
+The idea that you can call the `useState()` function to somehow introduce local state variables into your functional component is deeply counterintuitive, and React has to do some magic behind the scenes to make it work. I typically frown on APIs that rely on behind-the-scenes magic, but I do have to admit that once I got used to them, I’ve found hooks to be quite satisfying to use in practice. So let’s peek behind the curtain to develop a bit of intuition about how hooks work: the key thing to realize is that when you define a functional React component, your function will only be called in a very specific and controlled way, when React is building or updating its tree of components. So even though a functional component does not have an associated instance the way a class-based component does, each invocation of your functional component is, in fact, associated with a specific node in the tree that React is building. Hooks give us a way to associate things (like context, state and effects) with the nodes in that internal React data structure.
+
+That’s a hand-wavy explanation, but hopefully it is a plausible enough explanation of why hooks work. With class-based components, each instance of the component is its own private data structure within the larger tree that React is building. With functional components, hooks let us insert data–in very specific and controlled ways–directly into that tree, and component instances are no longer needed. If you find this explanation convincing enough, then there is no need to think more deeply about how hooks work, and I recommend that you simply embrace the magic of these special `use`-prefixed functions.
+
+Hooks are best explained by example, so we’ll return now to my desire to display user profile pictures on the client side instead of the server side. The sections that follow introduce the `useContext()`, `useState()` and `useEffect()` hooks.
+
+## useContext()
+
+React’s context mechanism is a way to make important data available to any component in the rendered tree without having to pass that data from parent to child down through the entire tree as a property. A canonical use-case for contexts is to make UX theme data available to all components in the tree. For my profile picture work I chose to make user data (including the profile picture URL) available through the React context mechanism because I expect that we’ll be adding more user data on which to base customizations. If, in the future, we allow users to specify a preferred theme, for example, then many components may need to be aware of that user preference.
+
+Working with contexts in React involves using a context “Provider” component high up in the component tree and passing the context data to that component as a prop. When a class-based React component needs to access the context data, it renders a context “Consumer” component with a function as its only child. React invokes that function with the context data as its argument, and then that function behaves like a render method returning the elements to be displayed. This is an awkward bit of indirection that has always made the React context mechanism seem complicated. Fortunately, hooks do away with the need to render a context consumer, and make it very easy to create components that use context data. As an example, here is a simplified version of my Login component that uses the context mechanism to get data about the current user:
+
+import { useContext } from 'react'; // Import the useContext hook// Import the module that defines the user context
+
+import UserProvider from './user-provider.jsx';export default function Login() {
+
+ // Get data about the current user by calling useContext()
+
+ const userData = useContext(UserProvider.context); if (!userData) {
+
+ // If we don't have the user data yet, don't render anything
+
+ return null;
+
+ } else if (userData.isAuthenticated) {
+
+ // If we have user data and the user is logged in, render 
+
+ // the user's profile pic
+
+ return (
+
+ <img width=48 height=48
+
+ src={userData.gravatarUrl.small}
+
+ alt={userData.username}
+
+ />
+
+ );
+
+ } else {
+
+ // Otherwise, show a login prompt
+
+ return (
+
+ <a href={`/users/github/login/?next=${
+
+ window.location.pathname
+
+ }`}>
+
+ Sign in
+
+ </a>
+
+ );
+
+ }
+
+}
+Line 1 of this code imports the `useContext()` hook from the React module. Line 4 imports the UserProvider module that defines the context object we want to use. (We’ll see the code in this module later in this blog post). And line 8 calls the `useContext()` hook passing the `UserProvider.context` object to specify which context we want to use. The return value of this `useContext()` call is whatever data the context provider provides.
+
+The rest of the code listing shows how this (simplified) Login component uses the context data. There are three possible cases. In the first case, there is no user data available at all, probably because it has not been fetched yet. In that case the `Login()` function returns null, rendering nothing. Otherwise, if the userData object is non-null and shows that the user is logged in, then the component renders the user’s profile picture. And finally, if we have userData, but it shows that the user is not logged in, then the component renders a “Sign in” link.
+
+You can see that the `useContext()` hook makes it really easy for my Login component to access and use information about the current user. But where does that context data come from? Here’s an excerpt from the top-level index.jsx file that kicks off the React rendering process:
+
+ReactDOM.render(
+
+ <DocumentProvider>
+
+ <UserProvider>
+
+ <Page />
+
+ </UserProvider>
+
+ </DocumentProvider>,
+
+ document.getElementById('react-container')
+
+);
+In this React-based version of site that I’m working on, a page is rendered by a Page component, inside a UserProvider component which is itself inside a DocumentProvider component. The UserProvider component is responsible for setting up the user context object and providing the appropriate data for that. (DocumentProvider does something similar for the content of the page, and is also responsible for client-side navigation among pages on the site, but that is a topic for another blog post.)
+
+So, when an page is rendered, the UserProvider component sets up a context object for sharing data about the user, and provides that data. Then it renders its child, the Page component. The Page component renders a Header component (which we haven’t discussed here) which in turn renders the Login component. The Login component uses the `useContext()` hook to get access to the context data that the UserProvider context defined.
+
+Here’s a _very_ simplified version of how the UserProvider component is implemented:
+
+import { createContext } from 'react';const context = createContext(null);export default function UserProvider({ children }) {
+
+ return (
+
+ <context.Provider value={null}>
+
+ {children}
+
+ </context.Provider>
+
+ );
+
+}
+
+UserProvider.context = context;
+This code imports React’s `createContext()` function and uses that function to create a context object for sharing user context with other components. It then defines an exported UserProvider component, and tacks the context object onto the UserProvider component so that it is exported, too. The way the React context API works is that every context object has a `Provider` property whose value is a React component. To set the value of a context, you render this `<context.Provider>` component, setting its `value` prop to the context data to be shared with consumers. The UserProvider component defined above tries to hide some of this complexity: it renders the `context.Provider` component, hardcoding a value of `null`, and then renders its own children inside of that provider.
+
+## Get David Flanagan’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+- [x] 
+
+Remember me for faster sign in
+
+ 
+
+I’ve shown this code here to demonstrate how React context providers work. Note, however, that this version of UserProvider is completely useless, because it always provides the value `null`. In order to actually provide meaningful data, we need to introduce the `useState()` and `useEffect()` hooks.
+
+## useState()
+
+React components use state when they want to change their appearance based not on properties passed in to them, but instead based on something that has happened to them. If you were implementing a dropdown menu with React, for example, you might use a state variable to keep track of whether the menu is opened or closed. The component’s rendering code would be written to render the menu in its open or closed state based on the value of the state variable. And the rendered menu would have mouse event handlers that would set the state variable depending on where and when the user clicked the mouse. One of the key things to understand about state in React components is that when the state changes, React re-renders the component. So in a dropdown menu component, a user’s mouse click might cause the component’s `open` state variable to change from `false` to `true`. This state change causes the menu to be re-rendered. The render code looks at the value of that `open` variable and renders the open form of the menu instead of the closed form of the menu.
+
+Most often when a React component uses state, state changes are caused by mouse or keyboard events. But state can also changes based on timer or network events. It is network events that we’re interested in for the UserProvider component. When the page first loads, the UserProvider will be in its initial state: it won’t have any data about the user, and the context value will just be `null`. But we’ll ask the server to tell us about the current user (which it can do based on the user’s session cookie). And when we get a response to that query, the UserProvider will be in a new state: the state where it knows about the user.
+
+Here’s a version of the UserProvider component that uses the `useState()`hook to define and manage it state:
+
+import { createContext, useState } from 'react';const context = React.createContext(null);export default function UserProvider({ children }) {
+
+ const [userData, setUserData] = useState(null);
+
+ return (
+
+ <context.Provider value={userData}>
+
+ {children}
+
+ </context.Provider>
+
+ );
+
+}UserProvider.context = context;
+This version of UserProvider imports the `useState()` hook, and then calls it to define a state variable. The argument to `useState()` (in this case `null`) is the initial value of the state. The return value of `useState()` is an array of two elements. The first is the current value of the state variable, and the second is a function that you can use to set a new value for the variable. It is conventional to use destructuring assignment into a matched pair of names (like `userData` and `setUserData`) as we have done here.
+
+Our call to `useState()` returns the current value of the state variable and stores it in the `userData` constant. On the next line, we use `userData` as the value of the context provider component. This means that any descendant components (like our Login component) that call `useContext(UserProvider.context)` will have access to the value of that `userData` state variable.
+
+When this UserProvider component is first rendered, the `useState()` is called for the first time, and its `null` argument is used as the initial state value, and as the first element of the returned array. If `setUserData()` were to be called, the argument to that function would become the new value of the state variable. The state change would cause the component to be re-rendered. In that new render, `useState()` is called a second time. But this time, the `null` argument is ignored and the new current value is returned as the first element of the array. (As noted in the introduction to hooks above, this is the magical and non-intuitive part of hooks. If you’re feeling confused right now you might want to go re-read that section.)
+
+In our case, there isn’t anything that ever calls `setUserData()`, so the state never changes, and this UserProvider always provides the same useless value `null`. We need to ask the server for information about the user, and to do that we need the `useEffect()` hook.
+
+## useEffect()
+
+The `useEffect()` hook takes a function as its first argument and, by default, runs that function after every render. Used with one argument like this, it is similar to a class-based component that defines `componentDidMount()` and `componentDidUpdate()` methods. If the effect you want to achieve is something like registering a global event hander, then you may need cleanup code to remove the event handler when it is no longer needed. If your effect function returns a function, React will remember that function and invoke it before the next invocation of the effect function, and also when the component is unmounted. I won’t be using that feature in this blog post, but it is worth remembering that effects registered with `useEffect()` have a cleanup option.
+
+For our UserProvider component, the effect we want is to fetch user data from the server. But we only need to do this on the first render. We don’t expect the data to change, so we don’t want to re-fetch it on subsequent renders. `useEffect()` takes an array as an optional second argument. If you pass an array, then the values in it are used as a kind of cache key, and your effect function is only called on the first render, or when the values in the array change.
+
+Suppose you are writing a component that has three properties and two state variables. The component will be rerendered if any of those five values changes. But suppose that it uses the `useEffect()` hook to register an effect function that only depends on two of those five values and does not need to be re-run when any of the other three values change. In that case, you can simply pass an array of those two relevant values as the second argument to `useEffect()`. Your effect function will only be invoked on the first render, and then on any subsequent render when the array of values is different than the array passed previously.
+
+Notice that this means that if you pass an unchanging constant array as the second argument, then the effect function is only invoked once, and we get something similar to `componentDidMount()` for class-based components. When this is what you want, it is normal to pass the empty array as the second argument, and that is what you’ll see in the updated version of the UserProvider component below:
+
+import { createContext, useState, useEffect } from 'react';const context = createContext(null);export default function UserProvider({ children }) {
+
+ // The useState() hook defines a state variable.
+
+ const [userData, setUserData] = useState(null); // The useEffect() hook registers a function to run after render.
+
+ useEffect(() => {
+
+ fetch('/api/v1/whoami') // Ask the server for user data.
+
+ .then(response => response.json()) // Get the response as JSON
+
+ .then(data => { // When data arrives...
+
+ setUserData({ // set our state variable.
+
+ username: data.username,
+
+ isAuthenticated: data.is_authenticated,
+
+ timezone: data.timezone,
+
+ gravatarUrl: data.gravatar_url
+
+ });
+
+ });
+
+ }, []); // This empty array means the effect will only run once. // On the first render userData will have the default value null.
+
+ // But after that render, the effect function will run and will
+
+ // start a fetch of the real user data. When the data arrives, it
+
+ // will be passed to setUserData(), which changes state and
+
+ // triggers a new render. On this second render, we'll have real
+
+ // user data to provide to any consumers. (And the effect will not
+
+ // run again.)
+
+ return (
+
+ <context.Provider value={userData}>
+
+ {children}
+
+ </context.Provider>
+
+ );
+
+}UserProvider.context = context;
+In this final version of UserProvider, the `useEffect()` and `useState()` hooks are intertwined: the `useEffect()` hook triggers a network request for user data after the first render, and when that data arrives, the effect function passes it to the `setUserData()` function that was returned by the `useState()` hook. This change to the state variable causes the component to be re-rendered, which updates the context provider with the newly-received user data. And this means that functions like the Login component elsewhere in the tree can access that data with the `useContext()` hook.
+
+## Further Reading
+
+The Login and UserProvider components I’ve described here were fun to work on, and it was particularly satisfying to see how `useContext()`, `useState()`, and `useEffect()` all came together to make them work. If you are a React developer, I hope I’ve passed on my enthusiasm for the new hooks API. If so, here are some ways you can learn more:
+
+*   If you’d like to take a closer look at the (non-simplified versions of the) Login and UserProvider and related components, you can find them [on GitHub](https://github.com/mozilla/kuma/tree/master/kuma/javascript/src). (That link is valid at the time of this writing, though UserProvider is actually called CurrentUser. Our React-based code is experimental and changing fast, so it is likely that the code will move and this link will quickly go stale.)
+*   A key feature of the UserProvider component described in this post is that it uses client side JavaScript to dynamically request data from the web server. If you are not already comfortable with the `fetch()` function used to make the network request, you can find [comprehensive documentation on MDN](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+*   Finally, if you’d like to read more about hooks in React, the [documentation from the React project](https://reactjs.org/docs/hooks-intro.html) is quite good.
+
+[JavaScript](https://medium.com/tag/javascript?source=post_page-----aa899d8c8014---------------------------------------)
+
+[React](https://medium.com/tag/react?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Hooks](https://medium.com/tag/hooks?source=post_page-----aa899d8c8014---------------------------------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Faa899d8c8014&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&user=David+Flanagan&userId=70b3d287f497&source=---footer_actions--aa899d8c8014---------------------clap_footer------------------)
+
+268
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Faa899d8c8014&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&user=David+Flanagan&userId=70b3d287f497&source=---footer_actions--aa899d8c8014---------------------clap_footer------------------)
+
+268
+
+4
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Faa899d8c8014&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---footer_actions--aa899d8c8014---------------------bookmark_footer------------------)
+
+[![Image 4: David Flanagan](https://miro.medium.com/v2/resize:fill:48:48/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---post_author_info--aa899d8c8014---------------------------------------)
+
+[![Image 5: David Flanagan](https://miro.medium.com/v2/resize:fill:64:64/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---post_author_info--aa899d8c8014---------------------------------------)
+
+Follow
+
+## [Written by David Flanagan](https://medium.com/@__davidflanagan?source=post_page---post_author_info--aa899d8c8014---------------------------------------)
+
+[3.7K followers](https://medium.com/@__davidflanagan/followers?source=post_page---post_author_info--aa899d8c8014---------------------------------------)
+
+·[84 following](https://medium.com/@__davidflanagan/following?source=post_page---post_author_info--aa899d8c8014---------------------------------------)
+
+Programmer at Mozilla. Author of JavaScript: The Definitive Guide and other books from O'Reilly.
+
+Follow
+
+## Responses (4)
+
+[](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page---post_responses--aa899d8c8014---------------------------------------)
+
+![Image 6: Nazario A. Ayala](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---post_responses--aa899d8c8014---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[![Image 7: Nazario A. Ayala](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)](https://medium.com/@nazario.a?source=post_page---post_responses--aa899d8c8014----0-----------------------------------)
+
+[Nazario A. Ayala](https://medium.com/@nazario.a?source=post_page---post_responses--aa899d8c8014----0-----------------------------------)
+
+[Apr 7, 2022](https://medium.com/@nazario.a/someone-once-told-me-not-to-use-useeffect-inside-a-provider-fucntion-803888a177b9?source=post_page---post_responses--aa899d8c8014----0-----------------------------------)
+
+useEffect(() => {
+
+Someone once told me not to use useEffect inside a Provider fucntion. Their argument is that it us harder to test. Whta are your thoughts?
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2F803888a177b9&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40nazario.a%2Fsomeone-once-told-me-not-to-use-useeffect-inside-a-provider-fucntion-803888a177b9&user=Nazario+A.+Ayala&userId=fa76a05082&source=---post_responses--803888a177b9----0-----------------respond_sidebar------------------)
+
+--
+
+Reply
+
+[![Image 8: Андрей Бушман](https://miro.medium.com/v2/resize:fill:32:32/1*7CoDV2RVW1dI_YNOQg9neQ.png)](https://medium.com/@bushman.andrey?source=post_page---post_responses--aa899d8c8014----1-----------------------------------)
+
+[Андрей Бушман](https://medium.com/@bushman.andrey?source=post_page---post_responses--aa899d8c8014----1-----------------------------------)
+
+[Aug 21, 2019](https://medium.com/@bushman.andrey/hi-david-thank-you-for-your-books-480c83fb5000?source=post_page---post_responses--aa899d8c8014----1-----------------------------------)
+
+Hi David. Thank you for your books. Have you plans to recovery your web-site ( [http://davidflanagan.com](http://davidflanagan.com/))? Also, have you plan to update your “JavaScript: The Definitive Guide: Activate Your Web Pages (Definitive Guides)” book for ES6 and newer? Thank you.
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2F480c83fb5000&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40bushman.andrey%2Fhi-david-thank-you-for-your-books-480c83fb5000&user=%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B9+%D0%91%D1%83%D1%88%D0%BC%D0%B0%D0%BD&userId=82bfeb673b6b&source=---post_responses--480c83fb5000----1-----------------respond_sidebar------------------)
+
+--
+
+Reply
+
+[![Image 9: Steven Roussey](https://miro.medium.com/v2/resize:fill:32:32/0*K0AuQCxAe9TCMgB4.jpeg)](https://medium.com/@sroussey?source=post_page---post_responses--aa899d8c8014----2-----------------------------------)
+
+[Steven Roussey](https://medium.com/@sroussey?source=post_page---post_responses--aa899d8c8014----2-----------------------------------)
+
+[Apr 2, 2019](https://medium.com/@sroussey/power-and-with-performance-gotchas-hooks-are-eager-and-undo-lazy-evaluation-a89a194950a2?source=post_page---post_responses--aa899d8c8014----2-----------------------------------)
+
+powerful new way to define components, using a mechanism known as hooks.
+
+Power and with performance gotchas. Hooks are eager and undo lazy evaluation.*
+
+https://twitter.com/sebmarkbage/status/1101690609457258496?s=21
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Fa89a194950a2&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40sroussey%2Fpower-and-with-performance-gotchas-hooks-are-eager-and-undo-lazy-evaluation-a89a194950a2&user=Steven+Roussey&userId=e185b84fec11&source=---post_responses--a89a194950a2----2-----------------respond_sidebar------------------)
+
+--
+
+Reply
+
+See all responses
+
+## More from David Flanagan
+
+![Image 10: For the Record](https://miro.medium.com/v2/resize:fit:679/format:webp/1*bxfAo9Pc-6VSLjplRDs4ww.jpeg)
+
+[![Image 11: David Flanagan](https://miro.medium.com/v2/resize:fill:20:20/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----0---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[David Flanagan](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----0---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+## [For the Record ### and The Tragedy of Mozilla](https://medium.com/@__davidflanagan/7645a4bf8a2?source=post_page---author_recirc--aa899d8c8014----0---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+Apr 4, 2014
+
+[](https://medium.com/@__davidflanagan/7645a4bf8a2?source=post_page---author_recirc--aa899d8c8014----0---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---author_recirc--aa899d8c8014----0-----------------explicit_signal----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F7645a4bf8a2&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Ffor-the-record-7645a4bf8a2&source=---author_recirc--aa899d8c8014----0-----------------bookmark_preview----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+![Image 12: Inquisitive Programming](https://miro.medium.com/v2/resize:fit:679/format:webp/1*aKrUWhpB3m3lvjU3hcu8kQ.png)
+
+[![Image 13: David Flanagan](https://miro.medium.com/v2/resize:fill:20:20/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----1---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[David Flanagan](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----1---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+## [Inquisitive Programming ### A new approach to teaching coding](https://medium.com/@__davidflanagan/inquisitive-programming-3a765cc98655?source=post_page---author_recirc--aa899d8c8014----1---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+Sep 29, 2016
+
+[2](https://medium.com/@__davidflanagan/inquisitive-programming-3a765cc98655?source=post_page---author_recirc--aa899d8c8014----1---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---author_recirc--aa899d8c8014----1-----------------explicit_signal----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F3a765cc98655&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Finquisitive-programming-3a765cc98655&source=---author_recirc--aa899d8c8014----1-----------------bookmark_preview----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+![Image 14: No Tuxedo Required](https://miro.medium.com/v2/resize:fit:679/format:webp/5f1f586cc41943becdefc4cf716f5e4d75f28bf980a0168ac5279df3fcf6dd00)
+
+[![Image 15: David Flanagan](https://miro.medium.com/v2/resize:fill:20:20/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----2---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[David Flanagan](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----2---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+## [No Tuxedo Required ### One Geek’s Thoughts on Charitable Giving](https://medium.com/@__davidflanagan/c2e98ff4b5ec?source=post_page---author_recirc--aa899d8c8014----2---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+Dec 18, 2013
+
+[](https://medium.com/@__davidflanagan/c2e98ff4b5ec?source=post_page---author_recirc--aa899d8c8014----2---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---author_recirc--aa899d8c8014----2-----------------explicit_signal----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fc2e98ff4b5ec&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Fno-tuxedo-required-c2e98ff4b5ec&source=---author_recirc--aa899d8c8014----2-----------------bookmark_preview----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+![Image 16: Bannon Must Go!](https://miro.medium.com/v2/resize:fit:679/format:webp/1*qSRQPMeTnl8FzQa3sH5IDg.jpeg)
+
+[![Image 17: David Flanagan](https://miro.medium.com/v2/resize:fill:20:20/0*1zpjtmlA96onhTVD.jpeg)](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----3---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[David Flanagan](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014----3---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+## [Bannon Must Go! ### Our tax dollars should not pay for a white nationalist in the White House.](https://medium.com/@__davidflanagan/bannon-must-go-c89e9a2a8573?source=post_page---author_recirc--aa899d8c8014----3---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+Nov 14, 2016
+
+[](https://medium.com/@__davidflanagan/bannon-must-go-c89e9a2a8573?source=post_page---author_recirc--aa899d8c8014----3---------------------d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---author_recirc--aa899d8c8014----3-----------------explicit_signal----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fc89e9a2a8573&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Fbannon-must-go-c89e9a2a8573&source=---author_recirc--aa899d8c8014----3-----------------bookmark_preview----d5e94712_24b7_42ab_a7b9_24dfad95eb00--------------)
+
+[See all from David Flanagan](https://medium.com/@__davidflanagan?source=post_page---author_recirc--aa899d8c8014---------------------------------------)
+
+## Recommended from Medium
+
+![Image 18: I Used the useEffectEvent Hook: Here’s What I Found](https://miro.medium.com/v2/resize:fit:679/format:webp/0*hzeWQ3cr3iCGSDg6.png)
+
+[![Image 19: JavaScript in Plain English](https://miro.medium.com/v2/resize:fill:20:20/1*yUNfohs9jA6GCDmyCYJTvA@2x.png)](https://medium.com/javascript-in-plain-english?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+In
+
+[JavaScript in Plain English](https://medium.com/javascript-in-plain-english?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+by
+
+[Imran Farooq](https://medium.com/@imranfarooq_81537?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+## [I Used the useEffectEvent Hook: Here’s What I Found ### If you’ve ever struggled with stale closures in React Effects or found yourself wrestling with dependency arrays, you’re not alone. I…](https://medium.com/javascript-in-plain-english/i-used-the-useeffectevent-hook-heres-what-i-found-fff9849f775c?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+Nov 13, 2025
+
+[](https://medium.com/javascript-in-plain-english/i-used-the-useeffectevent-hook-heres-what-i-found-fff9849f775c?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---read_next_recirc--aa899d8c8014----0-----------------explicit_signal----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ffff9849f775c&operation=register&redirect=https%3A%2F%2Fjavascript.plainenglish.io%2Fi-used-the-useeffectevent-hook-heres-what-i-found-fff9849f775c&source=---read_next_recirc--aa899d8c8014----0-----------------bookmark_preview----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+![Image 20: CLAUDE.md Best Practices](https://miro.medium.com/v2/resize:fit:679/format:webp/1*grkcAnwIvZ62EI_cy4KSSA.png)
+
+[![Image 21: UX Planet](https://miro.medium.com/v2/resize:fill:20:20/1*A0FnBy5FBoVQC02SZXLXPg.png)](https://medium.com/ux-planet?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+In
+
+[UX Planet](https://medium.com/ux-planet?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+by
+
+[Nick Babich](https://medium.com/@101?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+## [CLAUDE.md Best Practices ### 10 Sections to Include in your CLAUDE.md](https://medium.com/ux-planet/claude-md-best-practices-1ef4f861ce7c?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+Mar 6
+
+[21](https://medium.com/ux-planet/claude-md-best-practices-1ef4f861ce7c?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---read_next_recirc--aa899d8c8014----1-----------------explicit_signal----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F1ef4f861ce7c&operation=register&redirect=https%3A%2F%2Fuxplanet.org%2Fclaude-md-best-practices-1ef4f861ce7c&source=---read_next_recirc--aa899d8c8014----1-----------------bookmark_preview----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+![Image 22: System Design for Frontend Engineers: Building a Scalable Dashboard](https://miro.medium.com/v2/resize:fit:679/format:webp/0*RJL1pP9AlduhKJhf.png)
+
+[![Image 23: Stackademic](https://miro.medium.com/v2/resize:fill:20:20/1*U-kjsW7IZUobnoy1gAp1UQ.png)](https://medium.com/stackademic?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+In
+
+[Stackademic](https://medium.com/stackademic?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+by
+
+[Gatik Rajput](https://medium.com/@gatikrajput08?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+## [System Design for Frontend Engineers: Building a Scalable Dashboard ### A frontend system design guide to state, rendering, and caching that actually works in production](https://medium.com/stackademic/system-design-for-frontend-engineers-building-a-scalable-dashboard-5de2966334f4?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+Feb 24
+
+[](https://medium.com/stackademic/system-design-for-frontend-engineers-building-a-scalable-dashboard-5de2966334f4?source=post_page---read_next_recirc--aa899d8c8014----0---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---read_next_recirc--aa899d8c8014----0-----------------explicit_signal----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F5de2966334f4&operation=register&redirect=https%3A%2F%2Fblog.stackademic.com%2Fsystem-design-for-frontend-engineers-building-a-scalable-dashboard-5de2966334f4&source=---read_next_recirc--aa899d8c8014----0-----------------bookmark_preview----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+![Image 24: React Suspense + TypeScript 6.0: Building Resilient Data-Driven UIs](https://miro.medium.com/v2/resize:fit:679/format:webp/1*3neVpYehosx78dzpZo4cAQ.png)
+
+[![Image 25: Kevin - MERN Stack Developer](https://miro.medium.com/v2/resize:fill:20:20/1*aUGBohBB1VAnsoGAdjEZoQ.png)](https://medium.com/@mernstackdevbykevin?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[Kevin - MERN Stack Developer](https://medium.com/@mernstackdevbykevin?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+## [React Suspense + TypeScript 6.0: Building Resilient Data-Driven UIs ### Async Data Fetching with React 19 + TypeScript 6.0: The Complete Developer’s Guide](https://medium.com/@mernstackdevbykevin/react-suspense-typescript-6-0-building-resilient-data-driven-uis-45d3d76145bc?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+Nov 12, 2025
+
+[](https://medium.com/@mernstackdevbykevin/react-suspense-typescript-6-0-building-resilient-data-driven-uis-45d3d76145bc?source=post_page---read_next_recirc--aa899d8c8014----1---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---read_next_recirc--aa899d8c8014----1-----------------explicit_signal----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F45d3d76145bc&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40mernstackdevbykevin%2Freact-suspense-typescript-6-0-building-resilient-data-driven-uis-45d3d76145bc&source=---read_next_recirc--aa899d8c8014----1-----------------bookmark_preview----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+![Image 26: React conceptual interview questions with code snippets](https://miro.medium.com/v2/resize:fit:679/format:webp/1*QLuL6qndGCzcIJSEwIMQIw.png)
+
+[![Image 27: Abdul Basit](https://miro.medium.com/v2/resize:fill:20:20/1*Zir5s7NdiFlUQydsmAUatw.jpeg)](https://medium.com/@basit.miyanjee?source=post_page---read_next_recirc--aa899d8c8014----2---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[Abdul Basit](https://medium.com/@basit.miyanjee?source=post_page---read_next_recirc--aa899d8c8014----2---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+## [80% of React developers can’t answer all of these questions correctly ### Not your usual text only React quiz, this one makes you think](https://medium.com/@basit.miyanjee/80-of-react-developers-cant-answer-all-of-these-questions-correctly-fa735915637a?source=post_page---read_next_recirc--aa899d8c8014----2---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+Apr 16
+
+[](https://medium.com/@basit.miyanjee/80-of-react-developers-cant-answer-all-of-these-questions-correctly-fa735915637a?source=post_page---read_next_recirc--aa899d8c8014----2---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---read_next_recirc--aa899d8c8014----2-----------------explicit_signal----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ffa735915637a&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40basit.miyanjee%2F80-of-react-developers-cant-answer-all-of-these-questions-correctly-fa735915637a&source=---read_next_recirc--aa899d8c8014----2-----------------bookmark_preview----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+![Image 28: What is React 19 Hoisting and why does it make SEO easier?](https://miro.medium.com/v2/resize:fit:679/format:webp/0*SFscE5K8Ciak8Lz3)
+
+[![Image 29: Atharva Ralegankar](https://miro.medium.com/v2/resize:fill:20:20/0*CjpSzkx3OH6qLoId)](https://medium.com/@atharvaralegankar2005?source=post_page---read_next_recirc--aa899d8c8014----3---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[Atharva Ralegankar](https://medium.com/@atharvaralegankar2005?source=post_page---read_next_recirc--aa899d8c8014----3---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+## [What is React 19 Hoisting and why does it make SEO easier? ### If you’ve built a React app in the last five years, you’ve probably used react-helmet or react-helmet-async to manage SEO.](https://medium.com/@atharvaralegankar2005/what-is-react-19-hoisting-and-why-does-it-make-seo-easier-e541bd120445?source=post_page---read_next_recirc--aa899d8c8014----3---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+Jan 25
+
+[](https://medium.com/@atharvaralegankar2005/what-is-react-19-hoisting-and-why-does-it-make-seo-easier-e541bd120445?source=post_page---read_next_recirc--aa899d8c8014----3---------------------861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40__davidflanagan%2Freact-hooks-context-state-and-effects-aa899d8c8014&source=---read_next_recirc--aa899d8c8014----3-----------------explicit_signal----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fe541bd120445&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40atharvaralegankar2005%2Fwhat-is-react-19-hoisting-and-why-does-it-make-seo-easier-e541bd120445&source=---read_next_recirc--aa899d8c8014----3-----------------bookmark_preview----861fcd24_ee3f_4cdd_a3e3_835793f2051f--------------)
+
+[See more recommendations](https://medium.com/?source=post_page---read_next_recirc--aa899d8c8014---------------------------------------)
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----aa899d8c8014---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----aa899d8c8014---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----aa899d8c8014---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----aa899d8c8014---------------------------------------)
+
+---
+
+Title: React Hooks - GeeksforGeeks
+[![geeksforgeeks](https://media.geeksforgeeks.org/gfg-gg-logo.svg)](https://www.geeksforgeeks.org/)
+
+* Interview Prep
+
+* [React Course](https://www.geeksforgeeks.org/courses/react-js-beginner-to-advance?utm_campaign=662_reactjs&utm_medium=gfgcontent_shm&utm_source=geeksforgeeks)
+* [React Tutorial](https://www.geeksforgeeks.org/reactjs/react/)
+* [React Exercise](https://www.geeksforgeeks.org/reactjs/practice-react-online/)
+* [React Basic Concepts](https://www.geeksforgeeks.org/reactjs/reactjs-basics-concepts-complete-reference/)
+* [React Components](https://www.geeksforgeeks.org/reactjs/reactjs-components-complete-reference/)
+* [React Props](https://www.geeksforgeeks.org/reactjs/reactjs-props-complete-reference/)
+* [React Hooks](https://www.geeksforgeeks.org/reactjs/reactjs-hooks-complete-reference/)
+* [React Router](https://www.geeksforgeeks.org/reactjs/reactjs-router/)
+* [React Advanced](https://www.geeksforgeeks.org/reactjs/reactjs-advanced-guides-complete-reference/)
+* [React Examples](https://www.geeksforgeeks.org/reactjs/reactjs-examples/)
+* [React Interview Questions](https://www.geeksforgeeks.org/reactjs/react-interview-questions/)
+* [React Projects](https://www.geeksforgeeks.org/reactjs/reactjs-projects/)
+
+# React Hooks
+
+Last Updated : 4 Apr, 2026
+
+React Hooks, introduced in React 16.8, enable functional components to use state, lifecycle, and other React features without relying on class components.
+
+* Eliminate the need for class components for state and side-effect management.
+* Improve code readability and encourage a functional programming style.
+* Widely adopted in modern React projects for cleaner and more maintainable code.
+
+![hooks_in_react](https://media.geeksforgeeks.org/wp-content/uploads/20250808130739313342/hooks_in_react.webp)
+
+## Types of React Hooks
+
+React provides a range of hooks that enable functional components to manage state, side effects, and other core behaviors. Some of the most commonly used React hooks include:
+
+### 1. State Hooks
+
+State hooks like [useState](https://www.geeksforgeeks.org/reactjs/reactjs-usestate-hook/) and [useReducer](https://www.geeksforgeeks.org/reactjs/reactjs-usereducer-hook/) enable functional components to manage state in a clean, efficient, and modular way.
+
+****useState:**** The useState hook is used to declare state variables in functional components. It allows us to read and update the state within the component.
+
+ JavaScript  ````
+ import  React,  { useState  }  from  "react"; function  App()  { const  [count,  setCount]  =  useState(0);  const  increment  =  ()  =>  setCount(count  +  1);  const  decrement  =  ()  =>  setCount(count  -  1);  return  ( < div>  < h1> Count:  {count}</h1> {/*  Display  the  current  count  */}  < button  onClick ={increment}> Increment</button> {/*  Increment  the  count  */}  < button  onClick ={decrement}> Decrement</button> {/*  Decrement  the  count  */}  </div>  );} export  default  App;
+```` 
+
+* useState is used to declare state variables in functional components.
+* The state variable (count) and the updater function (setCount) allow you to read and update the state.
+
+****Output:****
+
+![state-hook](https://media.geeksforgeeks.org/wp-content/uploads/20250308161428390868/state-hook.gif)
+
+****Syntax:****
+
+```
+const [state, setState] = useState(initialState);
+```
+
+* ****state:**** The current value of the state.
+* ****setState:**** A function used to update the state.
+* ****initialState:****The initial value of the state, which can be a primitive type or an object/array
+
+****useReducer:**** The useReducer hook is a more advanced state management hook used for handling more complex state logic, often involving multiple sub-values or more intricate state transitions.
+
+ JavaScript  ````
+ import  React,  { useReducer  }  from  "react"; function  reducer(count,  action)  { if  (action  ===  "increment")  { return  count  +  1;  }  if  (action  ===  "decrement")  { return  count  -  1;  }  return  count;} function  App()  { const  [count,  dispatch]  =  useReducer(reducer,  0);  const  increment  =  ()  =>  dispatch("increment");  const  decrement  =  ()  =>  dispatch("decrement");  return  ( < div>  < h1> Count:  {count}</h1> {/*  Display  the  current  count  */}  < button  onClick ={increment}> Increment</button> {/*  Increment  the  count  */}  < button  onClick ={decrement}> Decrement</button> {/*  Decrement  the  count  */}  </div>  );} export  default  App;
+```` 
+
+****Output:****
+
+![state-hook](https://media.geeksforgeeks.org/wp-content/uploads/20250308161428390868/state-hook.gif)
+
+****Syntax:****
+
+```
+const [state, dispatch] = useReducer(reducer, initialState);
+```
+
+* ****state:**** The current state value.
+* ****dispatch:**** A function used to dispatch actions that will update the state.
+* ****reducer:**** A function that defines how the state should change based on the dispatched action.
+* ****initialState:**** The initial state value.
+
+### 2. Context Hooks
+
+The [useContext](https://www.geeksforgeeks.org/reactjs/reactjs-usecontext-hook/) hook allows functional components to directly access values from the [React Context API](https://www.geeksforgeeks.org/reactjs/what-is-the-react-context-api/) without prop drilling.
+
+* Simplifies data sharing across the component tree.
+* Eliminates the need to pass props manually through multiple levels.
+* Makes context consumption cleaner and more readable.
+
+ JavaScript  ````
+ import  React,  { createContext,  useContext,  useState  }  from  "react"; const  ThemeContext  =  createContext(); function  App()  { const  [theme,  setTheme]  =  useState("light");  const  toggleTheme  =  ()  =>  { setTheme((prevTheme)  =>  (prevTheme  ===  "light"  ?  "dark"  :  "light"));  };  return  ( < ThemeContext. Provider  value ={theme}>  < div>  < h1> Current  Theme:  {theme}</h1>  < button  onClick ={toggleTheme}> Toggle  Theme</button>  < ThemeDisplay  />  </div>  </ThemeContext.Provider>  );} function  ThemeDisplay()  { const  theme  =  useContext(ThemeContext);  return  < h2> Theme  from  Context:  {theme}</h2>;} export  default  App;
+```` 
+
+* useContext allows you to consume context values, making it easier to share data across components without prop drilling.
+* The Provider makes the context value accessible to all components below it in the component tree.
+
+****Output:****
+
+![useContext](https://media.geeksforgeeks.org/wp-content/uploads/20250308163006582679/useContext.gif)
+
+Context Hook
+
+****Syntax:****
+
+```
+const contextValue = useContext(MyContext);
+```
+
+* The useContext hook takes a context object (MyContext) as an argument and returns the current value of that context.
+* The contextValue will hold the value provided by the nearest  in the component tree.
+
+### 3. Effect Hooks
+
+Effect hooks allow functional components to manage side effects in a structured and efficient manner.
+
+* [useEffect](https://www.geeksforgeeks.org/reactjs/reactjs-useeffect-hook/) handles common side effects like data fetching and subscriptions.
+* [useLayoutEffect](https://www.geeksforgeeks.org/reactjs/reactjs-uselayouteffect-hook/) runs synchronously after DOM updates.
+* [useInsertionEffect](https://www.geeksforgeeks.org/reactjs/react-useinsertioneffect-hook/) manages style injections before DOM mutations.
+
+****useEffect:**** The useEffect hook allows functional components to handle side effects and replaces lifecycle methods like [componentDidMount](https://www.geeksforgeeks.org/reactjs/reactjs-componentdidmount-method/) and [componentDidUpdate](https://www.geeksforgeeks.org/reactjs/reactjs-componentdidupdate-method/).
+
+ C++  ````
+ import  React,  { useState,  useEffect  }  from  "react"; function  App()  { const  [count,  setCount]  =  useState(0);  useEffect(()  =>  { document. title  =  ` Count:  ${count} `;  console. log(` Effect  ran.  Count  is:  ${count} `);  return  ()  =>  { console. log("Cleanup for previous effect");  document. title  =  "React App";  };  },  [count]);  return  ( < div>  < h1> Count:  {count} h1>  < button  onClick ={()  =>  setCount(count  +  1)}> Increment  Count button>   div>  );} export  default  App;
+```` 
+
+* Updates the document title and logs changes when count updates.
+* Cleanup resets the title and clears the previous effect before re-running.
+
+****Output:****
+
+![effect-hook](https://media.geeksforgeeks.org/wp-content/uploads/20250308161941187033/effect-hook.gif)
+
+****Syntax:****
+
+```
+useEffect(() => { // Side effect logic here}, [dependencies]);
+```
+
+* useEffect(() => { ... }, [dependencies]); runs side effects after rendering.
+* The effect runs based on changes in the specified dependencies.
+
+****useLayoutEffect:**** useLayoutEffect is used to measure or modify the layout before the browser paints the screen, ensuring smooth visual updates without flickering.
+
+****Syntax:****
+
+```
+useLayoutEffect(() => { // Logic to manipulate layout or measure DOM elements}, [dependencies]);
+```
+
+****useInsertionEffect:**** The useInsertionEffect is designed for injecting styles early, especially useful for server-side rendering (SSR) or styling libraries, ensuring styles are in place before the component is rendered visually.
+
+****Syntax:****
+
+```
+useInsertionEffect(() => { // Logic to inject styles or manipulate stylesheets}, [dependencies]);
+```
+
+### 4. Performance Hook
+
+Performance Hooks in React, like [useMemo](https://www.geeksforgeeks.org/reactjs/react-js-usememo-hook/) and [useCallback](https://www.geeksforgeeks.org/reactjs/react-js-usecallback-hook/), are used to optimize performance by avoiding unnecessary re-renders or recalculations.
+
+****useMemo:**** useMemo is a React hook that caches the result of an expensive calculation and recomputes it only when its dependencies change, improving performance by avoiding unnecessary recalculations.
+
+****Syntax:****
+
+```
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+```
+
+* Computes and stores the result of computeExpensiveValue(a, b).
+* Recalculates the value only when a or b changes.
+
+ JavaScript  ````
+ import  React,  { useState,  useMemo  }  from  "react"; function  App()  { const  [count,  setCount]  =  useState(0);  const  [text,  setText]  =  useState("");  const  expensiveCalculation  =  useMemo(()  =>  { console. log("Expensive calculation...");  return  count  *  2;  },  [count]);  return  ( < div>  < h1> Count:  {count}</h1>  < h2> Expensive  Calculation:  {expensiveCalculation}</h2>  < button  onClick ={()  =>  setCount(count  +  1)}> Increment  Count</button>  < input  type = "text"  value ={text}  onChange ={(e)  =>  setText(e. target. value)}  placeholder = "Type something"  />  </div>  );} export  default  App;
+```` 
+
+* useMemo memoizes the result of expensiveCalculation.
+* It only recomputes when count changes.
+* When text changes, the calculation is not re-run, optimizing performance.
+* console.log appears only when count changes, showing memoization works.
+
+****Output:****
+
+![performance-hook](https://media.geeksforgeeks.org/wp-content/uploads/20250308162228150137/performance-hook.gif)
+
+Performance Hooks
+
+****useCallback:**** useCallback is a React hook that memoizes functions so they are recreated only when their dependencies change, helping prevent unnecessary re-renders when functions are passed to child components.
+
+****Syntax:****
+
+```
+const memoizedCallback = useCallback(() => { doSomething(a, b); }, [a, b]);
+```
+
+* useMemo caches the computed value (num \* 2), recalculating it only when num changes.
+* This prevents unnecessary calculations on every render.
+
+### 5. Resource Hooks(useRef)
+
+useRef is a React hook used to store mutable values or access DOM elements without triggering re-renders.
+
+* Persists values across renders without affecting the UI.
+* Commonly used for DOM references and mutable variables.
+
+ JavaScript  ````
+ import  React,  { useState,  useRef  }  from  "react"; function  App()  { const  countRef  =  useRef(0);  const  [forceRender,  setForceRender]  =  useState(false);  const  increment  =  ()  =>  { countRef. current  +=  1;  setForceRender(! forceRender);  };  return  ( < div>  < h1> Count:  {countRef. current}</h1> {/*  Display  count  value  */}  < button  onClick ={increment}> Increment</button>  </div>  );} export  default  App;
+```` 
+
+* countRef holds the mutable count value.
+* useState (forceRender) triggers re-renders to reflect changes in the UI.
+* When the Increment button is clicked, countRef is updated.
+* setForceRender forces a re-render to update the UI.
+* The updated count is displayed in an
+
+  # tag, not in a prompt.
+
+****Output:****
+
+![useref](https://media.geeksforgeeks.org/wp-content/uploads/20250308162708710536/useref.gif)
+
+Resource Hooks
+
+****Syntax:****
+
+```
+const refContainer = useRef(initialValue);
+```
+
+### 6. Custom Hooks
+
+[Custom Hooks](https://www.geeksforgeeks.org/reactjs/reactjs-custom-hooks/) are user-defined functions that encapsulate reusable logic. They enhance code reusability and readability by sharing behavior between components.
+
+ JavaScript  ````
+//useWidth.js import  { useState,  useEffect  }  from  "react"; function  useWidth()  { const  [width,  setWidth]  =  useState(window. innerWidth);  useEffect(()  =>  { const  handleResize  =  ()  =>  setWidth(window. innerWidth);  window. addEventListener("resize",  handleResize);  return  ()  =>  window. removeEventListener("resize",  handleResize);  },  []);  return  width;} export  default  useWidth;
+```` 
+
+****Using a Custom Hook****
+
+ JavaScript  ````
+ import  React  from  "react"; import  useWidth  from  "./useWidth"; function  App()  { const  width  =  useWidth();  return  < h1> Window  Width:  {width} px</h1>;} export  default  App;
+```` 
+
+* The custom hook useWidth encapsulates the logic for tracking the window's width.
+* It reduces redundancy by reusing the logic across components.
+
+### 7. Other Hooks
+
+React offers additional hooks for specific use cases
+
+* udeImperativeHandle: [useImperativeHandle](https://www.geeksforgeeks.org/reactjs/react-js-useimperativehandle-additional-hook/) customizes the instance value exposed by useRef.
+* useDebugValue: Displays custom labels for hooks in [React](https://www.geeksforgeeks.org/reactjs/what-is-react-developer-tool/)[DevTools](https://www.geeksforgeeks.org/reactjs/what-is-react-developer-tool/).
+
+## Difference Between Hooks and Class Components
+
+| Class Components | React Hooks |
+| --- | --- |
+| Use ES6 classes with `this.state` and lifecycle methods. | Use functions with hooks like useState and useEffect. |
+| Logic is spread across methods, can be complex. | Logic is grouped and easier to manage. |
+| Difficult to reuse logic. | Easy to create and reuse custom hooks. |
+| Familiar to OOP developers. | Requires different mindset than classes. |
+| Support error boundaries. | Error boundaries are not supported yet. |
+
+Comment
+
+Article Tags:
+
+Article Tags:
+
+[ReactJS](https://www.geeksforgeeks.org/category/web-technologies/reactjs/)
+
+[React-Hooks](https://www.geeksforgeeks.org/tag/react-hooks/)
+
+### Explore
+
+React Fundamentals
+
++ [React Introduction5 min read](https://www.geeksforgeeks.org/reactjs/reactjs-introduction/)
++ [React Environment Setup3 min read](https://www.geeksforgeeks.org/reactjs/reactjs-environment-setup/)
++ [React JS ReactDOM2 min read](https://www.geeksforgeeks.org/reactjs/reactjs-reactdom/)
++ [React JSX4 min read](https://www.geeksforgeeks.org/reactjs/reactjs-jsx-introduction/)
++ [ReactJS Rendering Elements3 min read](https://www.geeksforgeeks.org/reactjs/reactjs-rendering-elements/)
++ [React Lists3 min read](https://www.geeksforgeeks.org/reactjs/reactjs-lists/)
++ [React Forms4 min read](https://www.geeksforgeeks.org/reactjs/reactjs-forms/)
++ [ReactJS Keys4 min read](https://www.geeksforgeeks.org/reactjs/reactjs-keys/)
+
+Components in React
+
++ [React Components3 min read](https://www.geeksforgeeks.org/reactjs/reactjs-components/)
++ [ReactJS Functional Components3 min read](https://www.geeksforgeeks.org/reactjs/reactjs-functional-components/)
++ [React Class Components3 min read](https://www.geeksforgeeks.org/reactjs/reactjs-class-components/)
++ [ReactJS Pure Components4 min read](https://www.geeksforgeeks.org/reactjs/reactjs-pure-components/)
++ [ReactJS Container and Presentational Pattern in Components2 min read](https://www.geeksforgeeks.org/reactjs/reactjs-container-and-presentational-pattern-in-components/)
++ [ReactJS PropTypes5 min read](https://www.geeksforgeeks.org/reactjs/reactjs-proptypes/)
++ [React Lifecycle6 min read](https://www.geeksforgeeks.org/reactjs/reactjs-lifecycle-components/)
+
+React Hooks
+
++ [React Hooks7 min read](https://www.geeksforgeeks.org/reactjs/reactjs-hooks/)
++ [React useState Hook4 min read](https://www.geeksforgeeks.org/reactjs/reactjs-usestate-hook/)
++ [ReactJS useEffect Hook5 min read](https://www.geeksforgeeks.org/reactjs/reactjs-useeffect-hook/)
+
+Routing in React
+
++ [React Router5 min read](https://www.geeksforgeeks.org/reactjs/reactjs-router/)
++ [React JS Types of Routers10 min read](https://www.geeksforgeeks.org/reactjs/reactjs-types-of-routers/)
+
+Advanced React Concepts
+
++ [Lazy Loading in React2 min read](https://www.geeksforgeeks.org/reactjs/lazy-loading-in-react-and-how-to-implement-it/)
++ [ReactJS Higher-Order Components4 min read](https://www.geeksforgeeks.org/reactjs/react-js-higher-order-components/)
++ [Code Splitting in React4 min read](https://www.geeksforgeeks.org/reactjs/code-splitting-in-react/)
+
+React Projects
+
++ [Create ToDo App using ReactJS3 min read](https://www.geeksforgeeks.org/reactjs/create-todo-app-using-reactjs/)
++ [Create a Quiz App using ReactJS4 min read](https://www.geeksforgeeks.org/reactjs/create-a-quiz-app-using-reactjs/)
++ [Create a Coin Flipping App using ReactJS3 min read](https://www.geeksforgeeks.org/reactjs/create-a-coin-flipping-app-using-reactjs/)
++ [How to create a Color-Box App using ReactJS?4 min read](https://www.geeksforgeeks.org/reactjs/how-to-create-a-color-box-app-using-reactjs/)
++ [Dice Rolling App using ReactJS4 min read](https://www.geeksforgeeks.org/reactjs/dice-rolling-app-using-reactjs/)
++ [Guess the number with React3 min read](https://www.geeksforgeeks.org/reactjs/guess-the-number-with-react/)
+
+---
+
+Title: Hooks at a Glance – React
+We want to hear from you![Take our 2021 Community Survey!](https://surveys.savanta.com/survey/selfserve/21e3/210643?list=2)
+
+This site is no longer updated.[Go to react.dev](https://react.dev/blog/2023/03/16/introducing-react-dev)
+
+[![](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii0xMS41IC0xMC4yMzE3NCAyMyAyMC40NjM0OCI+CiAgPHRpdGxlPlJlYWN0IExvZ288L3RpdGxlPgogIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyLjA1IiBmaWxsPSIjNjFkYWZiIi8+CiAgPGcgc3Ryb2tlPSIjNjFkYWZiIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIi8+CiAgICA8ZWxsaXBzZSByeD0iMTEiIHJ5PSI0LjIiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgPC9nPgo8L3N2Zz4K)React](/)
+
+[v18.2.0](/versions) [Languages](/languages)[GitHub](https://github.com/facebook/react/)
+
+# Hooks at a Glance
+
+> These docs are old and won’t be updated. Go to [react.dev](https://react.dev/) for the new React docs.
+>
+> These new documentation pages teach React with Hooks:
+>
+> * [Quick Start](https://react.dev/learn)
+> * [Tutorial](https://react.dev/learn/tutorial-tic-tac-toe)
+> * [`react`: Hooks](https://react.dev/reference/react)
+
+*Hooks* are a new addition in React 16.8. They let you use state and other React features without writing a class.
+
+Hooks are [backwards-compatible](/docs/hooks-intro.html#no-breaking-changes). This page provides an overview of Hooks for experienced React users. This is a fast-paced overview. If you get confused, look for a yellow box like this:
+
+> Detailed Explanation
+>
+> Read the [Motivation](/docs/hooks-intro.html#motivation) to learn why we’re introducing Hooks to React.
+
+**↑↑↑ Each section ends with a yellow box like this.** They link to detailed explanations.
+
+## 📌 State Hook
+
+This example renders a counter. When you click the button, it increments the value:
+
+```
+import React, { useState } from 'react'; import,{} from 'react'; function Example(){ // Declare a new state variable, which we'll call "count"// Declare a new state variable, which we'll call "count" const [count, setCount] = useState(0); const[,] = useState(0); return(<div><div<>  <p><p<> You clicked {}  timesp> p >  <button onClick={() => setCount(count + 1)}><button< onClick ={() => setCount(count + 1)} ={() => setCount(+ 1)}>  Click me  button> button >  div> div >);}
+```
+
+Here, `useState` is a *Hook* (we’ll talk about what this means in a moment). We call it inside a function component to add some local state to it. React will preserve this state between re-renders. `useState` returns a pair: the *current* state value and a function that lets you update it. You can call this function from an event handler or somewhere else. It’s similar to `this.setState` in a class, except it doesn’t merge the old and new state together. (We’ll show an example comparing `useState` to `this.state` in [Using the State Hook](/docs/hooks-state.html).)
+
+The only argument to `useState` is the initial state. In the example above, it is `0` because our counter starts from zero. Note that unlike `this.state`, the state here doesn’t have to be an object — although it can be if you want. The initial state argument is only used during the first render.
+
+#### Declaring multiple state variables
+
+You can use the State Hook more than once in a single component:
+
+```
+function ExampleWithManyStates(){// Declare multiple state variables! const[,] = useState(42); const[,] = useState('banana'); const[,] = useState([{text: 'Learn Hooks'}]);// ...}
+```
+
+The [array destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#Array_destructuring) syntax lets us give different names to the state variables we declared by calling `useState`. These names aren’t a part of the `useState` API. Instead, React assumes that if you call `useState` many times, you do it in the same order during every render. We’ll come back to why this works and when this is useful later.
+
+#### But what is a Hook?
+
+Hooks are functions that let you “hook into” React state and lifecycle features from function components. Hooks don’t work inside classes — they let you use React without classes. (We [don’t recommend](/docs/hooks-intro.html#gradual-adoption-strategy) rewriting your existing components overnight but you can start using Hooks in the new ones if you’d like.)
+
+React provides a few built-in Hooks like `useState`. You can also create your own Hooks to reuse stateful behavior between different components. We’ll look at the built-in Hooks first.
+
+> Detailed Explanation
+>
+> You can learn more about the State Hook on a dedicated page: [Using the State Hook](/docs/hooks-state.html).
+
+## ⚡️ Effect Hook
+
+You’ve likely performed data fetching, subscriptions, or manually changing the DOM from React components before. We call these operations “side effects” (or “effects” for short) because they can affect other components and can’t be done during rendering.
+
+The Effect Hook, `useEffect`, adds the ability to perform side effects from a function component. It serves the same purpose as `componentDidMount`, `componentDidUpdate`, and `componentWillUnmount` in React classes, but unified into a single API. (We’ll show examples comparing `useEffect` to these methods in [Using the Effect Hook](/docs/hooks-effect.html).)
+
+For example, this component sets the document title after React updates the DOM:
+
+```
+import React, { useState, useEffect } from 'react'; import,{,} from 'react'; function Example(){const[,] = useState(0); // Similar to componentDidMount and componentDidUpdate:// Similar to componentDidMount and componentDidUpdate: useEffect(() => {useEffect(() =>{ // Update the document title using the browser API// Update the document title using the browser API document.title = `You clicked ${count} times`;. =`You clicked ${count} times` ` You clicked ${count}${}  times `; });}); return(<div><div<>  <p><p<> You clicked {}  timesp> p >  <button onClick={() => setCount(count + 1)}><button< onClick ={() => setCount(count + 1)} ={() => setCount(+ 1)}>  Click me  button> button >  div> div >);}
+```
+
+When you call `useEffect`, you’re telling React to run your “effect” function after flushing changes to the DOM. Effects are declared inside the component so they have access to its props and state. By default, React runs the effects after every render — *including* the first render. (We’ll talk more about how this compares to class lifecycles in [Using the Effect Hook](/docs/hooks-effect.html).)
+
+Effects may also optionally specify how to “clean up” after them by returning a function. For example, this component uses an effect to subscribe to a friend’s online status, and cleans up by unsubscribing from it:
+
+```
+import,{,} from 'react'; function FriendStatus(props){const[,] = useState(null); function handleStatusChange(status){setIsOnline(.);} useEffect(() => {useEffect(() =>{ ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);. subscribeToFriendStatus(..,);  return () => {return() =>{ ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);. unsubscribeFromFriendStatus(..,); };}; });}); if(=== null){return'Loading...';} return ? 'Online': 'Offline';}
+```
+
+In this example, React would unsubscribe from our `ChatAPI` when the component unmounts, as well as before re-running the effect due to a subsequent render. (If you want, there’s a way to [tell React to skip re-subscribing](/docs/hooks-effect.html#tip-optimizing-performance-by-skipping-effects) if the `props.friend.id` we passed to `ChatAPI` didn’t change.)
+
+Just like with `useState`, you can use more than a single effect in a component:
+
+```
+function FriendStatusWithCounter(props){const[,] = useState(0); useEffect(() => {useEffect(() =>{. =`You clicked ${count} times` ` You clicked ${count}${}  times `;}); const[,] = useState(null); useEffect(() => {useEffect(() =>{. subscribeToFriendStatus(..,); return() =>{. unsubscribeFromFriendStatus(..,);};}); function handleStatusChange(status){setIsOnline(.);}// ...
+```
+
+Hooks let you organize side effects in a component by what pieces are related (such as adding and removing a subscription), rather than forcing a split based on lifecycle methods.
+
+> Detailed Explanation
+>
+> You can learn more about `useEffect` on a dedicated page: [Using the Effect Hook](/docs/hooks-effect.html).
+
+## ✌️ Rules of Hooks
+
+Hooks are JavaScript functions, but they impose two additional rules:
+
+* Only call Hooks **at the top level**. Don’t call Hooks inside loops, conditions, or nested functions.
+* Only call Hooks **from React function components**. Don’t call Hooks from regular JavaScript functions. (There is just one other valid place to call Hooks — your own custom Hooks. We’ll learn about them in a moment.)
+
+We provide a [linter plugin](https://www.npmjs.com/package/eslint-plugin-react-hooks) to enforce these rules automatically. We understand these rules might seem limiting or confusing at first, but they are essential to making Hooks work well.
+
+> Detailed Explanation
+>
+> You can learn more about these rules on a dedicated page: [Rules of Hooks](/docs/hooks-rules.html).
+
+## 💡 Building Your Own Hooks
+
+Sometimes, we want to reuse some stateful logic between components. Traditionally, there were two popular solutions to this problem: [higher-order components](/docs/higher-order-components.html) and [render props](/docs/render-props.html). Custom Hooks let you do this, but without adding more components to your tree.
+
+Earlier on this page, we introduced a `FriendStatus` component that calls the `useState` and `useEffect` Hooks to subscribe to a friend’s online status. Let’s say we also want to reuse this subscription logic in another component.
+
+First, we’ll extract this logic into a custom Hook called `useFriendStatus`:
+
+```
+import,{,} from 'react';function useFriendStatus(friendID) {function useFriendStatus(friendID){const[,] = useState(null); function handleStatusChange(status){setIsOnline(.);} useEffect(() =>{. subscribeToFriendStatus(,); return() =>{. unsubscribeFromFriendStatus(,);};}); return;}
+```
+
+It takes `friendID` as an argument, and returns whether our friend is online.
+
+Now we can use it from both components:
+
+```
+function FriendStatus(props){ const isOnline = useFriendStatus(props.friend.id); const = useFriendStatus(..); if(=== null){return'Loading...';} return ? 'Online': 'Offline';}
+```
+
+```
+function FriendListItem(props){ const isOnline = useFriendStatus(props.friend.id); const = useFriendStatus(..); return(<li style={{ color: isOnline ? 'green' : 'black' }}><li< style ={{ color: isOnline ? 'green' : 'black' }} ={{color: ? 'green': 'black'}}>  {..}  li> li >);}
+```
+
+The state of each component is completely independent. Hooks are a way to reuse *stateful logic*, not state itself. In fact, each *call* to a Hook has a completely isolated state — so you can even use the same custom Hook twice in one component.
+
+Custom Hooks are more of a convention than a feature. If a function’s name starts with ”`use`” and it calls other Hooks, we say it is a custom Hook. The `useSomething` naming convention is how our linter plugin is able to find bugs in the code using Hooks.
+
+You can write custom Hooks that cover a wide range of use cases like form handling, animation, declarative subscriptions, timers, and probably many more we haven’t considered. We are excited to see what custom Hooks the React community will come up with.
+
+> Detailed Explanation
+>
+> You can learn more about custom Hooks on a dedicated page: [Building Your Own Hooks](/docs/hooks-custom.html).
+
+## 🔌 Other Hooks
+
+There are a few less commonly used built-in Hooks that you might find useful. For example, [`useContext`](/docs/hooks-reference.html#usecontext) lets you subscribe to React context without introducing nesting:
+
+```
+function Example(){ const locale = useContext(LocaleContext); const = useContext(); const theme = useContext(ThemeContext); const = useContext();// ...}
+```
+
+And [`useReducer`](/docs/hooks-reference.html#usereducer) lets you manage local state of complex components with a reducer:
+
+```
+function Todos(){ const [todos, dispatch] = useReducer(todosReducer); const[,] = useReducer();// ...
+```
+
+> Detailed Explanation
+>
+> You can learn more about all the built-in Hooks on a dedicated page: [Hooks API Reference](/docs/hooks-reference.html).
+
+## Next Steps
+
+Phew, that was fast! If some things didn’t quite make sense or you’d like to learn more in detail, you can read the next pages, starting with the [State Hook](/docs/hooks-state.html) documentation.
+
+You can also check out the [Hooks API reference](/docs/hooks-reference.html) and the [Hooks FAQ](/docs/hooks-faq.html).
+
+Finally, don’t miss the [introduction page](/docs/hooks-intro.html) which explains *why* we’re adding Hooks and how we’ll start using them side by side with classes — without rewriting our apps.
+
+Is this page useful?[Edit this page](https://github.com/reactjs/reactjs.org/tree/main/content/docs/hooks-overview.md)
+
+* Previous article
+
+  [Introducing Hooks](/docs/hooks-intro.html)
+* Next article
+
+  [Using the State Hook](/docs/hooks-state.html)
+
+---
+
+Title: Learn React Hooks – Common Hooks Explained with Code Examples
+![freeCodeCamp.org](https://cdn.freecodecamp.org/platform/universal/fcc_primary.svg)
+
+# Learn React Hooks – Common Hooks Explained with Code Examples
+
+![Prankur Pandey](https://cdn.hashnode.com/res/hashnode/image/upload/v1727754406215/26828ef6-010f-4a93-b66d-0f12d5372b0d.png?w=500&h=500&fit=crop&crop=entropy&auto=compress,format&format=webp)
+![Learn React Hooks – Common Hooks Explained with Code Examples](https://cdn.hashnode.com/res/hashnode/image/upload/v1727212733982/7c9b8ae3-e8ac-4e20-b154-7edc60a6985a.avif)
+
+Web development is a popular field in the tech industry. It involves building web software using HTML, CSS, and JavaScript – sometimes with the help of various frameworks and libraries.
+
+Using libraries and frameworks allows developers to focus more on the development while the tools take care of certain functionality in the background. And React.js is a popular JavaScript library for building front-end applications.
+
+In this article, you’ll learn about the backbone of React which is **Hooks,** and how they can make your life easier as a developer.
+
+## What We’ll Cover:
+
+[Prerequisites:](#heading-prerequisites)
+
+[Getting Started](#heading-getting-started)
+
+[What are Hooks?](#heading-what-are-hooks)
+
+[Types of React Hooks](#heading-types-of-react-hooks)
+
+[State Management Hooks](#heading-state-management-hooks)
+
+[Effect Hooks](#heading-effect-hooks)
+
+[Ref Hook](#heading-ref-hook)
+
+[Performance Hooks](#heading-performance-hooks)
+
+[Context Hook](#heading-context-hook)
+
+[Transition Hook](#heading-transition-hook)
+
+[Some Random Hooks](#heading-some-random-hooks)
+
+[Conclusion](#heading-conclusion)
+
+## Prerequisites:
+
+You should know the basics of JavaScript.
+
+You should also know the basics of React, like setting up an app, updating it, and using state.
+
+## Getting Started
+
+So you've decided to build a React app—congratulations! 🎉 But as you dive into the world of React hooks, you might find yourself feeling overwhelmed. With a plethora of hooks available, figuring out which ones to use and when can be a bit daunting.
+
+Well, don’t worry – in this guide, I’ll break down every major hook so you can see how they fit together. We’ll also discuss which ones you'll use more frequently versus more rarely.
+
+By the end of this article, you'll have a comprehensive map of React hooks and their practical applications.
+
+## **What are Hooks?**
+
+In JavaScript, we use variables to store data and later perform operations on that data.
+
+Hooks in React work similarly, but they are designed to manage state in **functional components**. Instead of manually declaring a single variable, hooks like `useState` give us a way to declare stateful values along with a setter function to update that state.
+
+`useState`
+
+Here’s a simple example:
+
+`import React, { useState } from 'react';
+function Counter() {
+const [count, setCount] = useState(0); // Initialize state and state updater
+return (
+<div>
+<p>You clicked {count} times</p>
+<button onClick={() => setCount(count + 1)}>Click me</button>
+</div>
+);
+}`
+
+In this code, I use the `useState` hook to declare a piece of state called `count` and set its initial value to 0. The `setCount` function allows us to update this state. Every time the button is clicked, we use `setCount` to increase `count` by 1. When the state updates, React re-renders the component to reflect the change.
+
+`useState`
+`count`
+`setCount`
+`setCount`
+`count`
+
+Unlike declaring `let count = 0`, using `useState` lets React remember the state across renders and ensures that the UI updates correctly.
+
+`let count = 0`
+`useState`
+
+## Types of React Hooks
+
+To make things easier, you can think of React hooks as falling into eight major categories:
+
+**State Management Hooks** – For handling state.
+
+**Effect Hooks** – For side effects.
+
+**Ref Hooks** – For referencing JavaScript values or DOM elements.
+
+**Performance Hooks** – For optimizing performance.
+
+**Context Hooks** – For accessing React context.
+
+**Transition Hooks** – For smoother user experiences.
+
+**Some Random Hooks** – Special-purpose hooks.
+
+**New Hooks (React 19)** – Cutting-edge tools introduced in the latest React version.
+
+In React, you can also build custom hooks for different use cases. Every hook starts with the `use` keyword – even custom hooks start with this structure. This keyword is reserved for Hooks in React.
+
+`use`
+
+Let’s explore these hooks in detail.
+
+### **State Management Hooks**
+
+#### **1.** `useState`
+
+`useState`
+
+The `useState` hook is the bread and butter of React. It’s the most commonly used hook, and it’s key for managing state in functional components. With `useState`, you can capture user inputs, show or hide components, and manage numbers, like in an ecommerce app with a shopping cart.
+
+`useState`
+`useState`
+
+`useState` is versatile and straightforward: you initialize it with a value, and it returns a state variable and an updater function.
+
+`useState`
+`import React, { useState } from 'react';
+function Counter() {
+const [count, setCount] = useState(0); // Initialize state and state updater
+return (
+<div>
+<p>You clicked {count} times</p>
+<button onClick={() => setCount(count + 1)}>Click me</button>
+</div>
+);
+}`
+
+**Code explanation**: `useState` initializes the state (count) and provides a function (`setCount`) to update that state.
+
+`useState`
+`setCount`
+
+#### **2.** `useReducer`
+
+`useReducer`
+
+When `useState` isn’t enough, `useReducer` comes into play. This hook is perfect for managing complex state logic.
+
+`useState`
+`useReducer`
+
+It uses a reducer function to simplify state updates and is especially useful when multiple state variables are interdependent or when actions need to be dispatched.
+
+Think of it as an upgrade for managing more complicated state scenarios. Here’s an example:
+
+`import React, { useReducer } from 'react';
+const initialState = { count: 0 };
+function reducer(state, action) {
+switch (action.type) {
+case 'increment':
+return { count: state.count + 1 };
+case 'decrement':
+return { count: state.count - 1 };
+default:
+return state;
+}
+}
+function Counter() {
+const [state, dispatch] = useReducer(reducer, initialState);
+return (
+<div>
+<p>Count: {state.count}</p>
+<button onClick={() => dispatch({ type: 'increment' })}>+</button>
+<button onClick={() => dispatch({ type: 'decrement' })}>-</button>
+</div>
+);
+}`
+
+**Code explanation**: `useReducer` is useful for managing complex state updates, like handling multiple related actions.
+
+`useReducer`
+
+**3.** `useSyncExternalStore`  
+`useSyncExternalStore` is a hook for integrating non-React state stores into your React components.
+
+`useSyncExternalStore`
+`useSyncExternalStore`
+
+While not commonly used, it’s crucial if you’re building your own state management library from scratch.
+
+`import React, { useSyncExternalStore } from 'react';
+const externalStore = {
+subscribe: (callback) => {
+const interval = setInterval(callback, 1000);
+return () => clearInterval(interval);
+},
+getSnapshot: () => new Date().toLocaleTimeString(),
+};
+function Clock() {
+const time = useSyncExternalStore(externalStore.subscribe, externalStore.getSnapshot);
+return <div>{time}</div>;
+}`
+
+**Code explanation**: `useSyncExternalStore` lets you connect your React component to non-React data sources, like global stores.
+
+`useSyncExternalStore`
+
+### **Effect Hooks**
+
+**1.** `useEffect`  
+The `useEffect` hook performs side effects on your components. Whether you’re interacting with the DOM or fetching data, `useEffect` is your go-to. It runs after each render by default, but you can customize its behavior using a dependency array.
+
+`useEffect`
+`useEffect`
+`useEffect`
+
+But you should consider using more specialized tools or libraries like React Query for event-based or render-based side effects.
+
+`import React, { useState, useEffect } from 'react';
+function DataFetcher() {
+const [data, setData] = useState(null);
+useEffect(() => {
+fetch('https://api.example.com/data')
+.then((response) => response.json())
+.then((data) => setData(data));
+}, []); // Empty dependency array means it runs once on mount
+return <div>{data ? JSON.stringify(data) : 'Loading...'}</div>;
+}`
+
+**Code explanation**: The `useEffect` hook fetches data when the component mounts. The effect will only run one time when the array is empty.
+
+`useEffect`
+
+**2.** `useLayoutEffect`  
+`useLayoutEffect` works similarly to `useEffect` but runs synchronously right after the DOM has been updated. It’s used for operations that need to happen before the browser paints the UI, like measuring elements.
+
+`useLayoutEffect`
+`useLayoutEffect`
+`useEffect`
+
+Use it sparingly, as it runs less frequently than `useEffect`. Here’s an example:
+
+`useEffect`
+`import React, { useLayoutEffect, useRef } from 'react';
+function Measure() {
+const divRef = useRef();
+useLayoutEffect(() => {
+console.log(divRef.current.getBoundingClientRect());
+}, []);
+return <div ref={divRef}>Measure me!</div>;
+}`
+
+**Code explanation**: `useLayoutEffect` measures DOM elements before the browser repaints.
+
+`useLayoutEffect`
+
+**3.** `useInsertionEffect`  
+Exclusively for CSS-in-JS library developers, `useInsertionEffect` runs before `useEffect` and `useLayoutEffect` to ensure that CSS styles are inserted properly. It’s niche, but crucial for maintaining style integrity in complex applications.
+
+`useInsertionEffect`
+`useInsertionEffect`
+`useEffect`
+`useLayoutEffect`
+`import React, { useInsertionEffect, useState } from 'react';
+function StyledComponent() {
+const [text, setText] = useState('Hover over me!');
+useInsertionEffect(() => {
+const style = document.createElement('style');
+style.textContent = `
+.hovered {
+color: red;
+font-size: 24px;
+transition: color 0.3s ease;
+}
+`;
+document.head.appendChild(style);
+return () => {
+document.head.removeChild(style);
+};
+}, []);
+return (
+<div
+className="hovered"
+onMouseEnter={() => setText('You hovered over me!')}
+onMouseLeave={() => setText('Hover over me!')}
+>
+{text}
+</div>
+);
+}`
+
+**Code explanation**: The `useInsertionEffect` hook is used to inject styles into the DOM at runtime, making the component’s styling dynamic and scoped only to that component.
+
+`useInsertionEffect`
+
+### **Ref Hook**
+
+1. `useRef`  
+`useRef` allows you to persist values across renders without causing re-renders. It's perfect for storing mutable values or referencing DOM elements. Whether you’re handling intervals, storing a DOM node, or keeping track of the previous state, `useRef` has you covered.
+
+`useRef`
+`useRef`
+`useRef`
+`import React, { useRef } from 'react';
+function FocusInput() {
+const inputRef = useRef(null);
+const handleFocus = () => {
+inputRef.current.focus();
+};
+return (
+<div>
+<input ref={inputRef} type="text" />
+<button onClick={handleFocus}>Focus Input</button>
+</div>
+);
+}`
+
+**Code explanation:** This React code uses `useRef` to create a reference to an input element. When the button is clicked, the `handleFocus` function triggers the input field to gain focus using `inputRef.current.focus()`.
+
+`useRef`
+`handleFocus`
+`inputRef.current.focus()`
+
+### **Performance Hooks**
+
+**1.** `useMemo`  
+For optimizing performance, `useMemo` is your friend. It caches the results of expensive computations and only recalculates when dependencies change. This can significantly improve performance, especially in scenarios involving heavy calculations.
+
+`useMemo`
+`useMemo`
+`import React, { useState, useMemo } from 'react';
+function ExpensiveCalculation() {
+const [count, setCount] = useState(0);
+const expensiveComputation = useMemo(() => {
+return count * 100;
+}, [count]);
+return (
+<div>
+<p>Expensive Computation: {expensiveComputation}</p>
+<button onClick={() => setCount(count + 1)}>Increase Count</button>
+</div>
+);
+}`
+
+**Code explanation:**This React code uses `useMemo` to optimize an expensive calculation (`count * 100`). The calculation only re-runs when `count` changes. The button increments `count`, triggering a UI update with the new result.
+
+`useMemo`
+`count * 100`
+`count`
+`count`
+
+**2.** `useCallback`  
+`useCallback` is similar to `useMemo`, but it focuses on memoizing callback functions. This is useful for preventing unnecessary re-renders of child components by keeping functions stable across renders.
+
+`useCallback`
+`useCallback`
+`useMemo`
+`import React, { useState, useCallback } from 'react';
+function Child({ onClick }) {
+return <button onClick={onClick}>Click me</button>;
+}
+function Parent() {
+const [count, setCount] = useState(0);
+const handleClick = useCallback(() => {
+console.log('Clicked');
+}, []);
+return (
+<div>
+<Child onClick={handleClick} />
+<p>Count: {count}</p>
+<button onClick={() => setCount(count + 1)}>Increase Count</button>
+</div>
+);
+}`
+
+**Code explanation:** This React code uses `useCallback` to memoize the `handleClick` function, preventing re-creation on every render. The `Child` component uses this function for its button. The parent updates `count` independently.
+
+`useCallback`
+`handleClick`
+`Child`
+`count`
+
+### **Context Hook**
+
+1. `useContext`  
+The `useContext` hook simplifies accessing context values. It reads the value from the nearest context provider and works seamlessly across nested components. This makes it easier to manage global states or themes.
+
+`useContext`
+`useContext`
+`import React, { useContext, createContext } from 'react';
+const ThemeContext = createContext('light');
+function ThemedButton() {
+const theme = useContext(ThemeContext);
+return <button>{theme}</button>;
+}
+function App() {
+return (
+<ThemeContext.Provider value="dark">
+<ThemedButton />
+</ThemeContext.Provider>
+);
+}`
+
+**Code explanation**: This React code uses `createContext` to create a `ThemeContext`. `useContext` accesses the context value, displaying it in the button. The `App` component provides "dark" as the theme to `ThemedButton`.
+
+`createContext`
+`ThemeContext`
+`useContext`
+`App`
+`ThemedButton`
+
+### **Transition Hook**
+
+1. `useTransition`  
+`useTransition` lets you mark specific state updates as low-priority, enhancing the user experience by keeping the app more responsive during intensive computations or transitions. This improves the user experience by making the app more responsive.
+
+`useTransition`
+`useTransition`
+`import React, { useState, useTransition } from 'react';
+function TransitionComponent() {
+const [count, setCount] = useState(0);
+const [isPending, startTransition] = useTransition();
+const handleClick = () => {
+startTransition(() => {
+setCount((prevCount) => prevCount + 1);
+});
+};
+return (
+<div>
+<button onClick={handleClick}>Increase Count</button>
+{isPending ? <p>Loading...</p> : <p>Count: {count}</p>}
+</div>
+);
+}`
+
+**Code explanation:** This code uses `useTransition` to increment `count` without blocking the UI. While the state updates, `isPending` shows "Loading...". Clicking the button triggers a smooth, non-blocking state transition.
+
+`useTransition`
+`count`
+`isPending`
+
+### **Some Random Hooks**
+
+**1.** `useDeferredValue`  
+Similar to `useTransition`, `useDeferredValue` helps in deferring state updates to keep the app responsive. It schedules updates to happen at an optimal time, enhancing the user experience without manual intervention.
+
+`useDeferredValue`
+`useTransition`
+`useDeferredValue`
+`import React, { useState, useDeferredValue } from 'react';
+function DeferredComponent() {
+const [value, setValue] = useState('');
+const deferredValue = useDeferredValue(value);
+return (
+<div>
+<input value={value} onChange={(e) => setValue(e.target.value)} />
+<p>Deferred Value: {deferredValue}</p>
+</div>
+);
+}`
+
+**Code explanation**: `useDeferredValue` delays the update of `deferredValue` to ensure that the UI remains responsive.
+
+`useDeferredValue`
+`deferredValue`
+
+**2.** `useDebugValue`  
+`useDebugValue` is a hook primarily for debugging. It lets you label custom hooks in React DevTools, making it easier to track and debug your hooks.
+
+`useDebugValue`
+`useDebugValue`
+`import React, { useDebugValue, useState } from 'react';
+function useCustomHook(value) {
+useDebugValue(value ? "Has Value" : "No Value"); return value; }
+function DebugComponent() { const [value, setValue] = useState(''); const customValue = useCustomHook(value);
+return (
+<input value={value} onChange={(e) => setValue(e.target.value)} />
+Value: {customValue}
+); }`
+
+**Code explanation:** This code uses `useDebugValue` to show "Has Value" or "No Value" in React DevTools based on `value`. `useCustomHook` is used in `DebugComponent` to track the input state and display it dynamically.
+
+`useDebugValue`
+`value`
+`useCustomHook`
+`DebugComponent`
+
+**3.** `useId`  
+`useId` generates unique IDs for elements, ensuring that form inputs and labels are properly linked without conflicts. It’s particularly useful when dealing with dynamically repeated elements.
+
+`useId`
+`useId`
+`import React, { useId } from 'react';
+function FormComponent() {
+const id = useId();
+return (
+<div>
+<label htmlFor={id}>Name: </label>
+<input id={id} type="text" />
+</div>
+);
+}`
+
+**Code explanation**: `useId` ensures that form elements have unique IDs, avoiding potential conflicts.
+
+`useId`
+
+## Conclusion
+
+React hooks can seem overwhelming at first, but with this guide, you’re well-equipped to handle them. Mastering these hooks improves your React skills and makes your development process smoother and more efficient.
+
+For a deeper dive and hands-on practice, check out my comprehensive React Bootcamp, where you’ll find interactive challenges, videos, and cheat sheets to reinforce your knowledge.
+
+![Prankur Pandey](https://cdn.hashnode.com/res/hashnode/image/upload/v1727754406215/26828ef6-010f-4a93-b66d-0f12d5372b0d.png?w=500&h=500&fit=crop&crop=entropy&auto=compress,format&format=webp)
+
+Full Stack Developer | Technical Writer | Builds scalable web & mobile apps | Simplifies complex tech | Open to opportunities in development & content creation.
+I do deep research on new tech topics and open-source tools and build something unique and new.
+
+If you read this far, thank the author to show them you care. Say Thanks
+
+Learn to code for free. freeCodeCamp's open source curriculum has helped more than 40,000 people get jobs as developers. [Get started](https://www.freecodecamp.org/learn)
+
+freeCodeCamp is a donor-supported tax-exempt 501(c)(3) charity organization (United States Federal Tax Identification Number: 82-0779546)
+
+Our mission: to help people learn to code for free. We accomplish this by creating thousands of videos, articles, and interactive coding lessons - all freely available to the public.
+
+Donations to freeCodeCamp go toward our education initiatives, and help pay for servers, services, and staff.
+
+You can [make a tax-deductible donation here](https://www.freecodecamp.org/donate/).
+
+## Trending Books and Handbooks
+
+## Mobile App
+
+![Download on the App Store](https://cdn.freecodecamp.org/platform/universal/apple-store-badge.svg)
+![Get it on Google Play](https://cdn.freecodecamp.org/platform/universal/google-play-badge.svg)
+
+## Our Charity

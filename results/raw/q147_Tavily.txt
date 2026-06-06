@@ -1,0 +1,1879 @@
+Title: Kubernetes - Wikipedia
+![](https://en.wikipedia.org/static/images/donate/donate.gif)
+![Wikipedia](/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg)
+
+# Kubernetes
+
+|  |
+| --- |
+| This article **contains an excessive amount of intricate [detail](/wiki/Wikipedia:DETAIL "Wikipedia:DETAIL")**. Please help [improve it](https://en.wikipedia.org/w/index.php?title=Kubernetes&action=edit) by [spinning off](/wiki/Wikipedia:Content_forks#Article_spinoffs:_.22Summary_style.22_meta-articles_and_summary_sections "Wikipedia:Content forks") or [relocating](/wiki/Wikipedia:Handling_trivia#Recommendations_for_handling_trivia "Wikipedia:Handling trivia") relevant information and removing excessive detail that goes against [Wikipedia's inclusion policy](/wiki/Wikipedia:What_Wikipedia_is_not "Wikipedia:What Wikipedia is not"). *(October 2023)* *([Learn how and when to remove this message](/wiki/Help:Maintenance_template_removal "Help:Maintenance template removal"))* |
+
+**Kubernetes** ([/ˌk(j)uːbərˈnɛtɪs, -ˈneɪtɪs, -ˈneɪtiːz, -ˈnɛtiːz/](/wiki/Help:IPA/English "Help:IPA/English")), also known as **K8s,** is an [open-source](/wiki/Open-source_software "Open-source software") [container](/wiki/Containerization_(computing) "Containerization (computing)") [orchestration](/wiki/Orchestration_(computing) "Orchestration (computing)") system for automating [software deployment](/wiki/Software_deployment "Software deployment"), scaling, and management.[[3]](#cite_note-3)[[4]](#cite_note-:2-4) Originally designed by [Google](/wiki/Google "Google"), the project is now maintained by a worldwide community of contributors, and the trademark is held by the [Cloud Native Computing Foundation](/wiki/Cloud_Native_Computing_Foundation "Cloud Native Computing Foundation").
+
+| Kubernetes (K8s) | |
+| --- | --- |
+|  | |
+| [Original author](/wiki/Programmer "Programmer") | [Google](/wiki/Google "Google") |
+| [Developer](/wiki/Programmer "Programmer") | [Cloud Native Computing Foundation](/wiki/Cloud_Native_Computing_Foundation "Cloud Native Computing Foundation") |
+| Initial release | 0.2[[1]](#cite_note-github_first-tagged-release-1) / 9 September 2014; 11 years ago (2014-09-09) |
+|  | |
+| [Stable release](/wiki/Software_release_life_cycle "Software release life cycle") | |  |  | | --- | --- | | 1.36 | 1.36.0[[2]](#cite_note-wikidata-be25ef6d7ed94b61c6d69adc24f416477d9a4f53-v20-2) / 22 April 2026; 4 days ago (22 April 2026) | |
+|  | |
+| Written in | [Go](/wiki/Go_(programming_language) "Go (programming language)") |
+| [Type](/wiki/Software_categories#Categorization_approaches "Software categories") | [Cluster management software](/wiki/Computer_cluster#Cluster_management "Computer cluster") |
+| [License](/wiki/Software_license "Software license") | [Apache License 2.0](/wiki/Apache_License_2.0 "Apache License 2.0") |
+| Website | [kubernetes.io](https://kubernetes.io) [Edit this at Wikidata](https://www.wikidata.org/wiki/Q22661306#P856 "Edit this at Wikidata") |
+| [Repository](/wiki/Repository_(version_control) "Repository (version control)") | * [github.com/kubernetes/kubernetes](https://github.com/kubernetes/kubernetes) [Edit this at Wikidata](https://www.wikidata.org/wiki/Q22661306#P1324 "Edit this at Wikidata") |
+
+![](//upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/120px-Kubernetes_logo_without_workmark.svg.png)
+
+|  |  |
+| --- | --- |
+| 1.36 | 1.36.0[[2]](#cite_note-wikidata-be25ef6d7ed94b61c6d69adc24f416477d9a4f53-v20-2) / 22 April 2026; 4 days ago (22 April 2026) |
+
+![Edit this at Wikidata](//upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/20px-OOjs_UI_icon_edit-ltr-progressive.svg.png)
+![Edit this at Wikidata](//upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/20px-OOjs_UI_icon_edit-ltr-progressive.svg.png)
+
+The name *Kubernetes* comes from the [Ancient Greek](/wiki/Ancient_Greek "Ancient Greek") term κυβερνήτης, *kubernḗtēs* (helmsman, pilot), which is also the origin of the words *[cybernetics](/wiki/Cybernetics "Cybernetics")* and (through Latin) *[governor](/wiki/Governor "Governor")*. "Kubernetes" is often abbreviated with the [numerical contraction](/wiki/Numeronym "Numeronym") "K8s", meaning "the letter K, followed by 8 letters, followed by s".[[5]](#cite_note-5)
+
+Kubernetes assembles one or more computers, either [virtual machines](/wiki/Virtual_machine "Virtual machine") or [bare metal](/wiki/Bare-metal_server "Bare-metal server"), into a [cluster](/wiki/Computer_cluster "Computer cluster") which can run workloads in containers. It works with various container runtimes, such as [containerd](/wiki/Containerd "Containerd") and [CRI-O](/wiki/Cloud_Native_Computing_Foundation#CRI-O "Cloud Native Computing Foundation").[[6]](#cite_note-6) Its suitability for running and managing workloads of all sizes and styles has led to its widespread adoption in clouds and data centers. There are multiple distributions of this platform—from [independent software vendors](/wiki/Independent_software_vendor "Independent software vendor") (ISVs) as well as hosted-on-cloud offerings from all the major public cloud vendors.[[7]](#cite_note-7)
+
+The software consists of a [control plane](/wiki/Control_plane "Control plane") and nodes on which the actual applications run. It includes tools like `kubeadm` and `kubectl` which can be used to interact with its [REST](/wiki/REST "REST")-based API.[[8]](#cite_note-8)
+
+`kubeadm`
+`kubectl`
+
+## Contents
+
+## History
+
+![](//upload.wikimedia.org/wikipedia/commons/thumb/0/03/Kubernetes_talk_at_Google_Cloud_Summit.jpg/250px-Kubernetes_talk_at_Google_Cloud_Summit.jpg)
+
+Kubernetes was announced by Google on June 6, 2014.[[9]](#cite_note-:3-9) The project was conceived and created by Google employees Joe Beda, Brendan Burns, and Craig McLuckie. Others at Google soon joined to help build the project including Ville Aikas, Dawn Chen, Brian Grant, Tim Hockin, and Daniel Smith.[[10]](#cite_note-10)[[11]](#cite_note-11) Other companies such as [Red Hat](/wiki/Red_Hat "Red Hat") and [CoreOS](/wiki/CoreOS "CoreOS") joined the effort soon after, with notable contributors such as Clayton Coleman and [Kelsey Hightower](/wiki/Kelsey_Hightower "Kelsey Hightower").[[9]](#cite_note-:3-9)
+
+The design and development of Kubernetes was inspired by Google's [Borg](/wiki/Borg_(cluster_manager) "Borg (cluster manager)") cluster manager and based on [Promise Theory](/wiki/Promise_theory "Promise theory").[[12]](#cite_note-12)[[13]](#cite_note-13) Many of its top contributors had previously worked on Borg;[[14]](#cite_note-borg_paper-14)[[15]](#cite_note-15) they codenamed Kubernetes "Project 7" after the *Star Trek* ex-[Borg](/wiki/Borg "Borg") character [Seven of Nine](/wiki/Seven_of_Nine "Seven of Nine")[[16]](#cite_note-16) and gave its logo a seven-spoked ship's wheel (designed by Tim Hockin). Unlike Borg, which was written in [C++](/wiki/C%2B%2B "C++"),[[14]](#cite_note-borg_paper-14) Kubernetes is written in the [Go](/wiki/Go_(programming_language) "Go (programming language)") language.
+
+Kubernetes was announced in June, 2014 and version 1.0 was released on July 21, 2015.[[17]](#cite_note-17) Google worked with the [Linux Foundation](/wiki/Linux_Foundation "Linux Foundation") to form the [Cloud Native Computing Foundation](/wiki/Cloud_Native_Computing_Foundation "Cloud Native Computing Foundation") (CNCF)[[18]](#cite_note-18) and offered Kubernetes as the seed technology.
+
+Google was already offering a managed Kubernetes service, [GKE](/wiki/Google_Cloud_Platform "Google Cloud Platform"), and [Red Hat](/wiki/Red_Hat "Red Hat") was supporting Kubernetes as part of [OpenShift](/wiki/OpenShift "OpenShift") since the inception of the Kubernetes project in 2014.[[19]](#cite_note-19) In 2017, the principal competitors rallied around Kubernetes and announced adding native support for it:
+
+On March 6, 2018, Kubernetes Project reached ninth place in the list of [GitHub](/wiki/GitHub "GitHub") projects by the number of [commits](/wiki/Commit_(version_control) "Commit (version control)"), and second place in authors and issues, after the [Linux kernel](/wiki/Linux_kernel "Linux kernel").[[26]](#cite_note-26)
+
+Until version 1.18, Kubernetes followed an N-2 support policy, meaning that the three most recent minor versions receive security updates and bug fixes.[[27]](#cite_note-27) Starting with version 1.19, Kubernetes follows an N-3 support policy.[[28]](#cite_note-increase_to_N-3_support-28)
+
+## Concepts
+
+![](//upload.wikimedia.org/wikipedia/commons/thumb/b/be/Kubernetes.png/250px-Kubernetes.png)
+
+Kubernetes defines a set of building blocks ("primitives") that collectively provide mechanisms that deploy, maintain, and scale applications based on [CPU](/wiki/Central_processing_unit "Central processing unit"), memory or custom metrics.[[29]](#cite_note-29) Kubernetes is [loosely coupled](/wiki/Loose_coupling "Loose coupling") and extensible to meet the needs of different workloads. The internal components as well as extensions and containers that run on Kubernetes rely on the Kubernetes API.[[30]](#cite_note-do-intro-30)[[31]](#cite_note-31)
+
+The platform exerts its control over compute and storage resources by defining resources as objects, which can then be managed as such.
+
+Kubernetes follows the [primary/replica architecture](/wiki/Primary/replica_architecture "Primary/replica architecture"). The components of Kubernetes can be divided into those that manage an individual [node](/wiki/Node_(networking) "Node (networking)") and those that are part of the control plane.[[30]](#cite_note-do-intro-30)[[32]](#cite_note-:0-32)
+
+### Control plane
+
+The Kubernetes master node handles the Kubernetes control plane of the cluster, managing its workload and directing communication across the system. The Kubernetes control plane consists of various components such as [TLS encryption](/wiki/Transport_Layer_Security "Transport Layer Security"), [RBAC](/wiki/Role-based_access_control "Role-based access control"), and a strong [authentication](/wiki/Authentication "Authentication") method, network separation, each its own process, that can run both on a single master node or on multiple masters supporting [high-availability clusters](/wiki/High-availability_cluster "High-availability cluster").[[32]](#cite_note-:0-32) The various components of the Kubernetes control plane are as follows.[[33]](#cite_note-:7-33)
+
+#### Etcd
+
+**[Etcd](/wiki/Etcd "Etcd")**[[34]](#cite_note-34) is a persistent, lightweight, distributed, [key-value data store](/wiki/Key-value_data_store "Key-value data store") (originally developed as part of CoreOS). It reliably stores the configuration data of the cluster, representing the overall state of the cluster at any given point of time. Etcd favors consistency over availability in the event of a network partition (see [CAP theorem](/wiki/CAP_theorem "CAP theorem")). The consistency is crucial for correctly scheduling and operating services.
+
+#### API server
+
+The **API server** serves the Kubernetes [API](/wiki/API "API") using [JSON](/wiki/JSON "JSON") over [HTTP](/wiki/HTTP "HTTP"), which provides both the internal and external interface to Kubernetes.[[30]](#cite_note-do-intro-30)[[35]](#cite_note-:1-35) The API server processes, validates [REST](/wiki/REST "REST") requests, and updates the state of the API objects in etcd, thereby allowing clients to configure workloads and containers across worker nodes.[[36]](#cite_note-36) The API server uses etcd's watch API to monitor the cluster, roll out critical configuration changes, or restore any divergences of the state of the cluster back to the desired state as declared in etcd.
+
+As an example, a human operator may specify that three instances of a particular "pod" (see below) need to be running, and etcd stores this fact. If the Deployment controller finds that only two instances are running (conflicting with the etcd declaration),[[37]](#cite_note-:6-37) it schedules the creation of an additional instance of that pod.[[32]](#cite_note-:0-32)
+
+#### Scheduler
+
+The **scheduler** is an extensible component that selects the node that an unscheduled pod (the basic unit of workloads to be scheduled) runs on, based on resource availability and other constraints. The scheduler tracks resource allocation on each node to ensure that workload is not scheduled in excess of available resources. For this purpose, the scheduler must know the resource requirements, resource availability, and other user-provided constraints or policy directives such as quality-of-service, affinity/anti-affinity requirements, and data locality. The scheduler's role is to match resource "supply" to workload "demand".[[38]](#cite_note-38)
+
+Kubernetes allows running multiple schedulers within a single cluster. As such, scheduler [plug-ins](/wiki/Plug-in_(computing) "Plug-in (computing)") may be developed and installed as in-process extensions to the native vanilla scheduler by running it as a separate scheduler, as long as they conform to the Kubernetes scheduling framework.[[39]](#cite_note-39) This allows cluster administrators to extend or modify the behavior of the default Kubernetes scheduler according to their needs.
+
+#### Controllers
+
+A **controller** is a reconciliation loop that drives the actual cluster state toward the desired state, communicating with the API server to create, update, and delete the resources it manages (e.g., pods or service endpoints).[[40]](#cite_note-coreos-replication-controller-40)[[35]](#cite_note-:1-35)
+
+An example controller is a ReplicaSet controller, which handles replication and scaling by running a specified number of copies of a pod across the cluster. The controller also handles creating replacement pods if the underlying node fails.[[40]](#cite_note-coreos-replication-controller-40) Other controllers that are part of the core Kubernetes system include a DaemonSet controller for running exactly one pod on every machine (or some subset of machines), and a Job controller for running pods that run to completion (e.g. as part of a batch job).[[41]](#cite_note-exciting-experimental-features-41) Labels selectors often form part of the controller's definition that specify the set of pods that a controller manages.[[42]](#cite_note-redhat-docker-and-kubernetes-training-labels-examples-42)
+
+The **controller manager** is a single process that manages several core Kubernetes controllers (including the examples described above), is distributed as part of the standard Kubernetes installation and responding to the loss of nodes.[[33]](#cite_note-:7-33)
+
+Custom controllers may also be installed in the cluster, further allowing the behavior and API of Kubernetes to be extended when used in conjunction with custom resources (see [custom resources, controllers and operators](#Custom_resources,_controllers_and_operators) below).
+
+### Nodes
+
+A node, also known as a worker or a minion, is a machine where containers (workloads) are deployed. Every node in the cluster must run a container [runtime](/wiki/Runtime_system "Runtime system"), as well as the below-mentioned components, for communication with the primary network configuration of these containers.
+
+#### kubelet
+
+**kubelet** is responsible for the running state of each node, ensuring that all containers on the node are healthy. It takes care of starting, stopping, and maintaining application containers organized into pods as directed by the control plane.[[30]](#cite_note-do-intro-30)[[43]](#cite_note-43) kubelet monitors the state of a pod, and if not in the desired state, the pod re-deploys to the same node. Node status is relayed every few seconds via heartbeat messages to the API server. Once the control plane detects a node failure, a higher-level controller is expected to observe this state change and launch pods on another healthy node.[[44]](#cite_note-44)
+
+#### Container runtime
+
+A **container runtime** is responsible for the lifecycle of containers, including launching, reconciling and killing of containers. kubelet interacts with container runtimes via the Container Runtime Interface (CRI),[[45]](#cite_note-:4-45)[[46]](#cite_note-46) which [decouples](/wiki/Coupling_(computer_programming) "Coupling (computer programming)") the maintenance of core Kubernetes from the actual CRI implementation.
+
+Originally, kubelet interfaced exclusively with the [Docker](/wiki/Docker_(software) "Docker (software)") runtime[[47]](#cite_note-47) through a "dockershim". However, from November 2020[[48]](#cite_note-48) up to April 2022, Kubernetes has deprecated the [shim](/wiki/Shim_(computing) "Shim (computing)") in favor of directly interfacing with the container through containerd, or replacing Docker with a runtime that is compliant with the Container Runtime Interface (CRI).[[49]](#cite_note-49)[[45]](#cite_note-:4-45)[[50]](#cite_note-50) With the release of v1.24 in May 2022, the "dockershim" has been removed entirely.[[51]](#cite_note-51)
+
+Examples of popular container runtimes that are compatible with kubelet include [containerd](/wiki/Containerd "Containerd") (initially supported via Docker) and [CRI-O](/wiki/Cloud_Native_Computing_Foundation#CRI-O "Cloud Native Computing Foundation").
+
+#### kube-proxy
+
+**kube-proxy** is an implementation of a [network proxy](/wiki/Proxy_server "Proxy server") and a [load balancer](/wiki/Load_balancing_(computing) "Load balancing (computing)"), and it supports the service abstraction along with the other networking operations.[[30]](#cite_note-do-intro-30) It is responsible for routing traffic to the appropriate container based on IP and port number of the incoming request.
+
+### Namespaces
+
+In Kubernetes, **namespaces** are utilized to segregate the resources it handles into distinct and non-intersecting collections.[[52]](#cite_note-52) They are intended for use in environments with many users spread across multiple teams, or projects, or even separating environments like development, test, and production.
+
+### Pods
+
+The basic scheduling unit in Kubernetes is a **pod**,[[53]](#cite_note-53) which consists of one or more containers that are guaranteed to be co-located on the same node.[[30]](#cite_note-do-intro-30) Each pod in Kubernetes is assigned a unique IP address within the cluster, allowing applications to use ports without the risk of conflict.[[54]](#cite_note-kubernetes-101-networking-54) Within the pod, all containers can reference each other.
+
+A **container** resides inside a pod. The container is the lowest level of a micro-service, which holds the running application, libraries, and their dependencies.
+
+### Workloads
+
+Kubernetes supports several abstractions of workloads that are at a higher level over simple pods. This allows users to declaratively define and manage these high-level abstractions, instead of having to manage individual pods by themselves. Several of these abstractions, supported by a standard installation of Kubernetes, are described below.
+
+#### ReplicaSets, ReplicationControllers and Deployments
+
+A **ReplicaSet**'s purpose is to maintain a stable set of replica pods running at any given time. As such, it is often used to guarantee the availability of a specified number of identical Pods.[[55]](#cite_note-:5-55) The ReplicaSet can also be said to be a grouping mechanism that lets Kubernetes maintain the number of instances that have been declared for a given pod. The definition of a ReplicaSet uses a selector, whose evaluation will result in identifying all pods that are associated with it.
+
+A **ReplicationController**, similar to a ReplicaSet, serves the same purpose and behaves similarly to a ReplicaSet, which is to ensure that there will always be a specified number of pod replicas as desired. The ReplicationController workload was the predecessor of a ReplicaSet, but was eventually deprecated in favor of ReplicaSet to make use of set-based label selectors.[[55]](#cite_note-:5-55)
+
+**Deployments** are a higher-level management mechanism for ReplicaSets. While the ReplicaSet controller manages the scale of the ReplicaSet, the Deployment controller manages what happens to the ReplicaSet – whether an update has to be rolled out, or rolled back, etc. When Deployments are scaled up or down, this results in the declaration of the ReplicaSet changing, and this change in the declared state is managed by the ReplicaSet controller.[[37]](#cite_note-:6-37)
+
+#### StatefulSets
+
+**StatefulSets** are controllers that enforce the properties of uniqueness and ordering amongst instances of a pod, and can be used to run [stateful](/wiki/State_(computer_science) "State (computer science)") applications.[[56]](#cite_note-56) While scaling stateless applications is only a matter of adding more running pods, doing so for stateful workloads is harder, because the state needs to be preserved if a pod is restarted. If the application is scaled up or down, the state may need to be redistributed.
+
+Databases are an example of stateful workloads. When run in high-availability mode, many databases come with the notion of a primary instance and secondary instances. In this case, the notion of ordering of instances is important. Other applications like [Apache Kafka](/wiki/Apache_Kafka "Apache Kafka") distribute the data amongst their brokers; hence, one broker is not the same as another. In this case, the notion of instance uniqueness is important.
+
+#### DaemonSets
+
+**DaemonSets** are responsible for ensuring that a pod is created on every single node in the cluster.[[57]](#cite_note-57) Generally, most workloads scale in response to a desired replica count, depending on the availability and performance requirements as needed by the application. However, in other scenarios it may be necessary to deploy a pod to every single node in the cluster, scaling up the number of total pods as nodes are added and [garbage collecting](/wiki/Garbage_collection_(computer_science) "Garbage collection (computer science)") them as they are removed. This is particularly helpful for use cases where the workload has some dependency on the actual node or host machine, such as log collection, ingress controllers, and storage services.
+
+### Services
+
+![](//upload.wikimedia.org/wikipedia/commons/thumb/6/63/Pod-networking.png/250px-Pod-networking.png)
+
+A Kubernetes **service** is a set of pods that work together, such as one tier of a [multi-tier](/wiki/Multitier_architecture "Multitier architecture") application. The set of pods that constitute a service are defined by a label selector.[[30]](#cite_note-do-intro-30) Kubernetes provides two modes of [service discovery](/wiki/Service_discovery "Service discovery"), using environment variables or using Kubernetes DNS.[[58]](#cite_note-58) Service discovery assigns a stable IP address and [DNS name](/wiki/DNS_name "DNS name") to the service, and load balances traffic in a [round-robin](/wiki/Round-robin_DNS "Round-robin DNS") manner to network connections of that IP address among the pods matching the selector (even as failures cause the pods to move from machine to machine).[[54]](#cite_note-kubernetes-101-networking-54) By default a service is exposed inside a cluster (e.g., [back end](/wiki/Front_and_back_ends "Front and back ends") pods might be grouped into a service, with requests from the front-end pods load-balanced among them), but a service can also be exposed outside a cluster (e.g., for clients to reach front-end pods).[[59]](#cite_note-kubernetes-101-external-access-59)
+
+### Volumes
+
+[Filesystems](/wiki/File_system "File system") in the Kubernetes container provide [ephemeral storage](/wiki/Ephemeral_storage "Ephemeral storage"), by default. This means that a restart of the pod will wipe out any data on such containers, and therefore, this form of storage is quite limiting in anything but trivial applications. A Kubernetes **volume**[[60]](#cite_note-60) provides persistent storage that exists for the lifetime of the pod itself. This storage can also be used as shared disk space for containers within the pod. Volumes are mounted at specific mount points within the container, which are defined by the pod configuration, and cannot mount onto other volumes or link to other volumes. The same volume can be mounted at different points in the file system tree by different containers.
+
+### ConfigMaps and Secrets
+
+A common application challenge is deciding where to store and manage configuration information, some of which may contain sensitive data. Configuration data can be anything as fine-grained as individual properties, or coarse-grained information like entire configuration files such as [JSON](/wiki/JSON "JSON") or [XML](/wiki/XML "XML") documents. Kubernetes provides two closely related mechanisms to deal with this need, known as **ConfigMaps** and **Secrets**, both of which allow for configuration changes to be made without requiring an application rebuild.
+
+The data from ConfigMaps and Secrets will be made available to every single instance of the application to which these objects have been bound via the Deployment. A Secret and/or a ConfigMap is sent to a node only if a pod on that node requires it, which will only be stored in memory on the node. Once the pod that depends on the Secret or ConfigMap is deleted, the in-memory copy of all bound Secrets and ConfigMaps are deleted as well.
+
+The data from a ConfigMap or Secret is accessible to the pod through one of the following ways:[[61]](#cite_note-61)
+
+The biggest difference between a Secret and a ConfigMap is that Secrets are specifically designed for containing secure and confidential data, although they are not [encrypted at rest](/wiki/Data_at_rest#Encryption "Data at rest") by default, and requires additional setup in order to fully secure the use of Secrets within the cluster.[[62]](#cite_note-62) Secrets are often used to store confidential or sensitive data like certificates, credentials to work with image registries, passwords, and [ssh](/wiki/Secure_Shell "Secure Shell") keys.
+
+### Labels and selectors
+
+Kubernetes enables clients (users or internal components) to attach keys called **labels** to any API object in the system, such as pods and [nodes](#Kubernetes_node). Correspondingly, **label selectors** are queries against labels that resolve to matching objects.[[30]](#cite_note-do-intro-30) When a service is defined, one can define the label selectors that will be used by the service router/load balancer to select the pod instances that the traffic will be routed to. Thus, simply changing the labels of the pods or changing the label selectors on the service can be used to control which pods get traffic and which don't, which can be used to support various deployment patterns like [blue–green deployments](/wiki/Blue%E2%80%93green_deployment "Blue–green deployment") or [A/B testing](/wiki/A/B_testing "A/B testing"). This capability to dynamically control how services utilize implementing resources provides a loose coupling within the infrastructure.
+
+For example, if an application's pods have labels for a system `tier` (with values such as `frontend`, `backend`, for example) and a `release_track` (with values such as `canary`, `production`, for example), then an operation on all of `backend` and `canary` nodes can use a label selector, such as:[[42]](#cite_note-redhat-docker-and-kubernetes-training-labels-examples-42)
+
+`tier`
+`frontend`
+`backend`
+`release_track`
+`canary`
+`production`
+`backend`
+`canary`
+
+`tier=backend AND release_track=canary`
+
+`tier=backend AND release_track=canary`
+
+Just like labels, field selectors also let one select Kubernetes resources. Unlike labels, the selection is based on the attribute values inherent to the resource being selected, rather than user-defined categorization. `metadata.name` and `metadata.namespace` are field selectors that will be present on all Kubernetes objects. Other selectors that can be used depend on the object/resource type.
+
+`metadata.name`
+`metadata.namespace`
+
+### Add-ons
+
+Add-ons are additional features of the Kubernetes cluster implemented as applications running within it. The pods may be managed by Deployments, ReplicationControllers, and so on. There are many add-ons. Some of the more important are:
+
+### Storage
+
+Containers emerged as a way to make software portable. The container contains all the packages needed to run a service. The provided file system makes containers extremely portable and easy to use in development. A container can be moved from development to test or production with no or relatively few configuration changes.
+
+Historically Kubernetes was suitable only for stateless services. However, many applications have a database, which requires persistence, leading to the creation of persistent storage for Kubernetes. Implementing persistent storage for containers is one of the top challenges of Kubernetes administrators, DevOps and cloud engineers. Containers may be ephemeral, but more and more of their data is not, so one needs to ensure the data's survival in case of container termination or hardware failure. When deploying containers with Kubernetes or containerized applications, organizations often realize that they need persistent storage. They need to provide fast and reliable storage for databases, root images and other data used by the containers.
+
+In addition to the landscape, the [Cloud Native Computing Foundation](/wiki/Cloud_Native_Computing_Foundation "Cloud Native Computing Foundation") (CNCF), has published other information about Kubernetes Persistent Storage including a blog helping to define the container attached storage pattern. This pattern can be thought of as one that uses Kubernetes itself as a component of the storage system or service.[[63]](#cite_note-63)
+
+More information about the relative popularity of these and other approaches can be found on the CNCF's landscape survey as well, which showed that OpenEBS – a Stateful Persistent Storage platform from Datacore Software,[[64]](#cite_note-64) and Rook – a storage orchestration project – were the two projects most likely to be in evaluation as of the Fall of 2019.[[65]](#cite_note-65)
+
+Container Attached Storage is a type of data storage that emerged as Kubernetes gained prominence. The Container Attached Storage approach or pattern relies on Kubernetes itself for certain capabilities while delivering primarily block, file, object and interfaces to workloads running on Kubernetes.[[66]](#cite_note-66)
+
+Common attributes of Container Attached Storage include the use of extensions to Kubernetes, such as custom resource definitions, and the use of Kubernetes itself for functions that otherwise would be separately developed and deployed for storage or data management. Examples of functionality delivered by custom resource definitions or by Kubernetes itself include retry logic, delivered by Kubernetes itself, and the creation and maintenance of an inventory of available storage media and volumes, typically delivered via a custom resource definition.[[67]](#cite_note-67)[[68]](#cite_note-68)
+
+#### Container Storage Interface (CSI)
+
+In Kubernetes version 1.9, the initial Alpha release of Container Storage Interface (CSI) was introduced.[[69]](#cite_note-69) Previously, storage volume plug-ins were included in the Kubernetes distribution. By creating a standardized CSI, the code required to interface with external storage systems was separated from the core Kubernetes code base. Just one year later, the CSI feature was made Generally Available (GA) in Kubernetes.[[70]](#cite_note-70)
+
+## API
+
+A key component of the Kubernetes control plane is the API Server, which exposes an HTTP API that can be invoked by other parts of the cluster as well as end users and external components. This API is a [REST](/wiki/REST "REST") API and is declarative in nature, and is the same API exposed to the control plane.[[71]](#cite_note-71) The API server is backed by etcd to store all records persistently.[[72]](#cite_note-72)
+
+### API objects
+
+In Kubernetes, all objects serve as the "[record of intent](/wiki/Intent_log "Intent log")" of the cluster's state, and are able to define the desired state that the writer of the object wishes for the cluster to be in.[[73]](#cite_note-73) As such, most Kubernetes objects have the same set of nested fields, as follows:
+
+`spec`
+`status`
+
+All objects in Kubernetes are subject to the same API conventions. Some of these include:
+
+`metadata`
+`namespace`
+`name`
+`uid`
+`metadata.ownerReferences`
+`controller`
+
+### Custom resources, controllers and operators
+
+The Kubernetes API can be extended using *Custom Resources*, which represent objects that are not part of the standard Kubernetes installation. These custom resources are declared using *Custom Resource Definitions* (CRDs), which is a kind of resource that can be dynamically registered and unregistered without shutting down or restarting a cluster that is currently running.[[77]](#cite_note-77)
+
+Custom controllers are another extension mechanism that interact with the Kubernetes API, similar to the default controllers in the standard pre-installed Kubernetes controller manager. These controllers may interact with custom resources to allow for a declarative API: users may declare the desired state of the system via the custom resources, and it is the responsibility of the custom controller to observe the change and reconcile it.
+
+The combination of custom resources and custom controllers are often referred to as a *Kubernetes* *Operator*.[[78]](#cite_note-78) The key use case for operators are to capture the aim of a human operator who is managing a service or set of services and to implement them using automation, and with a declarative API supporting this automation. Human operators who look after specific applications and services have deep knowledge of how the system ought to behave, how to deploy it, and how to react if there are problems.
+
+Examples of problems solved by operators include taking and restoring backups of that application's state, and handling upgrades of the application code alongside related changes such as database schemas or extra configuration settings. Several notable projects under the [Cloud Native Computing Foundation](/wiki/Cloud_Native_Computing_Foundation "Cloud Native Computing Foundation")'s incubation program follow the operator pattern to extend Kubernetes, including Argo, Open Policy Agent and Istio.[[79]](#cite_note-79)
+
+### API security
+
+Kubernetes defines the following strategies for controlling access to its API.[[80]](#cite_note-80)
+
+#### Transport security
+
+The Kubernetes API server listens on a [TCP port](/wiki/Transmission_Control_Protocol "Transmission Control Protocol") that serves [HTTPS](/wiki/HTTPS "HTTPS") traffic, in order to enforce [transport layer security (TLS)](/wiki/Transport_Layer_Security "Transport Layer Security") using [CA certificates](/wiki/Certificate_authority "Certificate authority").[[33]](#cite_note-:7-33)
+
+In older versions of Kubernetes, the API server supported listening on both HTTP and HTTPS ports (with the HTTP port number having no transport security whatsoever). This was deprecated in v1.10 and eventually dropped support in v1.20 of Kubernetes.[[81]](#cite_note-81)
+
+#### Authentication
+
+All requests made to the Kubernetes API server are expected to be authenticated, and supports several authentication strategies, some of which are listed below:[[82]](#cite_note-82)
+
+Users are typically expected to indicate and define cluster URL details along with the necessary credentials in a *kubeconfig* file, which are natively supported by other Kubernetes tools like kubectl and the official Kubernetes client libraries.[[83]](#cite_note-83)
+
+#### Authorization
+
+The Kubernetes API supports the following authorization modes:[[84]](#cite_note-84)
+
+### API clients
+
+Kubernetes supports several official API clients:
+
+### Cluster API
+
+The same API design principles have been used to define an API to harness a program in order to create, configure, and manage Kubernetes clusters. This is called the Cluster API.[[87]](#cite_note-Cluster_API-87) A key concept embodied in the API is using [Infrastructure as Software](/wiki/Infrastructure_as_Software "Infrastructure as Software"), or the notion that the Kubernetes cluster infrastructure is itself a resource / object that can be managed just like any other Kubernetes resources. Similarly, machines that make up the cluster are also treated as a Kubernetes resource. The API has two pieces – the core API, and a provider implementation. The provider implementation consists of cloud-provider specific functions that let Kubernetes provide the cluster API in a fashion that is well-integrated with the cloud-provider's services and resources.[[33]](#cite_note-:7-33)
+
+## Uses
+
+Kubernetes is commonly used as a way to host a [microservice](/wiki/Microservice "Microservice")-based implementation, because it and its associated ecosystem of tools provide all the capabilities needed to address key concerns of any [microservice architecture](/wiki/Microservices#A_comparison_of_platforms "Microservices").
+
+## Criticism
+
+A common criticism of Kubernetes is that it is too complex. Google admitted this as well.[[88]](#cite_note-88)
+
+## Distributions
+
+Various vendors offer Kubernetes-based platforms or [infrastructure as a service](/wiki/Infrastructure_as_a_service "Infrastructure as a service") (IaaS) that deploy Kubernetes.[[89]](#cite_note-89)[[90]](#cite_note-90)
+
+These are typically categorized according to open-source, commercial or managed distributions. Several notable distributions are listed below:[[91]](#cite_note-91)
+
+### Open-source distributions
+
+### Commercial distributions
+
+### Managed distributions
+
+## Release timeline
+
+Release timeline
+
+| Version | Release date | End of Life date[[93]](#cite_note-k8s_patch_releases-93) | Notes |
+| --- | --- | --- | --- |
+| Unsupported: 1.0 | 10 July 2015 |  | Original Release |
+| Unsupported: 1.1 | 9 November 2015 |  | [[94]](#cite_note-94) |
+| Unsupported: 1.2 | 16 March 2016 | 23 October 2016 | [[95]](#cite_note-95) |
+| Unsupported: 1.3 | 1 July 2016 | 1 November 2016 | [[96]](#cite_note-96) |
+| Unsupported: 1.4 | 26 September 2016 | 21 April 2017 | [[97]](#cite_note-97) |
+| Unsupported: 1.5 | 12 December 2016 | 1 October 2017 | [[98]](#cite_note-98) |
+| Unsupported: 1.6 | 28 March 2017 | 23 November 2017 | [[99]](#cite_note-99) |
+| Unsupported: 1.7 | 30 June 2017 | 4 April 2018 | [[100]](#cite_note-100) |
+| Unsupported: 1.8 | 28 August 2017 | 12 July 2018 | [[101]](#cite_note-101) |
+| Unsupported: 1.9 | 15 December 2017 | 29 September 2018 | [[102]](#cite_note-102) |
+| Unsupported: 1.10 | 28 March 2018 | 13 February 2019 | [[103]](#cite_note-103) |
+| Unsupported: 1.11 | 3 July 2018 | 1 May 2019 | [[104]](#cite_note-104) |
+| Unsupported: 1.12 | 27 September 2018 | 8 July 2019 | [[105]](#cite_note-105) |
+| Unsupported: 1.13 | 3 December 2018 | 15 October 2019 | [[106]](#cite_note-106) |
+| Unsupported: 1.14 | 25 March 2019 | 11 December 2019 | [[107]](#cite_note-107) |
+| Unsupported: 1.15 | 20 June 2019 | 6 May 2020 | [[108]](#cite_note-108) |
+| Unsupported: 1.16 | 22 October 2019 | 2 September 2020 | [[109]](#cite_note-109) |
+| Unsupported: 1.17 | 9 December 2019 | 13 January 2021 | [[110]](#cite_note-110) |
+| Unsupported: 1.18 | 25 March 2020 | 18 June 2021 | [[111]](#cite_note-111) |
+| Unsupported: 1.19 | 26 August 2020[[112]](#cite_note-k8s_1-19_release_announcement-112) | 28 October 2021 | From Kubernetes version 1.19 on, the support window has been extended to one year of full support plus two months of maintenance mode period.[[28]](#cite_note-increase_to_N-3_support-28) [[113]](#cite_note-113) |
+| Unsupported: 1.20 | 8 December 2020 | 28 February 2022 | [[114]](#cite_note-114) |
+| Unsupported: 1.21 | 8 April 2021 | 28 June 2022 | [[115]](#cite_note-115) |
+| Unsupported: 1.22 | 4 August 2021 | 28 October 2022 | [[116]](#cite_note-116) |
+| Unsupported: 1.23 | 7 December 2021 | 28 February 2023 | [[117]](#cite_note-117) |
+| Unsupported: 1.24 | 3 May 2022 | 28 July 2023 | [[118]](#cite_note-118) |
+| Unsupported: 1.25 | 23 August 2022 | 27 October 2023 | [[119]](#cite_note-119) |
+| Unsupported: 1.26 | 9 December 2022 | 24 February 2024 | [[120]](#cite_note-120) |
+| Unsupported: 1.27 | 11 April 2023 | 28 June 2024 | [[121]](#cite_note-121) |
+| Unsupported: 1.28 | 15 August 2023 | 28 October 2024 | [[122]](#cite_note-122) |
+| Unsupported: 1.29 | 13 December 2023 | 28 February 2025 | [[123]](#cite_note-123) |
+| Unsupported: 1.30 | 17 April 2024 | 28 June 2025 | [[124]](#cite_note-124) |
+| Unsupported: 1.31 | 13 August 2024 | 28 October 2025 | [[125]](#cite_note-125) |
+| Unsupported: 1.32 | 11 December 2024 | 28 February 2026 | [[126]](#cite_note-126) |
+| Supported: 1.33 | 23 April 2025 | 28 June 2026 | [[127]](#cite_note-127) |
+| Supported: 1.34 | 27 August 2025 | 27 October 2026 | [[128]](#cite_note-128) |
+| Supported: 1.35 | 17 December 2025 | 28 February 2027 | [[129]](#cite_note-129) |
+| Latest version: 1.36 | 22 April 2026 | 28 June 2027 | [[130]](#cite_note-130) |
+| **Legend:**  Unsupported  Supported  **Latest version**  Preview version  Future version | | | |
+
+### Support windows
+
+The chart below visualizes the period for which each release is/was supported[[93]](#cite_note-k8s_patch_releases-93)
+
+![](//upload.wikimedia.org/wikipedia/en/timeline/3u2q9v96hvl2hi05c2x2yzcshltbdm6.png)
+
+## See also
+
+## References
+
+`{{cite web}}`
+`{{citation}}`
+
+## External links
+
+![Edit this at Wikidata](//upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/20px-OOjs_UI_icon_edit-ltr-progressive.svg.png)
+![](https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=mobile&type=1x1&usesul3=1)
+
+#### Languages
+
+![Wikipedia](/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg)
+
+* [![Wikimedia Foundation](/static/images/footer/wikimedia.svg)](https://www.wikimedia.org/)
+* [![Powered by MediaWiki](/w/resources/assets/mediawiki_compact.svg)](https://www.mediawiki.org/)
+
+![Wikimedia Foundation](/static/images/footer/wikimedia.svg)
+![Powered by MediaWiki](/w/resources/assets/mediawiki_compact.svg)
+
+---
+
+Title: What is Kubernetes?
+## Navigation
+
+### Overview
+
+### Products
+
+### Engage & learn
+
+### Platform solutions
+
+Build, deploy, and monitor AI models and apps.
+
+Get consistency across operating environments.
+
+Simplify the way you build, deploy, and manage apps.
+
+Scale automation and unite tech, teams, and environments.
+
+### Use cases
+
+Modernize operations for virtualized and containerized workloads.
+
+Control and protect critical infrastructure.
+
+Code, build, deploy, and monitor security-focused software.
+
+Deploy workloads closer to the source with edge technology.
+
+### Solutions by industry
+
+### [Discover cloud technologies](/en/hybrid-cloud-console)
+
+Learn how to use our cloud products and solutions at your own pace in the Red Hat® Hybrid Cloud Console.
+
+### Platforms
+
+Develop and deploy AI solutions across the hybrid cloud.
+
+Support hybrid cloud innovation on a flexible operating system.
+
+Build, modernize, and deploy apps at scale.
+
+Implement enterprise-wide automation.
+
+### Featured
+
+### Try & buy
+
+### Services & support
+
+### Training & certification
+
+### Featured
+
+### Services
+
+### Build your skills
+
+### More ways to learn
+
+### [For developers](https://developers.redhat.com/)
+
+Discover resources and tools to help you build, deliver, and manage cloud-native applications and services.
+
+### For customers
+
+### For partners
+
+### [Build solutions powered by trusted partners](https://catalog.redhat.com/en/solutions)
+
+Find solutions from our collaborative community of experts and technologies in the Red Hat® Ecosystem Catalog.
+
+### I'd like to:
+
+### Help me find:
+
+### I want to learn more about:
+
+### Recommended
+
+We'll recommend resources you may like as you browse. Try these suggestions for now.
+
+### Get more with a Red Hat account
+
+A subscription may be required for some services.
+
+### [[name]]
+
+[Edit avatar](https://access.redhat.com/user/edit)
+
+Login: [[login]]
+
+Account number: [[account\_number]]
+
+[[email]]
+
+# What is Kubernetes?
+
+## Jump to section
+
+## What is Kubernetes?
+
+Kubernetes is an open source container orchestration platform that automates many of the manual processes involved in deploying, managing, and scaling containerized applications.
+
+Kubernetes automates the configuration of your applications and maintains and tracks resource allocation. A project of the  [Cloud Native Computing Foundation](https://www.cncf.io/) (CNCF), Kubernetes was first introduced in 2014 and has become a widely adopted platform for organizations to run distributed applications and services at scale.
+
+## What are the basic concepts of Kubernetes?
+
+Kubernetes is a platform for managing [containers](/en/topics/containers), which bundle the code, configuration, and dependencies of an application, allowing it to run as an isolated process with its own resources. Each application gets its own container or multiple containers, which are grouped into Kubernetes pods.
+
+Kubernetes can run on bare metal servers, virtual machines, public cloud providers, private clouds, and [hybrid cloud](/en/topics/cloud-computing/what-is-hybrid-cloud) environments. One of Kubernetes’s key advantages is it works on many different kinds of infrastructure.
+
+Kubernetes is built to help users to follow 3 core design principles, as explained in the [Kubernetes implementation details](https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/). A Kubernetes deployment should be:
+
+## What's new, what's next in Red Hat OpenShift
+
+## What are the benefits of Kubernetes?
+
+Kubernetes automates much of the tedious work of deploying and scaling applications, and opens the way to [cloud-native development](/en/topics/cloud-native-apps) methods that can save time and bring new software to market faster.  Some of the main benefits include:
+
+**Support for large, complex environments:** A production environment running multiple applications will require many containers deployed across many hosts, all working together. Kubernetes provides the orchestration and management capabilities required to deploy containers at the scale required for large workloads.
+
+**Scalability:** Kubernetes automatically scales based on your needs, providing the capacity your applications need while saving resources and costs.
+
+**Portability:** Kubernetes can run on-site in your own datacenter, in a public cloud, and in hybrid configurations of both public and private instances. With Kubernetes, the same commands can be used anywhere.
+
+**Consistent deployments:** Kubernetes deployments are consistent across infrastructure. Containers embody the concept of immutable infrastructure, and all the dependencies and setup instructions required to run an application are bundled with the container.
+
+**Separated and automated operations and development:** Containers save developers time, empowering rapid iteration cycles. At the same time, Kubernetes helps operations teams to feel confident in the stability of the system.
+
+**Hybrid cloud strategy support:** Many organizations combine on-site datacenters with public or private cloud solutions, and balance workloads between multiple cloud providers to take advantage of changes in pricing and service levels. The consistency and portability of Kubernetes can support these hybrid strategies.
+
+**Continued support for traditional applications:** Kubernetes can help you deliver and manage containerized, legacy, and cloud-native apps, as well as those being refactored into microservices.
+
+**Management of complex environments:** Microservices in containers make it easier to orchestrate services, including storage, networking, and security, but they also significantly multiply the number of containers in your environment, increasing complexity. Kubernetes groups containers into pods, helping you schedule workloads and provide necessary services—like networking and storage—to those containers.
+
+**Improved security:** [Kubernetes security](https://www.redhat.com/en/topics/containers/kubernetes-security) practices can help organizations take effective steps toward better IT security. Administrators can apply policies for security and governance, and segment policies by pods or groups of pods. Development teams can identify security issues in containers at runtime and fix them at the build stage, rather than updating or patching them in production. [Role-based access control (RBAC)](/en/topics/security/what-is-role-based-access-control) can assign specific permissions to users and service accounts. Kubernetes secrets can safeguard sensitive data like encryption keys.
+
+**Enabling DevOps:** By providing a consistent infrastructure foundation for containers, Kubernetes can a support [DevOps](/en/topics/devops) approach, which promotes an efficient working relationship between development and operations teams. Employing [CI/CD](/en/topics/devops/what-is-ci-cd), or continuous integration and continuous delivery/deployment, helps streamline and accelerate the software development lifecycle. And an evolution of DevOps, [DevSecOps](/en/topics/devops/what-is-devsecops), shifts security controls and vulnerability management earlier in the software development lifecycle.
+
+[E-book: DevOps Culture and Practice with OpenShift](/en/engage/devops-culture-practice-openshift-ebooks)
+
+## What is a Kubernetes cluster?
+
+A working Kubernetes deployment is called a [cluster](/en/topics/containers/what-is-a-kubernetes-cluster), which is a group of hosts running containers.
+
+Administrators set the desired state of a Kubernetes cluster, describing which applications or other workloads should be running, along with which images they use, which resources should be made available to them, and other such configuration details.
+
+You can visualize a Kubernetes cluster as two parts: a control plane, and a series of compute nodes (typically servers or virtual servers).
+
+The control plane is responsible for maintaining the desired state of the cluster, such as which applications are running and which container images they use.
+
+The nodes, meanwhile, follow instructions from the control plane and do the actual work of running the applications and workloads. Each node is its own [Linux®](/en/topics/linux) environment, and could be either a physical or [virtual machine](/en/topics/virtualization/what-is-a-virtual-machine). A Kubernetes cluster needs at least one compute node, but will normally have many.
+
+A Kubernetes node consists of pods, with each pod representing a single instance of an application. A pod is made up of a container or a series of tightly coupled containers, along with options that govern how the containers are run.
+
+A multitude of Kubernetes services work together to automatically identify which node is best suited for each task, allocate resources, and assign the pods in that node to fulfill the requested work. Kubernetes automatically sends requests to the right pod, no matter where the pod moves in the cluster or even if it’s been replaced.
+
+Keeping it all under control, Kubernetes provides a unified [application programming interface (API)](/en/topics/api/what-are-application-programming-interfaces) to manage, create, and configure the cluster.
+
+## Understanding Kubernetes architecture
+
+Let’s take a deeper look at what’s happening in a Kubernetes cluster.
+
+The control plane is the nerve center, home to the components that control the cluster, along with data about the cluster’s state and configuration. These core Kubernetes components handle the work of making sure containers are running in sufficient numbers and with the necessary resources.
+
+The [Kubernetes API](/en/topics/containers/what-is-the-kubernetes-api), or kube-apiserver, is the front end of the Kubernetes control plane, handling internal and external requests. The API server determines if a request is valid and, if it is, processes it. You can access the API through REST calls, through the kubectl command-line interface, or through other command-line tools such as kubeadm.
+
+The Kubernetes scheduler, or kube-scheduler, considers the resource needs of a pod, such as CPU or memory, along with the health of the cluster. Then it schedules the pod to an appropriate compute node.
+
+Controllers, or kube-controller-manager, take care of actually running the cluster, and the Kubernetes controller-manager contains several controller functions in one. One controller consults the scheduler and makes sure the correct number of pods is running. If a pod goes down, another controller notices and responds.
+
+Configuration data and information about the state of the cluster lives in [etcd](/en/topics/containers/what-is-etcd), a key-value store database. Fault-tolerant and distributed, etcd is designed to be the ultimate source of truth about your cluster.
+
+To run the containers, each node has a container runtime engine. [Docker](/en/topics/containers/what-is-docker) is one example, but Kubernetes supports other Open Container Initiative-compliant runtimes as well, such as rkt and CRI-O.
+
+Each node contains a kubelet, a tiny application that communicates with the control plane. The kubelet makes sure containers are running in a pod. When the control plane needs something to happen in a node, the kubelet executes the action.
+
+Each node also contains kube-proxy, a network proxy for facilitating Kubernetes networking services. The kube-proxy handles network communications inside or outside of your cluster—relying either on your operating system’s packet filtering layer, or forwarding the traffic itself.
+
+Beyond just managing the containers that run an application, Kubernetes can also manage the application data attached to a cluster. Kubernetes allows users to request storage resources without having to know the details of the underlying storage infrastructure. Persistent volumes are specific to a cluster, rather than a pod, and thus can outlive the life of a pod.
+
+The container images that Kubernetes relies on are stored in a container registry. This can be a registry you configure, or a third party registry.
+
+[Read more about Kubernetes architecture](/en/topics/containers/kubernetes-architecture)
+
+## What is Knative and serverless Kubernetes?
+
+[Serverless](/en/topics/cloud-native-apps/what-is-serverless) is a cloud-native development model that allows developers to build and run applications without having to manage servers. There are still servers in serverless, but they are abstracted away from app development. Developers can simply package their code in containers for deployment.
+
+Once deployed, serverless apps respond to demand and automatically scale up and down as needed. Serverless offerings from public cloud providers are usually metered on-demand through an event-driven execution model. As a result, when a serverless function is sitting idle, it doesn’t cost anything.
+
+Kubernetes is a popular choice for running serverless environments. But Kubernetes by itself doesn’t come ready to natively run serverless apps. [Knative](/en/topics/microservices/what-is-knative) is an [open source](/en/topics/open-source/what-is-open-source) community project which adds components for deploying, running, and managing serverless apps on Kubernetes.
+
+With Knative, you create a service by packaging your code as a container image and handing it to the system. Your code only runs when it needs to, with Knative starting and stopping instances automatically.
+
+[Read more about serverless](/en/topics/cloud-native-apps/what-is-serverless)
+
+## What is a Kubernetes operator?
+
+A Kubernetes operator is an application-specific controller that extends the functionality of the Kubernetes API to create, configure, and manage instances of complex applications on behalf of a Kubernetes user, and add other application functionality. It builds upon the basic Kubernetes resource and controller concepts, but includes domain or application-specific knowledge to automate the entire life cycle of the software it manages.
+
+A Kubernetes operator can be built to perform almost any Kubernetes action: scaling a complex app, application version upgrades, or even managing kernel modules for nodes in a computational cluster with specialized hardware. Examples of software and tools that are deployed as Kubernetes operators include the Prometheus Operator for monitoring and the Elastic Kubernetes Operator for automating search.
+
+[Learn about Kubernetes operators](/en/topics/containers/what-is-a-kubernetes-operator)
+
+## What’s the difference between Kubernetes and Red Hat OpenShift?
+
+Kubernetes by itself is open source software for deploying, managing, and scaling containers. Putting it to work in any practical sense takes significant work. Most organizations will want to integrate capabilities such as automation, monitoring, log analytics, service mesh, serverless, and developer productivity tools. You may wish to add additional tools to help with networking, ingress, load balancing, storage, monitoring, logging, multi cluster management, continuous integration and continuous delivery (CI/CD). Put simply, for most use cases, Kubernetes by itself is not enough.
+
+Many software vendors provide their own versions of Kubernetes, including self-managed distributions, hosted services, installers, and [Platform-as-a-service (PaaS)](/en/topics/cloud-computing/what-is-paas) offerings. The CNCF maintains a list of dozens of [certified Kubernetes offerings](https://www.cncf.io/training/certification/software-conformance/).
+
+Red Hat® OpenShift® is a certified Kubernetes offering by the CNCF, but also includes much more. Red Hat OpenShift uses Kubernetes as a foundation for a complete platform to deliver cloud-native applications in a consistent way across hybrid cloud environments.
+
+With Kubernetes as a container orchestration engine, Red Hat OpenShift incorporates many more features from the CNCF open source ecosystem, all tested, packaged, and supported by Red Hat. Red Hat OpenShift is available as public cloud service from the major cloud providers such as AWS, Microsoft Azure, Google, and IBM, or as a self-managed software on the broad spectrum of bare metal and virtual infrastructure across data center, public clouds, and edge.
+
+[Read about OpenShift vs. Kubernetes](/en/technologies/cloud-computing/openshift/red-hat-openshift-kubernetes)
+
+## What is OKD?
+
+[OKD](https://okd.io/) is a community project of packaged software components needed to run Kubernetes. In addition to Kubernetes, OKD offers developer- and operations-focused tools that help teams speed up application development, efficiently deploy and scale, and maintain a long-term lifecycle. OKD lets developers create, test, and deploy applications on the cloud, while also supporting several programming languages, including Go, Node.js, Ruby, Python, PHP, Perl, and Java.
+
+OKD is the upstream project of Red Hat OpenShift, optimized for continuous application development and deployment. OKD is generally a few releases ahead of OpenShift on features OKD is where community updates happen first, and where they are trialed for enterprise use.
+
+The primary difference between OKD and OpenShift is that Red Hat OpenShift is validated and tested by Red Hat, and comes with subscription benefits to meet the requirements for enterprise operations. A Red Hat OpenShift subscription includes technical support, security response teams, long-term support options, validated third party operators, certified databases and middleware, and more.
+
+[Read about OpenShift vs. OKD](/en/topics/containers/red-hat-openshift-okd)
+
+## Why choose Red Hat for an application platform?
+
+Red Hat is a leader and active builder of [open source container technology](/en/topics/containers/why-choose-red-hat-containers), including Kubernetes, and creates essential tools for [securing](/en/topics/security/container-security), simplifying, and automatically updating your container infrastructure.
+
+With [Red Hat OpenShift](/en/technologies/cloud-computing/openshift), your developers can make new containerized apps, host them, and deploy them in the cloud with the scalability, control, and orchestration that can turn a good idea into new business quickly and easily. If you’re looking to deploy or move your Kubernetes workloads to a managed cloud service, OpenShift is also available as a cloud-native service on [Amazon Web Services](/en/technologies/cloud-computing/openshift/aws) (AWS), [Microsoft Azure](/en/technologies/cloud-computing/openshift/azure), [Google Cloud](/en/technologies/cloud-computing/openshift/dedicated), [IBM Cloud](/en/technologies/cloud-computing/openshift/ibm), and other providers. And whether you choose a managed or self-managed environment, Red Hat provides clear pathways to [update OpenShift](/en/technologies/cloud-computing/openshift/update-openshift) to keep your clusters current and supported.
+
+Building on a foundation of OpenShift, you can [use Red Hat Advanced Cluster Management and Red Hat Ansible® Automation Platform together](/en/technologies/cloud-computing/openshift/ansible-on-openshift) to help you efficiently deploy and manage multiple Kubernetes clusters across regions, including public cloud, on-premise, and edge environments.
+
+## Red Hat named a Leader in 2025 Gartner® Magic Quadrant™ for Container Management
+
+Read the 2025 Gartner® Magic Quadrant™ for Container Management to learn why Red Hat OpenShift has been named a “Leader” for the 3rd year in a row.
+
+## How to use Red Hat OpenShift as a modern application platform
+
+## Keep reading
+
+### Red Hat OpenShift for developers
+
+### What is a Linux container?
+
+### Why choose Red Hat for Kubernetes?
+
+## Containers resources
+
+### Featured product
+
+#### [Red Hat OpenShift](/en/technologies/cloud-computing/openshift)
+
+A unified application development platform that lets you build, modernize, and deploy applications at scale on your choice of hybrid cloud infrastructure.
+
+### Related content
+
+Blog post
+
+[Confidential Containers workshop on Microsoft Azure Red Hat OpenShift: Learn interactively](/en/blog/confidential-containers-workshop-microsoft-azure-red-hat-openshift-learn-interactively)
+
+Blog post
+
+[(Re)Introducing the Red Hat Universal Base Image](/en/blog/introducing-red-hat-universal-base-image)
+
+Case study
+
+[Holcim boosts efficiency by 40% with Red Hat OpenShift Service on AWS](/en/resources/holcim-digital-center-case-study)
+
+Case study
+
+[Powering O2’s next-generation 5G network with Red Hat OpenShift](/en/resources/o2-czech-republic-case-study)
+
+### Related articles
+
+![Red Hat logo](https://static.redhat.com/libs/redhat/brand-assets/2/corp/logo--on-dark.svg)
+
+### Platforms
+
+### Tools
+
+### Try, buy, & sell
+
+### Communicate
+
+### About Red Hat
+
+Red Hat is an open hybrid cloud technology leader, delivering a consistent, comprehensive foundation for transformative IT and artificial intelligence (AI) applications in the enterprise. As a [trusted adviser to the Fortune 500](/en/about/company), Red Hat offers cloud, developer, Linux, automation, and application platform technologies, as well as [award-winning](https://access.redhat.com/recognition) services.
+
+### Change page language
+
+### Red Hat legal and privacy links
+
+### Red Hat legal and privacy links
+
+---
+
+Title: What is Kubernetes? K8s explained
+![Header background](https://dt-cdn.net/images/half-wave-1920-53e1c04e4a.jpg)
+
+# What is Kubernetes? K8s explained
+
+![Steve Caron](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2020/07/Steve-Caron-150x150.png)
+
+### In this blog post
+
+Kubernetes is a popular solution for scaling, managing, and automating the deployments of containerized applications in distributed environments. But these highly dynamic and distributed environments require a new approach to monitoring.
+
+More applications now rely on containers and microservices than ever before. According to the 2022 Cloud Native Computing Foundation [(CNCF) survey](https://www.cncf.io/reports/cncf-annual-survey-2022/), 44% of respondents are already using containers for nearly all applications and business segments, and another 35% say containers are used for at least a few production applications. With apps growing larger and more complex by the day, IT teams will require tools to help manage these deployments.
+
+Since Kubernetes emerged in 2014, it has become a popular solution for scaling, managing, and automating the deployments of containerized applications in distributed environments. Undoubtedly, it will be the orchestration platform of choice for many enterprises as they grow their apps over the coming years.
+
+Although Kubernetes simplifies application development while increasing resource utilization, it is a complex system that presents its own challenges. In particular, achieving observability across all containers controlled by Kubernetes can be laborious for even the most experienced DevOps teams.
+
+But what is Kubernetes exactly? Where does it come from? What problem is it trying to solve, and how does it work? What challenges does it present, and how can you overcome them?
+
+## What is Kubernetes?
+
+[Kubernetes](https://kubernetes.io/) (aka K8s) is an open source platform used to run and manage containerized applications and services on clusters of physical or virtual machines across on-premises, public, private, and hybrid clouds. It automates complex tasks during the container’s lifecycle, such as provisioning, deployment, networking, scaling, load balancing, and more. This simplifies orchestration in cloud-native environments.
+
+However, these highly dynamic and distributed environments require a new approach to monitoring Kubernetes infrastructure and applications.
+
+[![Kubernetes logo](https://dt-cdn.net/images/logo-kubernetes-132x100-eb340f636b.svg)](https://kubernetes.io/)
+
+![Kubernetes logo](https://dt-cdn.net/images/logo-kubernetes-132x100-eb340f636b.svg)
+
+## Orchestrating the world: from pipe dream to mainstream
+
+When I started working at Dynatrace in 2011, our customers were using the Dynatrace solution to get deep end-to-end visibility into environments we now refer to as monolithic. The bold organizations were building distributed environments using service-oriented architecture (SOA) and trying to implement enterprise service busses (ESBs) to facilitate application-to-application communication. Although it all looked good on paper, it ended up being difficult to implement.
+
+But a perfect storm was brewing on the horizon. Three revolutions were just beginning and have been feeding on each other since, as commented by John Arundel and Justin Domingus in their 2019 book [Cloud Native DevOps with Kubernetes](https://www.amazon.com/Cloud-Native-DevOps-Kubernetes-Applications/dp/1492040762):
+
+**Cloud-native** refers to cloud-based, containerized, distributed systems, made up of cooperating microservices, dynamically managed by automated infrastructure-as-code.  
+The change was happening, and it was happening fast; more organizations were adopting containerized deployment methods (such as Docker) and DevOps practices and [CI/CD pipelines](/news/blog/understanding-continuous-integration-and-continuous-delivery-ci-cd/) to confidently deliver business-differentiating features quickly in an increasingly competitive market. At its start in 2013, Docker was mainly used by developers as a sandbox for testing purposes. The challenge at the time was to manage containers at scale in real-world production environments.
+
+## What are containers, and why are they so hot?
+
+A [container](/knowledge-base/container-monitoring/) is a unit of software that packages application code and its dependencies together, creating a small, self-contained, and fully functional environment to run a workload (app, service), isolated from the other applications running on the same machine. These packages, known as container images, are immutable, and they are abstracted from the environment on which they run. Their immutability and abstraction make them portable across environments, whether it’s a physical or virtual machine, on-premises, in a data center, or in the public cloud, regardless of the underlying platform or OS. This distributed approach to developing and running apps and services is also known as [microservices architecture](/knowledge-base/microservices/).
+
+Container runtime engines, such as Docker’s runC, leverage OS-level virtualization capabilities offered from the kernel to create isolated spaces called “containers.” This virtualization makes it possible to efficiently deploy and securely run a container independently of the hosting infrastructure. Because the concern of environmental conflicts is removed, you can run multiple containers on the same node and achieve higher resource utilization, which can reduce infrastructure costs.
+
+But on their own, more than containers is required.
+
+What’s missing here? Well, many things can happen with containers.
+
+As containers are the vehicle of choice for microservices, you wouldn’t expect to run a full-fledged enterprise application in a single container; instead, you would have multiple containers running on different machines to make up a distributed system.
+
+But how will you set up the communication? Who manages the networking aspects? How do you make this system resilient and fault-tolerant? How do you make it scalable?
+
+Containers can’t be used at their full potential on their own. Enter the orchestration platform.
+
+## Kubernetes: Container orchestration for the cloud-native era
+
+Think of Kubernetes as a classical orchestra. Replace the composer with a software architect, the conductor with a container platform, the score with a workload, the musicians with containers, the hand gestures with API-based messages, performance with current system state, and vision with the desired system state.
+
+Just like a classical orchestra is a framework for integrating and coordinating all the elements of a beautiful music performance, Kubernetes is a framework for integrating and coordinating all the elements for running dynamic microservices-based applications. Without orchestration, running these applications in production would be impossible.
+
+## Kubernetes forged by the rise of Google
+
+If there was any company positioned to understand the problems and limitations of containers before anyone else, it was Google.
+
+Google has been running production workloads in containers longer than any other organization. To operate its infrastructure at high utilization, Google moved its most intensive services into containers. To overcome the challenges of efficiently managing such deployments at a massive scale, they invented a platform to enable container orchestration, known as Borg, which had been Google’s secret weapon for a decade until 2014 when [it announced Kubernetes](https://cloud.google.com/blog/products/containers-kubernetes/from-google-to-the-world-the-kubernetes-origin-story), an open-source project based on the experience and lessons learned from Borg and its successor Omega.
+
+Since then, Kubernetes has taken the container world by storm, becoming the de facto standard for [container orchestration](/knowledge-base/container-orchestration/), leaving Docker Swarm and Apache Mesos far behind. Google eventually donated the project to the CNCF, while remaining its largest contributor, although companies such as Microsoft, Intel, and Red Hat also contribute and develop their own Kubernetes distributions.
+
+## Kubernetes design principles
+
+To understand how Kubernetes works and how to best use it, it’s good to understand the motivations behind its design.
+
+### Declarative
+
+Kubernetes manages its resources in a declarative way, which means you specify the desired state, and Kubernetes will continuously reconcile the actual state with the desired state. This frees you from telling it what to do or how to do it (the imperative way), so you can spend time doing other things.
+
+### Ephemeral
+
+Kubernetes is designed to deal with failures, which can and will happen: servers can go down, processes run out of memory and crash, the network becomes unreliable, and so on. So instead of assuming the platform will ensure the application resources are always up and running, architects should design them to be fault tolerant and make containers disposable and replaceable.
+
+### Immutable
+
+Immutable means unchangeable. In the Kubernetes context, that means if you need to make a change to a container workload, you create a new version (image) of it. Deployments are then executed by provisioning based on validated version-controlled images so they’re more consistent and reliable.
+
+### Distributed
+
+[Kubernetes architecture](/knowledge-base/kubernetes-architecture/) is distributed, which means each platform component has a well-defined role and clear mechanism of communication (via API). It is can run on multiple machines, which makes it more resilient and fault-tolerant.
+
+### Autoscalable
+
+To adapt quickly in dynamic, cloud-native environments, Kubernetes provides resource autoscaling to respond to changes in demand. Horizontal Pod Autoscaler (HPA) adjusts the number of instances or replicas based on observed metrics. Vertical pod autoscaling, an add-on, adjusts the resource requests and limits pod CPU or memory usage as needed.
+
+For clusters that run on a public cloud, cluster autoscaling adjusts the number of nodes in the cluster to help control the cost.
+
+### Portable
+
+Kubernetes can run anywhere: in public or private clouds, on-premises, on virtual machines, bare-metal servers, or even mainframes, and is portable across OS distributions.
+
+Immutable infrastructure allows to move your workloads without having to redesign your applications, thus avoiding vendor lock-in.
+
+### Self-healing
+
+Because of the ephemeral nature of its containerized workload, Kubernetes provides control mechanisms to repair applications – or even the platform itself – in case of failures. It implements multiple control loops, continuously monitoring the components running on the platform and acting if something is wrong or does not correspond to the desired state. If a container fails, Kubernetes will restart it. If a pod encapsulating a container has a problem, Kubernetes will kill it and spin up a new one. If a node becomes unhealthy, Kubernetes will reschedule the workload to run on a healthy node; if a healthy node is not available, Kubernetes can spin up a new machine using cluster autoscaling.
+
+### Resource optimization
+
+Because Kubernetes decouples the application workload from the infrastructure, it can choose the most appropriate server to run your application based on the resource requirements defined in your object manifest file. Its immutable infrastructure enables Kubernetes to move those around freely on the platform infrastructure. This flexibility ensures that the system utilizes resources efficiently and achieves much better results than with manual human intervention.
+
+## Kubernetes architecture: A primer
+
+Kubernetes provides a framework to orchestrate containers, for example, to run them securely, create cross-node virtual networks, recreate a container if one fails, manage scaling and load balancing, execute rollouts and rollbacks, and manage secrets, including OAuth tokens, passwords, and SSH keys.
+
+A Kubernetes environment is called a **cluster**. A Kubernetes cluster is made up of **node components**, which manage individual containers and their workloads, and **control plane components**, which manage global functions. A cluster can host multiple nodes.
+
+![The components of a Kubernetes cluster](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2021/08/components-of-kubernetes.svg)
+
+![The components of a Kubernetes cluster](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2021/08/components-of-kubernetes.svg)
+
+### Node components:
+
+With Kubernetes, pods — groups of application containers that share an operating system — run across clusters of services, called nodes, independently of compatibility or location.
+
+### Control plane components:
+
+The Kube-scheduler schedules the pods, allocating available resources based on the CPU and memory requirements of each node. Web server instances are automatically scaled up or degraded based on demand for the software application, which can be millions of users simultaneously.
+
+## What is Kubernetes used for? Kubernetes use cases
+
+The primary advantage of using containers over virtual machines (VMs) for microservices architecture is their small size and performance. They can be spun up and down a lot faster, and have instant access to system resources. This frees up processing power and makes them more portable. Other benefits include shortened software CI/CD cycles, [efficient resource utilization](/news/blog/monitoring-of-kubernetes-infrastructure-for-day-2-operations/), high availability, seamless performance regardless of computing environment, and system self-healing by automatically restarting or replicating containers.
+
+Kubernetes is useful if your organization is experiencing any of the following pain points :
+
+Kubernetes helps overcome these scaling limitations, coding shortfalls, and development delays. Managed service providers supply the infrastructure and technical expertise to run Kubernetes for your organization. Examples include:
+
+Managed service providers make the benefits of the Kubernetes platform accessible for all shapes and sizes of enterprises struggling to meet a variety of business objectives.
+
+Kubernetes enterprise distributions give organizations the option to host their own Kubernetes infrastructure. Examples include:
+
+Despite the flexibility and portability of containers, it’s important to know that splitting up monolithic applications into small, loosely coupled microservices that span multiple containers and environments makes it a challenge for DevOps teams to maintain visibility into the apps and where they run.
+
+Watch the Perform 2024 session “Accelerate release cycles for Kubernetes applications”
+
+## How does Kubernetes enable DevOps?
+
+DevOps teams use agile processes to [quickly and efficiently deliver](/news/blog/what-is-devops/) new applications and features, and they typically rely on microservices architecture to accomplish their goals.
+
+For developers, containers align well with the distributed nature of microservices architectures and agile development, which speeds up release cycles from months to days, sometimes hours. Because containers include everything needed to run an application and are abstracted away from the underlying infrastructure, DevOps teams can use them to build, test, and run new applications or features without impacting any other aspects of the application environment.
+
+For operations, Kubernetes and containers make deployment easier by eliminating dependencies on the underlying technology stack, like operating systems and middleware. This independence from the infrastructure makes it easier to manage and automate rolling deployments (blue-green, canary), dynamic scaling, and resource allocation.
+
+The flexibility of Kubernetes also makes it easier to scale applications and make development pipelines more resilient. This enables DevOps teams to tap the benefits of containerization at scale without running into the operational and management challenges that would otherwise drain their productivity and internal resources.
+
+## The challenges of Kubernetes at scale: The service mesh question
+
+Organizations with large, mature Kubernetes environments eventually graduate to another problem—whether to use a [service mesh](/news/blog/what-is-a-service-mesh/). A service mesh controls service-to-service communications for large-scale applications to improve application performance and resiliency. These applications comprising many microservices can experience performance challenges as application traffic grows and requests between the various microservices exponentially increase. When this happens, a service mesh provides an effective solution for routing requests between these microservices and optimizing the flow of data between them.
+
+Service meshes can effectively and securely manage the connections between services so applications can continue to perform at a high level and meet service-level agreements. While orchestration platforms, such as Kubernetes, help developers use containers at scale without having to worry about the underlying infrastructure or advanced container management techniques, service meshes let them focus on adding business value with each new service they build rather than having to worry about “utility code” to ensure secure and resilient communication between services.
+
+Service meshes are best suited for large, mature K8s infrastructures.
+
+## Observability challenges with Kubernetes
+
+[The CNCF 2020 survey](https://www.cncf.io/wp-content/uploads/2020/11/CNCF_Survey_Report_2020.pdf) revealed that complexity is one of the top challenges in using and deploying containers. This complexity presents [unique observability challenges](/news/blog/kubernetes-challenges-for-observability-platforms/) when running Kubernetes applications and services on highly dynamic distributed systems.
+
+Foremost among these problems is that while Kubernetes orchestrates your containers, it doesn’t offer any insight into the internal state of your applications or issues that might be causing slowdowns or stoppages. That’s why IT teams rely on telemetry data to gain a better understanding of the behavior of their code during runtime. But while collecting logs, metrics, and [distributed traces](/news/blog/what-is-distributed-tracing/) is supported by many protocols like Prometheus and [OpenTelemetry](/news/blog/what-is-opentelemetry/), the real value comes from understanding how these constantly changing data points relate to each other. It’s in these hard-to-see relationships that performance issues reveal themselves.
+
+Containerized application instances can come and go rapidly. For example, a pod can be scheduled and then terminated in a matter of milliseconds. They can also have billions of dependencies. It’s true that monitoring agents on nodes can track the state of the cluster and alert DevOps teams when anomalies occur, but what if the issue is with the virtualization infrastructure?
+
+DevOps teams need an automated, [full-stack observability](/knowledge-base/full-stack-observability/) solution to stay on top of their Kubernetes orchestration platforms. That’s where Dynatrace comes in.
+
+## Monitoring the full Kubernetes stack
+
+The Dynatrace platform—powered by the advanced AI engine, [Davis](/platform/artificial-intelligence/)—is the only [Kubernetes monitoring system](/technologies/kubernetes-monitoring/) with continuous automation that identifies and prioritizes alerts from applications and infrastructure without changing code, container images, or deployments.
+
+For [full mastery of Kubernetes](/news/blog/address-kubernetes-observability-configuration-chaos-with-unparalleled-automation/), simply deploy the OneAgent Operator, and Dynatrace can:
+
+With this critical information in one centralized interface, all teams within the software development lifecycle will be able to operate from a single source of truth so they can resolve issues faster and focus on innovations.
+
+While DevOps and SRE teams will be happy to learn about these powerful capabilities, Dynatrace’s value extends far beyond just Kubernetes observability. Dynatrace uses its powerful AI to provide end-to-end visibility into the entire software stack, mapping and analyzing dependencies in near real time to determine both the root cause of any disruption and the impact of slowdowns as they pertain to business KPIs.
+
+Regardless of your cloud platform, container runtime, service-mesh layer, or the number of nodes you’re running, Dynatrace makes monitoring your Kubernetes infrastructure—and everything else in your cloud environment—simple.
+
+## Further your Kubernetes knowledge
+
+Kubernetes is a hard, complex implementation, and operations at the enterprise level are not a walk in the park, requiring adequate monitoring and a different approach than with classic stacks.
+
+### Kubernetes in the wild report 2025
+
+Uncover global Kubernetes adoption trends, cost-optimization strategies, and key tools driving innovation for thousands of organizations worldwide. This report highlights global trends in the technology’s adoption and usage in production environments from thousands of organizations across diverse industries.
+
+![Kubernetes clusters hosted in the Cloud](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2025/12/K8s-charts_Insight-1-1600x900-1-300x169.png)  
+
+[Read now!](https://www.dynatrace.com/resources/ebooks/kubernetes-in-the-wild/)
+
+![Kubernetes clusters hosted in the Cloud](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2025/12/K8s-charts_Insight-1-1600x900-1-300x169.png)
+
+### Share blog post
+
+### Stay Updated
+
+![Steve Caron](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2020/07/Steve-Caron-150x150.png)
+
+The Author
+
+As a Senior Sales Engineer for the Global Center of Excellence at Dynatrace, Steve Caron focused on helping customers solve the challenges of providing observability into cloud-native platforms and applicative workloads.
+Prior to joining Dynatrace in 2011, Steve occupied various positions in software development, testing, architecture, implementation, and training. Rest assured, aside from the professional world, Steve doesn’t think or speak in the third person; he prefers spending time with his family, traveling or reading about pretty much anything.
+
+![Two Professional IT Programers Discussing Blockchain Data Network Architecture Design and Development Shown on Desktop Computer Display. Working Data Center Technical Department with Server Racks](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2020/12/Myths-300x169.jpg)
+
+## What is distributed tracing, and why is it important?
+
+![Dynatrace Logs icon](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2026/01/Blog-OTP-0203_New-Logs-App_1x-300x169.png)
+
+## How Dynatrace supercharged log observability in 2025
+
+![SNMP Autodiscovery](https://news.cdn.dm.dynatrace.com/wp-content/uploads/2024/07/Blog_-OTP-0165_-high-res-version-300x169.png)
+
+## Accelerate SNMP network device observability with Dynatrace Discovery & Coverage
+
+![Section background](https://dt-cdn.net/images/full-wave-cta-1500-c11df5539d.jpg)
+
+## Looking for answers?
+
+Start a new discussion or ask for help in our Q&A forum.
+
+[Go to forum](https://community.dynatrace.com/t5/Using-Dynatrace/ct-p/UsingDynatrace)
+
+## Looking for answers?
+
+Start a new discussion or ask for help in our Q&A forum.
+
+---
+
+Title: What Is Kubernetes? - Palo Alto Networks
+[Deploy Bravely — Secure your AI transformation with Prisma AIRS](/deploybravely)
+
+Table of Contents
+
+* [What Is Container Security?](/cyberpedia/what-is-container-security) 
+  + [Container Security Explained](/cyberpedia/what-is-container-security#container-security)
+  + [Understanding the Attack Surface](/cyberpedia/what-is-container-security#attack-surface)
+  + [How to Secure Containers](/cyberpedia/what-is-container-security#secure-containers)
+  + [Container Security Solutions](/cyberpedia/what-is-container-security#solutions)
+  + [Container Security FAQs](/cyberpedia/what-is-container-security#faq)
+* [Kubernetes: How to Implement AI-Powered Security](/cyberpedia/kubernetes-ai-security) 
+  + [Common Threats to Kubernetes Clusters](/cyberpedia/kubernetes-ai-security#common)
+  + [How Is AI Used to Enhance Kubernetes Security?](/cyberpedia/kubernetes-ai-security#how)
+  + [How Do You Implement AI-Powered Security in Kubernetes?](/cyberpedia/kubernetes-ai-security#do)
+  + [What Are the Best Types of AI-Powered Tools for Kubernetes Security?](/cyberpedia/kubernetes-ai-security#what)
+  + [Kubernetes and AI-Powered Security FAQs](/cyberpedia/kubernetes-ai-security#faqs)
+* [What Is Container Registry Security?](/cyberpedia/container-registry-security) 
+  + [Container Registry Security Explained](/cyberpedia/container-registry-security#container-registry)
+  + [Components of Container Registry Security](/cyberpedia/container-registry-security#components)
+  + [Promoting Image and Artifact Integrity in CI/CD](/cyberpedia/container-registry-security#artifact-integrity)
+  + [At-a-Glance Container Registry Security Checklist](/cyberpedia/container-registry-security#checklist)
+  + [Container Registry FAQs](/cyberpedia/container-registry-security#faq)
+* [What Is Container Orchestration?](/cyberpedia/what-is-container-orchestration) 
+  + [Container Orchestration Explained](/cyberpedia/what-is-container-orchestration#container-orchestration)
+  + [Orchestration Tools](/cyberpedia/what-is-container-orchestration#tools)
+  + [Key Components of Orchestrators](/cyberpedia/what-is-container-orchestration#components)
+  + [Container Orchestration and the Pipeline](/cyberpedia/what-is-container-orchestration#pipeline)
+  + [Benefits of Container Orchestration](/cyberpedia/what-is-container-orchestration#benefits)
+  + [The Container Ecosystem](/cyberpedia/what-is-container-orchestration#ecosystem)
+  + [Container Orchestration FAQs](/cyberpedia/what-is-container-orchestration#faq)
+* [Managing Permissions with Kubernetes RBAC](/cyberpedia/kubernetes-rbac) 
+  + [Kubernetes RBAC Defined](/cyberpedia/kubernetes-rbac#kubernetes)
+  + [Why Is RBAC Important for Kubernetes Security?](/cyberpedia/kubernetes-rbac#important)
+  + [RBAC Roles and Permissions in Kubernetes](/cyberpedia/kubernetes-rbac#roles)
+  + [How Kubernetes RBAC Works](/cyberpedia/kubernetes-rbac#how)
+  + [The Role of RBAC in Kubernetes Authorization](/cyberpedia/kubernetes-rbac#authorization)
+  + [Common RBAC Permissions Risks and Vulnerabilities](/cyberpedia/kubernetes-rbac#common)
+  + [Kubernetes RBAC Best Practices and Recommendations](/cyberpedia/kubernetes-rbac#best)
+  + [Kubernetes and RBAC FAQ](/cyberpedia/kubernetes-rbac#faqs)
+* [What Is Container Runtime Security?](/cyberpedia/runtime-security) 
+  + [Container Runtime Security for Modern Applications](/cyberpedia/runtime-security#runtime-security)
+  + [Models and Rules: Understanding Container Runtime Security](/cyberpedia/runtime-security#models)
+  + [Components of Container Runtime Security](/cyberpedia/runtime-security#components)
+  + [Best Practices for Optimal Runtime Security](/cyberpedia/runtime-security#best-practices)
+  + [At-a Glance Runtime Security Checklist](/cyberpedia/runtime-security#checklist)
+  + [Runtime Security FAQs](/cyberpedia/runtime-security#faq)
+* [What Is Kubernetes Security?](/cyberpedia/kubernetes-security) 
+  + [Kubernetes Security Explained](/cyberpedia/kubernetes-security#kubernetes)
+  + [The Importance of Kubernetes Security](/cyberpedia/kubernetes-security#importance)
+  + [Application Security in Kubernetes](/cyberpedia/kubernetes-security#application)
+  + [7 Common Kubernetes Security Mistakes](/cyberpedia/kubernetes-security#mistakes)
+  + [Kubernetes Security Best Practices](/cyberpedia/kubernetes-security#practices)
+  + [Kubernetes Security FAQs](/cyberpedia/kubernetes-security#faqs)
+* [Multicloud Management with Al and Kubernetes](/cyberpedia/kubernetes-multicloud-management) 
+  + [Multicloud Kubernetes Defined](/cyberpedia/kubernetes-multicloud-management#multicloud)
+  + [How Does Kubernetes Facilitate Multicloud Management?](/cyberpedia/kubernetes-multicloud-management#how)
+  + [Multicloud Management Using AI and Kubernetes](/cyberpedia/kubernetes-multicloud-management#kubernetes)
+  + [Key AI and Kubernetes Capabilities](/cyberpedia/kubernetes-multicloud-management#key)
+  + [Strategic Planning for Multicloud Management](/cyberpedia/kubernetes-multicloud-management#strategic)
+  + [Steps to Manage Multiple Cloud Environments with AI and Kubernetes](/cyberpedia/kubernetes-multicloud-management#steps)
+  + [Multicloud Management Challenges](/cyberpedia/kubernetes-multicloud-management#challenges)
+  + [Kubernetes Multicloud Management with AI FAQs](/cyberpedia/kubernetes-multicloud-management#faqs)
+* What Is Kubernetes?
+
+  + [Kubernetes Explained](/cyberpedia/what-is-kubernetes#kubernetes)
+  + [Kubernetes Architecture](/cyberpedia/what-is-kubernetes#architecture)
+  + [Nodes: The Foundation](/cyberpedia/what-is-kubernetes#nodes)
+  + [Clusters](/cyberpedia/what-is-kubernetes#clusters)
+  + [Pods: The Basic Units of Deployment](/cyberpedia/what-is-kubernetes#pods)
+  + [Kubelet](/cyberpedia/what-is-kubernetes#kubelet)
+  + [Services: Networking in Kubernetes](/cyberpedia/what-is-kubernetes#services)
+  + [Volumes: Handling Persistent Storage](/cyberpedia/what-is-kubernetes#volumes)
+  + [Deployments in Kubernetes](/cyberpedia/what-is-kubernetes#deployments)
+  + [Kubernetes Automation and Capabilities](/cyberpedia/what-is-kubernetes#capabilities)
+  + [Benefits of Kubernetes](/cyberpedia/what-is-kubernetes#benefits)
+  + [Kubernetes Vs. Docker](/cyberpedia/what-is-kubernetes#compare)
+  + [Kubernetes FAQs](/cyberpedia/what-is-kubernetes#faq)
+* [What Is Kubernetes Security Posture Management (KSPM)?](/cyberpedia/kubernetes-security-posture-management-kspm) 
+  + [Kubernetes Security Posture Management Explained](/cyberpedia/kubernetes-security-posture-management-kspm#kspm)
+  + [What Is the Importance of KSPM?](/cyberpedia/kubernetes-security-posture-management-kspm#importance)
+  + [KSPM & the Four Cs](/cyberpedia/kubernetes-security-posture-management-kspm#kspm-cs)
+  + [Vulnerabilities Addressed with Kubernetes Security Posture Management](/cyberpedia/kubernetes-security-posture-management-kspm#vulnerabilities)
+  + [How Does Kubernetes Security Posture Management Work?](/cyberpedia/kubernetes-security-posture-management-kspm#how)
+  + [What Are the Key Components and Functions of an Effective KSPM Solution?](/cyberpedia/kubernetes-security-posture-management-kspm#components)
+  + [KSPM Vs. CSPM](/cyberpedia/kubernetes-security-posture-management-kspm#vs)
+  + [Best Practices for KSPM](/cyberpedia/kubernetes-security-posture-management-kspm#best-practices)
+  + [KSPM Use Cases](/cyberpedia/kubernetes-security-posture-management-kspm#use-cases)
+  + [Kubernetes Security Posture Management (KSPM) FAQs](/cyberpedia/kubernetes-security-posture-management-kspm#faq)
+* [What Is Orchestration Security?](/cyberpedia/what-is-orchestration-security) 
+  + [Orchestration Security Explained](/cyberpedia/what-is-orchestration-security#orchestration-security)
+  + [Securing the Build Layer](/cyberpedia/what-is-orchestration-security#build-layer)
+  + [Orchestration Access Security](/cyberpedia/what-is-orchestration-security#access-security)
+  + [At-a-Glance Container Orchestration Security Checklist](/cyberpedia/what-is-orchestration-security#checklist)
+  + [Container Orchestration FAQs](/cyberpedia/what-is-orchestration-security#faq)
+* [How to Secure Kubernetes Secrets and Sensitive Data](/cyberpedia/kubernetes-secrets) 
+  + [Kubernetes Secrets Explained](/cyberpedia/kubernetes-secrets#kubernetes)
+  + [Importance of Securing Kubernetes Secrets](/cyberpedia/kubernetes-secrets#importance)
+  + [How Kubernetes Secrets Work](/cyberpedia/kubernetes-secrets#kubernetes-secrets)
+  + [How Do You Store Sensitive Data in Kubernetes?](/cyberpedia/kubernetes-secrets#sensitive-data)
+  + [How Do You Secure Secrets in Kubernetes?](/cyberpedia/kubernetes-secrets#secure-secrets)
+  + [Challenges in Securing Kubernetes Secrets](/cyberpedia/kubernetes-secrets#challenges)
+  + [What Are the Best Practices to Make Kubernetes Secrets More Secure?](/cyberpedia/kubernetes-secrets#best-practices)
+  + [What Tools Are Available to Secure Secrets in Kubernetes?](/cyberpedia/kubernetes-secrets#tools)
+  + [Kubernetes Secrets FAQ](/cyberpedia/kubernetes-secrets#faq)
+* [Kubernetes and Infrastructure as Code](/cyberpedia/kubernetes-infrastructure-as-code) 
+  + [Infrastructure as Code in the Kubernetes Environment](/cyberpedia/kubernetes-infrastructure-as-code#kubernetes-environment)
+  + [Understanding IaC](/cyberpedia/kubernetes-infrastructure-as-code#iac)
+  + [IaC Security Is Key](/cyberpedia/kubernetes-infrastructure-as-code#iac-security)
+  + [Kubernetes Host Infrastructure Security](/cyberpedia/kubernetes-infrastructure-as-code#host-infrastructure-security)
+  + [IAM Security for Kubernetes Clusters](/cyberpedia/kubernetes-infrastructure-as-code#iam-security)
+  + [Container Registry and IaC Security](/cyberpedia/kubernetes-infrastructure-as-code#container-registry)
+  + [Avoid Pulling “Latest” Container Images](/cyberpedia/kubernetes-infrastructure-as-code#container-images)
+  + [Avoid Privileged Containers and Escalation](/cyberpedia/kubernetes-infrastructure-as-code#privileged-containers)
+  + [Isolate Pods at the Network Level](/cyberpedia/kubernetes-infrastructure-as-code#isolate-pods)
+  + [Encrypt Internal Traffic](/cyberpedia/kubernetes-infrastructure-as-code#encrypt)
+  + [Specifying Resource Limits](/cyberpedia/kubernetes-infrastructure-as-code#resource-limits)
+  + [Avoiding the Default Namespace](/cyberpedia/kubernetes-infrastructure-as-code#namespace)
+  + [Enable Audit Logging](/cyberpedia/kubernetes-infrastructure-as-code#audit-logging)
+  + [Securing Open-Source Kubernetes Components](/cyberpedia/kubernetes-infrastructure-as-code#kubernetes-components)
+  + [Kubernetes Security Across the DevOps Lifecycle](/cyberpedia/kubernetes-infrastructure-as-code#devops-lifecycle)
+  + [Kubernetes and Infrastructure as Code FAQs](/cyberpedia/kubernetes-infrastructure-as-code#faq)
+* [What Is the Difference Between Dockers and Kubernetes?](/cyberpedia/kubernetes-docker) 
+  + [Docker Defined](/cyberpedia/kubernetes-docker#defined)
+  + [Kubernetes Explained](/cyberpedia/kubernetes-docker#explained)
+  + [Docker and Kubernetes: Comparison of Containerization Platforms](/cyberpedia/kubernetes-docker#platforms)
+  + [Kubernetes Vs. Docker: Complementary, Not Competitors](/cyberpedia/kubernetes-docker#competitors)
+  + [Benefits of Integrating Docker and Kubernetes](/cyberpedia/kubernetes-docker#benefits)
+  + [Use Cases and Applications for Docker and Kubernetes](/cyberpedia/kubernetes-docker#usecases)
+  + [Dockers and Kubernetes FAQ](/cyberpedia/kubernetes-docker#faqs)
+* [Securing Your Kubernetes Cluster: Kubernetes Best Practices and Strategies](/cyberpedia/kubernetes-cluster-security) 
+  + [What Is the Importance of a Secure Kubernetes Cluster?](/cyberpedia/kubernetes-cluster-security#importance)
+  + [Understanding Kubernetes Security](/cyberpedia/kubernetes-cluster-security#security)
+  + [What Are Kubernetes Security Considerations and Security Best Practices?](/cyberpedia/kubernetes-cluster-security#practices)
+  + [What Are Advanced Strategies for Kubernetes Security?](/cyberpedia/kubernetes-cluster-security#advanced)
+  + [Kubernetes Cluster Security FAQs](/cyberpedia/kubernetes-cluster-security#faqs)
+* [What Is a Host Operating System (OS)?](/cyberpedia/host-os-operating-system-containers) 
+  + [The Host Operating System (OS) Explained](/cyberpedia/host-os-operating-system-containers#os)
+  + [Host OS Selection](/cyberpedia/host-os-operating-system-containers#selection)
+  + [Host OS Security](/cyberpedia/host-os-operating-system-containers#security)
+  + [Implement Industry-Standard Security Benchmarks](/cyberpedia/host-os-operating-system-containers#benchmarks)
+  + [Container Escape](/cyberpedia/host-os-operating-system-containers#container-escape)
+  + [System-Level Security Features](/cyberpedia/host-os-operating-system-containers#security-features)
+  + [Patch Management and Vulnerability Management](/cyberpedia/host-os-operating-system-containers#patch-management)
+  + [File System and Storage Security](/cyberpedia/host-os-operating-system-containers#storage-security)
+  + [Host-Level Firewall Configuration and Security](/cyberpedia/host-os-operating-system-containers#firewall-configuration)
+  + [Logging, Monitoring, and Auditing](/cyberpedia/host-os-operating-system-containers#logging)
+  + [Host OS Security FAQs](/cyberpedia/host-os-operating-system-containers#faq)
+* [What Is Docker?](/cyberpedia/docker) 
+  + [Docker Explained](/cyberpedia/docker#docker)
+  + [Understanding Docker Containers](/cyberpedia/docker#understanding)
+  + [Core Components of Docker](/cyberpedia/docker#core)
+  + [What Platforms and Environments Does Docker Support?](/cyberpedia/docker#what)
+  + [How Does Docker Work?](/cyberpedia/docker#how)
+  + [Docker Tools](/cyberpedia/docker#tools)
+  + [Docker Use Cases and Benefits](/cyberpedia/docker#benefits)
+  + [Docker FAQ](/cyberpedia/docker#faqs)
+* [What Is a Container?](/cyberpedia/what-is-a-container) 
+  + [Containers Explained](/cyberpedia/what-is-a-container#containers)
+  + [Understanding Container Components](/cyberpedia/what-is-a-container#components)
+  + [Container Infrastructure](/cyberpedia/what-is-a-container#infrastructure)
+  + [Know Your Container Types](/cyberpedia/what-is-a-container#types)
+  + [Harnessing the Efficiency of Containerization](/cyberpedia/what-is-a-container#efficiency)
+  + [Container FAQs](/cyberpedia/what-is-a-container#faq)
+* [What Is Containerization?](/cyberpedia/containerization) 
+  + [Why Is Containerization Important?](/cyberpedia/containerization#why)
+  + [Containers: A Modern Contender to VMs](/cyberpedia/containerization#containers)
+  + [To Container or Not to Container: Moving Applications to the Cloud](/cyberpedia/containerization#apps)
+  + [Architecture and Migration](/cyberpedia/containerization#architecture)
+  + [Choosing a Cloud Migration Method](/cyberpedia/containerization#migration)
+  + [When Micro Means Fast](/cyberpedia/containerization#micro)
+  + [Container FAQs](/cyberpedia/containerization#faq)
+
+# What Is Kubernetes?
+
+6 min. read
+
+[Download The CNAPP Buyer’s Guide](https://start.paloaltonetworks.com/cnapp-buyers-guide.html)
+
+Table of Contents
+
+* + [Kubernetes Explained](/cyberpedia/what-is-kubernetes#kubernetes)
+  + [Kubernetes Architecture](/cyberpedia/what-is-kubernetes#architecture)
+  + [Nodes: The Foundation](/cyberpedia/what-is-kubernetes#nodes)
+  + [Clusters](/cyberpedia/what-is-kubernetes#clusters)
+  + [Pods: The Basic Units of Deployment](/cyberpedia/what-is-kubernetes#pods)
+  + [Kubelet](/cyberpedia/what-is-kubernetes#kubelet)
+  + [Services: Networking in Kubernetes](/cyberpedia/what-is-kubernetes#services)
+  + [Volumes: Handling Persistent Storage](/cyberpedia/what-is-kubernetes#volumes)
+  + [Deployments in Kubernetes](/cyberpedia/what-is-kubernetes#deployments)
+  + [Kubernetes Automation and Capabilities](/cyberpedia/what-is-kubernetes#capabilities)
+  + [Benefits of Kubernetes](/cyberpedia/what-is-kubernetes#benefits)
+  + [Kubernetes Vs. Docker](/cyberpedia/what-is-kubernetes#compare)
+  + [Kubernetes FAQs](/cyberpedia/what-is-kubernetes#faq)
+
+* + [Kubernetes Explained](/cyberpedia/what-is-kubernetes#kubernetes)
+  + [Kubernetes Architecture](/cyberpedia/what-is-kubernetes#architecture)
+  + [Nodes: The Foundation](/cyberpedia/what-is-kubernetes#nodes)
+  + [Clusters](/cyberpedia/what-is-kubernetes#clusters)
+  + [Pods: The Basic Units of Deployment](/cyberpedia/what-is-kubernetes#pods)
+  + [Kubelet](/cyberpedia/what-is-kubernetes#kubelet)
+  + [Services: Networking in Kubernetes](/cyberpedia/what-is-kubernetes#services)
+  + [Volumes: Handling Persistent Storage](/cyberpedia/what-is-kubernetes#volumes)
+  + [Deployments in Kubernetes](/cyberpedia/what-is-kubernetes#deployments)
+  + [Kubernetes Automation and Capabilities](/cyberpedia/what-is-kubernetes#capabilities)
+  + [Benefits of Kubernetes](/cyberpedia/what-is-kubernetes#benefits)
+  + [Kubernetes Vs. Docker](/cyberpedia/what-is-kubernetes#compare)
+  + [Kubernetes FAQs](/cyberpedia/what-is-kubernetes#faq)
+
+Kubernetes is an extensible, open-source [container orchestration platform](/cyberpedia/what-is-container-orchestration) that manages and automates processes for deploying, running, and scaling containerized services and applications, significantly alleviating the operational burden of container management.
+
+## Kubernetes Explained
+
+Kubernetes introduces powerful tools to maximize the effectiveness of [containers](/cyberpedia/what-is-a-container), cloud-ready apps, and [infrastructure as code](/cyberpedia/what-is-iac) across cloud environments and operating systems. Also known as “K8s” or “Kube,” it offers development teams incredible scale, flexibility, and speed.
+
+Key to the [cloud-native ecosystem](/cyberpedia/what-is-cloud-native), Kubernetes can be configured to manage and monitor on-premises and public, private, and hybrid deployments. It eliminates the manual processes involved in the deployment and scaling of containerized applications by equipping administrators with commands and utilities to deploy, run, and troubleshoot the containers they manage.
+
+Capable of clustering groups of servers hosting Linux containers while allowing administrators to manage those clusters, Kubernetes makes it possible to quickly deploy applications in response to consumer demands — all while limiting hardware resource consumption.
+
+As [The New Stack](https://thenewstack.io/ebooks/kubernetes/state-of-kubernetes-ecosystem-second-edition-2020/) aptly put it:
+
+“A contemporary application, packaged as a set of containers and deployed as microservices, needs an infrastructure robust enough to deal with the demands of clustering and the stress of dynamic orchestration. Such an infrastructure should provide primitives for scheduling, monitoring, upgrading, and relocating containers across hosts. It must treat the underlying compute, storage, and network primitives as a pool of resources. Each containerized workload should be capable of taking advantage of the resources exposed to it, including CPU cores, storage units and networks.”
+
+This is Kubernetes, an infrastructure *robust enough*.
+
+While Docker excels in [containerization](/cyberpedia/containerization), Kubernetes is the undisputed standard in container orchestration. Originally developed by Google, Kubernetes manages clusters of containers, offering advanced features for workload distribution, scaling, and fault tolerance, in addition to abstracting the complexities of underlying infrastructure.
+
+Among surveyed organizations, 96% report using or evaluating Kubernetes, according to the [CNCF Annual Survey 2021](https://www.cncf.io/blog/2022/07/19/take-the-2022-cncf-cloud-native-survey-by-august-4th/). Kubernetes is indeed ubiquitous, attesting to its standing with enterprises, platform vendors, cloud providers, and infrastructure companies.
+
+Packed with capabilities to make managing application operations easier, Kubernetes automates rollouts and application updates, as well as handling automated rollback in the event of an error. It can fit containers into fixed resource allocation to maximize the use of resources — and automatically restart, replace, and even kill containers that don’t respond to health check metrics. Kubernetes manages access to storage, networking configuration, and even provides secret and configuration management.
+
+For organizations working [CI/CD pipelines](/cyberpedia/what-is-the-ci-cd-pipeline-and-ci-cd-security), automating code from prototype to production, Kubernetes is cloud-ready and ideal for managing [containerized microservices](/cyberpedia/what-are-microservices). Even teams unable to run their entire Kubernetes environment take advantage of managed Kubernetes services offered by hyperscaler cloud providers like Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP).
+
+As far as the learning curve goes, with the right resources, Kubernetes is just another tool. So let’s look under the hood.
+
+## Kubernetes Architecture
+
+![Figure 1: Concepts of a Kubernetes architecture]( "Figure 1: Concepts of a Kubernetes architecture")  
+
+*Figure 1: Concepts of a Kubernetes architecture*
+
+Kubernetes' architecture is a sophisticated orchestration of components that work in concert to provide a resilient, scalable, and manageable environment for modern applications. Its design encapsulates the complexity of distributed systems, enabling [DevOps teams](/cyberpedia/what-is-devops) to focus on application-level concerns rather than the intricacies of the underlying infrastructure.
+
+![Figure 2: Container orchestration component overview]( "Figure 2: Container orchestration component overview")  
+
+*Figure 2: Container orchestration component overview1*
+
+Orchestration engines like Kubernetes are complex, consisting of several key technological components that work in unison to manage the lifecycle of containers. By understanding key components, you gain an understanding of how to best utilize containerization technologies.
+
+### The Control Plane
+
+At the heart of Kubernetes lies its control plane, the command center for scheduling and managing the application lifecycle. The control plane exposes the Kubernetes API, orchestrates deployments, and directs communication throughout the system. It also monitors container health and manages the cluster, ensuring that container images are readily available from a registry for deployment.
+
+The Kubernetes control plane comprises several components — the etcd, the API server, the scheduler, and the controller-manager.
+
+#### Etcd
+
+The etcd datastore, developed by CoreOS and later acquired by Red Hat, is a distributed key-value store that holds the cluster's configuration data. It informs the orchestrator's actions to maintain the desired application state, as defined by a declarative policy. This policy outlines the optimal environment for an application, guiding the orchestrator in managing properties like instance count, storage needs, and resource allocation.
+
+#### API Server
+
+The Kubernetes API server plays a pivotal role, exposing the cluster's capabilities via a RESTful interface. It processes requests, validates them, and updates the state of the cluster based on instructions received. This mechanism allows for dynamic configuration and management of workloads and resources.
+
+#### Scheduler
+
+The scheduler in Kubernetes assigns workloads to worker nodes based on resource availability and other constraints, such as quality of service and affinity rules. The scheduler ensures that the distribution of workloads remains optimized for the cluster's current state and resource configuration.
+
+#### Controller-Manager
+
+The controller-manager maintains the desired state of applications. It operates through controllers, control loops that monitor the cluster's shared state and make adjustments to align the current state with the desired state. These controllers ensure the stability of nodes and pods, responding to changes in the cluster's health to maintain operational consistency.
+
+## Nodes: The Foundation
+
+Kubernetes has two layers consisting of the master nodes and worker nodes. The master node typically runs the control plane, the brains of the Kubernetes cluster, which is responsible for making decisions about how to schedule and manage workloads. The worker node — also known as worker machine or, simply, node — provides the muscle that runs applications.
+
+![Figure 3: Master and worker node relationship depicting how Kubernetes manages a cluster]( "Figure 3: Master and worker node relationship depicting how Kubernetes manages a cluster")  
+
+*Figure 3: Master and worker node relationship depicting how Kubernetes manages a cluster*
+
+The collection of master nodes and worker nodes becomes a cluster. The master node orchestrates the scheduling and scaling of pods, in addition to preserving the cluster's overall state.
+
+The worker nodes are responsible for running pods, managing resources, and communicating with the master, which includes doing work assigned to them by the master node. The worker node(s) serve as the execution environment for the pods.
+
+The control plane ensures efficient management of both the worker nodes and the pods distributed across the cluster.
+
+![Figure 4: Kubernetes master node, worker node relationship and pod architecture]( "Figure 4: Kubernetes master node, worker node relationship and pod architecture")  
+
+*Figure 4: Kubernetes master node, worker node relationship and pod architecture*
+
+Kubernetes master, nodes, pods, services, and ingress controller work together to deploy and manage containerized applications. The Kubernetes master schedules pods on nodes. The pods are then started, and the applications are run. The services provide a way to access the pods without having to know their individual IP addresses. The ingress controller routes traffic from the outside world to the services.
+
+## Clusters
+
+A cluster is a collection of nodes (bare-metal or virtualized machines) that will host your application pods. Each node in a cluster is managed by the control plane and contains the services necessary to run pods.
+
+Clusters support scalability, reliability, and security with traits such as:
+
+* Pods can move to different nodes as needed.
+* The control plane runs on multiple nodes.
+* Pods are isolated from each other, and the node processes run in a secure environment.
+
+![Figure 5: Kubernetes cluster architecture]( "Figure 5: Kubernetes cluster architecture")  
+
+*Figure 5: Kubernetes cluster architecture*
+
+Kubernetes includes a suite of built-in controllers within the controller-manager, each offering primitives tailored to specific workload types — stateless, stateful, or batch jobs. Developers and operators leverage these primitives to package and deploy applications, leveraging Kubernetes' architecture to achieve high availability, resilience, and scalability in cloud and data center environments.
+
+In addition to ensuring that the current state of the cluster matches the desired state defined by the user, the controller-manager:
+
+* Manages the lifecycle of nodes and pods, handling tasks like node provisioning, replication, and rollout of updates.
+* Manages default accounts and API access tokens for new namespaces.
+* Operates in a loop, watching the shared state of the cluster through the API server and making changes where necessary.
+
+![Figure 6: Kubernetes cluster with a few nodes]( "Figure 6: Kubernetes cluster with a few nodes")  
+
+*Figure 6: Kubernetes cluster with a few nodes*
+
+In the overview of the Kubernetes cluster and how its components work together, figure 6 shows the control plane running on Node1. This is often the case, as the control plane needs to be highly available and reliable.
+
+### Namespaces
+
+Kubernetes namespaces partition a cluster’s resources into logically named groups. They provide a way to create virtual clusters within a physical cluster. Each namespace is an isolated, independent environment that contains a unique set of Kubernetes resources, such as pods, services, and replication controllers.
+
+Namespaces are commonly used in large, multitenant Kubernetes environments to provide isolation between teams, projects, or applications. By creating namespaces, you can prevent resources with the same name from conflicting with each other, and you can limit the visibility of resources to specific users or groups.
+
+When you create a namespace, Kubernetes automatically creates a set of default resources in that namespace, including a default service account and a default set of resource quotas. You can customize these defaults and add additional resources as needed.
+
+To use a specific namespace, you can set the namespace context in your Kubernetes configuration or specify the namespace in your kubectl commands.
+
+## Pods: The Basic Units of Deployment
+
+The smallest building block of the application workload, the pod represents a single instance of a running process in a cluster. Each pod typically contains a group of containers, all of which share storage and network resources, as well as specifications on how to run the containers. The pod’s contents are co-located and co-scheduled. Additionally, they run in a shared context, meaning that they share the same network namespace, IPC namespace, and storage volume.
+
+Like containers, designed to be created and destroyed quickly, as needed by the application, pods are ephemeral — created, assigned to nodes, and terminated as per the cluster's needs. Kubernetes efficiently manages pods, ensuring that the state of the cluster matches the user's specified state.
+
+![Figure 7: Differences between Kubernetes cluster architecture and Kubernetes node architecture]( "Figure 7: Differences between Kubernetes cluster architecture and Kubernetes node architecture")  
+
+*Figure 7: Differences between Kubernetes cluster architecture and Kubernetes node architecture*
+
+## Kubelet
+
+Kubelet acts as the primary node agent that runs on each node in the Kubernetes cluster. It takes a set of PodSpecs provided through various mechanisms — primarily through the API server — and ensures that the containers described in those PodSpecs are running and healthy. The Kubelet monitors the state of a pod and, if necessary, starts, stops, and restarts containers to try and move the state toward the desired state.
+
+### Responsibilities of the Kubelet
+
+* Managing the lifecycle of containers
+* Maintaining a reporting on the status of a node and the containers running on it
+* Executing container probes to check for liveness and readiness, which are used to determine the health of the containers
+* Managing container volumes and network settings
+* Ensuring that the container's environment is set up correctly and in accordance with the specifications in the PodSpec
+
+When a Kubelet receives instructions to start a container, it passes these instructions to the container runtime via the CRI. The runtime then takes care of the low-level details of container execution, such as file system management, network isolation, and memory allocation.
+
+In essence, while the Kubelet interacts with both the containers and the node, ensuring that the desired state of the pod is achieved, the container runtime maintains responsibility for running the containers specified by the Kubelet.
+
+Together, these components work in concert to manage the Kubernetes cluster, ensuring that it runs efficiently and resiliently. They represent the control plane's brain, heart, and muscle, orchestrating the complex interactions that keep the cluster functioning smoothly.
+
+## Services: Networking in Kubernetes
+
+A service in Kubernetes is an abstraction that defines a logical grouping of pods, as well as a policy providing a way to access pods without having to know their individual IP addresses. This abstraction, or service, enables decoupling, as it allows the frontend of an application to be separated from the backend pods.
+
+### Key Features of a Kubernetes Service
+
+* Each service has a stable IP address, which remains constant even as the pods behind it change.
+* Services automatically load balance traffic to the pods behind them.
+* Kubernetes gives a service its own DNS name, allowing other pods in the cluster to discover and access it easily.
+
+### Types of Services
+
+* ClusterIP exposes the service on an internal IP in the cluster, making the service only reachable within the cluster.
+* NodePort exposes the service on each Node’s IP at a static port. A ClusterIP service is automatically created, and the NodePort service will route to it.
+* LoadBalancer exposes the service externally using a cloud provider’s load balancer.
+* ExternalName maps the service to the contents of the externalName field (e.g., foo.bar.example.com), by returning a CNAME record with its value.
+
+## Volumes: Handling Persistent Storage
+
+A volume is an abstraction that represents a directory on a disk, which can be mounted into one or more containers as a file system.
+
+Because Kubernetes pods are ephemeral, storage is critical for persisting data, configuration, state, and other uses. Kubernetes volumes provide durable storage across container restarts, node failures, and automatic creation. Volumes ensure that data persists beyond the life of a pod.
+
+When a pod is scheduled to run on a node, Kubernetes can automatically provision a volume and mount it into the pod’s containers.
+
+### Types of Volumes
+
+* HostPath mounts a file or directory from the host node’s file system into your pod.
+* EmptyDir is a temporary directory that facilitates data sharing between containers within the pod. They persist until the pod's termination.
+* PersistentVolumeClaim (PVC) allows a user to request persistent storage without knowing the details of the underlying storage infrastructure.
+* ConfigMap and Secret volumes provide a way to pass configuration data or sensitive information to containers running in a pod.
+
+## Deployments in Kubernetes
+
+A deployment in Kubernetes provides declarative updates to pods and ReplicaSets. You describe a desired state in a deployment, and the deployment controller changes the actual state to the desired state at a controlled rate.
+
+### Deployment Features
+
+* You can easily scale up or down the number of replicas from your deployment.
+* Deployments support rolling updates to your application. You can specify the number of pods that can be created above the desired number of pods and the number of pods that can be unavailable during the update.
+* If something goes wrong, Kubernetes provides rollback functionality for deployments.
+* Deployments ensure that only the specified number of pods are running and available.
+
+![Figure 8: Example of a deployment YAML file]( "Figure 8: Example of a deployment YAML file")  
+
+*Figure 8: Example of a deployment YAML file*
+
+This YAML file creates a deployment named my-deployment that runs three replicas of a container using the myapp:1.0 image.
+
+In figure 8, we see an example of a Service YAML file that exposes the above deployment.
+
+![Figure 9: Example of a Service YAML file that exposes the deployment (Figure 8)]( "Figure 9: Example of a Service YAML file that exposes the deployment (Figure 8)")  
+
+*Figure 9: Example of a Service YAML file that exposes the deployment (Figure 8)*
+
+This service named my-service exposes the deployments on each node’s IP at a static port in the range 30000-32767.
+
+In Kubernetes, managing applications and controlling their exposure within and outside the cluster is achieved by actively utilizing deployments and services. These essential components help maintain app stability, scale resources, and facilitate secure communication between various components and external users.
+
+#### Kubernetes Manifest Files
+
+Kubernetes manifest files are an example of [infrastructure as code (IaC)](/cyberpedia/what-is-iac). Written in JSON or YAML format, they’re used to define the desired state and configuration of various resources within the cluster. Services, volumes, and deployments are all types of resources that can be defined and managed using Kubernetes manifest files.
+
+## Kubernetes Automation and Capabilities
+
+Kubernetes is packed with capabilities to make managing application operations easier.
+
+### Service Discovery and Load Balancing
+
+As application architectures shift toward microservices, automated registration and scalable routing become crucial. Kubernetes simplifies this by using service discovery and load balancing. It automatically assigns DNS names to services in a private cluster directory, allowing services to locate and communicate with each other. Kubernetes supports various load balancing types, including round-robin, IP hash, and session affinity, distributing traffic evenly and efficiently across multiple replicas. Internal and external load balancing ensure seamless communication within the cluster and proper traffic distribution for incoming requests.
+
+### Storage Orchestration
+
+Kubernetes storage orchestration manages storage resources in a cluster, ensuring availability and accessibility for applications and services. It abstracts various storage options like NAS, block storage, object storage, and cloud services, simplifying management and provisioning. Kubernetes enables dynamic provisioning, resizing, and deletion of storage resources without disrupting applications, supporting its dynamic and automated approach to resource management.
+
+### Automatic Bin Packaging
+
+Kubernetes automatic bin packaging schedules containers onto nodes, maximizing resource utilization and minimizing waste. Based on pod resource requirements, node capacity, affinity rules, and priority, its scheduling algorithm optimizes pod distribution across the cluster, enhancing application availability and reliability by ensuring sufficient resources and automatic rescheduling in case of node failures.
+
+### Kubernetes’ Self-Healing Features
+
+Kubernetes ensures smooth application operation and availability through various self-healing features:
+
+* By managing replica sets, Kubernetes maintains the desired number of running application instances, automatically replacing failed pods and scaling when needed.
+* Built-in health checks monitor pod health, and Kubernetes replaces unhealthy pods automatically.
+* Users can specify how applications should recover from failures, defining liveness/readiness probes, pod restart policies, and advanced scheduling rules like pod affinity/anti-affinity.
+* Kubernetes supports rolling updates, incrementally replacing old application versions with new ones without downtime, ensuring successful deployment before updating the next pod.
+* Built-in monitoring continuously assesses node and pod health, taking corrective actions like restarting pods or rescheduling them to healthy nodes when necessary.
+
+These self-healing features allow DevOps teams to maintain high application availability even in the face of failures or issues.
+
+### Secret and Configuration Management
+
+In Kubernetes-based environments, managing secrets and configurations programmatically is crucial. Kubernetes offers centralized, secure storage and management of sensitive information and configurations through its built-in secrets and ConfigMap APIs. Secrets store encrypted data like passwords and API keys, while ConfigMaps manage application configurations. Both can be accessed by pods via environment variables or mounted volumes. The secrets API supports automatic rotation and specific types, with updates propagated to relevant pods. Kubernetes also supports third-party tools like Helm for managing complex configurations and dependencies.
+
+## Benefits of Kubernetes
+
+While Kubernetes’ learning curve can intimidate some, the benefits for larger teams with complex applications can be significant.
+
+### Increase Development Velocity
+
+Containerization has forever changed the way developers pull system components together to create working applications. Because they’re modular, agile, and support streamlined automation, they greatly reduce the friction of managing full virtual machines, while also being easily distributed, elastic, and platform agnostic to a large degree.
+
+Kubernetes amplifies the value of containers by creating an orchestration platform that unlocks the benefits of containers at-scale.
+
+The rise of DevOps demands rapid development and deployment of large-scale, highly available applications. Containerization revolutionizes this process with modular, agile, and automated components, reducing the friction of managing full virtual machines while being easily distributed, elastic, and platform agnostic.
+
+### Deploying Applications Anywhere at Any Scale
+
+Kubernetes can deploy on any number of operating systems including varieties of Linux, macOS, and Windows. Utilities can enable Kubernetes to run on a local computer for testing or daily development work. Teams can also manage Kubernetes through Kubernetes distributions, which come precompiled and preconfigured with tools and utilities. Popular Kubernetes distributions include Rancher, Red Hat OpenShift, and VMware Tanzu.
+
+Public cloud hyperscalers also offer managed Kubernetes platforms, such as:
+
+* Amazon Elastic Kubernetes service (EKS)
+* Microsoft Azure Kubernetes service (AKS)
+* Google Kubernetes Engine (GKE)
+* Oracle Container Engine for Kubernetes (OKE)
+
+Whether teams prefer to run Kubernetes on-premises, private cloud, hybrid cloud, or public cloud, a distribution and deployment model exists to support the architecture.
+
+## Kubernetes Vs. Docker
+
+Those unfamiliar with container technology will often hear Docker and Kubernetes referenced together and may ask themselves — What’s the difference between these two container technologies? While Kubernetes and Docker are equally popular and often used together, they have different purposes and functions.
+
+Docker is a container engine, or containerization platform, that allows developers to package and deploy applications in a standardized format called a Docker container. Docker provides an easy-to-use interface for creating, managing, and running containers.
+
+Kubernetes is a container orchestration platform that automates the deployment, scaling, and management of containerized applications across a cluster of nodes. Kubernetes provides a way to manage multiple containers and their interdependencies, and it can automatically scale applications up or down based on-demand.
+
+Docker creates and packages individual containers, while Kubernetes manages and orchestrates multiple containers across a distributed infrastructure.
+
+While Kubernetes can work with containers created using other containerization technologies, Docker is one of the most popular containerization platforms and is often used with Kubernetes. Docker provides a standard format for containerization and Kubernetes provides the tools to manage and orchestrate those containers at scale.
+
+## Kubernetes FAQs
+
+YAML (short for "Yet Another Markup Language") is a human-readable data serialization format. It’s designed to be easily understood and written by people while being easily parsed and processed by machines. YAML uses simple punctuation marks and indentation to represent data structures like lists, dictionaries, and key-value pairs.
+
+YAML files are commonly used for configuration files, data exchange between languages with different data structures, and as a more readable alternative to JSON and XML. In the context of container orchestration and DevOps, YAML files are frequently used to define configurations, resource definitions, and deployment manifests for platforms like Kubernetes, Docker Compose, and Ansible.
+
+Infrastructure as code is a practice of managing and provisioning infrastructure resources (such as networks, virtual machines, and storage) using machine-readable definition files, typically in a version-controlled system. IaC enables developers and operators to automate the setup, configuration, and management of infrastructure components, making it easier to maintain and replicate environments across different stages of the software development lifecycle.
+
+**Examples of IaC in the Context of Kubernetes**
+
+**Kubernetes manifests**: YAML or JSON files that define the desired state of Kubernetes resources, such as deployments, services, and config maps.
+
+**Tools like Helm, Kustomize, and Jsonnet**: Enable templating and packaging of Kubernetes manifests to simplify the management of complex environments.
+
+**External IaC tools like Terraform and CloudFormation**: Manage Kubernetes clusters and underlying cloud resources, such as Virtual Private Clouds (VPCs), security groups, and IAM roles.
+
+JSON (JavaScript Object Notation) is a lightweight data interchange format that’s easy for humans to read and write — while being easy for machines to parse and generate. JSON files use a language-independent text format that relies on conventions familiar to programmers of the C family of languages, including C, C++, C#, Java, JavaScript, Perl, and Python.
+
+In the context of container orchestration, JSON files are often used to store and exchange configuration data, define resources, and describe the desired state of the system. Orchestration platforms like Kubernetes, Docker Swarm, and Apache Mesos rely on JSON (or formats like YAML, which are easily converted to JSON) to manage the deployment, scaling, and management of containerized applications.
+
+**JSON File Use Cases**
+
+**Configuration files**: JSON files can be used to store configuration data for containerized applications and orchestration platforms, such as environment variables, network settings, and resource limits.
+
+**Manifests and templates**: Orchestration platforms often use JSON or YAML files to define resources like deployments, services, and ingresses in Kubernetes or services and tasks in Docker Swarm. These files describe the desired state of the resources and the orchestration platform ensures that the actual state matches the desired state.
+
+**API communication**: JSON is a common format for exchanging data between APIs, including the APIs provided by orchestration platforms. When interacting with orchestration platform APIs, developers can use JSON files to send requests and receive responses, making it easier to automate tasks and integrate with other tools.
+
+**Storage and retrieval of metadata**: JSON files can be used to store metadata about containerized applications, such as version information, dependency data, and build details. This metadata can be used by the orchestration platform to manage the deployment and updates of containerized applications.
+
+**Custom resource definitions (CRDs)**: In Kubernetes, JSON or YAML files can be used to define custom resources that extend the platform's functionality. These custom resources can be managed by the Kubernetes API, just like built-in resources.
+
+Jsonnet is an open-source data templating language for app and tool developers. An extension of JSON, it allows developers to define reusable components, reduce duplication, and generate complex configurations more efficiently. Jsonnet simplifies the creation and management of configuration files, particularly in scenarios where configurations share a lot of common elements or require dynamic generation based on input parameters.
+
+In the context of container orchestration, Jsonnet can simplify the management of complex resource definitions and configurations for platforms like Kubernetes, Docker Swarm, or Apache Mesos. It’s particularly useful when dealing with large-scale deployments or environments where configurations need customization to address specific requirements.
+
+**Jsonnet Use Cases**
+
+**Template-based resource definitions**: Jsonnet allows you to define templates for orchestration resources, such as Kubernetes deployments, services, and ingresses. These templates can be parameterized and reused across different environments, reducing duplication and making it easier to manage complex configurations.
+
+**Conditional logic and parameterization**: Jsonnet supports conditional logic, loops, and parameterization, enabling developers to generate dynamic configurations based on input parameters or environmental factors. This can be useful for managing different configurations for development, staging, and production environments.
+
+**Hierarchical configuration management**: Jsonnet supports hierarchical configuration management, allowing developers to define common configuration elements and then extend or override them for specific use cases or environments. This can help maintain consistency across configurations while still allowing customization where needed.
+
+**Integration with CI/CD pipelines**: Jsonnet can be integrated into CI/CD pipelines to automatically generate resource definitions and configurations as part of the build and deployment process. This can help ensure that configurations are always up to date and in sync with the application code.
+
+**Extensibility and reuse**: Jsonnet's extensibility allows for the creation of libraries and reusable components, enabling developers to share and reuse common configuration elements across multiple projects and teams.
+
+By using Jsonnet in container orchestration, developers can simplify the management of complex configurations, reduce duplication, and improve consistency across environments. This can lead to more efficient development and deployment processes and make it easier to maintain and scale containerized applications in orchestrated environments.
+
+YAML or JSON files that define the desired state of Kubernetes resources, such as deployments, services, and config maps. These can include security configurations like network policies, RBAC policies, and pod security policies.
+
+Helm Charts are prepackaged, versioned, and sharable Kubernetes applications or resources that can be easily deployed, managed, and updated. Often referred to as the package manager for Kubernetes, Helm simplifies the process of managing complex Kubernetes applications by providing a way to define, package, and distribute Kubernetes resources in a structured and reusable manner.
+
+Helm Charts are essentially a collection of YAML files that describe the desired state, configuration, and dependencies of Kubernetes resources, such as deployments, services, configmaps, and more. They’re organized in a specific directory structure.
+
+**Main components of Helm Charts**
+
+* **Chart.yaml** contains metadata about the chart, such as its name, version, description, and any optional information like keywords, maintainers, and sources.
+* **values.yaml** defines the default configuration values for the chart, which can be overridden by users during deployment. These values are used as placeholders in the chart's templates and are replaced with actual values during the deployment process.
+* **templates/** is a directory that contains Kubernetes manifest templates, which are YAML files with embedded Go template language elements. These templates define the structure and configuration of the Kubernetes resources that will be created when the chart is deployed. The Go templating language allows you to use variables, loops, conditionals, and functions to make the charts more dynamic and customizable.
+* **charts/ (optional)** is a directory that contains the packaged versions of the chart's dependencies, which are included if they are not available in the Helm repository.
+* **helpers.tpl (optional)** contains snippets of reusable Go template code, which can be included in the templates to avoid repetition and improve maintainability.
+
+Kustomize is a standalone tool for Kubernetes that allows you to customize raw, template-free YAML files for multiple purposes, without using any additional templating languages or complex scripting. It’s specifically designed to work natively with Kubernetes configuration files, making it easy to manage and maintain application configurations across different environments, such as development, staging, and production. Kustomize introduces a few key concepts:
+
+* **Base** is a directory containing the original, unmodified Kubernetes manifests for an application or set of related resources.
+* **Overlay** is a directory containing one or more Kustomize files that describe how to modify a base to suit a specific environment or use case.
+* **Kustomize file** (kustomization.yaml or kustomization.yml) is the central configuration file used by Kustomize to describe the desired modifications to the base resources.
+
+Kustomize files are essentially configuration files that define how to modify the base Kubernetes YAML manifests. Used by Kustomize to describe the desired modifications to the base resources, they typically include instructions like adding common labels or annotations, changing environment-specific configurations, and generating or patching secrets and config maps.
+
+**Common Directives Used in Kustomize Files**
+
+* **resources**: List of files or directories to include as base resources.
+* **patches**: List of patch files that modify the base resources.
+* **configMapGenerator**: Generates a ConfigMap from a file, literal, or directory.
+* **secretGenerator**: Generates a Secret from a file, literal, or command.
+* **commonLabels**: Adds common labels to all resources and selectors.
+* **commonAnnotations**: Adds common annotations to all resources.
+
+Policies in the context of Kubernetes security refer to a set of rules and guidelines that help enforce security requirements. They can be applied to various aspects of Kubernetes, such as network traffic, pod creation, and access control.
+
+**Examples of Policies**
+
+**Network Policies**: Control and manage network traffic within a Kubernetes cluster, allowing you to define rules for ingress and egress traffic between different pods and namespaces.
+
+**Pod Security Policies**: Define a set of conditions that a pod must meet before being accepted into the system, helping to prevent the deployment of insecure or non-compliant workloads.
+
+**Role-Based Access Control (RBAC) Policies**: Control access to Kubernetes resources by defining roles and permissions for users and service accounts, ensuring that they have the minimum necessary privileges.
+
+Policies are specific security rules and guidelines used to enforce security requirements within a Kubernetes environment, while IaC is a broader practice for managing and provisioning infrastructure resources using code. Both can be used together to improve security, consistency, and automation within your Kubernetes environment.
+
+Using IaC, you can define and manage security configurations like network policies, firewall rules, and access controls as part of your infrastructure definitions. For example, you can include Kubernetes network policies, ingress and egress configurations, and [role-based access control (RBAC)](/cyberpedia/kubernetes-rbac) policies in your Kubernetes manifests, which are then managed as infrastructure as code.
+
+Tools like Terraform, CloudFormation, and Kubernetes manifests allow you to manage infrastructure resources and security configurations in a consistent and automated manner. By incorporating [Kubernetes security](/cyberpedia/kubernetes-security) measures into your IaC definitions, you can improve the overall security of your container and Kubernetes environment and ensure adherence to best practices and compliance requirements.
+
+[Policy as code (PaC)](https://www.paloaltonetworks.com/cyberpedia/what-is-policy-as-code#:~:text=Policy%2Das%2Dcode%20is%20the,enforcement%20tools%20you%20are%20using.) involves encoding and managing infrastructure policies, compliance, and security rules as code within a version-controlled system. PaC allows organizations to automate the enforcement and auditing of their policies, ensuring that their infrastructure is built and maintained according to the required standards. By integrating these policies into the policy as code process or as part of the infrastructure build, organizations can ensure that their tooling aligns with the necessary standards and best practices.
+
+Provenance for containers is the capability to verify the authenticity of an image (or other code) via a method like a digital signature.
+
+Referring to the origin and history of a software container, provenance is useful in understanding the source, dependencies, and changes made to a container over time, ensuring its integrity and trustworthiness.
+
+**Key aspects of Provenance**
+
+**Source**: The origin of the container image, including the base image, source code, and the person or organization responsible for creating it.
+
+**Dependencies**: The libraries, frameworks, and tools used within the container, which could impact its functionality and security.
+
+**Metadata**: Information about the container, such as creation date, version, and labels, that can help in tracking and managing it.
+
+**Changes**: A history of modifications made to the container, including updates, patches, and bug fixes, which can impact its performance and security.
+
+**Trust**: Ensuring that the container and its contents can be trusted, typically through techniques like digital signatures and verification.
+
+Resource Query Language (RQL) is a query language designed to search and filter resources in cloud environments. RQL policies are a set of rules or conditions defined using RQL syntax to evaluate and enforce security, compliance, or best-practice requirements across cloud resources.
+
+RQL policies are typically used with cloud security platforms, like Cortex Cloud, to monitor and manage cloud resources more effectively. By defining RQL policies, security and infrastructure teams can identify misconfigurations, compliance violations, or potential security risks in their cloud environments. This helps organizations maintain a secure and compliant cloud infrastructure by continuously monitoring and analyzing cloud resources based on the defined RQL policies.
+
+A syscall (system call) audit in host OS container security refers to the process of monitoring, logging, and analyzing system calls made by processes running within containers on a host operating system. System calls are the interface between an application and the kernel, allowing applications to request resources or services from the operating system, such as file access, network connections, or process management.
+
+In the context of container security, syscall auditing is crucial for detecting and preventing potential security breaches or malicious activities. By monitoring the system calls made by containerized processes, security teams can gain insights into the behavior of applications running within containers and identify any abnormal or suspicious activities.
+
+**Syscall auditing can help:**
+
+1. Detect unauthorized access or privilege escalation attempts by monitoring system calls related to file access, user management, or process control.
+2. Identify the use of insecure or deprecated system calls, which might expose the container or the host system to potential security risks.
+3. Recognize attempts to exploit known vulnerabilities or perform malicious activities within the container, such as launching a remote shell or exfiltrating data.
+
+Tools like auditd, eBPF, or container runtime security solutions can be used to implement syscall auditing in host OS container security. By integrating syscall auditing into the overall container security strategy, organizations can enhance their security posture and minimize the risks associated with containerized applications.
+
+A key-value store is a type of database that employs a simple data model, where data is stored and retrieved using unique keys associated with corresponding values. The model allows for efficient and straightforward data management, particularly for scenarios with large amounts of simple data records. Key-value stores are known for their high performance, scalability, and ease of use, making them ideal for applications requiring quick data access or real-time processing.
+
+In the Kubernetes environment, a key-value store is used as the backend for storing and managing the cluster's state and configuration data. This datastore, also known as the etcd cluster, helps maintain the high availability and consistency of Kubernetes clusters.
+
+*1Container orchestration components will vary slightly among vendors.  
+ 2We expand content on Kubernetes in this section to convey concepts that generally apply to other orchestrators.*
+
+Related Content
+
+[The Definitive Guide to Container Security
+
+Securing your containerized applications is a critical component of maintaining the integrity, confidentiality and availability of your cloud services.](/resources/ebooks/container-security-definitive-guide)
+
+[Kubernetes Privilege Escalation: Excessive Permissions in Popular Platforms
+
+To understand the impact of excessive permissions, we analyzed popular Kubernetes platforms — distributions, managed ser...](/resources/whitepapers/kubernetes-privilege-escalation-excessive-permissions-in-popular-platforms)
+
+[Container Security 101
+
+Understanding the Basics of Securing Containers breaks down what organizations need to know to protect against breaches, malware, and malicious actors.](/content/pan/en_US/resources/guides/prisma-container-security101)
+
+[Guide to Operationalizing Your IaC Security Program
+
+Infrastructure as code (IaC) plays a key role in containerized applications. Get a step-by-step plan to help you choose ...](/resources/whitepapers/guide-to-operationalizing-your-iac-security-program)
+
+[![Share page on facebook]()](#)  [![Share page on linkedin]()](#)  [![Share page by an email]()](mailto:?subject=What%20Is%20Kubernetes%3F&body=Kubernetes%20is%20an%20open-source%20platform%20that%20automates%20deployment%2C%20scaling%2C%20and%20management%20of%20containerized%20applications%2C%20simplifying%20container%20management.%20at%20https%3A//www.paloaltonetworks.com/cyberpedia/what-is-kubernetes)
+
+[Previous](/cyberpedia/kubernetes-multicloud-management)  Multicloud Management with Al and Kubernetes
+
+[Next](/cyberpedia/kubernetes-security-posture-management-kspm)  What Is Kubernetes Security Posture Management (KSPM)?
+
+## Get the latest news, invites to events, and threat alerts
+
+## Products and Services
+
+* [AI-Powered Network Security Platform](/network-security)
+* [Secure AI by Design](/ai-security)
+* [Prisma AIRS](/prisma/prisma-ai-runtime-security)
+* [AI Access Security](/sase/ai-access-security)
+* [Cloud Delivered Security Services](/network-security/security-subscriptions)
+* [Advanced Threat Prevention](/network-security/advanced-threat-prevention)
+* [Advanced URL Filtering](/network-security/advanced-url-filtering)
+* [Advanced WildFire](/network-security/advanced-wildfire)
+* [Advanced DNS Security](/network-security/advanced-dns-security)
+* [Enterprise Data Loss Prevention](/sase/enterprise-data-loss-prevention)
+* [Enterprise IoT Security](/network-security/enterprise-device-security)
+* [Medical IoT Security](/network-security/medical-device-security)
+* [Industrial OT Security](/network-security/medical-device-security)
+* [SaaS Security](/sase/saas-security)
+
+* [Next-Generation Firewalls](/network-security/next-generation-firewall)
+* [Hardware Firewalls](/network-security/hardware-firewall-innovations)
+* [Software Firewalls](/network-security/software-firewalls)
+* [Strata Cloud Manager](/network-security/strata-cloud-manager)
+* [SD-WAN for NGFW](/network-security/sd-wan-subscription)
+* [PAN-OS](/network-security/pan-os)
+* [Panorama](/network-security/panorama)
+* [Secure Access Service Edge](/sase)
+* [Prisma SASE](/sase)
+* [Application Acceleration](/sase/app-acceleration)
+* [Autonomous Digital Experience Management](/sase/adem)
+* [Enterprise DLP](/sase/enterprise-data-loss-prevention)
+* [Prisma Access](/sase/access)
+* [Prisma Browser](/sase/prisma-browser)
+* [Prisma SD-WAN](/sase/sd-wan)
+* [Remote Browser Isolation](/sase/remote-browser-isolation)
+* [SaaS Security](/sase/saas-security)
+
+* [AI-Driven Security Operations Platform](/cortex)
+* [Cloud Security](/cortex/cloud)
+* [Cortex Cloud](/cortex/cloud)
+* [Application Security](/cortex/cloud/application-security)
+* [Cloud Posture Security](/cortex/cloud/cloud-posture-security)
+* [Cloud Runtime Security](/cortex/cloud/runtime-security)
+* [Prisma Cloud](/prisma/cloud)
+* [AI-Driven SOC](/cortex)
+* [Cortex XSIAM](/cortex/cortex-xsiam)
+* [Cortex XDR](/cortex/cortex-xdr)
+* [Cortex XSOAR](/cortex/cortex-xsoar)
+* [Cortex Xpanse](/cortex/cortex-xpanse)
+* [Unit 42 Managed Detection & Response](/cortex/managed-detection-and-response)
+* [Managed XSIAM](/cortex/managed-xsiam)
+
+* [Threat Intel and Incident Response Services](/unit42)
+* [Proactive Assessments](/unit42/assess)
+* [Incident Response](/unit42/respond)
+* [Transform Your Security Strategy](/unit42/transform)
+* [Discover Threat Intelligence](/unit42/threat-intelligence-partners)
+
+* [About Us](/about-us)
+* [Careers](https://jobs.paloaltonetworks.com/en/)
+* [Contact Us](/company/contact-sales)
+* [Corporate Responsibility](/about-us/corporate-responsibility)
+* [Customers](/customers)
+* [Investor Relations](https://investors.paloaltonetworks.com/)
+* [Location](/about-us/locations)
+* [Newsroom](/company/newsroom)
+
+## Popular Links
+
+* [Blog](/blog/)
+* [Communities](/communities)
+* [Content Library](/resources)
+* [Cyberpedia](/cyberpedia)
+* [Event Center](https://events.paloaltonetworks.com/)
+* [Manage Email Preferences](https://start.paloaltonetworks.com/preference-center)
+* [Products A-Z](/products/products-a-z)
+* [Product Certifications](/legal-notices/trust-center/compliance)
+* [Report a Vulnerability](/security-disclosure)
+* [Sitemap](/sitemap)
+* [Tech Docs](https://docs.paloaltonetworks.com/)
+* [Unit 42](https://unit42.paloaltonetworks.com/)
+* [Do Not Sell or Share My Personal Information](https://panwedd.exterro.net/portal/dsar.htm?target=panwedd)
+
+---
+
+Title: How to explain Kubernetes in plain English | The Enterprisers Project
+[![Supported by Red Hat](/themes/tep/assets/img/l_supported-by-redhat-white.png "Supported by Red Hat")](https://www.redhat.com/en?intcmp=701600000011jKuAAI)
+
+[![Home](/themes/tep/logo.png)](/)   [![](/themes/tep/assets/img/red_hat_supported_by_red.svg)](https://www.redhat.com/en?intcmp=701600000011jKuAAI)
+
+A community helping CIOs and IT leaders solve problems
+
+# How to explain Kubernetes in plain English
+
+How do you explain Kubernetes and orchestration to non-technical people? Listen to the experts
+
+![](/themes/tep/assets/img/icon-printer.svg)
+
+Talk [containers](https://www.redhat.com/en/topics/containers/whats-a-linux-container?intcmp=701f2000000tjyaAAA) with an IT pro for more than a minute and the conversation will inevitably turn to container management and [orchestration](https://www.redhat.com/en/topics/containers/what-is-container-orchestration?intcmp=701f2000000tjyaAAA).
+
+It might be easy to deploy a container, but operationalizing containers at scale — especially in concert with [microservices](https://enterprisersproject.com/article/2017/8/how-explain-microservices-plain-english) and multiple cloud providers — is not for weekend enthusiasts. It requires [planning](https://enterprisersproject.com/article/2017/9/microservices-and-containers-6-things-know-start-time), and most experts say an orchestration tool is a must.
+
+**[ Kubernetes terminology, demystified: Get our [Kubernetes glossary](https://enterprisersproject.com/kubernetes-glossary?sc_cid=70160000000h0axaaq) cheat sheet for IT and business leaders. ]**
+
+That’s the point at which the conversation will likely turn to [Kubernetes](https://www.redhat.com/en/topics/containers/what-is-kubernetes?intcmp=701f2000000tjyaAAA). The platform was first developed by a team at [Google](https://www.google.com), and later donated to the [Cloud Native Computing Foundation](https://www.cncf.io) (CNCF). It’s not the only option for container management, but it has rapidly become one of the most popular. As Opensource.com [notes](https://opensource.com/resources/what-is-kubernetes), "Today, Kubernetes is a true open source community, with engineers' works from Google, [Red Hat](https://www.redhat.com), and many other companies actively contributing to the project."
+
+In fact, it’s one of the [highest-velocity projects in open source history](https://www.cncf.io/blog/2017/02/27/measuring-popularity-kubernetes-using-bigquery/). That means you’ll be having even more conversations about Kubernetes going forward, with not only IT pros, but also non-technical folks with a stake in the company’s software. Which is to say: Pretty much everyone.
+
+The most recent version of [Kubernetes, 1.19](https://kubernetes.io/docs/setup/release/notes/#), was released in August 2020. (This frequently-updated project has had releases on about a quarterly basis recently.)
+
+**[ Get the free eBook: [O'Reilly: Kubernetes Operators: Automating the Container Orchestration Platform](https://www.redhat.com/en/resources/oreilly-kubernetes-operators-automation-ebook?intcmp=701f2000000tjyaAAA). ]**
+
+## What does Kubernetes mean?
+
+How do you explain Kubernetes and orchestration in plain terms that people can at least begin to understand? And where did this unusual name come from? [The agreed-upon origin](https://twitter.com/gregde/status/487456224368410624) is from the Greek, meaning “helmsman” or “sailing master.”
+
+Here’s how [Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA) technology evangelist Gordon Haff explains Kubernetes in his book, [“From Pots and Vats to Programs and Apps,”](https://s3.amazonaws.com/grhpublic/packaging_book_FINAL_ebook.pdf) co-authored with Red Hat cloud strategist William Henry:
+
+“Kubernetes, or k8s, is an open source platform that automates Linux container operations. It eliminates many of the manual processes involved in deploying and scaling containerized applications,” Haff and Henry write. “In other words, you can cluster together groups of hosts running Linux containers, and Kubernetes helps you easily and efficiently manage those clusters.”
+
+Why are IT pros deploying more containers in the first place? Deployment speed, workload portability, and a good fit with the DevOps way of working, for starters. Containers can greatly simplify [provisioning](https://www.redhat.com/en/topics/automation/what-is-provisioning?intcmp=701f2000000tjyaAAA) of resources to time-pressed developers. “Once organizations understand the benefits of containers and Kubernetes for DevOps, application development, and delivery, it opens up so many possibilities, from modernizing traditional applications, to hybrid- and multi-cloud implementations and the development of new, [cloud-native](https://www.redhat.com/en/topics/cloud-native-apps?intcmp=701f2000000tjyaAAA) applications with speed and agility,” says Ashesh Badani, SVP and general manager for cloud platforms at [Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA).
+
+**[ Want to learn more about Kubernetes APIs and migrating to Kubernetes? Get hands-on tips and instructions:** [**Migrating to Kubernetes.**](https://kubebyexample.com/learning-paths/operator-framework/kubernetes-api-fundamentals/side-car-pattern#?intcmp=7013a000002pugFAAQ)**]**
+
+Here's an analogy: You can think of a container orchestrator (like Kubernetes ) as you would a conductor for an orchestra, says Dave Egts, chief technologist, North America Public Sector, [Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA). “In the same way a conductor would say how many trumpets are needed, which ones play first trumpet, and how loud each should play," Egts explains, "a container orchestrator would say how many web server front end containers are needed, what they serve, and how many resources are to be dedicated to each one."
+
+**[ Want a shareable primer on orchestration? Get the PDF: [How to explain orchestration in plain English](https://enterprisersproject.com/how-explain-orchestration-plain-english?intcmp=70160000000h0aXAAQ). ]**
+
+## Kubernetes defined
+
+We put a variety of experts to a similar task: Explain Kubernetes in plain terms that a wide audience can grasp in at least a basic sense. Here’s what they had to say. (We particularly liked the lunchbox analogy: Well done.)
+
+Mike Kail, CTO and cofounder at [CYBRIC](https://www.cybric.io/): “Let’s say an application environment is your old-school lunchbox. The contents of the lunchbox were all assembled well before putting them into the lunchbox [but] there was no isolation between any of those contents. The Kubernetes system provides a lunchbox that allows for just-in-time expansion of the contents (scaling) and full isolation between every unique item in the lunchbox and the ability to remove any item without affecting any of the other contents (immutability).”
+
+[Gordon Haff](https://enterprisersproject.com/user/gordon-haff), technology evangelist, [Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA):“Whether we’re talking about a single computer or a datacenter full of them, if every software component just selfishly did its own thing there would be chaos. Linux and other operating systems provide the foundation for corralling all this activity. Container orchestration builds on Linux to provide an additional level of coordination that combines individual containers into a cohesive whole.”
+
+Nick Young, principal engineer at [Atlassian](https://www.atlassian.com/): “Kubernetes is an orchestration layer that allows users to more effectively run workloads using containers — from keeping long-running services ‘always on’ to more efficiently managing intensive shorter-term tasks like builds.”
+
+Kimoon Kim, senior architect at [Pepperdata](https://www.pepperdata.com/): “Kubernetes is software that manages many server computers and runs a large number of programs across those computers. On Kubernetes, all programs run in containers so that they can be isolated from each other, and be easy to develop and deploy.”
+
+Dan Kohn, executive director of the CNCF, [in a podcast with Gordon Haff](https://bitmason.blogspot.com/2017/02/podcast-cloud-native-computing.html): “Containerization is this trend that’s taking over the world to allow people to run all kinds of different applications in a variety of different environments. When they do that, they need an orchestration solution in order to keep track of all of those containers and schedule them and orchestrate them. Kubernetes is an increasingly popular way to do that.”
+
+Nic Grange, CTO at [Retriever Communications](https://retrievercommunications.com/): “Kubernetes is the new operating system for the cloud. It helps you run software in a modern cloud environment by leveraging Google’s extensive experience of running software at scale.” The decision to give Kubernetes to CNCF “has allowed it to be widely adopted by many companies. As a result, it has grown to become a powerful and flexible tool that can be run on a variety of cloud platforms and on-premises,” he says.
+
+The bottom line: [Kubernetes](https://www.redhat.com/en/topics/containers/what-is-kubernetes) is a tool that helps IT make the potential of containers an operational reality.
+
+**[ What does Docker have to do with Kubernetes? Read also: [What is Docker?](https://opensource.com/resources/what-docker?intcmp=701f2000000tjyaAAA) ]**
+
+## What Kubernetes does and why people use it
+
+Kubernetes is an important piece of the [cloud-native](https://www.redhat.com/en/topics/cloud-native-apps?intcmp=701f2000000tjyaAAA) puzzle: But it’s important to understand that its broader ecosystem provides even more value to IT organizations. As [Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA)’s [Haff](https://enterprisersproject.com/user/gordon-haff) notes, “The power of the [open source cloud-native ecosystem](https://github.com/cncf/landscape) comes only in part from individual projects such as Kubernetes. It derives, perhaps even more, from the breadth of complementary projects that come together to create a true cloud-native platform.”
+
+This includes service meshes like [Istio](https://istio.io/), monitoring tools like [Prometheus](https://prometheus.io/), command-line tools like [Podman](https://developers.redhat.com/articles/podman-next-generation-linux-container-tools?intcmp=701f2000000tjyaAAA), distributed tracing from the likes of [Jaeger](https://www.jaegertracing.io/) and [Kiali](https://www.kiali.io/), enterprise registries like [Quay](https://quay.io/), and inspection utilities like [Skopeo](https://github.com/containers/skopeo), says Haff. And, of course, [Linux](https://www.redhat.com/en/topics/linux?intcmp=701f2000000tjyaAAA), which is the foundation for the containers orchestrated by Kubernetes.
+
+Choosing from and integrating a variety of tools yourself takes time of course, which is one place where enterprise open source platforms, such as Red Hat [OpenShift](https://www.openshift.com/?intcmp=701f2000000tjyaAAA) come into play.
+
+**[ Read also: [OpenShift and Kubernetes: What’s the difference?](https://www.redhat.com/en/blog/openshift-and-kubernetes-whats-difference?intcmp=701f2000000tjyaAAA) ]**
+
+Kubernetes eases the burden of configuring, deploying, managing, and monitoring even the largest-scale containerized applications. It also helps IT pros manage container lifecycles and related application lifecycles, and issues including high availability and load balancing.
+
+In many organizations, the first step toward Kubernetes adoption to date might be best described as *Oh, we can use Kubernetes for this!*That means, for example, that a team running a growing number of containers in production might quickly see the need for orchestration to manage it all.
+
+Josh Komoroske, senior DevOps engineer at [StackRox](https://www.stackrox.com/), expects another adoption trend to grow in the near future: *We can build this for Kubernetes!*It’s the software equivalent of a cart-and-horse situation: Instead of having an after-the-fact revelation that Kubernetes would be a good fit for managing a particular service, more organizations will develop software specifically with Kubernetes in mind. Some people will call this "Kubernetes-native" software.
+
+## Kubernetes terms defined: Operators, secrets, kubectl, minikube, and more
+
+[Skip to bottom of list](#bottom-list)
+
+More on Kubernetes
+
+[How to explain Kubernetes in plain English](https://enterprisersproject.com/article/2017/10/how-explain-kubernetes-plain-english?intcmp=7013a000002w1nTAAQ)
+
+[Cheat sheet: Kubernetes glossary](https://enterprisersproject.com/kubernetes-glossary?intcmp=7013a000002w1nTAAQ)
+
+[3 reasons to use an enterprise Kubernetes platform](https://www.redhat.com/en/resources/oreilly-kubernetes-operators-automation-ebook?intcmp=7013a000002w1nYAAQ)
+
+[O’Reilly Ebook: Kubernetes Operators: Automating the container orchestration pl…](https://www.redhat.com/en/resources/oreilly-kubernetes-patterns-cloud-native-apps?intcmp=7013a000002w1nYAAQ)
+
+[OpenShift and Kubernetes: What's the difference?](https://www.redhat.com/en/blog/openshift-and-kubernetes-whats-difference?intcmp=7013a000002w1nYAAQ)
+
+Once you start learning about Kubernetes, it helps to understand the key terms. Let's dig in:
+
+### What is a Kubernetes operator?
+
+The conventional wisdom of Kubernetes’ earlier days was that it was very good at managing stateless apps. But for stateful applications such as databases, it wasn’t such an open-and-shut case: These apps required more hand-holding, says Jeremy Thompson, CTO at [Solodev](https://www.solodev.com/).
+
+“Adding or removing instances may require preparation and/or post-provisioning steps – for instance, changes to its internal configuration, communication with a clustering mechanism, interaction with external systems like DNS, and so forth,” Thompson explains. “Historically, this often required manual intervention, increasing the DevOps burden and increasing the likelihood of error. Perhaps most importantly, it obviates one of Kubernetes’ main selling points: automation.”
+
+That’s a big problem. Fortunately, the solution emerged back in 2016, when coreOS introduced Operators to extend Kubernetes’ capabilities to stateful applications. ([Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA) acquired coreOS in January 2018, expanding the capabilities of the [OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift?intcmp=701f2000000tjyaAAA) container platform.)
+
+Operators became even more powerful with the launch of the [Operator Framework](https://github.com/operator-framework) for building and managing Kubernetes native applications (Operators by another name) in March 2018.
+
+“Operators are clients of the Kubernetes API that control custom resources,” says Matthew Dresden, director of DevOps at [Nexient](https://www.nexient.com/). “This capability enables automation of tasks like deployments, backups, and upgrades by watching events without editing Kubernetes code.”
+
+As [Red Hat](https://www.redhat.com/en?intcmp=701f2000000tjyaAAA) product manager Rob Szumski [notes in a blog](https://blog.openshift.com/top-kubernetes-operators-advancing-across-the-operator-capability-model/), “The key attribute of an Operator is the active, ongoing management of the application, including failover, backups, upgrades, and autoscaling, just like a cloud service. Of course, if your app doesn’t store stateful data, a backup might not be applicable to you, but log processing or alerting might be important. The important user experience that the Operator model aims for is getting that cloud-like, self-managing experience with knowledge baked in from the experts.”
+
+If you can’t fully automate, you’re undermining the potential of containers and other cloud-native technologies.
+
+### **Want to find or share operators? Meet [OperatorHub.io](https://operatorhub.io/)**
+
+There’s been a noticeable bump in the interest in and implementation of Operators of late, according to Liz Rice, VP of open source engineering at [Aqua Security](https://www.aquasec.com/). Rice also chairs the [Cloud Native Computing Foundation’s](https://www.cncf.io/) technical oversight committee.
+
+“At the CNCF, we’re seeing interest in projects related to managing and discovering Kubernetes Operators, as well as observing an explosion in the number of Operators being implemented,” Rice says. “Project maintainers and vendors are building Operators to make it easier for people to use their projects or products within a Kubernetes deployment.”
+
+This growing menu of Operators means there’s a need for a, well, menu. “This proliferation of Operators has created a gap for directories or discovery mechanisms to help people find and easily install what’s available,” Rice says.
+
+The relatively new [OperatorHub.io](https://operatorhub.io/) is one place where Kubernetes community members can find existing Operators or share their own. (Red Hat [launched Operator Hub](https://operatorhub.io/about) in conjunction with Amazon, Microsoft, and Google.)
+
+**[ Related read: [What is an Ansible Operator?](https://www.ansible.com/blog/ansible-operator?intcmp=701f2000000tjyaAAA) ]**
+
+### What is a Kubernetes secret?
+
+A Kubernetes secret is a cleverly named Kubernetes [object](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/) that is one of the [container](https://enterprisersproject.com/article/2018/10/container-trends-6-watch-it-leaders) orchestration platform’s built-in security capabilities. A “secret” in Kubernetes is a means of storing sensitive information, like an OAuth token or SSH key, so that it’s accessible when necessary to pods in your cluster but protected from unnecessary visibility that could create [security](https://enterprisersproject.com/tags/security) risks.
+
+As the [Kubernetes documentation](https://kubernetes.io/docs/home/) notes, “Putting this information in a Secret is safer and more flexible than putting it verbatim in a Pod definition or in a container image.”
+
+Secrets could be thought of as a relative of the [least privilege principle](https://csrc.nist.gov/glossary/term/least-privilege), except instead of focusing on limiting the access of individual users to that which they actually do to get their work done, they focus on giving your applications the data they need to properly function without giving them (and the people who manage them) unfettered access to that data.
+
+Put another way, Secrets help fulfill a technical requirement while solving a problem that rises out of that requirement: Your containerized applications need certain data or credentials to run properly, but how you store that data and make it available is the kind of thing that keeps security analysts up at night.
+
+### What is a Kubernetes cluster?
+
+You can begin to understand this major piece literally: A cluster is a group or bunch of nodes that run your containerized applications. You manage the cluster and everything it includes – in other words, you manage your application(s) – with Kubernetes.
+
+### What is a Kubernetes pod?
+
+This is essentially the smallest deployable unit of the Kubernetes ecosystem; more accurately, it’s the smallest object. A pod specifically represents a group of one or more containers running together on your cluster.
+
+### What is a Kubernetes node?
+
+Nodes are comprised of physical or virtual machines on your cluster; these “worker” machines have everything necessary to run your application containers, including the container runtime and other critical services. (The Kubernetes Github repository has a good, detailed breakdown of the [Kubernetes node](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/architecture.md#the-kubernetes-node).)
+
+### What is kubectl?
+
+Simply put, kubectl is a command line interface (CLI) for managing operations on your Kubernetes clusters. It does so by communicating with the Kubernetes API. (It’s not a typo - the official Kubernetes style is to lowercase the k in kubectl.) It follows a standard syntax for running commands: kubectl [command] [TYPE] [NAME] [flags]. You can find an in-depth explanation of kubectl [here](https://kubernetes.io/docs/reference/kubectl/overview/), as well as examples of [common operations](https://kubernetes.io/docs/reference/kubectl/#examples-common-operations), but here’s a basic example of an operation: “run.” This command runs a particular container image on your cluster.
+
+### What is a Kubernetes service?
+
+A Kubernetes service is "an abstract way to expose an application running on a set of [pods](https://kubernetes.io/docs/concepts/workloads/pods/) as a network service," as the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/service/) puts it. "Kubernetes gives pods their own IP addresses and a single DNS name for a set of Pods, and can load-balance across them."
+
+But pods sometimes have a short lifespan. As pods come and go, services help the other pods "find out and keep track of which IP address to connect to."
+
+### What is Minikube?
+
+Minikube is an [open source tool](https://github.com/kubernetes/minikube) that enables you to [run Kubernetes on your laptop or other local machine](https://www.kubernetesbyexample.com/en/resources/try-kubernetes?intcmp=701f2000000tjyaAAA). It can work with Linux, Mac, and Windows operating systems. It runs a single-node cluster inside a virtual machine on your local machine.
+
+In other words, Minikube takes the vast cloud-scale of [Kubernetes](https://www.redhat.com/en/topics/containers/what-is-kubernetes?intcmp=701f2000000tjyaaaa) and shrinks it down so that it fits on even your laptop. Don’t mistake that for a lack of power or functionality, though: You can do plenty with Minikube. And while developers, DevOps engineers, and the like might be the most likely to run it on a regular basis, IT leaders and the C-suite can use it, too. That’s part of the beauty.
+
+“With just a few installation commands, anyone can have a fully functioning Kubernetes cluster, ready for learning or supporting development efforts,” says Chris Ciborowski, CEO and cofounder at [Nebulaworks](https://www.nebulaworks.com/).
+
+The official Kubernetes documentation includes [instructions for installing Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) – note that you’ll also need to install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/), the native command-line interface for Kubernetes. It also offers a [quickstart guide](https://kubernetes.io/docs/setup/minikube/#quickstart) for getting up and running.
+
+Pro tip if you’re using a RHEL/Fedora/CentOS workstation: Over at [Opensource.com](https://opensource.com/), Bryant Son wrote a great guide on [getting started with Minikube](https://opensource.com/article/18/10/getting-started-minikube?intcmp=701f2000000tjyaAAA) tailored specifically for you.
+
+Here are four ways you can use Minikube:
+
+* Fast route to experimentation and learning - for developers and IT leaders
+* Evaluate important Kubernetes features
+* Play with Kubernetes’ extensibility in a sandbox
+* Do a Kubernetes proof of concept project
+
+For more, see [Minikube: 5 ways IT teams can use it](https://enterprisersproject.com/article/2019/4/minikube-how-to-use?page=1).
+
+## Kubernetes resources: Learn more
+
+Want to learn more about Kubernetes trends, best practices, and security considerations? Move on to our deep dive for IT leaders: [Kubernetes: Everything you need to know](https://enterprisersproject.com/article/2020/4/kubernetes-everything-you-need-know "Kubernetes: Everything you need to know ").
+
+Also check out these eBooks, primers, and tutorials for even more learning on Kubernetes, and share with your team:
+
+**eBook: [Getting Started with Kubernetes](https://opensource.com/downloads/getting-started-kubernetes-ebook?intcmp=701f2000000tjyaAAA)**
+
+**eBook: [O'Reilly: Kubernetes Operators: Automating the Container Orchestration Platform](https://www.redhat.com/en/resources/oreilly-kubernetes-operators-automation-ebook?intcmp=701f2000000tjyaAAA)**
+
+**eBook: [O'Reilly: Kubernetes patterns for designing cloud-native apps](https://www.redhat.com/en/resources/oreilly-kubernetes-patterns-cloud-native-apps?intcmp=701f2000000tjyaAAA)**
+
+**[Kubernetes glossary](https://enterprisersproject.com/kubernetes-glossary?sc_cid=70160000000h0axaaq) cheat sheet:** 10 key concepts in plain English
+
+**[Containers primer:](https://opensource.com/downloads/containers-primer?intcmp=701f2000000tjyaAAA) Learn the lingo of Linux containers**
+
+**Tutorial: [Kubernetes by Example](https://kubernetesbyexample.com/?intcmp=701f2000000tjyaAAA)** – from Red Hat OpenShift. Step-by-step walk-throughs of Kubernetes concepts and capabilities.
+
+**Free class:** **[Deploying Containerized Applications Technical Overview](https://www.redhat.com/en/services/training/do080-deploying-containerized-applications-technical-overview?intcmp=701f2000000tjyaAAA)**- Red Hat
+
+*Editor's note: This article was originally published in October, 2017 and has been updated.*
+
+**[ Learn the non-negotiable skills, technologies, and processes CIOs are leaning on to build resilience and agility in this HBR Analytic Services report: [Pillars of resilient digital transformation: How CIOs are driving organizational agility](https://enterprisersproject.com/pillars-resilient-digital-transformation?intcmp=70160000000h0aXAAQ). ]**
+
+Topics
+
+[Containers](/tags/containers)
+
+[Enterprise Technology](/tags/enterprise-technology)
+
+[Microservices](/tags/microservices)
+
+[Kubernetes](/tags/kubernetes)
+
+![](/sites/default/files/styles/150x150/public/bio_kevin_casey.png?itok=NXX33MGY)
+
+Kevin Casey writes about technology and business for a variety of publications. He won an Azbee Award, given by the American Society of Business Publication Editors, for his InformationWeek.com story, "Are You Too Old For IT?" He's a former community choice honoree in the Small Business Influencer Awards.
+
+[More about me](/user/kevin-casey)
+
+## Related content
+
+[![Kubernetes everything you need to know](/sites/default/files/styles/222x125/public/cio_kubernetes_helm.png?itok=_UbfltOi "Kubernetes everything you need to know")](/article/2020/4/kubernetes-everything-you-need-know)
+
+[Kubernetes: Everything you need to know](/article/2020/4/kubernetes-everything-you-need-know)
+
+[Software development trends: What's flourishing and what's fading](/article/2022/8/software-development-trends)
+
+[![CIO Containers Ecosystem](/sites/default/files/styles/222x125/public/images/CIO%20Containers%20Ecosystem.png?itok=VNhyIjVr "CIO Containers Ecosystem")](/article/2022/6/container-adoption-5-expert-tips)
+
+[Container adoption: 5 expert tips](/article/2022/6/container-adoption-5-expert-tips)
+
+## Comments
+
+It is a pleasure to see such a well written article that explains the epoch change IT services are going through right now.
+
+   

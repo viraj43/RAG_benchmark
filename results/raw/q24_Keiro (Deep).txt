@@ -1,0 +1,1637 @@
+Title: A guide to Linux file systems - UFS Explorer
+Main ► Knowledge Base The file systems of Linux In contrast to Windows and macOS, that are strictly controlled by the Microsoft and Apple corporations respectively, Linux is a big open-source project developed by a community of enthusiasts. Its code always remains available for those who want to contribute, and anyone is free to tweak it as per individual requirements or create their own distributions on its foundation. That is why Linux exists in so many variants, and the same goes for its file system, a fundamental part of any OS defined in the article on Filesystem basics. The kernel offers support for numerous storage formats, yet, the most commonly used are ones of the Ext family, XFS, Btrfs, F2FS, JFS, and ReiserFS. Below you can find their brief descriptions and learn about the main specificities associated with them. You may also familiarize yourself with the main technologies related to these Linux file systems. Please note: Linux also provides read-write access to file systems of other platforms, such as NTFS, FAT32 and exFAT of Microsoft Windows, HFS+ of macOS and ZFS of BSD, Solaris, Unix that are addressed in the dedicated articles. Content: Ext XFS Btrfs F2FS JFS ReiserFS Other storage technologies of Linux Ext Ext (Extended File System) was released in 1992 as the first very format designed specifically for Linux. However, it still had serious performance limitations and was quickly superseded by Ext2. This filesystem and its later revisions – Ext3 and Ext4 – became the default choice for a large majority of Linux distributions. Ext2 has proved to be more efficient owing to its structure, which is based around the concept of inodes. Such an index descriptor keeps the attributes of a certain object, like a file or directory, and points to the locations of its underlying data. The space in Ext2 is divided into blocks that form larger units referred to as Block Groups. The information about all Block Groups is maintained by the Descriptor Table positioned straight after the Superblock. Each Block Group keeps inodes in its own Inode Table. It also monitors the state of its blocks and inodes using the Block and the Inode Bitmaps. Meanwhile, the name of a file or directory doesn’t constitute a part of its inode – names are mapped to the corresponding inode numbers via directories, implemented as a special kind of files. Most Linux filesystems are similar in that the name is not regarded as an attribute and rather defined as an alias for a file in a certain directory. A file object can be linked from many locations and exist under different names (the so-called hard links). This can lead to serious and even insurmountable difficulties in recovery of file names after file deletion or logical damage. Ext3 is in fact an upgraded version of Ext2 that supports journaling. The journal in Ext3 is organized as a log file, which records all changes to the filesystem and protects it from corruption in the event of a crash. Ext4 is an improvement over Ext4, which changed the method of data allocation from individual blocks to extents. The idea behind it is to write most of the file’s data to a continuous area and then note down only the address of its first block and the number of blocks in a sequence. Up to four extents can be stored directly in the inode, while the rest are arranged as a B+tree. In addition, Ext4 postpones the operation until the data is actually committed to the disk, and thus is able to minimize fragmentation. On the whole, it is considered to be one of the most flexible general-purpose FS types, which has also gained a reputation for solid stability. XFS XFS (Extended File System) is another very mature filesystem that was initially created by Silicon Graphics and applied on the company's IRIX servers. In 2001, it made its way to the Linux kernel and is now supported by most Linux distributions, some of which, like Red Hat Enterprise Linux, even use it by default. This FS type is optimized for storing very large files and volumes on a single host. It splits its storage space into equally sized areas called Allocation Groups. Each of them acts like a distinct filesystem, i.e. has its own Superblock, manages its own structures and space usage. The latter is controlled with the help of B+trees, one of which records the first block in the continuous free space region, and the other – the number of blocks it is composed of. Storage blocks are assigned to files using the same extent-based approach. All files and directories in XFS are represented by their individual inodes. The allocation of extents may be stored directly in the inode or traced by another B+tree linked to it in case of a very large or fragmented file. And just like inodes in Ext, they do not contain the names, that are available only in the corresponding directory entries. XFS deploys the journaling principle for any updates to its metadata. All changes are written to the Journal first before the actual blocks get modified, which enables its instant recovery in case of any mishaps. In general, this FS type is designed to be highly scalable and operates very well on server hardware. Btrfs Btrfs (B-tree File System) is one of the most popular new-generation formats for Linux, and a lot of effort is being put to make it stable. It was developed by Oracle and has been supported by the mainline Linux kernel since 2009. Fedora and SUSE already employ it by default. Btrfs is adjusted to work on a wide range of devices, from smartphones to high-end servers. Moreover, it embraces the features of a logical volume manager, being able to spread over multiple storages, together with countless other advanced possibilities. As its name suggests, Btrfs relies heavily on B-tree structures, each composed of internal nodes and leaves. An internal node points to a child node or leaf, while a leaf contains an item with some information. The actual layout and content of an item depends on the type of the given B-tree. The Root B-tree, whose location is available in the Superblock, has references to the rest of B-trees. The Chunk B-tree manages logical to physical address mapping, whereas the Device B-tree conversely links the physical blocks on the underlying devices to their virtual addresses. The File System B-tree is responsible for the allocation of files and folders. Small files are stored right there in inside extent items. Larger ones are placed outside in contiguous areas called extents. In such a case, an extent item references all extents holding the file’s data. Directory items include file names and point to their inode items. Inode items, in their turn, are used for other properties, like size, permissions, etc. Btrfs is a Copy-on-Write (CoW) filesystem. Instead of employing a journal, it makes copies of the blocks before modifying them and then writes this data to a different free location. This mechanism helps it to eliminate the risk for data corruption when an update gets interrupted, for example, due to power loss. Thanks to it and a wide variety of other attractive features, Btrfs is finding more and more adherents among modern Linux users. F2FS F2FS (Flash-Friendly File System)  is another modern format introduced by Samsung Electronics in 2012. It has been designed specifically for storage devices based on the NAND flash memory, and thus is most extensively utilized in modern smartphones and removable storage media. F2FS works on the basis of the log-structured FS approach (LFS) and takes into account such peculiarities of flash storage as constant access time and a limited number of data rewriting cycles. Instead of creating one large chunk for writing, F2FS assembles the blocks into separate chunks (up to 6) that are written concurrently. It divides its storage space into fixed-sized segments. Consecutive segments make up a section, and several sections constitute a zone. Data allocation in them is performed with the help of nodes. The latter come in three types: direct, indirect and inodes. An inode stores metadata, including name, size and other file’s properties; A direct node indicates the location of its data blocks, while an indirect node points to blocks in other nodes. The physical addresses of these nodes can be found in the Node Address Table (NIT). The content itself is stored in the Main Area. The sections in it separate the data blocks from the node blocks with service information. The usage status of all blocks is recorded by the Segment Information Table (SIT). The Segment Summary Area (SSA) specifies which blocks are assigned to which node. When running out of free segments, F2FS cleans up itself in the background when the system is inactive. The cleaning algorithm selects the victim segments based on the number of used blocks according to the SIT or by their age. The described organization makes F2FS perform quite well on solid-state storage. Yet, so far, it has been mostly applied on portable devices and is rarely encountered on desktop and server machines. JFS JFS (Journaled File System) was created by IBM in 1990. The original version, sometimes referred to as JFS1, was implemented in the company’s AIX OS. Later, JFS2 was released and ported to Linux after it became open-source. A JFS volume is composed of regions called Allocation Groups, and each of them contains one or more FileSets. All files and directories are described by their individual inodes, whereas the data content is represented by one or more extents. All extents are indexed by a dedicated B+tree. The content of small directories is stored within their inodes, while larger ones are organized as B+trees. B+trees also control the usage of storage space: the first tree stores the starting blocks of free extents, and the second one – the number of free extents. JFS also comprises a separate log area and writes to it whenever metadata changes take place. In general, JFS is considered to be a speedy and reliable filesystem. However, it seldom sees any enhancements and now is falling out of use, being surpassed by more modern options. ReiserFS ReiserFS is an alternative Linux format optimized for storing a big number of small files. It was initially designed by Namesys in 2001 and brought a number of new features that were very innovative at the time of its introduction. Yet, eventually, its maintenance was handed over to volunteers due to certain technical issues. ReiserFS is organized around the S+tree, which is composed of internal and leaf nodes. This structure is used to manage all files, directories and metadata. It contains items of four basic types: direct, indirect, directory and stat items. Direct items hold actual data, indirect items just link to certain data blocks, directory items represent entries in a directory, and stat items contain the properties of files and folders. Each item has its unique key used to locate it in the tree. This key includes the item’s identifier, address and type. Files and file fragments that don’t occupy the entire block are combined and stored directly in the leaf nodes of the S+tree. This mechanism is called tail-packing, and it helps to reduce the amount of wasted space and fragmentation. Moreover, ReiserFS doesn’t make any changes directly to the S+tree – it writes them to the Journal first and then copies to the required location on the storage. All in all, ReiserFS has good search capabilities and enables compact allocation of small files. However, this format is no longer actively supported, and it is very unlikely to remain relevant in the nearest future. Hint: The information concerning the possibility of successful recovery of data from the mentioned FS types can be found in the articles describing the specifics of data recovery from different operating systems and chances for data recovery. To get a grasp on how the procedure should be carried out, please, use the manual on data recovery from Linux. Other storage technologies of Linux Linux file systems are generally self-contained and operate directly on a partition when used with ordinary standalone drives. However, additional technologies may also be layered between physical storage and a Linux file system in order to provide more advanced capabilities. Some of them, like Btrfs, go even further by integrating certain features into their core functionality, minimizing the need for extra layers. Here are some of the most common storage technologies that Linux file systems may be combined with: Logical Volume Manager (LVM) – a disk management technology that enables more flexible and efficient storage capacity allocation compared to traditional partitioning. It’s compatible with most Linux file systems, including Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS and ReiserFS. With its help, it is possible to create storage pools that span multiple physical storage devices and set up adjustable logical volumes on top of them. Thin provisioning, a special feature of LVM, allows optimizing storage usage by allocating space dynamically, only when actual data is written to the volumes. In this case, a dedicated "thin pool" is used as a source, and the volumes created within it are referred to as "thin volumes". Such a volume may have a virtual size that exceeds the real amount of space available in the thin pool. Hint: Please rely on the instruction if you need to recover data from a thin-provisioned LVM volume. mdadm – a Linux utility for creating and managing software RAID. It combines multiple physical drives into a single logical unit, with the possibility to improve storage performance and/or achieve fault-tolerance. mdadm supports various RAID levels, including RAID 0 (striping), RAID 1 (mirroring), RAID 5 (striping with parity) RAID 6 (double parity) and RAID 10 (mirror of stripes). The resulting RAID set appears as a single logical block device in Linux and can be formatted with any file system supported by the kernel. Hint: Please rely on the instruction if you need to recover data from RAID. LUKS (Linux Unified Key Setup) – a standard for encrypting block devices in Linux, making the data stored on them inaccessible without the correct encryption key. LUKS is compatible with a wide range of Linux file systems, including Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS and ReiserFS. In addition, it can be used in conjunction with other Linux storage technologies, such as LVM or mdadm, to provide encryption layered on top of the volumes managed by these systems. Hint: Please rely on the instruction if you need to recover data from a LUKS-encrypted volume. eCryptfs – a Linux-native cryptographic file system. It allows encrypting individual directories or files within a volume, without the need to apply full-disk encryption. Operating as a "stacked" file system, eCryptfs layers its encryption on top of an existing file system, while preserving the underlying FS structure. This way, a standard Linux file system, like Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS or ReiserFS remains responsible for managing the data blocks and other metadata, while eCryptfs ensures that the contents of the files are encrypted or decrypted as they are accessed. Hint: Please rely on the instruction if you need to recover data encrypted with eCryptfs. Btrfs-RAID – RAID functionality embedded into the Btrfs file system. It allows users to configure flexible fault-tolerant storage volumes from multiple storage devices. Btrfs supports diverse RAID levels, including RAID 0 (striping), RAID 1 (mirroring), RAID 5 (striping with parity), RAID 6 (double parity) and RAID 10 (mirror of stripes). Unlike traditional RAID, Btrfs-RAID makes it possible to add, remove or replace drives in the array dynamically, without taking the system offline. Hint: Please rely on the instruction if you need to recover data from Btrfs-RAID. If you wish to get to know the filesystems utilized in other environments, please read the following articles: The filesystems of Windows: FAT/FAT32, exFAT, NTFS, ReFS, HPFS The filesystems of macOS: APFS, HFS+ The filesystems of BSD, Solaris, Unix: UFS, ZFS Last update: November 09, 2024 If you liked this article, you can share it on social media: This website uses cookies. By clicking "Agree" you consent to its Cookies Policy. Agree
+
+---
+
+Title: Linux File System - GeeksforGeeks
+
+# Linux File System
+
+Last Updated : 12 Jan, 2026 
+
+The Linux File System is a structured method of storing and organizing data on a Linux machine. It arranges files in a hierarchical directory format starting from the root directory `/`. 
+
+## Linux File System Structure
+
+The Linux file system architecture is organized into three important layers, each responsible for different functionalities. These layers work together to provide smooth file access, storage, and management. 
+
+### 1. Logical File System
+
+### 2. Virtual File System (VFS)
+
+### 3. Physical File System
+
+![the_architecture_of_a_file_system](https://media.geeksforgeeks.org/wp-content/uploads/20260112171619580125/the_architecture_of_a_file_system.webp)
+
+## Characteristics of a File System
+
+A file system defines the structure, rules, and methods for how data is organized, stored, accessed, and managed on a storage device. 
+
+### 1. Space Management
+
+### 2. Filename
+
+### 3. Directory
+
+### 4. Metadata
+
+### 5. Utilities
+
+### 6. Design
+
+## Advanced File System Features
+
+### 1) Journaling
+
+Journaling file systems maintain a special log called a journal that records file system changes before they are permanently written to disk. This helps restore data in case of unexpected shutdowns or crashes. 
+
+### How Journaling Works
+
+### Journaling Modes
+
+Journaling can operate in three different modes, each offering a balance between speed and data safety: 
+
+****1. Journal Mode (Highest Safety) ****
+
+****2. Ordered Mode (Balanced) ****
+
+****3. Writeback Mode (Fastest) ****
+
+### 2) Versioning
+
+Versioning file systems keep track of previous versions of a file, allowing users to recover older copies when needed. 
+
+****Key Points: ****
+
+### 3) Inode
+
+An inode (index node) is a data structure that stores important information about files and directories. 
+
+****Inode Contains: ****
+
+Inodes act as the internal identity of files in Linux file systems. 
+
+## File System Implementations
+
+Here are some linux file systems: 
+
+![file](https://media.geeksforgeeks.org/wp-content/uploads/20260110115203625332/file.webp)> Note: Cluster and distributed file systems will not be included for simplicity.
+
+### 1. ext (Extended File System)
+
+### 2. ext2
+
+### 3. Xiafs
+
+### 4. ext3
+
+### 5. JFS (Journaled File System)
+
+### 6. ReiserFS
+
+### 7. XFS
+
+### 8. SquashFS
+
+### 9. Reiser4
+
+### 10. ext4
+
+### 11. btrfs (B-tree / Better FS)
+
+### 12. bcachefs
+
+### 13. Others (NTFS, exFAT, etc.)
+
+## File Systems Comparison:
+
+Given below is a comparative overview of different file systems based on their storage limits, supported features, and structural capabilities. 
+
+![table_8](https://media.geeksforgeeks.org/wp-content/uploads/20260108164555469644/table_8.webp)
+
+### 1. Maximum Filename Length
+
+### Allowable Characters in Directory Entries
+
+### Maximum Pathname Length
+
+### Maximum File Size
+
+### Maximum Volume (Filesystem) Size
+
+### Maximum Number of Files
+
+### Metadata Journaling
+
+### Compression Support
+
+### Block Sub-allocation
+
+### Online File System Growth
+
+### Encryption Support
+
+### Checksum Support
+
+## ext4 in the Linux File System
+
+The ext4 (Fourth Extended File System) was designed with full backward compatibility to ext3 and ext2. It builds upon their strengths while introducing major enhancements in performance, scalability, reliability, and storage flexibility. 
+
+### Key Improvements and Features of ext4
+
+### 1. Large File System Support
+
+ext4 can handle significantly larger files and volumes compared to its predecessors, making it suitable for modern storage demands. 
+
+### 2. Extents for Efficient Storage
+
+It uses extents (continuous physical blocks) instead of block mapping, improving large file performance and reducing fragmentation. 
+
+### 3. Persistent Pre-Allocation
+
+Guarantees storage allocation in advance, ensuring contiguous space and consistent performance especially useful for media files and databases. 
+
+### 4. Delayed Allocation
+
+ext4 delays block allocation until data is flushed to disk. This improves performance and reduces fragmentation by allocating blocks more efficiently. 
+
+### 5. Unlimited Subdirectories (HTree Indexing)
+
+Uses HTree-based indexing, enabling the creation of unlimited subdirectories with fast lookup times. 
+
+### 6. Journal Checksumming
+
+Adds checksums to the journal, allowing the file system to detect invalid or corrupted entries after a crash, improving reliability. 
+
+### 7. Enhanced Timestamps
+
+Includes creation-time stamps and supports nanosecond-level precision for improved granularity. 
+
+### 8. Transparent Encryption
+
+Supports filesystem-level encryption, improving data confidentiality without external tools. 
+
+### 9. Lazy Initialization
+
+Cleans inode tables in the background, reducing the time required to initialize or expand the file system. 
+
+### 10. Default Write Barriers
+
+Ensures proper ordering of metadata writes to protect against corruption during sudden power loss. 
+
+### 11. In-Development Features
+
+Some enhancements like metadata checksumming, quota improvements, and larger allocation blocks are still being refined for broader stability. 
+
+## Hands-On Example: Using XFS for a Media Server
+
+****[Example]: ****Suppose our use case is to set up a server that stores and serves large multimedia files (videos, audio files, etc.). In this scenario, we need a file system optimized for high-speed data transfer and efficient handling of large files. 
+
+Steps to Set Up and Use XFS 
+
+### [Step 1]: Install XFS Utilities
+
+Install the required tools for managing the XFS file system: 
+
+```
+sudo apt-get install xfsprogs
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417112811/26.webp)Installing xfsprogs 
+
+### [Step 2]: Create a Partition
+
+Create or choose a partition (e.g., /dev/sda1) where XFS will be applied. 
+You can use tools like: 
+
+to create/manage the partition. 
+
+### [Step 3]: Format the Partition as XFS
+
+Format the partition using the XFS file system: 
+
+```
+sudo mkfs.xfs /dev/sda1 -f
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417114011/27.webp)Format the partition 
+
+### [Step 4]: Mount the XFS Partition
+
+Mount the formatted XFS partition to a directory: 
+
+```
+sudo mount /dev/sda1 /mnt/jayesh_xfs_partition
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417114815/28.webp)mounting of XFS partition 
+
+```
+sudo mkdir /mnt/my_xfs_data
+```
+
+### [Step 5]: Verify the Mount
+
+Check whether the XFS partition is mounted successfully: 
+
+```
+df -h
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417115224/29.webp)Successful mount 
+
+Comment Article Tags: Article Tags: [Linux-Unix](https://www.geeksforgeeks.org/category/linux-unix/)
+
+
+---
+
+Title: File systems - ArchWiki
+
+From [Wikipedia](https://en.wikipedia.org/wiki/File_system): 
+
+In computing, a file system or filesystem controls how data is stored and retrieved. Without a file system, information placed in a storage medium would be one large body of data with no way to tell where one piece of information stops and the next begins. By separating the data into pieces and giving each piece a name, the information is easily isolated and identified. Taking its name from the way paper-based information systems are named, each group of data is called a "file". The structure and logic rules used to manage the groups of information and their names is called a "file system". 
+
+Individual drive partitions can be set up using one of the many different available file systems. Each has its own advantages, disadvantages, and unique idiosyncrasies. A brief overview of supported file systems follows; the links are to Wikipedia pages that provide much more information. 
+
+## Types of file systems
+
+See [filesystems(5)](https://man.archlinux.org/man/filesystems.5)for a general overview and [Wikipedia:Comparison of file systems](https://en.wikipedia.org/wiki/Comparison_of_file_systems)for a detailed feature comparison. File systems already loaded by the kernel or built-in are listed in `/proc/filesystems`, while all the installed modules can be seen with `ls /lib/modules/$(uname -r)/kernel/fs`. 
+
+| File system | Creation command | Userspace utilities | Archiso [1] | Kernel documentation [2] | Notes | 
+|---|---|---|---|---|---|
+| Btrfs | mkfs.btrfs(8) | btrfs-progs | Yes | btrfs.html | Stability status | 
+| VFAT | mkfs.fat(8) | dosfstools | Yes | vfat.html | Windows 9x file system. Commonly used for the EFI | 
+| exFAT | mkfs.exfat(8) | exfatprogs | Yes | | Commonly used for USB flash drives and SD cards. | 
+| mkexfatfs(8) | exfat-utils | No | N/A (FUSE-based) | | 
+| F2FS | mkfs.f2fs(8) | f2fs-tools | Yes | f2fs.html | Flash-based devices. Cannot be shrunk. | 
+| ext3 | mkfs.ext3(8) | e2fsprogs | Yes | ext3.html | | 
+| ext4 | mkfs.ext4(8) | e2fsprogs | Yes | ext4.html | | 
+| HFS | mkfs.hfsplus(8) | hfsprogsAUR | No | hfs.html | Classic Mac OS file system | 
+| HFS+ | mkfs.hfsplus(8) | hfsprogsAUR | No | hfsplus.html | macOS (8–10.12) file system | 
+| JFS | mkfs.jfs(8) | jfsutils | Yes | jfs.html | | 
+| JFFS2 | mkfs.jffs2(1) | mtd-utils | No | | | 
+| NILFS2 | mkfs.nilfs2(8) | nilfs-utils | Yes | nilfs2.html | Mostly intended for flash based devices. Does not | 
+| NTFS | | | Yes | ntfs3.html | Windows NT file system. [3] | 
+| mkfs.ntfs(8) | ntfs-3g | Yes | N/A (FUSE-based) | FUSE driver with extended capabilities. | 
+| UDF | mkfs.udf(8) | udftools | Yes | udf.html | ISO/IEC 13346 file system for disc images and DVDs | 
+| XFS | mkfs.xfs(8) | xfsprogs | Yes | xfs.html
+xfs-delayed-logging-design.html
+xfs-self- | Cannot be shrunk | 
+
+| File system | Creation command | Kernel patchset | Userspace utilities | Notes | 
+|---|---|---|---|---|
+| Bcachefs | bcachefs format | bcachefs-dkms | bcachefs-tools | Removed from the kernel on 6.18 | 
+| APFS | mkapfs(8) | linux-apfs-rw-dkms | apfsprogs | macOS (10.13 and newer) file system. Read-only, ex | 
+| ReiserFS | mkfs.reiserfs(8) | | reiserfsprogsAUR | Removed from the kernel on 6.13. | 
+| Reiser4 | mkfs.reiser4(8) | | reiser4progsAUR | | 
+| ZFS | | zfs-linuxAUR, zfs-dkmsAUR | zfs-utilsAUR | OpenZFS port | 
+
+### Journaling
+
+The ext3/4, HFS+, JFS, NTFS, ReiserFS, and XFS file systems use [journaling](https://en.wikipedia.org/wiki/Journaling_file_system). Journaling provides fault-resilience by logging changes before they are committed to the file system. In the event of a system crash or power failure, such file systems are faster to bring back online and less likely to become corrupted. The logging takes place in a dedicated area of the file system. 
+
+ext3/4 offer data-mode journaling, which can optionally log data in addition to the metadata. Data-mode journaling comes with a speed penalty, because it does two write operations: first to the journal and then to the disk. Therefore, data-mode journaling is not enabled by default. The trade-off between system speed and data safety should be considered when choosing the file system type and features. 
+
+In the same vein, Reiser4 offers configurable ["transaction models"](https://reiser4.wiki.kernel.org/index.php/Reiser4_transaction_models): a special model called [wandering logs](https://reiser4.wiki.kernel.org/index.php/V4#Wandering_Logs), which eliminates the need to write to the disk twice; **write-anywhere **, a pure copy-on-write approach; and a combined approach called **hybrid **which heuristically alternates between the two. 
+
+File systems based on copy-on-write (also known as write-anywhere), such as Reiser4, Btrfs, Bcachefs and ZFS, by design operate on full atomicity and also provide checksums for both metadata and inline data (operations entirely occur, or they entirely do not, and in properly functioning hardware data does not corrupt due to operations half-occurring). Therefore, these file systems are by design much less prone to data loss than other file systems and have no need to use traditional journal to protect metadata, because they are never updated in-place. Although Btrfs still has a journal-like log tree, it is only used to speed-up fdatasync/fsync. 
+
+FAT, exFAT, ext2, and HFS provide neither journaling nor atomicity, They are for temporary or legacy use and not recommended for use when reliable storage is needed. 
+
+### FUSE-based file systems
+
+See [FUSE](/title/FUSE). 
+
+### Stackable file systems
+
+[https://ecryptfs.org](https://ecryptfs.org)|| [ecryptfs-utils](https://archlinux.org/packages/?name=ecryptfs-utils)
+
+[https://github.com/trapexit/mergerfs](https://github.com/trapexit/mergerfs)|| [mergerfs](https://aur.archlinux.org/packages/mergerfs/)AUR 
+
+[http://mhddfs.uvw.ru](http://mhddfs.uvw.ru)|| [mhddfs](https://aur.archlinux.org/packages/mhddfs/)AUR 
+
+[https://docs.kernel.org/filesystems/overlayfs.html](https://docs.kernel.org/filesystems/overlayfs.html)|| [linux](https://archlinux.org/packages/?name=linux)
+
+[https://github.com/rpodgorny/unionfs-fuse](https://github.com/rpodgorny/unionfs-fuse)|| [unionfs-fuse](https://aur.archlinux.org/packages/unionfs-fuse/)AUR 
+
+### Read-only file systems
+
+[https://github.com/mhx/dwarfs](https://github.com/mhx/dwarfs)|| [dwarfs](https://aur.archlinux.org/packages/dwarfs/)AUR 
+
+[https://erofs.docs.kernel.org/](https://erofs.docs.kernel.org/)|| [erofs-utils](https://archlinux.org/packages/?name=erofs-utils)
+
+[https://github.com/plougher/squashfs-tools](https://github.com/plougher/squashfs-tools)|| [squashfs-tools](https://archlinux.org/packages/?name=squashfs-tools)
+
+### Clustered file systems
+
+[https://www.beegfs.io/c/](https://www.beegfs.io/c/)|| [beegfs-client](https://aur.archlinux.org/packages/beegfs-client/)AUR 
+
+[https://ceph.com/](https://ceph.com/)|| [ceph](https://aur.archlinux.org/packages/ceph/)AUR 
+
+[https://www.gluster.org/](https://www.gluster.org/)|| [glusterfs](https://archlinux.org/packages/?name=glusterfs)
+
+[https://ipfs.io/](https://ipfs.io/)|| [kubo](https://archlinux.org/packages/?name=kubo)
+
+[https://min.io](https://min.io)|| [minio](https://aur.archlinux.org/packages/minio/)AUR 
+
+[https://moosefs.com](https://moosefs.com)|| [moosefs](https://archlinux.org/packages/?name=moosefs)
+
+[https://www.openafs.org](https://www.openafs.org)|| [openafs](https://aur.archlinux.org/packages/openafs/)AUR 
+
+[https://www.orangefs.org/](https://www.orangefs.org/)|| not packaged? [search in AUR](https://aur.archlinux.org/packages/)
+
+### Shared-disk file system
+
+[https://pagure.io/gfs2-utils](https://pagure.io/gfs2-utils)|| [gfs2-utils](https://aur.archlinux.org/packages/gfs2-utils/)AUR 
+
+[https://oss.oracle.com/projects/ocfs2/](https://oss.oracle.com/projects/ocfs2/)|| [ocfs2-tools](https://aur.archlinux.org/packages/ocfs2-tools/)AUR 
+
+[https://core.vmware.com/resource/vmware-vsphere-vmfs](https://core.vmware.com/resource/vmware-vsphere-vmfs)|| [vmfs-tools](https://aur.archlinux.org/packages/vmfs-tools/)AUR 
+
+## Identify existing file systems
+
+To identify existing file systems, you can use [lsblk](/title/Lsblk): 
+
+```
+$ lsblk -f
+```
+
+```
+NAME FSTYPE LABEL UUID MOUNTPOINT
+sdb
+└─sdb1 vfat Transcend 4A3C-A9E9
+```
+
+An existing file system, if present, will be shown in the `FSTYPE`column. If [mounted](/title/Mount), it will appear in the `MOUNTPOINT`column. 
+
+## Create a file system
+
+File systems are usually created on a [partition](/title/Partition), inside logical containers such as [LVM](/title/LVM), [RAID](/title/RAID)and [dm-crypt](/title/Dm-crypt), or on a regular file (see [Wikipedia:Loop device](https://en.wikipedia.org/wiki/Loop_device)). This section describes the partition case. 
+
+**Note **File systems can be written directly to a disk, known as a *superfloppy *or [partitionless disk](/title/Partitioning#Partitionless_disk). Certain limitations are involved with this method, particularly if [booting](/title/Arch_boot_process)from such a drive. See [Btrfs#Partitionless Btrfs disk](/title/Btrfs#Partitionless_Btrfs_disk)for an example. **Warning **
+
+Before continuing, [identify the device](/title/Lsblk)where the file system will be created and whether or not it is mounted. For example: 
+
+```
+$ lsblk -f
+```
+
+```
+NAME FSTYPE LABEL UUID MOUNTPOINT
+sda
+├─sda1 C4DA-2C4D
+├─sda2 ext4 5b1564b2-2e2c-452c-bcfa-d1f572ae99f2 /mnt
+└─sda3 56adc99b-a61e-46af-aab7-a6d07e504652
+```
+
+Mounted file systems **must **be unmountedbefore proceeding. In the above example an existing file system is on `/dev/sda2`and is mounted at `/mnt`. It would be unmounted with: 
+
+```
+# umount /dev/sda2
+```
+
+To find just mounted file systems, see #List mounted file systems. 
+
+To create a new file system, use [mkfs(8)](https://man.archlinux.org/man/mkfs.8). See #Types of file systemsfor the exact type, as well as userspace utilities you may wish to install for a particular file system. 
+
+For example, to create a new file system of type [ext4](/title/Ext4)(common for Linux data partitions) on `/dev/sda1`, run: 
+
+```
+# mkfs.ext4 /dev/sda1
+```
+
+**Tip **
+
+The new file system can now be mounted to a directory of choice. 
+
+## Mount a file system
+
+To manually mount a file system located on a device (e.g., a partition) to a directory, use [mount(8)](https://man.archlinux.org/man/mount.8). This example mounts `/dev/sda1`to `/mnt`. 
+
+```
+# mount /dev/sda1 /mnt
+```
+
+This attaches the file system on `/dev/sda1`at the directory `/mnt`, making the contents of the file system visible. Any data that existed at `/mnt`before this action is made invisible until the device is unmounted. 
+
+[fstab](/title/Fstab)contains information on how devices should be automatically mounted if present. See the [fstab](/title/Fstab)article for more information on how to modify this behavior. 
+
+If a device is specified in `/etc/fstab`and only the device or mount point is given on the command line, that information will be used in mounting. For example, if `/etc/fstab`contains a line indicating that `/dev/sda1`should be mounted to `/mnt`, then the following will automatically mount the device to that location: 
+
+```
+# mount /dev/sda1
+```
+
+Or 
+
+```
+# mount /mnt
+```
+
+*mount *contains several options, many of which depend on the file system specified.
+The options can be changed, either by: 
+
+See these related articles and the article of the file system of interest for more information. 
+
+**Tip **
+
+### List mounted file systems
+
+To list all mounted file systems, use [findmnt(8)](https://man.archlinux.org/man/findmnt.8): 
+
+```
+$ findmnt
+```
+
+*findmnt *takes a variety of arguments which can filter the output and show additional information. For example, it can take a device or mount point as an argument to show only information on what is specified: 
+
+```
+$ findmnt /dev/sda1
+```
+
+*findmnt *gathers information from `/etc/fstab`, `/etc/mtab`, and `/proc/self/mounts`. 
+
+### Unmount a file system
+
+To unmount a file system use [umount(8)](https://man.archlinux.org/man/umount.8). Either the device containing the file system (e.g., `/dev/sda1`) or the mount point (e.g., `/mnt`) can be specified: 
+
+```
+# umount /dev/sda1
+```
+
+or 
+
+```
+# umount /mnt
+```
+
+## Troubleshooting
+
+### "linux Structure needs cleaning"
+
+Unmountthe file system and run [fsck](/title/Fsck)on the problematic volume. 
+
+## See also
+
+Retrieved from " [https://wiki.archlinux.org/index.php?title=File_systems&oldid=871069](https://wiki.archlinux.org/index.php?title=File_systems&oldid=871069)" [Categories](/title/Special:Categories): 
+
+
+---
+
+Title: 1 Overview of file systems in Linux - SUSE Documentation
+[SUSE Linux Enterprise Server-Dokumentation](index.html)| [Storage Administration Guide](book-storage.html)| [File systems and mounting](part-filesystems.html)| [Overview of file systems in Linux](cha-filesystems.html)Applies to SUSE Linux Enterprise Server 15 SP5 
+
+# 1 Overview of file systems in Linux #
+
+[Revision History: SUSE Linux Enterprise Server-Dokumentation](rh-cha-filesystems.html)
+
+SUSE Linux Enterprise Server ships with different file systems from which to choose,
+ including Btrfs, Ext4, Ext3, Ext2 and XFS. Each file system has its own
+ advantages and disadvantages. For a side-by-side feature comparison of the
+ major file systems in SUSE Linux Enterprise Server , see [https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP3/#file-system-comparison](https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP3/#file-system-comparison)( *Comparison of supported file systems *). This chapter
+ contains an overview of how these file systems work and what advantages
+ they offer. 
+
+Btrfs is the default file system for the operating system and
+ XFS is the default for all other use cases. SUSE also continues to support
+ the Ext family of file systems and OCFS2. By default, the Btrfs file system
+ will be set up with subvolumes. Snapshots will be automatically enabled for
+ the root file system using the snapper infrastructure. For more information
+ about snapper, refer to [Kapitel 10, Systemwiederherstellung und Snapshot-Verwaltung mit Snapper](cha-snapper.html). 
+
+Professional high-performance setups might require a highly available storage
+ system. To meet the requirements of high-performance clustering scenarios, SUSE Linux Enterprise Server includes OCFS2 (Oracle Cluster File System 2) and the
+ Distributed Replicated Block Device (DRBD) in the High Availability add-on. These
+ advanced storage systems are not covered in this guide. For information, see
+ the [Administration Guide for SUSE Linux Enterprise High Availability](https://documentation.suse.com/sle-ha-15/html/SLE-HA-all/book-administration.html). 
+
+It is very important to remember that no file system best suits all kinds of
+ applications. Each file system has its particular strengths and weaknesses,
+ which must be taken into account. In addition, even the most sophisticated
+ file system cannot replace a reasonable backup strategy. 
+
+The terms *data integrity *and *data
+ consistency *, when used in this section, do not refer to the
+ consistency of the user space data (the data your application writes to its
+ files). Whether this data is consistent must be controlled by the application
+ itself. 
+
+Unless stated otherwise in this section, all the steps required to set up or
+ change partitions and file systems can be performed by using the YaST
+ Partitioner (which is also strongly recommended). For information, see [Kapitel 10, Festplatte vorbereiten: Expertenmodus](cha-expert-partitioner.html). 
+
+## 1.1 Terminology #
+
+metadata 
+
+A data structure that is internal to the file system. It ensures that all
+ of the on-disk data is properly organized and accessible. Almost every
+ file system has its own structure of metadata, which is one reason the
+ file systems show different performance characteristics. It is extremely
+ important to maintain metadata intact, because otherwise all data on the
+ file system could become inaccessible. 
+
+inode 
+
+A data structure on a file system that contains a variety of information
+ about a file, including size, number of links, pointers to the disk
+ blocks where the file contents are actually stored, and date and time of
+ creation, modification, and access. 
+
+journal 
+
+In the context of a file system, a journal is an on-disk structure
+ containing a type of log in which the file system stores what it is about
+ to change in the file system’s metadata. Journaling greatly reduces the
+ recovery time of a file system because it has no need for the lengthy
+ search process that checks the entire file system at system start-up.
+ Instead, only the journal is replayed. 
+
+## 1.2 Btrfs #
+
+Btrfs is a copy-on-write (COW) file system developed by Chris Mason. It is
+ based on COW-friendly B-trees developed by Ohad Rodeh. Btrfs is a
+ logging-style file system. Instead of journaling the block changes, it
+ writes them in a new location, then links the change in. Until the last
+ write, the new changes are not committed. 
+
+### 1.2.1 Key features #
+
+Btrfs provides fault tolerance, repair, and easy management features, such
+ as the following: 
+
+### 1.2.2 The root file system setup on SUSE Linux Enterprise Server #
+
+By default, SUSE Linux Enterprise Server is set up using Btrfs and snapshots for the root
+ partition. Snapshots allow you to easily roll back your system if needed
+ after applying updates, or to back up files. Snapshots can easily be
+ managed with the SUSE Snapper infrastructure as explained in [Kapitel 10, Systemwiederherstellung und Snapshot-Verwaltung mit Snapper](cha-snapper.html). For general information about the SUSE
+ Snapper project, see the Snapper Portal wiki at OpenSUSE.org
+ ( [http://snapper.io](http://snapper.io)). 
+
+When using a snapshot to roll back the system, it must be ensured that data
+ such as user's home directories, Web and FTP server contents or log files
+ do not get lost or overwritten during a roll back. This is achieved by
+ using Btrfs subvolumes on the root file system. Subvolumes can be excluded
+ from snapshots. The default root file system setup on SUSE Linux Enterprise Server as
+ proposed by YaST during the installation contains the following
+ subvolumes. They are excluded from snapshots for the reasons given below. 
+
+`/boot/grub2/i386-pc`, `/boot/grub2/x86_64-efi`, `/boot/grub2/powerpc-ieee1275`, `/boot/grub2/s390x-emu`
+
+Ein Rollback der Bootloader-Konfiguration wird nicht unterstützt. Die obigen Verzeichnisse sind abhängig von der Architektur. Die ersten beiden Verzeichnisse gelten für AMD64-/Intel 64-Computer und die letzten beiden Verzeichnisse für IBM POWER bzw. für IBM Z. 
+
+`/home`
+
+Wenn sich `/home`nicht auf einer separaten Partition befindet, wird dieses Verzeichnis ausgeschlossen, damit bei einem Rollback kein Datenverlust eintritt. 
+
+`/opt`
+
+Produkte von Drittanbietern werden in der Regel im Verzeichnis `/opt`installiert. Dieses Verzeichnis wird ausgeschlossen, damit die betreffenden Anwendungen bei einem Rollback nicht deinstalliert werden. 
+
+`/srv`
+
+Enthält Daten für Web- und FTP-Server. Ausgeschlossen, damit bei einem Rollback kein Datenverlust eintritt. 
+
+`/tmp`
+
+Alle Verzeichnisse, die temporäre Dateien und Caches enthalten, werden aus den Snapshots ausgeschlossen. 
+
+`/usr/local`
+
+Dieses Verzeichnis wird bei der manuellen Installation von Software verwendet. Dieses Verzeichnis wird ausgeschlossen, damit die betreffenden Installationen bei einem Rollback nicht deinstalliert werden. 
+
+`/var`
+
+Dieses Verzeichnis enthält viele Variablendateien, einschließlich Protokolle, temporäre Caches und Drittanbieterprodukte in `/var/opt`. Es ist der Standardspeicherort für Images und Datenbanken von virtuellen Maschinen. Daher wird dieses Subvolume so erstellt, dass alle Variablendaten von Snapshots ausgeschlossen werden und „Kopie beim Schreiben“ deaktiviert ist. 
+
+![Warning](static/images/icon-warning.svg)Warning: Support for rollbacks 
+
+Rollbacks are only supported by SUSE if you do not remove any of the
+ preconfigured subvolumes. You may, however, add subvolumes using the
+ YaST Partitioner. 
+
+#### 1.2.2.1 Mounting compressed Btrfs file systems #
+
+The Btrfs file system supports transparent compression. While enabled,
+ Btrfs compresses file data when written and uncompresses file data when
+ read. 
+
+Use the `compress`or `compress-force`mount
+ option and select the compression algorithm, `zstd`, `lzo`, or `zlib`(the default). zlib
+ compression has a higher compression ratio while lzo is faster and takes
+ less CPU load. The zstd algorithm offers a modern compromise, with
+ performance close to lzo and compression ratios similar to zlib. 
+
+For example: 
+
+```prompt
+# mount -o compress=zstd /dev/sdx /mnt
+```
+
+In case you create a file, write to it, and the compressed result is
+ greater or equal to the uncompressed size, Btrfs will skip compression for
+ future write operations forever for this file. If you do not like this
+ behavior, use the `compress-force`option. This can be
+ useful for files that have some initial non-compressible data. 
+
+Note, compression takes effect for new files only. Files that were written
+ without compression are not compressed when the file system is mounted
+ with the `compress`or `compress-force`option. Furthermore, files with the `nodatacow`attribute
+ never get their extents compressed: 
+
+```prompt
+# chattr +C FILE
+# mount -o nodatacow /dev/sdx /mnt
+```
+
+In regard to encryption, this is independent from any compression. After
+ you have written some data to this partition, print the details: 
+
+```prompt
+# btrfs filesystem show /mnt
+btrfs filesystem show /mnt
+Label: 'Test-Btrfs' uuid: 62f0c378-e93e-4aa1-9532-93c6b780749d
+ Total devices 1 FS bytes used 3.22MiB
+ devid 1 size 2.00GiB used 240.62MiB path /dev/sdb1
+```
+
+If you want this to be permanent, add the `compress`or `compress-force`option into the `/etc/fstab`configuration file. For example: 
+
+```
+UUID=1a2b3c4d /home btrfs subvol=@/home,compress 0 0
+```
+
+#### 1.2.2.2 Mounting subvolumes #
+
+A system rollback from a snapshot on SUSE Linux Enterprise Server is performed by booting
+ from the snapshot first. This allows you to check the snapshot while
+ running before doing the rollback. Being able to boot from snapshots is
+ achieved by mounting the subvolumes (which would normally not be
+ necessary). 
+
+In addition to the subvolumes listed in [Section 1.2.2, “The root file system setup on SUSE Linux Enterprise Server”](cha-filesystems.html#sec-filesystems-major-btrfs-suse)a volume named `@`exists. This is the default subvolume that will be
+ mounted as the root partition ( `/`). The other
+ subvolumes will be mounted into this volume. 
+
+When booting from a snapshot, not the `@`subvolume will
+ be used, but rather the snapshot. The parts of the file system included in
+ the snapshot will be mounted read-only as `/`. The
+ other subvolumes will be mounted writable into the snapshot. This state is
+ temporary by default: the previous configuration will be restored with the
+ next reboot. To make it permanent, execute the `snapper
+ rollback`command. This will make the snapshot that is currently
+ booted the new *default *subvolume, which will be used
+ after a reboot. 
+
+#### 1.2.2.3 Checking for free space #
+
+File system usage is usually checked by running the `df`command. On a Btrfs file system, the output of `df`can
+ be misleading, because in addition to the space the raw data allocates, a
+ Btrfs file system also allocates and uses space for metadata. 
+
+Consequently a Btrfs file system may report being out of space even though
+ it seems that plenty of space is still available. In that case, all space
+ allocated for the metadata is used up. Use the following commands to check
+ for used and available space on a Btrfs file system: 
+
+`btrfs filesystem show`
+
+```prompt
+> sudo btrfs filesystem show /
+Label: 'ROOT' uuid: 52011c5e-5711-42d8-8c50-718a005ec4b3
+ Total devices 1 FS bytes used 10.02GiB
+ devid 1 size 20.02GiB used 13.78GiB path /dev/sda3
+```
+
+Shows the total size of the file system and its usage. If these two
+ values in the last line match, all space on the file system has been
+ allocated. 
+
+`btrfs filesystem df`
+
+```prompt
+> sudo btrfs filesystem df /
+Data, single: total=13.00GiB, used=9.61GiB
+System, single: total=32.00MiB, used=16.00KiB
+Metadata, single: total=768.00MiB, used=421.36MiB
+GlobalReserve, single: total=144.00MiB, used=0.00B
+```
+
+Shows values for allocated ( `total`) and used space of
+ the file system. If the values for `total`and `used`for the metadata are almost equal, all space
+ for metadata has been allocated. 
+
+`btrfs filesystem usage`
+
+```prompt
+> sudo btrfs filesystem usage /
+Overall:
+ Device size: 20.02GiB
+ Device allocated: 13.78GiB
+ Device unallocated: 6.24GiB
+ Device missing: 0.00B
+ Used: 10.02GiB
+ Free (estimated): 9.63GiB (min: 9.63GiB)
+ Data ratio: 1.00
+ Metadata ratio: 1.00
+ Global reserve: 144.00MiB (used: 0.00B)
+
+ Data Metadata System
+Id Path single single single Unallocated
+-- --------- -------- --------- -------- -----------
+ 1 /dev/sda3 13.00GiB 768.00MiB 32.00MiB 6.24GiB
+-- --------- -------- --------- -------- -----------
+ Total 13.00GiB 768.00MiB 32.00MiB 6.24GiB
+ Used 9.61GiB 421.36MiB 16.00KiB
+```
+
+Shows data similar to that of the two previous commands combined. 
+
+For more information refer to `man 8 btrfs-filesystem`and [https://btrfs.wiki.kernel.org/index.php/FAQ](https://btrfs.wiki.kernel.org/index.php/FAQ). 
+
+### 1.2.3 Migration from ReiserFS and ext file systems to Btrfs #
+
+You can migrate data volumes from existing ReiserFS or Ext (Ext2, Ext3, or
+ Ext4) to the Btrfs file system using the `btrfs-convert`tool. This allows you to do an in-place conversion of unmounted (offline)
+ file systems, which may require a bootable install media with the `btrfs-convert`tool. The tool constructs a Btrfs file
+ system within the free space of the original file system, directly linking
+ to the data contained in it. There must be enough free space on the device
+ to create the metadata or the conversion will fail. The original file
+ system will be intact and no free space will be occupied by the Btrfs file
+ system. The amount of space required is dependent on the content of the
+ file system and can vary based on the number of file system objects (such
+ as files, directories, extended attributes) contained in it. Since the data
+ is directly referenced, the amount of data on the file system does not
+ impact the space required for conversion, except for files that use tail
+ packing and are larger than about 2 KiB in size. 
+
+![Warning](static/images/icon-warning.svg)Warning: Root file system conversion not supported 
+
+Converting the root file system to Btrfs is not supported and not
+ recommended. Automating such a conversion is not possible due to various
+ steps that need to be tailored to your specific setup—the process
+ requires a complex configuration to provide a correct rollback, `/boot`must be on the root file system, and the system
+ must have specific subvolumes, etc. Either keep the existing file system
+ or re-install the whole system from scratch. 
+
+To convert the original file system to the Btrfs file system, run: 
+
+```prompt
+# btrfs-convert /path/to/device
+```
+
+![Important](static/images/icon-important.svg)Important: Check `/etc/fstab`
+
+After the conversion, you need to ensure that any references to the
+ original file system in `/etc/fstab`have been adjusted
+ to indicate that the device contains a Btrfs file system. 
+
+When converted, the contents of the Btrfs file system will reflect the
+ contents of the source file system. The source file system will be
+ preserved until you remove the related read-only image created at `fs_root/reiserfs_saved/image`.
+ The image file is effectively a 'snapshot' of the ReiserFS file system
+ prior to conversion and will not be modified as the Btrfs file system is
+ modified. To remove the image file, remove the `reiserfs_saved`subvolume: 
+
+```prompt
+# btrfs subvolume delete fs_root/reiserfs_saved
+```
+
+To revert the file system back to the original one, use the following
+ command: 
+
+```prompt
+# btrfs-convert -r /path/to/device
+```
+
+![Warning](static/images/icon-warning.svg)Warning: Lost changes 
+
+Any changes you made to the file system while it was mounted as a Btrfs
+ file system will be lost. A balance operation must not have been performed
+ in the interim, or the file system will not be restored correctly. 
+
+### 1.2.4 Btrfs administration #
+
+Btrfs is integrated in the YaST Partitioner and AutoYaST. It is available
+ during the installation to allow you to set up a solution for the root file
+ system. You can use the YaST Partitioner after the installation to view
+ and manage Btrfs volumes. 
+
+Btrfs administration tools are provided in the `btrfsprogs`package. For information about using Btrfs
+ commands, see the `man 8 btrfs`, `man 8
+ btrfsck`, and `man 8 mkfs.btrfs`commands. For
+ information about Btrfs features, see the *Btrfs wiki *at [https://btrfs.wiki.kernel.org](https://btrfs.wiki.kernel.org). 
+
+### 1.2.5 Btrfs quota support for subvolumes #
+
+The Btrfs root file system subvolumes (for example, `/var/log`, `/var/crash`, or `/var/cache`) can use all the available disk space
+ during normal operation, and cause a system malfunction. To help avoid this
+ situation, SUSE Linux Enterprise Server offers quota support for Btrfs subvolumes. If you
+ set up the root file system from a YaST proposal, you are ready to enable
+ and set subvolume quotas. 
+
+#### 1.2.5.1 Setting Btrfs quotas using YaST #
+
+To set a quota for a subvolume of the root file system by using YaST,
+ proceed as follows: 
+
+#### 1.2.5.2 Setting Btrfs quotas on the command line #
+
+To set a quota for a subvolume of the root file system on the command
+ line, proceed as follows: 
+
+![Tip](static/images/icon-tip.svg)Tip: Nullifying a quota 
+
+In case you want to nullify an existing quota, set a quota size of `none`: 
+
+```prompt
+> sudo btrfs qgroup limit none /var/tmp
+```
+
+To disable quota support for a partition and all its subvolumes, use `btrfs quota disable`: 
+
+```prompt
+> sudo btrfs quota disable /
+```
+
+#### 1.2.5.3 More information #
+
+See the `man 8 btrfs-qgroup`and `man 8
+ btrfs-quota`for more details. The *UseCases *page on the Btrfs wiki
+ ( [https://btrfs.wiki.kernel.org/index.php/UseCases](https://btrfs.wiki.kernel.org/index.php/UseCases))
+ also provides more information. 
+
+### 1.2.6 Swapping on Btrfs #
+
+![Important](static/images/icon-important.svg)Important: Snapshots with swapping 
+
+You will not be able to create a snapshot if the source subvolume contains
+ any enabled swap files. 
+
+SLES supports swapping to a file on the Btrfs file system if the
+ following criteria relating to the resulting swap file are fulfilled: 
+
+### 1.2.7 Btrfs send/receive #
+
+Btrfs allows to make snapshots to capture the state of the file system.
+ Snapper, for example, uses this feature to create snapshots before and
+ after system changes, allowing a rollback. However, together with the
+ send/receive feature, snapshots can also be used to create and maintain
+ copies of a file system in a remote location. This feature can, for
+ example, be used to do incremental backups. 
+
+A `btrfs send`operation calculates the difference between
+ two read-only snapshots from the same subvolume and sends it to a file or
+ to STDOUT. A `btrfs receive`operation takes the result of
+ the send command and applies it to a snapshot. 
+
+#### 1.2.7.1 Prerequisites #
+
+To use the send/receive feature, the following requirements need to be
+ met: 
+
+#### 1.2.7.2 Incremental backups #
+
+The following procedure shows the basic usage of Btrfs send/receive using
+ the example of creating incremental backups of `/data`(source side) in `/backup/data`(target side). `/data`needs to be a subvolume. 
+
+Procedure 1.1: Initial setup [#](cha-filesystems.html#id-1.11.3.3.9.9.5.3)
+
+When the initial setup has been finished, you can create incremental
+ backups and send the differences between the current and previous
+ snapshots to the target side. The procedure is always the same: 
+
+Procedure 1.2: Performing an incremental backup [#](cha-filesystems.html#id-1.11.3.3.9.9.5.6)
+
+![Tip](static/images/icon-tip.svg)Tip: Sending to a remote target side 
+
+To send the snapshots to a remote machine, use SSH: 
+
+```prompt
+> btrfs send /data/bkp_data | ssh root@jupiter.example.com 'btrfs receive /backup'
+```
+
+### 1.2.8 Data deduplication support #
+
+Btrfs supports data deduplication by replacing identical blocks in the file
+ system with logical links to a single copy of the block in a common storage
+ location. SUSE Linux Enterprise Server provides the tool `duperemove`for
+ scanning the file system for identical blocks. When used on a Btrfs file
+ system, it can also be used to deduplicate these blocks and thus save space
+ on the file system. `duperemove`is not installed by
+ default. To make it available, install the package duperemove . 
+
+![Note](static/images/icon-note.svg)Note: Deduplicating large datasets 
+
+If you intend to deduplicate a large amount of files, use the `--hashfile`option: 
+
+```prompt
+> sudo duperemove --hashfile HASH_FILE file1 file2 file3
+```
+
+The `--hashfile`option stores hashes of all specified
+ files into the *HASH_FILE *instead of RAM and
+ prevents it from being exhausted. *HASH_FILE *is
+ reusable—you can deduplicate changes to large datasets very quickly
+ after an initial run that generated a baseline hash file. 
+
+`duperemove`can either operate on a list of files or
+ recursively scan a directory: 
+
+```prompt
+> sudo duperemove OPTIONS file1 file2 file3
+> sudo duperemove -r OPTIONS directory
+```
+
+It operates in two modes: read-only and de-duping. When run in read-only
+ mode (that is without the `-d`switch), it scans the given
+ files or directories for duplicated blocks and prints them. This works on
+ any file system. 
+
+Running `duperemove`in de-duping mode is only supported
+ on Btrfs file systems. After having scanned the given files or directories,
+ the duplicated blocks will be submitted for deduplication. 
+
+For more information see `man 8 duperemove`. 
+
+### 1.2.9 Deleting subvolumes from the root file system #
+
+You may need to delete one of the default Btrfs subvolumes from the root
+ file system for specific purposes. One of them is transforming a
+ subvolume—for example `@/home`or `@/srv`—into a file system on a separate device.
+ The following procedure illustrates how to delete a Btrfs subvolume: 
+
+## 1.3 XFS #
+
+Originally intended as the file system for their IRIX OS, SGI started XFS
+ development in the early 1990s. The idea behind XFS was to create a
+ high-performance 64-bit journaling file system to meet extreme computing
+ challenges. XFS is very good at manipulating large files and performs well
+ on high-end hardware.
+ 
+ XFS is the default file system for data partitions in SUSE Linux Enterprise Server . 
+
+A quick review of XFS’s key features explains why it might prove to be a
+ strong competitor for other journaling file systems in high-end computing. 
+
+High scalability 
+
+XFS offers high scalability by using allocation groups 
+
+At the creation time of an XFS file system, the block device underlying
+ the file system is divided into eight or more linear regions of equal
+ size. Those are called *allocation groups *. Each
+ allocation group manages its own inodes and free disk space. Practically,
+ allocation groups can be seen as file systems in a file system. Because
+ allocation groups are rather independent of each other, more than one of
+ them can be addressed by the kernel simultaneously. This feature is the
+ key to XFS’s great scalability. Naturally, the concept of independent
+ allocation groups suits the needs of multiprocessor systems. 
+
+High performance 
+
+XFS offers high performance through efficient management of disk space 
+
+Free space and inodes are handled by B + trees
+ inside the allocation groups. The use of B + trees greatly contributes to XFS’s performance and scalability. XFS uses *delayed allocation *, which handles allocation by
+ breaking the process into two pieces. A pending transaction is stored in
+ RAM and the appropriate amount of space is reserved. XFS still does not
+ decide where exactly (in file system blocks) the data should be stored.
+ This decision is delayed until the last possible moment. Some short-lived
+ temporary data might never make its way to disk, because it is obsolete
+ by the time XFS decides where to save it. In this way, XFS
+ increases write performance and reduces file system fragmentation.
+ Because delayed allocation results in less frequent write events than in
+ other file systems, it is likely that data loss after a crash during a
+ write is more severe. 
+
+Preallocation to avoid file system fragmentation 
+
+Before writing the data to the file system, XFS *reserves *(preallocates) the free space needed for a
+ file. Thus, file system fragmentation is greatly reduced. Performance is
+ increased because the contents of a file are not distributed all over the
+ file system. 
+
+### 1.3.1 XFS formats #
+
+SUSE Linux Enterprise Server supports the “ on-disk format ” (v5) of the XFS
+ file system. The main advantages of this format are automatic checksums of
+ all XFS metadata, file type support, and support for a larger number of
+ access control lists for a file. 
+
+Note that this format is not supported by SUSE Linux Enterprise kernels older than version
+ 3.12, by `xfsprogs`older than version 3.2.0, and GRUB 2
+ versions released before SUSE Linux Enterprise 12. 
+
+![Important](static/images/icon-important.svg)Important: V4 is deprecated 
+
+XFS is deprecating file systems with the V4 format. This file system
+ format was created by the command: 
+
+```
+mkfs.xfs -m crc=0 DEVICE
+```
+
+The format was used in SLE 11 and older releases and currently it creates
+ a warning message by `dmesg`: 
+
+```
+Deprecated V4 format (crc=0) will not be supported after September 2030
+```
+
+If you see the message above in the output of the `dmesg`command, it is recommended that you update your file system to the V5
+ format: 
+
+## 1.4 Ext2 #
+
+The origins of Ext2 go back to the early days of Linux history. Its
+ predecessor, the Extended File System, was implemented in April 1992 and
+ integrated in Linux 0.96c. The Extended File System underwent several
+ modifications and, as Ext2, became the most popular Linux file system for
+ years. With the creation of journaling file systems and their short recovery
+ times, Ext2 became less important. 
+
+A brief summary of Ext2’s strengths might help understand why it
+ was—and in some areas still is—the favorite Linux file system of
+ many Linux users. 
+
+Solidity and speed 
+
+Being an “ old-timer ” , Ext2 underwent many improvements and
+ was heavily tested. This might be the reason people often refer to it as
+ rock-solid. After a system outage when the file system could not be
+ cleanly unmounted, e2fsck starts to analyze the file system data.
+ Metadata is brought into a consistent state and pending files or data
+ blocks are written to a designated directory (called `lost+found`). In contrast to journaling file systems,
+ e2fsck analyzes the entire file system and not only the recently modified
+ bits of metadata. This takes significantly longer than checking the log
+ data of a journaling file system. Depending on file system size, this
+ procedure can take half an hour or more. Therefore, it is not desirable
+ to choose Ext2 for any server that needs high availability. However,
+ because Ext2 does not maintain a journal and uses less memory, it is
+ sometimes faster than other file systems. 
+
+Easy upgradability 
+
+Because Ext3 is based on the Ext2 code and shares its on-disk format and
+ its metadata format, upgrades from Ext2 to Ext3 are very easy. 
+
+## 1.5 Ext3 #
+
+Ext3 was designed by Stephen Tweedie. Unlike all other next-generation file
+ systems, Ext3 does not follow a completely new design principle. It is based
+ on Ext2. These two file systems are very closely related to each other. An
+ Ext3 file system can be easily built on top of an Ext2 file system. The most
+ important difference between Ext2 and Ext3 is that Ext3 supports journaling.
+ In summary, Ext3 has three major advantages to offer: 
+
+### 1.5.1 Easy and highly reliable upgrades from ext2 #
+
+The code for Ext2 is the strong foundation on which Ext3 could become a
+ highly acclaimed next-generation file system. Its reliability and solidity
+ are elegantly combined in Ext3 with the advantages of a journaling file
+ system. Unlike transitions to other journaling file systems, such as XFS,
+ which can be quite tedious (making backups of the entire file system and
+ re-creating it from scratch), a transition to Ext3 is a matter of minutes.
+ It is also very safe, because re-creating an entire file system from
+ scratch might not work flawlessly. Considering the number of existing Ext2
+ systems that await an upgrade to a journaling file system, you can easily
+ see why Ext3 might be of some importance to many system administrators.
+ Downgrading from Ext3 to Ext2 is as easy as the upgrade. Perform a clean
+ unmount of the Ext3 file system and remount it as an Ext2 file system. 
+
+### 1.5.2 Converting an ext2 file system into ext3 #
+
+To convert an Ext2 file system to Ext3: 
+
+## 1.6 Ext4 #
+
+In 2006, Ext4 started as a fork from Ext3. It is the latest file system in
+ the extended file system version. Ext4 was originally designed to increase
+ storage size by supporting volumes with a size of up to 1 exbibyte, files
+ with a size of up to 16 tebibytes and an unlimited number of subdirectories.
+ Ext4 uses extents, instead of the traditional direct and indirect block
+ pointers, to map the file contents. Usage of extents improves both storage
+ and retrieval of data from disks. 
+
+Ext4 also introduces several performance enhancements such as delayed block
+ allocation and a much faster file system checking routine. Ext4 is also more
+ reliable by supporting journal checksums and by providing time stamps
+ measured in nanoseconds. Ext4 is fully backward compatible to Ext2 and
+ Ext3—both file systems can be mounted as Ext4. 
+
+![Note](static/images/icon-note.svg)Note: Ext3 functionality on Ext4 
+
+The Ext3 functionality is fully supported by the Ext4 driver in the Ext4
+ kernel module. 
+
+### 1.6.1 Reliability and performance #
+
+Some other journaling file systems follow the “ metadata-only ” journaling approach. This means your metadata is always kept in a
+ consistent state, but this cannot be automatically guaranteed for the file
+ system data itself. Ext4 is designed to take care of both metadata and
+ data. The degree of “ care ” can be customized. Mounting Ext4 in
+ the `data=journal`mode offers maximum security (data
+ integrity), but can slow down the system because both metadata and data are
+ journaled. Another approach is to use the `data=ordered`mode, which ensures both data and metadata integrity, but uses journaling
+ only for metadata. The file system driver collects all data blocks that
+ correspond to one metadata update. These data blocks are written to disk
+ before the metadata is updated. As a result, consistency is achieved for
+ metadata and data without sacrificing performance. A third mount option to
+ use is `data=writeback`, which allows data to be written to
+ the main file system after its metadata has been committed to the journal.
+ This option is often considered the best in performance. It can, however,
+ allow old data to reappear in files after crash and recovery while internal
+ file system integrity is maintained. Ext4 uses the `data=ordered`option as the default. 
+
+### 1.6.2 Ext4 file system inode size and number of inodes #
+
+An inode stores information about the file and its block location in the
+ file system. To allow space in the inode for extended attributes and ACLs,
+ the default inode size was increased to 256 bytes. 
+
+When you create a new Ext4 file system, the space in the inode table is
+ preallocated for the total number of inodes that can be created. The
+ bytes-per-inode ratio and the size of the file system determine how many
+ inodes are possible. When the file system is made, an inode is created for
+ every bytes-per-inode bytes of space: 
+
+```
+number of inodes = total size of the file system divided by the number of bytes per inode
+```
+
+The number of inodes controls the number of files you can have in the file
+ system: one inode for each file. 
+
+![Important](static/images/icon-important.svg)Important: Changing the inode size of an existing Ext4 file system not possible 
+
+After the inodes are allocated, you cannot change the settings for the
+ inode size or bytes-per-inode ratio. No new inodes are possible without
+ re-creating the file system with different settings, or unless the file
+ system gets extended. When you exceed the maximum number of inodes, no new
+ files can be created on the file system until some files are deleted. 
+
+When you make a new Ext4 file system, you can specify the inode size and
+ bytes-per-inode ratio to control inode space usage and the number of files
+ possible on the file system. If the blocks size, inode size, and
+ bytes-per-inode ratio values are not specified, the default values in the `/etc/mked2fs.conf`file are applied. For information,
+ see the `mke2fs.conf(5)`man page. 
+
+Use the following guidelines: 
+
+Use any of the following methods to set the inode size and bytes-per-inode
+ ratio: 
+
+### 1.6.3 Upgrading to Ext4 #
+
+![Important](static/images/icon-important.svg)Important: Backup of data 
+
+Back up all data on the file system before performing any update of your
+ file system. 
+
+Procedure 1.3: Upgrading to ext4 [#](cha-filesystems.html#id-1.11.3.3.13.7.3)
+
+## 1.7 ReiserFS #
+
+ReiserFS support was completely removed with SUSE Linux Enterprise Server 15. To migrate
+ your existing partitions to Btrfs, refer to [Section 1.2.3, “Migration from ReiserFS and ext file systems to Btrfs”](cha-filesystems.html#sec-filesystems-major-btrfs-migrate). 
+
+## 1.8 OpenZFS and ZFS #
+
+Neither the OpenZFS nor ZFS file systems are supported by
+SUSE. Although ZFS was originally released by Sun under an open source
+license, the current Oracle Solaris ZFS is now closed source, and
+therefore cannot be used by SUSE. OpenZFS (based on the original ZFS)
+is under the CDDL license that is incompatible with the GPL license
+and therefore cannot be included in our kernels. However, Btrfs
+provides an excellent alternative to OpenZFS with a similar design
+philosophy and is fully supported by SUSE. 
+
+## 1.9 tmpfs #
+
+tmpfs is a RAM-based virtual memory file system. The file system is temporary, which means no files are
+ stored on the hard disk, and when the file system is unmounted, all data is discarded. 
+
+Data in this file system is stored in the kernel internal cache. The needed kernel cache
+ space can grow or shrink. 
+
+The file system has the following characteristics: 
+
+For more information, refer to `man tmpfs`and the upstream kernel
+ documentation at [https://www.kernel.org/doc/html/latest/filesystems/tmpfs.html](https://www.kernel.org/doc/html/latest/filesystems/tmpfs.html). 
+
+## 1.10 Other supported file systems #
+
+[Table 1.1, “File system types in Linux”](cha-filesystems.html#tab-filesystems-other)summarizes
+ some other file systems supported by Linux. They are supported mainly to
+ ensure compatibility and interchange of data with different kinds of media
+ or foreign operating systems. 
+
+Table 1.1: File system types in Linux [#](cha-filesystems.html#tab-filesystems-other)
+
+| File System Type | Description | 
+|---|---|---|---|
+| iso9660 | Standard file system on CD-ROMs. | 
+| msdos | fat, the file system originally used by DOS, is
+ | 
+| nfs | Network File System: Here, data can be stored on a | 
+| ntfs | Windows NT file system supported only with read-o | 
+| OverlayFS | File system combines multiple different underlying | 
+| exfat | File system optimized for use with flash memory, s | 
+| Squashfs | A compressed read-only file system. The file syste | 
+| smbfs | Server Message Block is used by products such as W | 
+| ufs | Used by BSD, SunOS and NextStep. Only supported in | 
+| vfat | Virtual FAT: Extension of the fat file system
+ | 
+
+## 1.11 Blocked file systems #
+
+Due to security reasons, some file systems have been blocked from automatic
+ mounting. These file systems are usually not maintained anymore and are not
+ in common use. However, the kernel module for this file system can be
+ loaded, because the in-kernel API is still compatible. A combination of
+ user-mountable file systems and the automatic mounting of file systems on
+ removable devices could result in the situation where unprivileged users
+ might trigger the automatic loading of kernel modules, and the removable
+ devices could store potentially malicious data. 
+
+To get a list of file systems that are not allowed to be mounted
+ automatically, run the following command: 
+
+```prompt
+> sudo rpm -ql suse-module-tools | sed -nE 's/.*blacklist_fs-(.*)\.conf/\1/p'
+```
+
+If you try to mount a device with a blocked file system using the `mount`command, the command outputs an error message, for
+ example: 
+
+```
+mount: /mnt/mx: unknown filesystem type 'minix' (hint: possibly blacklisted, see mount(8)).
+```
+
+Even though a file system cannot be mounted automatically, you can load the
+ corresponding kernel module for the file system directly using `modprobe`: 
+
+```prompt
+> sudo modprobe FILESYSTEM
+```
+
+For example, for the `cramfs`file system, the output
+ looks as follows: 
+
+```
+unblacklist: loading cramfs file system module
+unblacklist: Do you want to un-blacklist cramfs permanently (<y>es/<n>o/n<e>ver)? y
+unblacklist: cramfs un-blacklisted by creating /etc/modprobe.d/60-blacklist_fs-cramfs.conf
+```
+
+Here you have the following options: 
+
+y es 
+
+The module will be loaded and removed from the blacklist. Therefore, the module will be
+ loaded automatically in future without any other prompt. 
+
+The configuration file `/etc/modprobe.d/60-blacklist_fs-${MODULE}.conf`is
+ created. Remove the file to undo the changes you performed. 
+
+n o 
+
+The module will be loaded, but it is not removed from the blacklist. Therefore, on a next
+ module loading
+ you will see the prompt above again. 
+
+e ver 
+
+The module will be loaded, but autoloading is disabled even for future use, and the prompt 
+ will no longer be displayed. 
+
+The configuration file `/etc/modprobe.d/60-blacklist_fs-${MODULE}.conf`is
+ created. Remove the file to undo the changes you performed. 
+
+Ctrl – c 
+
+This option is used to interrupt the module loading. 
+
+## 1.12 Large file support in Linux #
+
+Originally, Linux supported a maximum file size of 2 GiB
+ (2 31 bytes). Unless a file system comes with
+ large file support, the maximum file size on a 32-bit system is 2 GiB. 
+
+Currently, all our standard file systems have LFS (large file support),
+ which gives a maximum file size of 2 63 bytes in
+ theory. [Table 1.2, “Maximum sizes of files and file systems (on-disk format, 4 KiB block size)”](cha-filesystems.html#tab-filesystems-maxsize)offers an overview of the current on-disk format limitations of Linux files
+ and file systems. The numbers in the table assume that the file systems are
+ using 4 KiB block size, which is a common standard. When using different
+ block sizes, the results are different. The maximum file sizes in [Table 1.2, “Maximum sizes of files and file systems (on-disk format, 4 KiB block size)”](cha-filesystems.html#tab-filesystems-maxsize)can be
+ larger than the file system's actual size when using sparse blocks. 
+
+![Note](static/images/icon-note.svg)Note: Binary multiples 
+
+In this document: 1024 Bytes = 1 KiB; 1024 KiB = 1 MiB; 1024 MiB = 1 GiB;
+ 1024 GiB = 1 TiB; 1024 TiB = 1 PiB; 1024 PiB = 1 EiB (see also [NIST:
+ Prefixes for Binary Multiples](https://physics.nist.gov/cuu/Units/binary.html). 
+
+Table 1.2: Maximum sizes of files and file systems (on-disk format, 4 KiB block size) [#](cha-filesystems.html#tab-filesystems-maxsize)
+
+| File System (4 KiB Block Size) | Maximum File System Size | Maximum File Size | 
+|---|---|---|---|---|---|
+| Btrfs | 16 EiB | 16 EiB | 
+| Ext3 | 16 TiB | 2 TiB | 
+| Ext4 | 1 EiB | 16 TiB | 
+| OCFS2 (a cluster-aware file system available in SL | 16 TiB | 1 EiB | 
+| XFS | 16 EiB | 8 EiB | 
+| NFSv2 (client side) | 8 EiB | 2 GiB | 
+| NFSv3/NFSv4 (client side) | 8 EiB | 8 EiB | 
+
+![Important](static/images/icon-important.svg)Important: Limitations 
+
+[Table 1.2, “Maximum sizes of files and file systems (on-disk format, 4 KiB block size)”](cha-filesystems.html#tab-filesystems-maxsize)describes
+ the limitations regarding the on-disk format. The Linux kernel imposes its
+ own limits on the size of files and file systems handled by it. These are
+ as follows: 
+
+File size 
+
+On 32-bit systems, files cannot exceed 2 TiB
+ (2 41 bytes). 
+
+File system size 
+
+File systems can be up to 2 73 bytes in size.
+ However, this limit is still out of reach for the currently available
+ hardware. 
+
+## 1.13 Linux kernel storage limitations #
+
+[Table 1.3, “Storage limitations”](cha-filesystems.html#tab-filesystems-stor-limits)summarizes the kernel limits for storage associated with SUSE Linux Enterprise Server . 
+
+Table 1.3: Storage limitations [#](cha-filesystems.html#tab-filesystems-stor-limits)
+
+| Storage Feature | Limitation | 
+|---|---|---|---|
+| Maximum number of LUNs supported | 16384 LUNs per target. | 
+| Maximum number of paths per single LUN | No limit by default. Each path is treated as a nor | 
+| Maximum number of HBAs | Unlimited. The actual limit is determined by the a | 
+| Maximum number of paths with device-mapper-multipa | Approximately 1024. The actual number depends on t | 
+| Maximum size per block device | Up to 8 EiB. | 
+
+## 1.14 Freeing unused file system blocks #
+
+On solid-state drives (SSDs) and thinly provisioned volumes, it is useful to
+ trim blocks that are not in use by the file system. SUSE Linux Enterprise Server fully
+ supports `unmap`and `TRIM`operations on
+ all file systems supporting them. 
+
+There are two types of commonly used TRIM—online `TRIM`and periodic `TRIM`. The most
+ suitable way of trimming devices depends on your use case. In general, it is
+ recommended to use periodic TRIM, especially if the device has enough free
+ blocks. If the device is often near its full capacity, online TRIM is
+ preferable. 
+
+![Important](static/images/icon-important.svg)Important: `TRIM`support on devices 
+
+Always verify that your device supports the `TRIM`operation before you attempt to use it. Otherwise, you might lose your data
+ on that device. To verify the `TRIM`support, run the
+ command: 
+
+```prompt
+> sudo lsblk --discard
+```
+
+The command outputs information about all available block devices. If the
+ values of the columns `DISC-GRAN`and `DISC-MAX`are non-zero, the device supports the `TRIM`operation. 
+
+### 1.14.1 Periodic TRIM #
+
+Periodic TRIM is handled by the `fstrim`command invoked
+ by `systemd`on a regular basis. You can also run the command manually. 
+
+To schedule periodic TRIM, enable the `fstrim.timer`as
+ follows: 
+
+```prompt
+> sudo systemctl enable fstrim.timer
+```
+
+`systemd`creates a unit file in `/usr/lib/systemd/system`. By default, the service runs
+ once a week, which is usually sufficient. However, you can change the
+ frequency by configuring the `OnCalendar`option to a
+ required value. 
+
+The default behaviour of `fstrim`is to discard all blocks
+ in the file system. You can use options when invoking the command to modify
+ this behaviour. For example, you can pass the `offset`option to define the place where to start the trimming procedure. For
+ details, see `man fstrim`. 
+
+The `fstrim`command can perform trimming on all devices
+ stored in the `/etc/fstab`file, which support the `TRIM`operation—use the `-A`option when invoking the command for this purpose. 
+
+To disable the trimming of a particular device, add the option `X-fstrim.notrim`to the `/etc/fstab`file as follows: 
+
+```
+UID=83df497d-bd6d-48a3-9275-37c0e3c8dc74 / btrfs defaults,X-fstrim.notrim 0 0
+```
+
+### 1.14.2 Online TRIM #
+
+Online TRIM of a device is performed each time data is written to the
+ device. 
+
+To enable online TRIM on a device, add the `discard`option to the `/etc/fstab`file as follows: 
+
+```
+UID=83df497d-bd6d-48a3-9275-37c0e3c8dc74 / btrfs defaults,discard
+```
+
+Alternatively, on the Ext4 file system you can use the `tune2fs`command to set the `discard`option in `/etc/fstab`: 
+
+```prompt
+> sudo tune2fs -o discard DEVICE
+```
+
+The `discard`option is also added to `/etc/fstab`in case the device was mounted by `mount`with the `discard`option: 
+
+```prompt
+> sudo mount -o discard DEVICE
+```
+
+![Note](static/images/icon-note.svg)Note: Drawbacks of online TRIM 
+
+Using the `discard`option may decrease the lifetime of some
+ lower-quality SSD devices. Online TRIM can also impact the performance of
+ the device, for example, if a larger amount of data is deleted. In this
+ situation, an erase block might be reallocated, and shortly afterwards,
+ the same erase block might be marked as unused again. 
+
+## 1.15 Troubleshooting file systems #
+
+This section describes some known issues and possible solutions for file
+ systems. 
+
+### 1.15.1 Btrfs error: no space is left on device #
+
+The root ( `/`) partition using the Btrfs file system
+ stops accepting data. You receive the error “ `No space left
+ on device`” . 
+
+See the following sections for information about possible causes and
+ prevention of this issue. 
+
+#### 1.15.1.1 Disk space consumed by Snapper snapshots #
+
+If Snapper is running for the Btrfs file system, the “ `No
+ space left on device`” problem is typically caused by
+ having too much data stored as snapshots on your system. 
+
+You can remove some snapshots from Snapper, however, the snapshots are not
+ deleted immediately and might not free up as much space as you need. 
+
+To delete files from Snapper: 
+
+To help prevent this problem, you can change the Snapper cleanup
+ algorithms. See [Abschnitt 10.6.1.2, „Bereinigungsalgorithmen“](cha-snapper.html#sec-snapper-manage-metadata-cleanup)for
+ details. The configuration values controlling snapshot cleanup are `EMPTY_*`, `NUMBER_*`, and `TIMELINE_*`. 
+
+If you use Snapper with Btrfs on the file system disk, it is advisable to
+ reserve twice the amount of disk space than the standard storage proposal.
+ The YaST Partitioner automatically proposes twice the standard disk
+ space in the Btrfs storage proposal for the root file system. 
+
+#### 1.15.1.2 Disk space consumed by log, crash, and cache files #
+
+If the system disk is filling up with data, you can try deleting files
+ from `/var/log`, `/var/crash`, `/var/lib/systemd/coredump`and `/var/cache`. 
+
+The Btrfs `root`file system subvolumes `/var/log`, `/var/crash`and `/var/cache`can
+ use all of the available disk space during normal operation, and cause a
+ system malfunction. To help avoid this situation, SUSE Linux Enterprise Server offers
+ Btrfs quota support for subvolumes. See [Section 1.2.5, “Btrfs quota support for subvolumes”](cha-filesystems.html#sec-filesystems-major-btrfs-quota)for details. 
+
+On test and development machines, especially if you have frequent crashes
+ of applications, you may also want to have a look at `/var/lib/systemd/coredump`where the core dumps are
+ stored. 
+
+### 1.15.2 Btrfs: balancing data across devices #
+
+The `btrfs balance`command is part of the btrfs-progs package. It balances block groups on Btrfs
+ file systems in the following example situations: 
+
+![Tip](static/images/icon-tip.svg)Tip 
+
+To fine-tune the default behavior of balancing data on Btrfs file
+ systems—for example, how frequently or which mount points to
+ balance— inspect and customize `/etc/sysconfig/btrfsmaintenance`. The relevant options
+ start with `BTRFS_BALANCE_`. 
+
+For details about the `btrfs balance`command usage, see
+ its manual pages ( `man 8 btrfs-balance`). 
+
+### 1.15.3 No defragmentation on SSDs #
+
+Linux file systems contain mechanisms to avoid data fragmentation and
+ usually it is not necessary to defragment. However, there are use cases,
+ where data fragmentation cannot be avoided and where defragmenting the hard
+ disk significantly improves the performance. 
+
+This only applies to conventional hard disks. On solid state disks (SSDs)
+ which use flash memory to store data, the firmware provides an algorithm
+ that determines to which chips the data is written. Data is usually spread
+ all over the device. Therefore defragmenting an SSD does not have the
+ desired effect and will reduce the lifespan of an SSD by writing
+ unnecessary data. 
+
+For the reasons mentioned above, SUSE explicitly recommends *not *to defragment SSDs. Some vendors also warn about
+ defragmenting solid state disks. This includes, but it is not limited to
+ the following: 
+
+## 1.16 More information #
+
+Each of the file system projects described above maintains its own home page
+ on which to find mailing list information, further documentation, and FAQs: 
+
+An in-depth comparison of file systems (not only Linux file systems) is
+ available from the Wikipedia project in Comparison of File Systems
+ ( [https://en.wikipedia.org/wiki/Comparison_of_file_systems#Comparison](https://en.wikipedia.org/wiki/Comparison_of_file_systems#Comparison)).
+
+---
+
+Title: Navigating the Landscape of Linux File System Types
+
+## #Linux
+
+## #Files
+
+## #HOW-TOs
+
+# Navigating the Landscape of Linux File System Types
+
+by [George Whittaker](/users/george-whittaker)on September 12, 2023 ![Navigating the Landscape of Linux File System Types](/sites/default/files/styles/360_250/public/nodeimage/story/navigating-the-landscape-of-linux-file-system-types.jpg?itok=YWgBBr3I)Introduction 
+
+In the Linux environment, the file system acts as a backbone, orchestrating the systematic storage and retrieval of data. It is a hierarchical structure that outlines how data is organized, stored, and accessed on a storage device. Understanding the different Linux file system types can profoundly aid both developers and administrators in optimizing system performance and ensuring data security. This article delves deep into the intricate world of Linux file system types, tracing their evolutionary history and dissecting their features to provide a roadmap for selecting the appropriate file system for your needs. 
+
+History of Linux File Systems 
+
+**Early Adventures in Linux File Systems **
+
+In the late 80s and early 90s, the Linux environment utilized relatively rudimentary file systems such as Minix, which later evolved to extended file systems like ext and ext2. These were foundational in framing the modern Linux file systems we see today. 
+
+**The Journey from ext2 to ext4 **
+
+The extended family of file systems transitioned from ext2 to ext3, introducing journaling features, and eventually culminated in the development of ext4, which brought forth substantial improvements in performance and storage capabilities. 
+
+Understanding Linux File System Types 
+
+Dive into the fascinating world of Linux file systems, each characterized by its unique features and functionalities that cater to various demands and preferences. 
+
+#### The Extended Family
+
+#### Btrfs (B-tree File System)
+
+#### XFS
+
+#### ReiserFS and Reiser4
+
+Special Purpose File Systems 
+
+Venture into the world of special purpose file systems designed to serve specific functions within the Linux ecosystem. 
+
+#### ProcFS
+
+#### SysFS
+
+#### tmpFS
+
+Network File Systems 
+
+These file systems facilitate file sharing over a network, enhancing collaboration and data accessibility. 
+
+#### NFS (Network File System)
+
+#### SMB/CIFS (Server Message Block/Common Internet File System)
+
+Comparative Analysis 
+
+Before making a choice, weigh the different file systems against each other based on several parameters. 
+
+How to Choose the Right File System 
+
+Case Studies/Real-World Examples 
+
+Explore real-world scenarios that depict the deployment of various file systems in different environments. 
+
+Conclusion 
+
+Having navigated the intricate landscape of Linux file system types, you are now equipped with the knowledge to make informed choices, fostering a system characterized by efficiency, reliability, and security. As Linux continues to evolve, we can anticipate more advancements in file system technologies, steering towards a future of enhanced performance and greater possibilities. 
+
+![](/sites/default/files/pictures/george-whittaker-linuxjournal%20%281%29%20%281%29.jpeg)
+
+George Whittaker is the editor of Linux Journal, and also a regular contributor. George has been writing about technology for two decades, and has been a Linux user for over 15 years. In his free time he enjoys programming, reading, and gaming. 
+
+[Load Disqus comments](https://www.linuxjournal.com/content/navigating-landscape-linux-file-system-types#disqus_thread)
+
+## Recent Articles
+
+[Canonical Unveils Ubuntu AI Strategy: Local Models, User Control, and Smarter Workflows](/content/canonical-unveils-ubuntu-ai-strategy-local-models-user-control-and-smarter-workflows)[George Whittaker](/users/george-whittaker)[Thunderbird 150 Lands on Linux: Smarter Encryption, Better Tools, and a Polished Experience](/content/thunderbird-150-lands-linux-smarter-encryption-better-tools-and-polished-experience)[George Whittaker](/users/george-whittaker)[Linux Kernel 6.19 Reaches End of Life: Time to Move Forward](/content/linux-kernel-619-reaches-end-life-time-move-forward)[George Whittaker](/users/george-whittaker)[Archinstall 4.2 Shifts to Wayland-First Profiles, Leaving X.Org Behind](/content/archinstall-42-shifts-wayland-first-profiles-leaving-xorg-behind)[George Whittaker](/users/george-whittaker)[OpenClaw in 2026: What It Is, Who’s Using It, and Whether Your Business Should Adopt It](/content/openclaw-2026-what-it-whos-using-it-and-whether-your-business-should-adopt-it)[George Whittaker](/users/george-whittaker)[Linux Kernel Developers Adopt New Fuzzing Tools](/content/linux-kernel-developers-adopt-new-fuzzing-tools)[George Whittaker](/users/george-whittaker)×

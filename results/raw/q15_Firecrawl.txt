@@ -1,0 +1,1266 @@
+Title: What are Pods in Kubernetes? - Medium
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fwhat-are-pods-in-kubernetes-861beb65e138&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fwhat-are-pods-in-kubernetes-861beb65e138&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+[**Geek Culture**](https://medium.com/geekculture?source=post_page---publication_nav-9758482ba857-861beb65e138---------------------------------------)
+
+·
+
+Follow publication
+
+[![Geek Culture](https://miro.medium.com/v2/resize:fill:38:38/1*bWAVaFQmpmU6ePTjNIje_A.jpeg)](https://medium.com/geekculture?source=post_page---post_publication_sidebar-9758482ba857-861beb65e138---------------------------------------)
+
+A new tech publication by Start it up ( [https://medium.com/swlh](https://medium.com/swlh)).
+
+Follow publication
+
+# What are Pods in Kubernetes?
+
+## What are Kubernetes Pods? How can we use them to run our containers? How can we interact with them using kubectl and YAML?
+
+[![Will Velida](https://miro.medium.com/v2/resize:fill:32:32/1*DTlGjNUjpGwmTlIKaqzSEw.png)](https://medium.com/@willvelida?source=post_page---byline--861beb65e138---------------------------------------)
+
+[Will Velida](https://medium.com/@willvelida?source=post_page---byline--861beb65e138---------------------------------------)
+
+Follow
+
+7 min read
+
+·
+
+Aug 6, 2021
+
+22
+
+1
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D861beb65e138&operation=register&redirect=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fwhat-are-pods-in-kubernetes-861beb65e138&source=---header_actions--861beb65e138---------------------post_audio_button------------------)
+
+Share
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/0*up5b1m30jjhKLuOY.PNG)
+
+After joking for a long time that I’d learn Kubernetes, I finally got serious about doing it two weeks ago. I had a chat with my boss and he encouraged me to learn something outside my domain, so it seemed like a good opportunity to finally knuckle down and get my head around it.
+
+![](https://miro.medium.com/v2/resize:fit:509/0*yMM56rg5DzEKVmzt.png)
+
+I’m a self taught coder. Most of my foundational knowledge has come from spending nights at my computer reading documentation, watching tutorials online and getting hands on. I’ve always been a learner that shares, meaning when I learn something technical, I like to write a blog post about it. Partly so when I have to look it up again I can easily search for it, but also so I can share with others what I’ve learnt in the hope that it helps anyone who happens to find it.
+
+![](https://miro.medium.com/v2/resize:fit:600/0*lug53RPr_pWtimqK.png)
+
+I’m still in the early stages of my Kubernetes journey, but I’ve set myself a goal of obtaining my Certified Kubernetes Application Developer (CKAD) certification this year. That’s a long way off as I’m still getting my head around the basics, but I’ve set myself the goal as something to aim for.
+
+With that goal in mind, my short-term goal is to get my head around the basics and create a series of blog posts covering each topic.
+
+So with that intro out of the way, let’s dive into our first topic, Pods!
+
+In this blog post, we’ll cover:
+
+- What are Pods?
+- What’s the difference between single container and multi-container Pods?
+- How can we create Pods in Kubernetes?
+- How can we deploy and interact with our Pods using kubectl?
+- How can we ensure that our Pods in Kubernetes are healthy?
+
+## What are Pods?
+
+Pods are Kubernetes Objects that are the basic unit for running our containers inside our Kubernetes cluster. In fact, Pods are the smallest object of the Kubernetes Model.
+
+Kubernetes uses pods to run an instance of our application and a single pod represents a single instance of that application. We can scale out our application horizontally by adding more Pod replicas.
+
+Pods can contain a single or multiple containers as a group, that share the same resources within that Pod (storage, network resources, namespaces). Pods typically have a 1–1 mapping with containers, but in more advanced situations, we may run multiple containers in a Pod.
+
+Pods are epheremeral resources, meaning that Pods can be terminated at any point and then restarted on another node within our Kubernetes cluster. They live and die, but Pods will never come back to life.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/0*e1IE4CyLnfsP7Wg_.PNG)
+
+Pod containers will share the name network namespace and interface. Container processes need to bind to different ports within a Pod and ports can be reused by containers in separate containers. Pods do not span nodes within our Kubernetes cluster.
+
+## What’s the difference between single container and multi-container Pods?
+
+Like I mentioned before, Pods can contain contain either a single or multiple containers.
+
+Running a **single container in a Pod** is a common use case. Here, the Pod acts as a wrapper around the single container and Kubernetes manages the Pods rather than the containers directly.
+
+We can also run **multiple containers in a Pod**. Here, the Pod wraps around an application that’s composed of multiple containers and share resources.
+
+If we need to run multiple containers within a single Pod, it’s recommended that we only do this in cases where the containers are tightly coupled.
+
+## How can we create Pods in Kubernetes?
+
+We can define Pods in Kubernetes using YAML files. Using these YAML files, we can create objects that interact with the Kubernetes API (Pods, Namespace, Deployments etc.). Under the hood, kubectl converts the information that we have defined in our YAML file to JSON, that makes the request to the Kubernetes API.
+
+I’m a fan of YAML, it’s easy to understand what’s going on and thanks to extensions in tools like Visual Studio Code, they’re easy to create and manage.
+
+I get that indentation can be a pain. I use the [YAML code extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) that Red Hat have developed in Visual Studio code to help me write my YAML files. For intellisense for Kubernetes, I use the [Kubernetes code extension](https://marketplace.visualstudio.com/items?itemName=ms-kubernetes-tools.vscode-kubernetes-tools).
+
+Let’s take a look at an example YAML definition for a Kubernetes Pod:
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-2
+  labels:
+    name: nginx-2
+    env: production
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+```
+
+Let’s break this down a bit. To create Kubernetes objects using YAML, we need to set values for the following fields.
+
+**apiVersion** — This defines the Kubernetes API version that we want to use in this YAML file. You can read more about API versioning in Kubernetes [here](https://kubernetes.io/docs/reference/using-api/#api-versioning).
+
+## Get Will Velida’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+**kind** — This defines what kind of Kubernetes object we want to create.
+
+**metadata** — This is data that helps us uniquely identify the object that we want to create. Here we can provide a name for our app, as well as apply labels to our object.
+
+**spec** — This defines the state that we want or our object. The format that we use for spec. For our Pod file, we have provided information about the containers that we want to host on our Pod.
+
+To see what else we can define in our Pod YAML file, [this documentation from Kubernetes](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec) will help you.
+
+## How can we deploy and interact with our Pods using kubectl?
+
+There are a few way that we can use kubectl to deploy and interact with our Pods!
+
+_Wait, what is kubectl?_
+
+kubectl, (kube-control, or as some people call it, kube-cuddle) is the Kubernetes command-line tool. It allows us to run commands against Kubernetes clusters.
+
+![](https://miro.medium.com/v2/resize:fit:650/0*5tnatbvFj2wRSOxL)
+
+With kubectl, we can create a Pod using our YAML definition file like so:
+
+```
+kubectl apply -f mypod.yaml
+```
+
+We can list all of our Pods like so:
+
+```
+kubectl get pods
+```
+
+We can expose a container port externally using kubectl. Remember by default, Pods and Containers are only accessible within the Kubernetes Cluster. Using Kubectl, we can run the following command:
+
+```
+kubectl port-forward mypod 8080:80
+```
+
+We can also delete the pod. We can do this by deleting the pod directly like so:
+
+```
+kubectl delete pod mypod
+```
+
+This will cause the Pod to be destroyed and created. We can also delete the Deployment that manages the Pod (I’ll talk about Kubernetes Deployments in a future post) like so:
+
+```
+kubectl delete deployment mydeployment
+```
+
+## How can we ensure that our Pods in Kubernetes are healthy?
+
+Kubernetes relies on Probes to determine whether or not a Pod is healthy. Probes are diagnostic operations that are performed periodically by the Kubelet on containers.
+
+There are three types of Probes:
+
+- **Liveness Probes** — These are used to determine if a Pod is healthy and running as expected. If the liveness probe fails, kubelet will kill the container and the container will then restart according to its defined policy (We can define these as either Always, OnFailure and Never)
+- **Readiness Probes** — These are use to determine whether or not a pod should receive requests. If the probe fails, the endpoints controller removes the IP address of the Pod from the endpoints of all Services that match the Pod.
+- **Startup Probe** — This is used to determine whether the container has started. All other probes are disabled if a startup probe is provided until it succeeds.
+
+To perform diagnostic checks, Kubelet will call a Handler that has been implemented by the container. These types of handlers are:
+
+- **ExecAction** — This executes an action inside the container
+- **TCPSocketAction** — TCP checks are performed against the containers IP addreess on a specified port.
+- **HTTPGetAction** — HTTP Get requests are performed against a Pods IP address on a specified port and path.
+
+These probes can result in either a _Success_, _Failure_ or _Unknown_ result.
+
+## Conclusion
+
+Hopefully this article has helped you understand the basics of Pods in Kubernetes!
+
+If you want to learn more about Pods in Kubernetes, these are the resources I used to get my head around them:
+
+- [Official Kubernetes Pod Documentation](https://kubernetes.io/docs/concepts/workloads/pods/)
+- [Kubernetes Pod YAML Reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec)
+- [Pod Lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes)
+
+Happy Coding 💻👩‍💻👨‍💻
+
+[Kubernetes](https://medium.com/tag/kubernetes?source=post_page-----861beb65e138---------------------------------------)
+
+[DevOps](https://medium.com/tag/devops?source=post_page-----861beb65e138---------------------------------------)
+
+[Containers](https://medium.com/tag/containers?source=post_page-----861beb65e138---------------------------------------)
+
+[Programming](https://medium.com/tag/programming?source=post_page-----861beb65e138---------------------------------------)
+
+[Tutorial](https://medium.com/tag/tutorial?source=post_page-----861beb65e138---------------------------------------)
+
+[![Geek Culture](https://miro.medium.com/v2/resize:fill:48:48/1*bWAVaFQmpmU6ePTjNIje_A.jpeg)](https://medium.com/geekculture?source=post_page---post_publication_info--861beb65e138---------------------------------------)
+
+[![Geek Culture](https://miro.medium.com/v2/resize:fill:64:64/1*bWAVaFQmpmU6ePTjNIje_A.jpeg)](https://medium.com/geekculture?source=post_page---post_publication_info--861beb65e138---------------------------------------)
+
+Follow
+
+[**Published in Geek Culture**](https://medium.com/geekculture?source=post_page---post_publication_info--861beb65e138---------------------------------------)
+
+[34K followers](https://medium.com/geekculture/followers?source=post_page---post_publication_info--861beb65e138---------------------------------------)
+
+· [Last published Aug 31, 2023](https://medium.com/geekculture/17-things-i-wish-id-done-earlier-as-a-data-engineer-d1aa2e4f0694?source=post_page---post_publication_info--861beb65e138---------------------------------------)
+
+A new tech publication by Start it up ( [https://medium.com/swlh](https://medium.com/swlh)).
+
+Follow
+
+[![Will Velida](https://miro.medium.com/v2/resize:fill:48:48/1*DTlGjNUjpGwmTlIKaqzSEw.png)](https://medium.com/@willvelida?source=post_page---post_author_info--861beb65e138---------------------------------------)
+
+[![Will Velida](https://miro.medium.com/v2/resize:fill:64:64/1*DTlGjNUjpGwmTlIKaqzSEw.png)](https://medium.com/@willvelida?source=post_page---post_author_info--861beb65e138---------------------------------------)
+
+Follow
+
+[**Written by Will Velida**](https://medium.com/@willvelida?source=post_page---post_author_info--861beb65e138---------------------------------------)
+
+[911 followers](https://medium.com/@willvelida/followers?source=post_page---post_author_info--861beb65e138---------------------------------------)
+
+· [88 following](https://medium.com/@willvelida/following?source=post_page---post_author_info--861beb65e138---------------------------------------)
+
+Senior Software Engineer at Microsoft. Blog: [https://www.willvelida.com/](https://www.willvelida.com/) GitHub: [https://github.com/willvelida](https://github.com/willvelida)
+
+Follow
+
+## Responses (1)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fgeekculture%2Fwhat-are-pods-in-kubernetes-861beb65e138&source=---post_responses--861beb65e138---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+See all responses
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----861beb65e138---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----861beb65e138---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----861beb65e138---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----861beb65e138---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----861beb65e138---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----861beb65e138---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----861beb65e138---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----861beb65e138---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----861beb65e138---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: What is a Kubernetes Pod? - Sysdig
+[< lcn home](https://www.sysdig.com/learn-cloud-native)
+
+# What is a Kubernetes Pod?
+
+Published Date: Mar 31, 2026
+
+share:
+
+[![Facebook logo (square) 1](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/6863ec7e8d1b0208ff27ecd1_Facebook_logo_(square)%201.svg)](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#)[![Vector](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/6863ec7e2229061f343f1a53_Vector.svg)](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#)[![Twitter 1](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/6863ec7efbd5016e5a6307e2_twitter%201.svg)](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#)
+
+Table of contents
+
+[What is a Kubernetes Pod?](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#what-is-a-kubernetes-pod)
+
+[Kubernetes Pod YAML examples](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#kubernetes-pod-yaml-examples)
+
+[Single-container vs. multi-container Pods](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#single-container-vs-multi-container-pods)
+
+[Pods vs. nodes](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#pods-vs-nodes)
+
+[Pods vs. containers](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#pods-vs-containers)
+
+[Kubernetes Pod logs](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#kubernetes-pod-logs)
+
+[Working with Kubernetes Pods](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#working-with-kubernetes-pods)
+
+[Assigning Pods to nodes](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#assigning-pods-to-nodes)
+
+[Deployments vs. StatefulSets vs. DaemonSets](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#deployments-vs-statefulsets-vs-daemonsets)
+
+[Conclusion](https://www.sysdig.com/learn-cloud-native/what-is-a-kubernetes-pod#conclusion)
+
+This is the block containing the component that will be injected inside the Rich Text. You can hide this block if you want.
+
+![Hassaan qaiser bKfkhVRAJTQ unsplash](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/681a1c8f5b6ebfc0f8529652_63da7b29ef9e6444889d95cf_hassaan-qaiser-bKfkhVRAJTQ-unsplash.jpg)
+
+Pods, as the smallest type of object you can deploy inside a [Kubernetes cluster](https://sysdig.com/learn-cloud-native/kubernetes-101/what-is-a-kubernetes-cluster), are the fundamental building blocks of Kubernetes workloads.That's why Pods are one of the most basic concepts you'll need to master to use Kubernetes
+
+In this article, we walk through everything you need to know about Kubernetes Pods — including what they are, how they work, how to deploy them, and how to manage them.
+
+## What is a Kubernetes Pod?
+
+In Kubernetes, a Pod is one or more containers that share storage and network resources.
+
+Put another way, a Kubernetes Pod is a set of containers that perform an interrelated function and that operate as part of the same workload. In addition to defining the containers themselves that run within a given workload, each Pod also defines storage and networking configurations for the workload.
+
+Although you could add all the containers for your application into the same Pod, it is a good practice to have one container per Pod. Then, group all the Pods that conform one application into a Namespace.
+
+The option to have more than one container per Pod is meant for auxiliary containers that act as sidecars. For example, a secondary container that extracts metrics from the main container, and exposes it to a Prometheus server.
+
+Put yet another way, a Kubernetes Pod is the object that hosts a container and all its related resources in Kubernetes. One application is often made of several Pods grouped in a separated Namespace.
+
+Pod configurations are defined using YAML files (for more on these, see the following section). Each Pod runs inside the same Kubernetes namespace and on the same physical or virtual machine within your cluster.
+
+## Kubernetes Pod YAML examples
+
+As an example of a basic Pod, here is a YAML file that defines a single-container Pod:
+
+`apiVersion: v1
+kind: Pod
+metadata:
+name: nginx
+spec:
+containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80Code language: CSS (css)`
+
+This Pod runs NGINX based on a specific version of the NGINX container image (specifically, 1.14.2). The Pod YAML configuration also defines which port (80) of the container should be accessible.
+
+As another example, consider this multi-container Pod definition:
+
+`apiVersion: v1
+kind: Pod
+metadata:
+name: multi-container-pod
+spec:
+containers:
+  - name: container1
+    image: nginx
+  - name: container2
+    image: ubuntu`
+
+This Pod includes both NGINX and Ubuntu containers.
+
+## Single-container vs. multi-container Pods
+
+Single-container Pods are the simplest and most common way to deploy a workload on Kubernetes.
+
+However, multi-container Pods are useful in situations where you want to deploy a primary container (such as one that hosts an application) alongside a secondary container that provides some type of auxiliary functionality (like log aggregation or monitoring) for the primary container.
+
+It's unusual to deploy two separate applications using a single Pod, unless the applications are interdependent in some low-level way. Although you theoretically could deploy as many independent applications as you want in just one Pod, it would make more sense to use Pods to isolate the applications.
+
+Distinct Pods can easily interact with each other, especially if they run in the same namespace, and creating a separate Pod for each application helps ensure that problems with one application won't disrupt other applications. Besides, all containers within a Pod must run on the same [Kubernetes node](https://www.sysdig.com/learn-cloud-native/kubernetes-101/what-is-a-kubernetes-node), which can be an issue when it is required to scale the number of Pods.
+
+## Pods vs. nodes
+
+If you're new to Kubernetes, it's easy to confuse Pods with nodes. Both of these objects are among the most basic building blocks in Kubernetes.
+
+However, they're fundamentally different types of resources. A Kubernetes node is a physical or virtual machine that operates as part of a Kubernetes cluster. Pods can run on nodes, but the purpose of a node is to provide host infrastructure, not define and deploy applications. Pods do the latter.
+
+Thus, while Pods are the fundamental building blocks of Kubernetes workloads, [nodes](https://sysdig.com/learn-cloud-native/kubernetes-101/what-is-a-node-in-kubernetes) are the fundamental building blocks of Kubernetes infrastructure. You need nodes to host Pods (indeed, without nodes, you can't have a Kubernetes environment at all), but you don't need Pods to create a node.
+
+## Pods vs. containers
+
+It's also a mistake to conflate Pods with containers.
+
+As we've noted, Pods include containers; in fact, you can't define or run a Pod without a container. However, Pods include more than just containers. They also define networking and storage configurations, and they can optionally specify commands for Kubernetes to run when it starts a Pod.
+
+## Kubernetes Pod logs
+
+By default, each container generates log data. You can collect the log data from the containers inside a Pod with a command such as:
+
+kubectl logs pod-name
+
+This command will dump log data for the container inside a Pod named **pod-name** to the CLI. In case the Pod contains multiple containers, a parameter specifying the container name could be added to the command, although it is also possible to extract the logs from all containers at once.
+
+For more advanced logging, you'll probably want to use a logging technique such as deploying sidecar containers inside each Pod to collect its logs and aggregate them to a central location. That way, you can collect and manage log data centrally and automatically, rather than having to pull it manually from each Pod on the CLI. The Kubernetes documentation offers a [detailed overview of advanced logging techniques](https://kubernetes.io/docs/concepts/cluster-administration/logging) for Pods and other Kubernetes objects.
+
+![](https://embed-ssl.wistia.com/deliveries/1f2c8c955627b7375fc82dfc487bfad5.webp?image_crop_resized=1280x720)
+
+![Video Thumbnail](https://embed-ssl.wistia.com/deliveries/1f2c8c955627b7375fc82dfc487bfad5.webp?image_crop_resized=1280x720)
+
+Click for sound
+
+![Logo](https://embed-ssl.wistia.com/deliveries/2e8ca000fe777e3d61a2357ebf6d9c0a.png)
+
+2:02
+
+●●●●●●●●
+
+Introduction to Kubernetes
+
+Understanding Kubernetes Functionality
+
+Importance of Kubernetes for Large Applications
+
+Key Features of Kubernetes
+
+Defining Clusters and Nodes
+
+Understanding Pods in Kubernetes
+
+The Role of the Control Plane
+
+Conclusion and Next Steps
+
+![Hassaan qaiser bKfkhVRAJTQ unsplash](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/681a1c8f5b6ebfc0f8529652_63da7b29ef9e6444889d95cf_hassaan-qaiser-bKfkhVRAJTQ-unsplash.jpg)
+
+## Working with Kubernetes Pods
+
+Now that you know how Pods work and how they fit within a Kubernetes environment, let's look at how to manage Pods.
+
+On most Kubernetes distributions, you'll use kubectl to interact with Pods. Certain distributions (like OpenShift, which uses the **oc** utility instead of kubectl by default) have their own tools, although generally these tools accept the same commands as kubectl with regard to Pod management.
+
+### Create and deploy a Pod
+
+To create a new Pod, first create a YAML file that defines it and save that file to the system you use to manage your Kubernetes cluster.
+
+Then, deploy the YAML with a command like:
+
+`kubectl apply -f /path/to/pod.yaml`
+
+In most cases, you can also grab and deploy Pod YAML files directly from a URL. For example:
+
+`kubectl apply -f https://k8s.io/examples/pods/simple-pod.yamlCode language: JavaScript (javascript)`
+
+Alternatively, you can generate a basic YAML file in the CLI with a command like:
+
+`kubectl run pod-name --image=nginx --dry-run=client -o yaml > pod.yaml`
+
+### List Pods
+
+To see which Pods are running, use:
+
+`kubectl get podsCode language: JavaScript (javascript)`
+
+### Stop a Pod
+
+To stop a Pod that is running, use the following command (where pod-name is the name of the Pod you want to delete):
+
+`kubectl delete pod pod-nameCode language: JavaScript (javascript)`
+
+If you want to delete all running Pods, use:
+
+`kubectl delete pods --allCode language: JavaScript (javascript)`
+
+### View Pod logs
+
+As noted above, you can dump Pod logs to the CLI with:
+
+`kubectl logs pod-name`
+
+## Assigning Pods to nodes
+
+By default, Kubernetes automatically decides which nodes should host your Pods, unless you specify otherwise.
+
+But in certain cases, you may want to control which nodes in your cluster host a particular Pod. You may want to avoid running production Pods on nodes that you plan to drain and shut off, for example, or you may want to avoid nodes that are experiencing hardware issues.
+
+There are two possible ways to control which nodes host a given Pod:
+
+- **Using nodeSelector**: You can [specify a nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node) definition when writing the YAML for a Pod. NodeSelector tells Kubernetes which node or nodes it can use to host a Pod.
+- **Using DaemonSets**: DaemonSets are objects that associate Pods with specific nodes. You define them in YAML, and Kubernetes automatically enforces the rules you specify as nodes come and go from your cluster.
+
+Specifying a nodeSelector is the simplest way to assign a Pod to a given node. DaemonSets are a more scalable — albeit also more complex — solution for associating sets of Pods with nodes, as well as maintaining the associations as your cluster scales up or down in size.
+
+## Deployments vs. StatefulSets vs. DaemonSets
+
+Kubernetes supports multiple ways of defining how Pods should be deployed: Deployments, [StatefulSets](https://sysdig.com/learn-cloud-native/kubernetes-101/kubernetes-statefulsets-overview) and DaemsonSets.
+
+You can use any of these objects to create a template that facilitates Pod deployment and scaling. Deployments are the simplest way to describe a Pod, but StatefulSets are useful if you need to maintain unique Pods. DaemonSets, as noted above, can be used to associate Pods with specific nodes.
+
+## Conclusion
+
+Although you could theoretically run a Kubernetes cluster without Pods, you wouldn't be able to do much with it, because you need Pods to deploy workloads in Kubernetes. And while the YAML files used to control Pods may seem a bit intimidating at first, they're simple enough to understand once you learn the basics of Pod definitions.
+
+Pods are also easy to manage with basic kubectl commands — but for more complex setups, you'll also want to teach yourself about features like DaemonSets to help manage Pods effectively at scale.
+
+## FAQs
+
+No items found.
+
+## Like what you see?
+
+[GET A DEMO](https://www.sysdig.com/request-a-demo)
+
+---
+
+Title: What is a Kubernetes POD ? | Beginners Guide - YouTube
+![Thumbnail (1920x1080)](https://i.ytimg.com/vi_webp/l9cQCCkwL5E/maxresdefault.webp)
+# [What is a Kubernetes POD ? | Beginners Guide](https://www.youtube.com/watch?v=l9cQCCkwL5E)
+
+**Visibility**: Public
+**Uploaded by**: [That DevOps Guy](http://www.youtube.com/@MarcelDempers)
+**Uploaded at**: 2025-01-02T03:16:18-08:00
+**Published at**: 2025-01-02T03:16:18-08:00
+**Length**: 49:47
+**Views**: 6517
+**Likes**: 220
+**Category**: Science & Technology
+
+## Description
+
+```
+Follow DevOps Roadmap  👉🏽 https://www.instagram.com/marceldempers
+My DevOps Course 👉🏽 https://marceldempers.dev
+Patreon 👉🏽https://patreon.com/marceldempers
+
+Checkout the source code below 👇🏽 and follow along 🤓
+
+Also if you want to support the channel further, become a member 😎
+https://marceldempers.dev/join
+
+Checkout "That DevOps Community" too
+https://marceldempers.dev/community
+
+Source Code 🧐
+--------------------------------------------------------------
+https://github.com/marcel-dempers/docker-development-youtube-series
+
+Like and Subscribe for more :)
+
+Follow me on socials!
+https://marceldempers.dev
+X | https://x.com/marceldempers
+GitHub | https://github.com/marcel-dempers
+LinkedIn | https://www.linkedin.com/in/marceldempers
+Instagram | https://www.instagram.com/thatdevopsguy
+
+Music:
+Track: souKo - souKo - Parallel | is licensed under a Creative Commons Attribution licence (https://creativecommons.org/licenses/by/3.0/)
+Listen: https://soundcloud.com/soukomusic/parallel
+
+Timestamps:
+00:00 intro
+01:53 devops course
+03:57 what is a pod
+13:05 pod yaml
+19:28 image tagging and versioning
+24:27 workload resources
+26:11 containers in a pod
+27:41 pod phases and statuses
+31:14 pod features and examples
+35:11 health probes
+38:00 resources
+43:35 node selectors
+45:50 deploying the pod
+47:13 checking the pod
+49:01 outtro
+```
+
+## Transcript
+
+what is up people and welcome to another video and another edition of the kubernetes lightning Series where we take a look at kubernetes from scratch we learn everything starting from zero we install Docker we get our first container we've taken a look at how to get a cluster up and running locally that we can use for local testing and learning purposes then we've taken a look at Cube CTL and how to talk to our cluster how to configure our configuration so we can talk to multiple kubernetes clusters using a cube config and in the previous video we've taken a look at yaml this is because yaml is the language that we talk to with kubernetes we use yaml to write our manifests and describe what we want kubernetes to deploy and run for us this is called our desired State now today we're going to take everything we learned about yaml and we're going to look at our first pod a pod is kind of the fundamental component of kubernetes because it is the smallest little unit of deployment kubernetes is all about running containers and in order to run a container we need to know what a pod is we obviously need Cube CTL and we need a kubernetes cluster so take a look at the previous videos on how to get that all set up and once you have a container running locally we're going to be riding some yaml to deploy it as a pod take a look at what a pod is the concepts around it how to deploy a container in inside a pod and where pods can become really useful and how they're used in other kubernetes objects and in future videos we'll take a look at things like cron jobs deployments stateful sets Damon sets and more so we got quite a bit to cover so without further Ado let's go this video is brought to you by me I wanted to give you an update on what's happening on the channel if you've been following the socials you'll know that I'm working on the ultimate devops course a course for people that want to start a career in devops from the beginning that don't know where to start devops is very complicated because it comprises of a lot of Concepts and Technologies from both Dev and Ops so company sort of expect you to know everything all the way from writing code to build pipelines to testing cicd monitoring observability metrics tracing performance serverless data Ai and it never ends if you ask 10 professionals where to start you'll get 10 different answers and the tech Giants are not helping you either if you do an online search on where to start you'll likely find that tech companies are trying to funnel you into a cloud certification certifications are okay but I see it as a supplement not a fundamental pillar you're just being funnel to becoming a Salesman for that cloud product and for every problem a business has you end up throwing another Cloud product at the problem which doesn't always solve the actual problem and creates more problems most of the time whilst simultaneously increasing Cloud cost over time people have started lacking the fundamental skills to solve real world problems in it like networking TCP troubleshooting HTTP and server communication how to diagnose errors how to scale distributed systems effectively how to use the command line script and automate understand virtualization and servers operating systems Linux git and Source control performance engineering utilizing open source and optimized cost all these layers underneath which makes up a giant onion I'd like to technology and people struggle to peel away the layers the ultimate devops course is aimed at taking you back to the roots of it engineering each chapter covering topics that goes back to the time before Cloud was popular and each module taking you on a journey through an evolving road map learning all the fundamentals so you can Empower your career by making informed decisions on what you want to learn next check out maral deus. d/c course for more information on the Early Access development of this course now if you head over to Google and you just search for pods you'll find the kubernetes documentation now this is kubernetes doio you can search this website just for pods and you'll find the documentation for kubernetes pods now pods are the smallest Deployable units of compute that you can create and manage in kubernetes so if you want to deploy anything to kubernetes whether it's a script that runs in a loop could be a bash script could be a Powershell script it could be something as big as a Windows service or a Windows I web server or it could be something that's running in Linux like an engine X web server hosting HTML it could be an Apache web server it could be something like a WordPress site it could be something that you have to compile using any kind of programming languages we talking python flask microservices or net net core microservices could be go L no. JS could be any kind of compute all you need to do is wrap that program up in a container using a Docker file we briefly taken a look at containers where we installed Docker in part one and we created a small python web application now it's important to understand the difference between a container and a pod once we have a container we can deploy it in what's called a pod a pod is technically a Sandbox it is a Sandbox like we generally look at a virtual machine as a Sandbox for our compute So In traditional web systems you would go to a cloud provider you would deploy a virtual machine then you would log into that virtual machine deploy a web server install it configure it set it up then you would deploy your code there as your micros service or website whether it's HTML JavaScript or if it's a WordPress site you'll go and install it on that virtual machine and you'll spend a lot of time setting up that application on the virtual machine now you might be sharing virtual machines and have multiple applications running you might divide them up into multiple sort of business units or multiple you know different purposes but that's entirely up to you generally in kubernetes with containers you generally deploy one unit of work inside of a container a container has basically one process ID now you can install multiple processes in a container but that's generally not best practice it's always better to have one process in a container so when the container runtime runs that container it's monitoring the health of that process that process being your micros service your WordPress site your database service whatever kind of process you're deploying in a kubernetes cluster or in a container that's the unit of work you want to deploy containers have health probes so kubernetes can monitor their health to make sure they're still up and running and health probes can go into quite a lot of detail you can actually write Powershell or bash grips to run on your containers to make sure that container is healthy or kubernetes will just make a web request if your container is a web service the whole purpose around this is that a pod is one single unit of work and we'll talk about the case where you might have multiple containers running in a pod so a pod comes from the term a pod of whales or PE pod or pod of dolphins it's a group of one or more containers with shared storage and network resources and a specification on how to run the contain containers so the reason why I compare it to a VM or virtual machine is that when you connect to a virtual machine and you're testing your application you're connecting to Local Host now generally a pod every pod running in a kubernetes cluster for that matter will have its own Local Host so it kind of feels like you're in your own little VM so you kind of want a treat a pod like you treat a VM although it's not exactly the same it doesn't have the same isolation VMS use virtualization which goes a lot deeper in the operating system in terms of features and functionality to create a stronger sandbox a pod however basically makes use of Linux kernel cgroups and namespaces to create what's called a Sandbox so it creates its own little sort of storage layer its own little Network layer it has its own Local Host it has its own IP address is it has its own set of ports it can listen on that is useful when hosting a web server inside of a pod and that's basically a pod in the nutshell now I mentioned that a pod has its own Local Host and its own sort of network and that's one of the benefits so if you deploy a microservice or website in a virtual machine only one process on that machine can be using one port at a time so if you're running a web server on Port 80 you can only have one web server on a virtual machine using port at0 and this becomes a challenge in traditional devops where we have multiple instances of a web website running on a virtual machine or multiple virtual machines and we have to create and manage these port numbers because if you want another instance you either have to run that instance on another machine using Port 80 so they don't conflict or you have to run another instance on the same virtual machine on Port 81 and then Port 82 and you have to use custom Port ranges and manage that in kubernetes with pods we don't have to worry about that because every pod has its own port range you can have 200 pods on a virtual machine all using Port 80 so it has its own sort of isolated Network it's isolated network card for that matter it's isolated sandbox where it's running if you SSH into that pod or container you can see the processors running inside and generally you'll only see the P IDs or process IDs of your containers running in that pod now pods and kubernetes generally run in two main ways pods run a single container this is one container per pod as I mentioned before and this is the most common way in kubernetes to run pods and basically you can think of a pod as a wrapper around a single container and kubernetes always manages pods rather than managing containers directly if one container in the Pod dies or crashes the entire pod crashes there's also a use case where pods can run multiple containers that need to work together now this is pretty uncommon but it does happen and a pod can encapsulate an application composed of multiple caded containers that are tightly coupled and need to share resources now generally you would try to avoid this let's say you have a legacy micros service that needs a bunch of files on disk and configuration and some other tooling that has to generate some configuration now before that can happen it may need to download some data from an S3 bucket or some kind of external storage it's not as simple as just giving the container a config in that case you might have a container that is running side by side with the main container in the application and that other container in the same pod is responsible for grabbing files from S3 maybe running some external tools to transform those data configuration files and then make it available to the other process now you might think that sometimes a microservice needs a backend or database maybe you have a front end service and a backend service now this is not the use case here it's generally not recommended to run a front end a back end and a database and those sort of things within one pod but kubernetes still allows you to do so but in general microservice practices if a database dies the entire pod will go down if your front end dies or your back end dies the entire pod goes down the documentation here also clearly states that you don't need to run multiple containers to provide replication for resiliency or capacity so if you want to scale up your application you don't add more containers to the Pod if you want to make your application highly available like you want to run three copies of a database instance you don't run three containers in the same pod remember a pod is deployed to a kubernetes node if that node dies that pod gets taken down so pods in their General Essence at the core is not highly available in order to make an application highly available you'll scale up pods and run multiple pods but to do that we'll take a look at kubernetes deployments stateful sets Damon sets which are basically workload type of objects and kubernetes but in order to deploy those objects you still need to create a pod because a pod will run in a deployment a pod will run in a stateful set a pod will run in a Damon set so at its smallest unit of compute we need to know what a pod is and how to create one and running multiple containers within a pod is generally a more advanced Ved concept and you generally only want to do that if you have multiple processes that are tightly coupled now I've mentioned that a pod is basically a Sandbox where we can deploy containers now in order to create a pod we need to start writing yaml in our previous video we've taken a look at yaml basically yaml will just be keys and values with objects that we put together to describe our pod and what what we want our pod to look like what containers we want to deploy what is the docker image name and tag we want to deploy what registry to pull that image from do we want annotations or labels those become really important later down the track what is going to be the name of our pod what ports do we want to expose if we're running something like a WordPress site a micros service a web application or API are there any configuration files or Secrets needed in order to run our what environment variables do we want our pod to use what are the health probes that kubernetes can use to monitor our pod to make sure it's always running are there any Docker volumes that we want to supply to our pod as well for example if this is a database and the Pod dies we may not want the data to be lost this is where volumes come in these are all the things we used to do as manual traditional devops when we go into a VM and we configure and set up a workload you would deploy config files there you would configure secrets you would configure environment variables you would configure storage you would set up the ports to make sure that multiple processors on that VM don't use the same ports now the benefit of kubernetes is that we describe all of this in a yaml file and kubernetes makes it happen that means a lot of the stuff we do is autonomous and it's very easy for us to scale and create a lot more pods and the management overhead head becomes less than traditional virtual machines so let's take a look at some yaml now we go back to the kubernetes documentation there's a section on using pods now this is probably the most minimal yaml you'll need to create a pod in kubernetes I mentioned in our yaml guide that every kubernetes object has an API version this is because the yaml that we are looking at here is a contract and if we're using a specific version of the API and this yaml that means it won't unexpectedly change because remember kubernetes is a very fast-paced evolving ecosystem so if you look at the API version and you start to see things like V1 alpha or beta or some kind of different API version just be known that in future versions of kubernetes things can change and it can impact your yaml most of the default objects in kubernetes are V1 so we start with that so we start with API version V1 the next field is kind all of the kubernetes objects have this kind of field which tells us what the object is we are looking at in this case we are looking at a pod and we know this because the kind is POD then we have metadata metadata is important because it tells us more about the Pod like the name and also there's another field that's missing from the spec which is called name space I mentioned in a previous video that Nam spaces allow us to group resources together these are like virt ual groups it can be for example Group by Department you can have groups by team names it gives us a way to group certain resources together and it helps a little bit in the security world as well when we take a look later down the track kubernetes has a concept of role-based access control or rbac where we can Define that certain users belonging to a certain group can only access certain pods and objects in a certain Nam space so you can basically say a devops team or an s or platform engineering team can be admin across all namespaces and then you can have a specific product team that can have read write to their own namespace and no other namespaces so you can use rback to protect resources and that is why I mentioned it because you will come across Nam spaces in a little bit so the metadata contains the name of the Pod as well as namespace if you want to deploy this pod in a specific namespace by default if you use the cube C apply or the Cube CTL create command we've taken a look at in previous videos that will apply to the default namespace by default unless you have updated your Cube config file and indicated that you'd like to use a different namespace generally when deploying micro services and that sort of thing you kind of want to provide a namespace the next bit of information here is a spec this is a key called spec and basically everything below this is the object of the Pod all kubernetes objects basic basically have these first few lines if you take a look at things like kubernetes deployments Damon sets stateful sets Services config Maps ingresses they all have API version they all have kind they all have metadata and they all have a spec inside here is what we call the Pod spec object so if you're dealing with a config map you'll have a config map spec if you're dealing with a secret you'll have a secret spec a deployment spec Ingress spec service spec and so forth this spec is specific to pods and this this is where it starts to get interesting you can see the first field in the podspec is the containers field and we learned about yaml and remember that any kind of key which has a value with these kind of dashes is called an array so this is an array field called containers and the values are container objects so we see it starts with Dash indicating that this is the first container in the containers array and you could have multiple containers so the first one here is just it has a name called engine X we can basically name our containers in a pod and this is very useful especially if you have multiple containers down the line for microservices it doesn't really matter but it can be useful to kind of pass the same name as the part down to the container name just so that if you had to SSH and troubleshoot a node you can see all the processors running on the Node and they generally will use the container name as part of the process ID name so this is the name of our container and then we we have an image this is the docker image and tag we mentioned before in part one we've taken a look at our first container we did a Docker build and during the docker build command you pass minus t and when you do this this is the docker image name and tag and it is best practice to always tag your images now the main reason you want to create unique tags for Docker images and you want to do this during your cicd pipeline or your build process is because you want to have an identifiable version for each of your pods running in a microservice world generally you use Source control like G you might use GitHub gitlab bitbucket and what you do is when a developer checks in code you want to trigger a build in that pipeline you'll be running Docker build or pod man or any kind of Docker build engine that you have to build containers and you will tag that image and generally you use the git hash or a portion of the git commit hash or commit ID as part of your Docker image tag this is generally what I recommend this means if you're looking at source control you can see in your default Branch whether it's main or Master what commits have happened and you can take the first five characters of that commit hash and you can look in your kubernetes cluster look at your pod and see that pod has the image name with the commit hash so you know exactly what commit was deployed to your cluster generally you'll see a lot lot of people using especially in these hello world kind of tutorials they'll use like V1 as the tag or latest this is not really helpful in cicd and for microservices specifically but it can be for example if you're running components in your cluster like an Ingress controller or a service mesh or open Telemetry or Prometheus or any one of those kinds of services those open-source Services you might use the version number that's supported for your cluster and not the commit hash the reason for this is that a lot of these open-source tools actually rely on semantic versioning to do patches and updates generally if you say I want to deploy V1 of my Ingress controller or V1 of Prometheus open Telemetry flux whatever it is even if it's Argo CD you might say I want to use V1 the product that you use will have some sort of versioning protocol that they support so they might say that every major version of kubernetes we bump out version so next version of kubernetes we'll use V2 the version after that will become V3 so that what they do is they marry up their version number with the version number for kubernetes and generally there's overlap so if you deploy V1 it might be compatible with two versions of kubernetes and backwards compatible that means that they give you some time to upgrade the reason why I mentioned this is that the docker image tag becomes really important as a strategy to maintain security and updates for open Source components deployed to your kubernetes cluster maybe not for microservices because microservices you just want to build and have a specific build running in your cluster and this is why you'll use commit hashers as image tags and you'll bump them up every time a commit happens so with open source components like Ingress controllers Argo CD or cicd pipeline stuff your monitoring components like Prometheus grafana and all of that all the open- source stuff that's managed by communities you want to make sure you have a prop ER versioning strategy that aligns with theirs because as I mentioned they will be changing their version of their application and their Docker images that they use to match and support the version of kubernetes you're running the other thing that's quite important is to not use a very minor version of the docker image tag and this is something you need to check with every component you deploy for example minor versions in semantic versioning is generally used for patches and security fixes bug fixes and certain things like that so just as a high level example I might have V1 but let's say there's a security vulnerability in my application underneath I might be deploying V1 as v1.1 and tomorrow it's 1.2 then it's 1.3 I might be using 1.1.1 or 1.1.2 these minor numbers I might bump them up as I'm doing vulnerability patches and updates and this is very important to know in the security sense that a lot of the times these open- Source U utilities and tools also have security vulnerabilities and they get patched quite often patches also sometimes happen at the base image of these container images so although you might not get a latest version of Prometheus or your monitoring components or grafana or something like that you might be getting security updates and vulnerability updates and fixers and even hot fixes So based on that make sure you have the right versioning strategy when you deploy stuff to kubernetes so I me mentioned before that generally you won't deploy a pod directly pods are generally not created directly and are created using workload resources instead so they say here that usually you don't need to create pods directly even Singleton pods so you can see above here they have an example to create a pod using this yaml file above and using the cube C apply command the same command we've taken a look at in our Cube CTL episode under General circumstances you would deploy a pod using workload resources these resources are designed to manage pods for example you would use workload resources such as a deployment or a job or a Chron job or a Damon set or if you're running something that tracks State like a database you'd use a state full set and as I mentioned before each part is meant to run a single instance of a given application so if you want to scale your application to provide more overall running resources on more instances you would generally use multiple pods in kubernetes this is referred to as replication so generally if you need to scale up the number of PODS you want to run you would need to use a workload type manager object and set the number of replicas you want so for web servers we would generally use what's called a deployment if we need a pod on every node we'd use a Damon set if we're running a database application where data and state is important we would run a stateful set if we want to schedule a pod to run on a specific schedule like a job if we want to run it once we'd use a job if we want to run it on a schedule like once a day once every 5 minutes once a week based on a cron type syntax we would use a Cron job now it's important to know that all containers in the same pod can share certain resources and you can visualize all the containers running in a pod as kind of like a mini virtual machine as I mentioned before all the containers in the Pod share the same sort of Local Host Network a pod has one IP address so you could have multiple containers running in the same pod they can all access Local Host and access different ports but they cannot use the same port within a pod the other thing is that all the containers within the same pod can share the same storage or volumes we'll take a look at that in a little bit and to give you the idea of this you can take a look at the following diagram image in this case you have two containers running in the Pod the pod is this whole green circle and both these containers can access Local Host so the web server could be running on let's say Port 80 and then you could have another container which is designed to pull files from a Content management system like a CMS and then it adds it to a local volume this container will then Mount this volume like a Docker volume Mount and then you can have a web server such as engine X or something else running on Port 80 and that's serving web request to Consumers and it's reading the same files that the file puller added to the volume so in this case you can see that containers in the Pod can share the same volumes and we'll take a look at the yaml Declaration for this in a little bit now once we've created our pod using Cube C create or cube CTL apply this yaml will be sent to the kubernetes API and kubernetes will schedule the Pod onto a node from this moment on the Pod will go through What's called the Pod life cycle and we can use Cube C get pods or cube C describe pods to troubleshoot a pod and to see what status that pod is in and at what point in the life cycle it's in for example there's documentation that describes the Pod life cycle and basically when a pod gets created for the first time it always starts in the pending phase until the scheduler is able to pick up that pod and assign it to a node so if your pod is stuck in a pending State you can use Cube C describe to figure out why there could be a number of reasons one is you may not have enough space left on a node there could be a problem with a given node where a node is not ready and cannot take any scheduling there could be another problem such as image pull back off let's say you have asked for an image and that image cannot be found in the registry or the credentials or the secret that's configured to access that registry doesn't work another one is maybe there is no space left in your cluster to deploy another pod in this case you might have a cluster autoscaler that's about to create a new node so your pod might spend some time in pending phase because of this because it's waiting for a new node to join the cluster it might stay in pending phase indefinitely if there's kind of a problem and then once it moves through the pending phase the Pod will enter a running status so generally when you say c c I'll get pods you should be able to see pods in a pending phase and then in a running phase if you're quick enough if that pod is running a web server or it's running some job that's constantly running and does not finish it will remain in the running status otherwise let's say you're running a script or program inside of a pod that finishes nothing is keeping that program from running that program gives an exit Code Zero that means the Pod will terminate but it'll terminate into two phases one of two it'll either terminate and say succeeded that is if the program or container inside of the Pod has exited with an exit Code Zero or it will be failed failed is if the container crashes returns a nonzero exit code or is terminated by kubernetes for some other reason the Pod life cycle is very important when using Cube C and monitoring your pods to know the status and here they describe the different pod phases a pod can be in different phases as I mentioned before when the pod starts it starts in the pending phase the Pod has been accepted by the kubernetes cluster things need to happen in order for that pod to be able to run so the Pod needs to be able to be scheduled and once it's scheduled and there's a node available its resource requirements are satisfied the image can be pulled it will start to run on a node so you'll see the container going in sort of like a creating status and then you'll see it enter the running status if the Pod terminates with a successful status like an exit Code Zero it will say succeeded otherwise if it's a nonzero exit code it will be failed if the state of the Pod cannot be obtained it'll be in an unknown status this is generally happens if there's a problem with the kubernetes node or the control plane and we're unable to determine the status of a pod so now you should have the idea of what a pod is and some of the basic constructs that make up a pod next up I'll show you some real world practical examples of things you may be working on when deploying a pod to kubernetes I mentioned that we mostly won't deploy a pod directly we'll be taking a look at deployments Damon sets stateful sets and workload type objects to manage pods for us but even when we work on those objects we will be writing a pod spec within those objects in the next video we'll take a look at deployments and all the knowledge that we've learned today about a pod spec will apply to that and there are a couple of important things that you will want to tune when working on real life production grade pods so let's take a look at the yaml in more detail now in my GitHub repo I run a GitHub repo called the docker development YouTube series you can find the link Down Below in here I have a kubernetes folder and in the kubernetes folder is a lot of the stuff I work on for all my kubernetes videos If you go to my channel and search for playlists you'll find my kubernetes beginners guide where I go in a lot more detail for a lot of these topics and a lot of the things we'll be talking about today so in the kubernetes folder what you want to look for is the pods folder there's a pod. yaml in there and this will show you the Pod that we'll be working on today now a lot of the stuff you'll be familiar with that I've spoken before API version the kind the metadata name the name space we want to deploy the pod in we have the ability to label pods as well labeling is something that is really important because kubernetes connects objects to other objects using labels and selction s you'll see later that when we look at how to load balance pods that will create an object called a kubernetes service and by doing that we need to tell the kubernetes service to select pods based on label when we look at the next video which is about deployments in a deployment object we'll use label selection so a deployment controller knows how to manage pods and which pods form part of that deployment this all this magic happens via labels and label selectors so lab are really important you always genely want to label on your pod called app with a name or key and kind of keep this name the same as your pod name or deployment name or service name so you kind of know how objects relate to one another and it makes selecting them easier we'll take a look at services and load balancing and ingresses and all that stuff in a future video next up we have the spec that's the most important which is the container spec this basically defines every container in the Pod I have a container called example app this is my Docker image I want to run it's a python micros service we taken a look at part one I have an image policy now this is quite important because you can tell the container runtime how to deal with pulling this image you can basically say that every time a pod creates always pull or you can say only pull if the image doesn't exist then pull it and there's pros and cons of selecting how you want images to be pulled if you select always it is always going to make a call to your registry and download the latest one generally for microservices you wouldn't do this because you would have a commit hash kind of strategy as I mentioned before when talking about image tags so your container image tag will always be changing you won't be deploying new versions of your software with the same tag generally if you're doing that you might say always pull so if you're always pulling V1 but behind the scenes you're updating security patches and so forth you might leave it as always so that is the image pool policy then you have ports this is a array as we learned about in our yaml guide so we can put an array of container ports here and this allows us to open ports similar to our Docker run command when we say minus P we want a port exposed we'll expose the port because we know our application is listening on Port 5000 next up is a few Fields um that is quite important when doing a little bit more advanced configuration in kubernetes when you're running microservices you generally want to make sure these services are always up and running sometimes web servers tend to stop responding they tend to malfunction over time things happen and when software becomes unresponsive at least kubernetes will restart the application and it can only restart if it knows that something's gone wrong that is why we have this probe concept called liveliness probe we can tell kubernetes to make periodic calls to our application in this case it's a microservice so we do HTTP get and we can ask it to make a call on a certain address we're just calling the root of our application on Port 5000 and then a couple of dials we can tune like the initial delay like don't send a health check in the first 3 seconds because we know our application is still starting up you can generally put a little bit of a higher delay here it's safe to do so and then period second is how often do you want it to call now just be aware that if you're running a web server you might want to turn this HTTP logs off because this health probe will be calling every 3 seconds and if you're running a couple of PODS and you have a large cluster with lots of microservices you'll be creating a lot of noise for your logging system that's just a small tip you have different types of probes as well the liveliness probe will basically pretty much run all the time it'll be constantly checking the health of the application you also have startup probes and Readiness probes Readiness probes is for applications when we know that we don't want to send traffic immediately to an application especially when we're doing rolling deployments so once we take a look at deployments in the next video you'll kind of see how kubernetes rolls out new versions of our pods and this is where Readiness probes actually come in handy because in a microservice world in a web server world even with something like WordPress generally your server is not ready to take and accept new connections immediately kubernetes doesn't know that your application is not ready that is why there's a concept of Readiness probe a Readiness probe is another object which you can Define I've got it defined similar to my sort of health check um and that means that kubernetes will have to satisfy this Readiness probe before sending traffic to our application what you'll notice if you're working with deployments and you actually make a deployment and if you're running constant traffic to your pods you'll notice that there's a small blip and a small Interruption of traffic if you don't have the right Readiness probes defined and I actually have a full guide if you search the channel for probe you will find a full guide on Readiness health and startup probes this is very important because you will most likely in a production grade server to prevent downtime during deployment you will want to find a health and liveliness probe now the next very important bit on a pod is called the resources field the resources field allows us to do a couple of things it allows us to tell kubernetes how much resources we want to allocate to our pods for example if you know you're running a cash like a Rus instance you know Rus users memory you will want to reserve some memory for your pod this makes scheduling easier that means kubernetes will not place your pod on a node where that node does not have enough memory this is called resource requests you can request memory for your pod and kubernetes will use that during scheduling to make smarter decisions of where to place your pod you can do the same for CPU now the resource requests have evolved over time and I'll get to this in a little bit it is not only used for scheduling but also used to determine guarantees on resources to be available for your application I'll come back to this the next value is resource limits limits are generally good but you have to understand the differences between limits and requests limits can be great if you have a micros service for example that has a memory leak cuz what can happen is that can start chewing up the memory on the entire node and starve the node from memory so memory limits in general are great you want to put a memory limit onto your pods as a standard this will prevent pods from starving the node of memory CPU limits are a little bit more challenging placing a CPU limit on a pod is not the same as placing a memory limit on a pod because memory is predictable we know how much memory we can allocate and we can simply not use that memory for other processes if we want to allocate or limit and those those sort of things CPU is a little bit more challenging because CPU is measured in Cycles it is a highly shared resource if you have a four core node all the pods on that node will use all of the cores available and basically CPU works as a queuing mechanism so when something is using a core another one will cue and wait for an available core so it's kind of a queuing mechanism where memory is kind of just allocate and use it it works slightly differently now the problem is if a microservice uses all the memory it can just be killed now generally by default run times and programming languages are designed designed to make use of all available cores so that means a microservice although it might not be busy when it tries to run compute it will try to spread its worker threads on multiple CPU cores that means a microservice will try to use all CPU that's available so if you have CPU limits it's a little bit more complicated to enforce and the way the Linux kernel enforces this is through throttling so if you say my micros service has a One Core CPU limit kubernetes and Linux specifically will actively throttle that microservice even if it does not get to one CPU limit and if you Benchmark this in a performance test you'll realize that there is some degradation between pods that have CPU limits and pods that don't even though those pods may not even use all their limits this is why it's generally encouraged not to use CPU limits and try to work more in giving your microservices accurate request values for CPU the Linux kernel is getting much better at allocating CPU to Pro processors and making sure that service has access to that CPU so for example if you have a four core machine and you have one micros service that requests three cores if that micros service doesn't use all three cores another pod can use some of those three cores but as soon as the Pod that requested the three cores starts using the cores all the way up it will starve the Pod that doesn't have a CPU request so CPU requests are very important to try to get right there are products such as virtual pod Auto scalers out there which helps you determine CPU requests I've done an entire video on the virtual pod autoscaler so check out the channel for more so that takes us to the yaml and if we take a look at the yaml it's very easy to set up requests and limits so here's an example you say resources you can specify a request object and a limit object and they basically just take values so you can say for this pod I'm requesting 64 MB of memory and for CPU 50 m cores now kubernetes measures CPU in mil cores generally and the request here is very important as I mentioned earlier you want to make this as accurate as possible based on sort of the current averages of CPU usage for your service and then we have limits limits for CPU and limits for memory if my service reaches this memory usage it will be killed by the Linux kernel and if you describe the Pod using cctl you'll see an event called boom killed that is the limit for memory for CPU you might see your microservice not being able to use more CPU than this if you specify a CPU limit kubernetes will actively throttle that service if you're using monitoring software like Prometheus there are metrics out there where you can see Throttle events for pods and this is very interesting when you start looking at this even if your microservice doesn't go even near the 500m specified in this limit you'll notice active throttling there are some very interesting articles if you're interested you can search Google for CPU limits and you'll quickly find a lot of blog posts and articles going into the reason why CPU limits are quite painful now there's another field that I thought to mention that is very important for pods and that is node selector node selector allows you to tell kubernetes to select certain nodes this can be really useful for certain situations for example by default I would always recommend to have a node selector that selects the operating system you might work for a company that has both Linux and windows nodes and kubernetes cannot schedule a Linux pod on a Windows node and vice versa so generally we would put a node selector to tell the scheduler to only select Linux nodes if we know our container is a Linux one you can also have different node pools if you start taking a look at kubernetes in the cloud you might have different virtual machine types for different purposes you could have virtual machine types that have faster dis you've got ones with higher memory you've got ones with better Network bandwidth and they might have labels on them this is where labels come in when we write a node selector we select using labels our nodes will have the right labels on them and generally kubernetes will have the OS label on all nodes by default so going back to our yaml I would always recommend to have the OS node selector there so under spec you can have a field called node selector and the label is kubernetes doio this is the default label on all nodes for obvious reasons we pick Linux because our pod can only run on a Linux node if you don't specify this and your cluster has Windows nodes sometimes your pod may go into a container creating status and it may hang there or it might be in a crash Loop because it cannot start on that node so good to understand node selectors generally those are the only reasons why I would use node selectors and generally I would discourage people from placing pods to nodes kubernetes is not like traditional infrastructure where you script up certain things to go to certain VMS in kubernetes you kind of want to make use of all your compute and you want kubernetes to decide where to place things based on resource constraints resource requests and limits and also certain VMS might be under pressure so kubernetes is a little bit smarter in making those decisions at runtime for placing your pods on the right nodes so let's go ahead and deploy this pod I've got some comments in the yaml I'm going to create a new cluster just for testing purpose using kind I'm going to say kind create cluster my cluster name is pods and I'm going to run kubernetes 1.31 I'm going to go to the terminal paste that and go ahead and create our kubernetes cluster if you're new to the series and you're new to kubernetes I would highly recommend to check out the playlist linked down below it is around episode 2 where we create a cluster and for local testing and demo purposes and local learning purpose I like to use a utility called kind which allows me to create lightweight kubernetes clusters in Docker containers that is is really great for testing purposes and learning purpose and you can delete the cluster when you're done very quickly it also allows you to run multiple clusters for multiple prototypes and demos now after running that you can see it's created our cluster and our cluster is now ready to use I can do Cube CTL get nodes we can see our node is now ready so to deploy this pod. yaml I can say Cube C minus and I can say minus n if I want to specify a namespace but we don't have to do this because we have the Nam space defined in the yaml as default so we'll use the default namespace and what I'll do is I'll do the apply command to apply the yaml and I say minus F pointing to the file I want to apply and that is in the kubernetes pods folder and it's pod. yaml go ahead and run that and you can see our pod is now created I can do Cube CTL get pods and you can see this is the status our pod is in container creating if I run it again after some time we can see status is now running if you do Cube CTL get pods there's a couple of commands I'd like to show you in order to troubleshoot these pods if you don't see the running status and it's in Crash loop back off status you can get the logs of the Pod by saying Cube CTL logs and then the name of the Pod grab the name paste it that'll give you the logs you can see the logs of all my liveliness probes that's happening at the moment that is the logs command another command that's useful is the cube C describe command I say Cube CTL describe pod with the name of the pod and this will give you important information if your pod is not running you'll get some reasoning as to why there's a couple of details about where the Pod is deployed to what node the labels the status its IP address you can see the IP here couple of things like the image it's running Port it's exposing and here's the important part here not just does it show request and limits it tells us if it's ready or not so if probes are failing we'll see it here it tells us if it's restarted and it will give us reasoning here as to why it's not running if it's out of memory it'll say things like o killed and the most important one here is if we look down we'll see conditions and we'll see events you can see here it says successfully assigned to the node it's pulling the image if you're having any sorts of scheduling issues it'll come up here and it's created our container and started it if your pod is crashed or that there's some problems with it like a secret is missing a configuration is missing the credentials to your registry is not correct it will fail over here so that's a useful command for troubleshooting pods now that's it for our quick introduction to pods and we'll be using a lot of this knowledge and we'll elaborate on this as we go into the next video as I mentioned before we'll use a pod when we look at deployments so we will start elaborating on that in a future video now if you like the video be sure to like And subscribe and hit the bell and check out the link down below to the course content I mentioned earlier so you can follow the development of the ultimate devops course and if you want to support the channel even further hit the join button down below to become a YouTube member and as always thanks for watching and until next time peace [Music]
+
+
+
+
+---
+
+Title: What are Kubernetes Pods + How to Manage Pods [Kubectl] - Mirantis
+Mirantis named Foundational NVIDIA AI Cloud ISV Partner. **[READ THE RELEASE](https://www.mirantis.com/company/press-center/company-news/mirantis-joins-nvidia-ai-cloud-ready-initiative-as-founding-isv-partner-bringing-a-validated-metal-to-model-stack-to-nvidia-cloud-partners/)**
+
+[Contact Us](https://www.mirantis.com/contact/)
+
+[Docs](https://docs.mirantis.com/welcome/?_gl=1*1yyrbh2*_ga*MjYzNjA2OTc0LjE3MzU5MjEwOTI.*_ga_M1T8XN6VZK*MTc0NDEzNzI0MS4xMzIuMC4xNzQ0MTM3MjQxLjAuMS4xOTU5NDk0NjE4)
+
+[Store](https://store.mirantis.com/?dl_cd=eyJrdiI6IktWX2ZmM2RjNjhkMTBhMTE4MzdhMDQyZjU1YTU4ODJjYzBmIiwiYWNjSWQiOiJkMWUwODU3Mi1hZmJkLTQzY2YtOTgyYS0zMGY4Yjk4OGE5NzEiLCJpc1ByZXZpZXciOmZhbHNlLCJleHAiOjE3NDQxNDMwNzExMzV9&_gl=1%2Ay91iu0%2A_ga%2AMjYzNjA2OTc0LjE3MzU5MjEwOTI.%2A_ga_M1T8XN6VZK%2AMTc0NDE0MzA1Ny4xMzMuMC4xNzQ0MTQzMDU3LjAuMS4xOTUzMjQ4NTQ.)
+
+[Partners](https://www.mirantis.com/partners/)
+
+[Training](https://training.mirantis.com/)
+
+[![Mirantis](https://www.mirantis.com/images/mirantis-logo-inverted-horizontal-one-color.png)](https://www.mirantis.com/)
+
+Platform
+
+![k0rdent AI](https://a.storyblok.com/f/189401/1136x261/2b4a792cdd/k0rdent-ai-logo-horizontal-inverted.svg)
+
+k0rdent AI: Provision multi-tenanted AI-ready infrastructure and core services
+
+[WHY k0RDENT](https://www.mirantis.com/why-k0rdent/)
+
+VIDEO: Run Anywhere. Automate Everything. k0rdent in 30 seconds.
+
+Solutions
+
+FROM METAL-TO-MODEL™
+
+[IaaS\\
+\\
+Unified infrastructure automation](https://www.mirantis.com/infrastructure-as-a-service/) [- Multi-Cluster](https://www.mirantis.com/infrastructure-as-a-service/#multi-cluster) [- Hybrid Multicloud](https://www.mirantis.com/infrastructure-as-a-service/#hybrid-multicloud) [- Workload Migration](https://www.mirantis.com/infrastructure-as-a-service/#workload-migration) [- Virtualization](https://www.mirantis.com/infrastructure-as-a-service/#virtualization) [- Private Clouds](https://www.mirantis.com/infrastructure-as-a-service/#private-clouds)
+
+[GPU PaaS\\
+\\
+GPU provisioning & partitioning](https://www.mirantis.com/gpu-platform-as-a-service/) [- AI Cloud](https://www.mirantis.com/gpu-platform-as-a-service/#ai-cloud) [- Sovereign Cloud](https://www.mirantis.com/gpu-platform-as-a-service/#sovereign-cloud) [- Enterprise AI Factory](https://www.mirantis.com/gpu-platform-as-a-service/#enterprise-ai-factory) [- Government AI Factory](https://www.mirantis.com/gpu-platform-as-a-service/#government-ai-factory)
+
+[AI PaaS\\
+\\
+Training, inference & self-service AI](https://www.mirantis.com/ai-platform-as-a-service/) [- Turnkey Training](https://www.mirantis.com/ai-platform-as-a-service/#turnkey-training) [- Turnkey Inference](https://www.mirantis.com/ai-platform-as-a-service/#turnkey-inference) [- Self-Service Portals](https://www.mirantis.com/ai-platform-as-a-service/#self-service-portal)
+
+[AI Services\\
+\\
+Expert support & services](https://www.mirantis.com/ai-services/) [- MCP AdaptiveOps](https://www.mirantis.com/ai-services/#mcp-adaptiveops)
+
+Services
+
+[Modern Application Delivery](https://www.mirantis.com/modern-application-development/)
+
+[App Modernization](https://www.mirantis.com/application-migration-and-modernization/)
+
+[Cloud Platform Operations](https://www.mirantis.com/cloud-platform-operations/)
+
+[AI Inferencing Platform](https://www.mirantis.com/ai-inferencing-platform/)
+
+[Workload Migration](https://www.mirantis.com/workload-migration/)
+
+[MCP AdaptiveOps](https://www.mirantis.com/mcp-adaptiveops/)
+
+[Enterprise Support](https://www.mirantis.com/support/enterprise-support-options/)
+
+Resources
+
+KNOWLEDGE BASE
+
+[Resource Library](https://www.mirantis.com/resources/)
+
+[Blog](https://www.mirantis.com/blog/)
+
+[Case Studies](https://www.mirantis.com/cloud-case-studies/)
+
+[Cloud Native Cookbook](https://www.mirantis.com/cloud-native-cookbook/)
+
+[Guided Demos](https://www.mirantis.com/resources?asset_type=guided-demo)
+
+[Tech Talks](https://www.mirantis.com/labs/)
+
+[Videos](https://www.mirantis.com/resources?asset_type=video)
+
+[Webinars](https://www.mirantis.com/cloud-webinars/)
+
+COMPANY
+
+[Why Mirantis](https://www.mirantis.com/why-mirantis/)
+
+[About](https://www.mirantis.com/about/)
+
+[Press Releases](https://www.mirantis.com/company/press-center/)
+
+[Careers](https://www.mirantis.com/careers/)
+
+[Leadership](https://www.mirantis.com/company/leadership/)
+
+[Events](https://www.mirantis.com/events/)
+
+[GET STARTED](https://www.mirantis.com/get-started/)
+
+[![Mirantis](https://www.mirantis.com/images/mirantis-logo-inverted-horizontal-one-color.png)](https://www.mirantis.com/)
+
+Platform
+
+[Why k0rdent](https://www.mirantis.com/why-k0rdent/)
+
+VIDEO: Run Anywhere. Automate Everything. k0rdent in 30 seconds.
+
+Solutions
+
+[IaaS](https://www.mirantis.com/infrastructure-as-a-service/)
+
+[— Multi-Cluster](https://www.mirantis.com/infrastructure-as-a-service/#multi-cluster)
+
+[— Hybrid Multicloud](https://www.mirantis.com/infrastructure-as-a-service/#hybrid-multicloud)
+
+[— Workload Migration](https://www.mirantis.com/infrastructure-as-a-service/#workload-migration)
+
+[— Virtualization](https://www.mirantis.com/infrastructure-as-a-service/#virtualization)
+
+— Private Clouds
+
+[GPU PaaS](https://www.mirantis.com/gpu-platform-as-a-service/)
+
+[— AI cloud](https://www.mirantis.com/gpu-platform-as-a-service/#ai-cloud)
+
+[— Sovereign Cloud](https://www.mirantis.com/gpu-platform-as-a-service/#sovereign-cloud)
+
+[— Enterprise AI Factory](https://www.mirantis.com/gpu-platform-as-a-service/#enterprise-ai-factory)
+
+[— Government AI Factory](https://www.mirantis.com/gpu-platform-as-a-service/#government-ai-factory)
+
+[AI PaaS](https://www.mirantis.com/ai-platform-as-a-service/)
+
+[— Turnkey Training](https://www.mirantis.com/ai-platform-as-a-service/#turnkey-training)
+
+[— Turnkey Inference](https://www.mirantis.com/ai-platform-as-a-service/#turnkey-inference)
+
+[— Self-Service Portals](https://www.mirantis.com/ai-platform-as-a-service/#self-service-portal)
+
+[AI Services](https://www.mirantis.com/ai-services/)
+
+[— MCP AdaptiveOps](https://www.mirantis.com/ai-services/#mcp-adaptiveops)
+
+Services
+
+[Modern Application Delivery](https://www.mirantis.com/modern-application-development/)
+
+[App Modernization](https://www.mirantis.com/application-migration-and-modernization/)
+
+[Cloud Platform Operations](https://www.mirantis.com/cloud-platform-operations/)
+
+[AI Inferencing Platform](https://www.mirantis.com/ai-inferencing-platform/)
+
+[Workload Migration](https://www.mirantis.com/workload-migration/)
+
+[MCP AdaptiveOps](https://www.mirantis.com/mcp-adaptiveops/)
+
+[Enterprise Support](https://www.mirantis.com/support/enterprise-support-options/)
+
+Resources
+
+KNOWLEDGE BASE
+
+[Resource Library](https://www.mirantis.com/resources/)
+
+[Blog](https://www.mirantis.com/blog/)
+
+[Case Studies](https://www.mirantis.com/cloud-case-studies/)
+
+[Cloud Native Cookbook](https://www.mirantis.com/cloud-native-cookbook/)
+
+[Guided Demos](https://www.mirantis.com/resources?asset_type=guided-demo)
+
+[Tech Talks](https://www.mirantis.com/labs/)
+
+[Videos](https://www.mirantis.com/resources?asset_type=video)
+
+[Webinars](https://www.mirantis.com/cloud-webinars/)
+
+COMPANY
+
+[Why Mirantis](https://www.mirantis.com/why-mirantis/)
+
+[About](https://www.mirantis.com/about/)
+
+[Press Releases](https://www.mirantis.com/company/press-center/)
+
+[Careers](https://www.mirantis.com/careers/)
+
+[Leadership](https://www.mirantis.com/company/leadership/)
+
+[Events](https://www.mirantis.com/events/)
+
+[Store](https://store.mirantis.com/?dl_cd=eyJrdiI6IktWX2ZmM2RjNjhkMTBhMTE4MzdhMDQyZjU1YTU4ODJjYzBmIiwiYWNjSWQiOiJkMWUwODU3Mi1hZmJkLTQzY2YtOTgyYS0zMGY4Yjk4OGE5NzEiLCJpc1ByZXZpZXciOmZhbHNlLCJleHAiOjE3NDQyMzUxNDgwMTh9&_gl=1*n71p82*_ga*MjYzNjA2OTc0LjE3MzU5MjEwOTI.*_ga_M1T8XN6VZK*MTc0NDIzNTA5OS4xMzcuMC4xNzQ0MjM1MDk5LjAuMS4xMDA1MzM5Njc4)
+
+[Partners](https://www.mirantis.com/partners/)
+
+[Training](https://training.mirantis.com/?dl_cd=eyJrdiI6IktWX2ZmM2RjNjhkMTBhMTE4MzdhMDQyZjU1YTU4ODJjYzBmIiwiYWNjSWQiOiJkMWUwODU3Mi1hZmJkLTQzY2YtOTgyYS0zMGY4Yjk4OGE5NzEiLCJpc1ByZXZpZXciOmZhbHNlLCJleHAiOjE3NDQyMzUyMTcxMDF9&_gl=1*1hwj08z*_ga*MjYzNjA2OTc0LjE3MzU5MjEwOTI.*_ga_M1T8XN6VZK*MTc0NDIzNTA5OS4xMzcuMC4xNzQ0MjM1MDk5LjAuMS4xMDA1MzM5Njc4)
+
+[Get Started](https://www.mirantis.com/get-started/)
+
+[Contact Us](https://www.mirantis.com/contact/)
+
+[< Cloud Native Cookbook](https://www.mirantis.com/cloud-native-cookbook/)
+
+# What are Kubernetes pods?
+
+## [Kubernetes](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-is-kubernetes) organizes containers into groups called pods — an abstraction that drives Kubernetes’ scheduling flexibility.
+
+![image](https://a.storyblok.com/f/189401/1080x608/daa7ee5484/what_is_k8s.png)
+
+## Table of Contents
+
+- [Why Kubernetes uses pods](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-1)
+- [How do Kubernetes pods work?](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-2)
+- [Kubernetes pod lifecycle](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-2-1)
+- [How Pods Communicate with Each Other](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-2-2)
+- [Single container pods vs multi-container pods](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-2-3)
+- [Managing pods with kubectl](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-3)
+- [Keeping Kubernetes pods healthy](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-3-1)
+- [Kubernetes pods for continuous deployment](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-4)
+- [Simplify Kubernetes Pods with Mirantis](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-are-kubernetes-pods/#section-5)
+
+A **pod** is the smallest deployable and schedulable unit in Kubernetes. When you deploy an instance of a microservice, such as a web server, Kubernetes does not run the container directly. Instead, it runs the container inside a pod, which provides the execution context for that workload, including networking, storage volumes, and runtime configuration.
+
+Each pod consists of one or more containers. While single-container pods are the most common, Kubernetes also supports multi-container pods for advanced use cases where containers must work together and share resources. This raises an important question: what is the difference between a container and a pod, and why does Kubernetes introduce this extra abstraction?
+
+## **Why Kubernetes uses pods**
+
+Containers bundle application code and dependencies, making them ideal for packaging microservices. However, in a distributed system running at scale, Kubernetes must also solve problems related to networking, scheduling, scaling, and lifecycle coordination.
+
+Pods provide a consistent abstraction that simplifies these challenges. Each pod is assigned a unique IP address accessible via Services and DNS, allowing it to communicate with other pods across the cluster without needing to know where those pods are running. This remains true even as pods are created, destroyed, or rescheduled across nodes.
+
+![](https://a.storyblok.com/f/146871/1200x190/e3bd974a4a/single-container-pod-diagram.png)
+
+For workloads that require tight coupling, such as an application container paired with a logging or proxy sidecar, Kubernetes allows multiple containers to run within the same pod. Containers in the same pod share the same network namespace, which means that they can communicate using `localhost` and access shared storage volumes. This design makes it easier to coordinate closely related processes without embedding that complexity into the application itself.
+
+![](https://a.storyblok.com/f/146871/1200x510/6056888d65/multi-container-pod-diagram.png)
+
+## **How do Kubernetes pods work?**
+
+Kubernetes pods can be created manually, but in most production environments they are created and managed automatically by higher-level controllers. Pods are designed to be ephemeral; they are not intended to be long-lived or manually maintained. When a pod is created, the Kubernetes scheduler assigns it to a suitable node based on resource requirements, placement rules, and cluster availability.
+
+For scalable workloads, Kubernetes runs multiple identical pod replicas across the cluster. These replicas allow Kubernetes to distribute load, tolerate failures, and perform rolling updates without downtime.
+
+If demand increases, Kubernetes can create additional pod replicas automatically. When demand drops, excess replicas can be removed just as seamlessly.
+
+## **Kubernetes pod lifecycle**
+
+Understanding the lifecycle of a Kubernetes pod is essential to mastering Kubernetes operations. From the moment you create a pod using kubectl to the time it’s terminated, each pod goes through a predictable series of phases: Pending, Running, Succeeded, or Failed. When you first **create a pod the scheduler** assigns it to a node based on scheduling decisions and resource availability. The pod enters the “Pending” state while its container images are being pulled and resources are allocated. Once everything is ready, the pod transitions to “Running.”
+
+Kubernetes continuously monitors pods. If a pod crashes or stops responding, depending on its configuration, it may be restarted, replaced, or left terminated. This built-in resiliency — managed by controllers — ensures your **k8s pods** behave predictably, even in complex deployments.
+
+Whether you’re working with ephemeral or long-running pods, it’s helpful to use commands like `kubectl get pods` to monitor their status.
+
+## How Pods Communicate with Each Other
+
+Each pod in Kubernetes is assigned a unique IP address, and containers within the same pod can communicate over `localhost`, sharing the same network namespace. This setup is perfect for **multi-container pods** that need to tightly coordinate tasks, such as a web server container and a logging sidecar.
+
+For communication across different pods — even across nodes — Kubernetes services act as stable endpoints, abstracting the underlying IPs of **pods in Kubernetes**. Whether you’re deploying a frontend that needs to talk to a backend service, or scaling microservices across a cluster, this IP-based networking and service abstraction simplifies orchestration.
+
+And when troubleshooting, use commands like `kubectl pods` or `kubectl describe pod [pod-name]`to inspect how your **pods Kubernetes** are interacting and behaving.
+
+## **Single container pods vs multi-container pods**
+
+Most often, developers start with **single-container pods**, where one container handles a distinct microservice. This keeps deployments clean, predictable, and aligned with best practices for containerization.
+
+However, Kubernetes also supports **multi-container pods** — helpful in tightly coupled scenarios where containers must share storage or memory. For example, a helper container might pull configuration files or handle metrics export, running alongside your main app in the same pod. This pattern is often referred to as the **sidecar pattern**, and it’s foundational for observability, logging, and security in cloud-native environments.
+
+So when you’re deciding between **containers vs pods**, the key difference is: containers are the app runtimes, while pods are the deployable units that contain one or more containers and define their shared context. Kubernetes doesn't schedule containers — it schedules pods.
+
+## **Managing pods with kubectl**
+
+Earlier, we said that pods are typically managed automatically, and this is true. But we do have the ability to manage pods manually using the Kubernetes command-line tool kubectl. For hands-on practice with pods, [spin up a simple Kubernetes development environment](https://www.mirantis.com/kubernetes-lab/how-to-build-a-kubernetes-development-environment/) and try the following commands:
+
+In the command line, you can use `kubectl` to create a pod from the specifications in a YAML file. To do so, you’ll use the `-f` flag on the `create command`, including the filepath for your YAML file.
+
+For this example, let’s use the following YAML file. Using the filename `example-pod.yml`, place this in your working directory:
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+  labels:
+    role: example-role
+spec:
+  containers:
+    - name: web
+      image: nginx
+      ports:
+        - name: web
+          containerPort: 80
+          protocol: TCP
+```
+
+Now, in the command line, use the following command to create your pod:
+
+```
+kubectl create -f example-pod.yml
+```
+
+Now your pod should be created. To confirm, you can check for information on the pods in your current namespace:
+
+```
+kubectl get pods
+```
+
+This should return a readout with information on the readiness, status, restarts, and age for all running pods:
+
+```
+NAME          READY   STATUS    RESTARTS   AGE
+example-pod   1/1     Running   0          7m49s
+```
+
+Now let’s delete our example pod. We can do this in two principal ways: by pointing to the YAML manifest that created the pod…
+
+```
+kubectl delete -f example-pod.yml
+```
+
+Or you can simply refer to the pod by name, so long as it is in your default namespace:
+
+kubectl delete example-pod
+
+It’s important to note that, by default, deleted pods will continue running for a grace period that is usually 30 seconds. You can specify a grace period with the `--grace-period` flag. For pods in other namespaces, you can simply use the `--namespace` flag. And if you need to force delete a Kubernetes pod, you can use `--force`.
+
+Let’s imagine, then, that `example-pod` is running in a namespace called `dev` and you want to force-delete it immediately. In this situation, you could use:
+
+```
+kubectl delete example-pod --grace-period=0 --force --namespace dev
+```
+
+## **Keeping Kubernetes pods healthy**
+
+Keeping **Kubernetes pods** healthy is critical for maintaining uptime and ensuring smooth operation of your containerized workloads. Kubernetes uses **readiness** and **liveness probes** to monitor the health of pods. A liveness probe checks if a container inside a pod is still running, while a readiness probe checks if it's ready to accept traffic. If a container fails a liveness probe, Kubernetes can automatically restart the the container to recover it — no human intervention required.
+
+For manual inspection, you can use `kubectl get pods` or `kubectl describe pod [pod-name]` to see detailed health information. If you're trying to figure out what's going wrong, `kubectl logs [pod-name]` is your best friend.
+
+And if a pod enters a crash loop or becomes unresponsive, sometimes the fastest path to resolution is to **kubectl delete a pod** and let the controller spin up a replacement. Kubernetes makes sure that healthy replicas replace failed pods seamlessly, helping you stay resilient even in dynamic, large-scale environments.
+
+Whether you're operating a development cluster or managing **pods in Kubernetes** at scale, maintaining pod health ensures your microservices keep running smoothly — and that your team spends more time building, less time firefighting.
+
+## **Kubernetes pods for continuous deployment**
+
+Although pods can be created manually, Kubernetes is designed for automated lifecycle management. In practice, pods are created and managed by controllers that maintain the desired state of the system.
+
+This automation enables Kubernetes to support:
+
+- Fault tolerance through automatic replacement
+
+- Elastic scaling based on demand
+
+- Rolling updates with no service interruption
+
+
+When a node or process fails, Kubernetes replaces affected pods automatically. When an application version changes, traffic can be shifted gradually to new pods running the updated version, all without downtime.
+
+## Simplify Kubernetes Pods with Mirantis
+
+Kubernetes pods are the foundation of how applications are scheduled, scaled, and managed across a cluster. But running Kubernetes reliably in production requires more than understanding its abstractions — it requires a distribution designed for simplicity, security, and operational consistency.
+
+[k0s](https://k0sproject.io/) is a lightweight Kubernetes distribution that simplifies cluster operations without sacrificing enterprise-grade capabilities.
+
+Key features include:
+
+- **Single-Binary Kubernetes Distribution**: Core Kubernetes control plane components are packaged into a single binary, reducing installation complexity and operational overhead
+
+- **Flexible Deployment Model**: A wide range of environments are supported, from centralized data centers to edge locations
+
+- **Fully Conformant Kubernetes**: Upstream Kubernetes delivered without vendor lock-in, ensuring compatibility with standard tooling and workloads
+
+- **Designed for Operational Simplicity**: Moving parts and configuration sprawl are minimized, making it easier for platform teams to deploy, upgrade, and maintain clusters at scale
+
+
+If you’re looking to reduce operational complexity while maintaining full control over your Kubernetes platform, k0s provides a streamlined foundation for running pods at scale.
+
+Start exploring [k0s](https://k0sproject.io/) today!
+
+FREE EBOOK
+
+## Learn Kubernetes 5 Minutes at a Time
+
+A hands-on introduction to Kubernetes for developers
+
+[DOWNLOAD NOW](https://www.mirantis.com/resources/learn-kubernetes-5-minutes-at-a-time/)
+
+* * *
+
+## Next Up
+
+[![Overview illustration of Kubernetes architecture and its core functions.](https://a.storyblok.com/f/189401/1080x608/daa7ee5484/what_is_k8s.png)\\
+\\
+**What is Kubernetes Support?**\\
+\\
+Although you can download, install, and use Kubernetes for free, there are times when you are going to need professional support.\\
+\\
+READ NOW](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-is-kubernetes-support/)
+
+[![Overview illustration of Kubernetes architecture and its core functions.](https://a.storyblok.com/f/189401/1080x608/daa7ee5484/what_is_k8s.png)\\
+\\
+**What is Enterprise Kubernetes?**\\
+\\
+Enterprise Kubernetes delivers what upstream Kubernetes lacks, providing a complete solution for secure enterprise container and cloud computing at scale.\\
+\\
+READ NOW](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-is-enterprise-kubernetes/)
+
+[![Visual representation of the software-defined data center (SDDC) concept, featuring virtualization and abstraction layers.](https://a.storyblok.com/f/189401/1080x608/9c3d1ee48e/what_is_the_software_defined_datacenter_.png)\\
+\\
+**What is Kubernetes Orchestration?**\\
+\\
+Like a symphony conductor, Kubernetes provides a host of dynamic services for running, connecting, scaling, and managing complex, multi-container workloads...\\
+\\
+READ NOW](https://www.mirantis.com/cloud-native-concepts/getting-started-with-kubernetes/what-is-kubernetes-orchestration/)
+
+* * *
+
+[![k0rdent AI Overview & Capabilities cover](https://a.storyblok.com/f/189401/896x662/e3b227f752/k0rdent-ai-overview-featured.png/m/)\\
+**k0rdent AI Overview & Capabilities** \\
+\\
+Simplify AI infra from metal to model\\
+\\
+Learn More](https://www.mirantis.com/resources/k0rdent-ai-overview-capabilities/)
+
+[![k0rdent whitepaper cover](https://a.storyblok.com/f/189401/896x662/ce0db1e4eb/asset-k0rdent-wp-896x662.jpg/m/)\\
+**k0rdent: Helping Platform Engineers** \\
+\\
+Tame multi-cloud K8s complexity\\
+\\
+Download Whitepaper](https://www.mirantis.com/resources/k0rdent-helping-platform-engineers-meet-modern-infrastructure-challenges/)
+
+[![k0rdent Datasheet cover](https://a.storyblok.com/f/189401/896x662/342120e856/asset-k0rdent-896x662.png/m/)\\
+**k0rdent Datasheet** \\
+\\
+Open-source K8s platform engineering\\
+\\
+Download Datasheet](https://www.mirantis.com/resources/k0rdent-datasheet/)
+
+![Mirantis logo](https://a.storyblok.com/f/189401/300x33/d748706312/mirantis-logo-white.svg/m/237x28)
+
+- [![Linkedin Icon](https://a.storyblok.com/f/189401/31x33/0b55ce01b3/linkedin_logo_footer.svg)](https://www.linkedin.com/company/mirantis)
+- [![Facebook Icon](https://a.storyblok.com/f/189401/31x33/afcbb10872/facebook_logo_footer.svg)](https://www.facebook.com/MirantisUS)
+- [![Youtube Icon](https://a.storyblok.com/f/189401/31x33/c4337f134e/youtube_logo_footer.svg)](https://www.youtube.com/user/mirantisus)
+- [![X Icon](https://a.storyblok.com/f/189401/31x33/2099f2d050/x_logo_footer.svg)](https://twitter.com/MirantisIT)
+
+900 E Hamilton Avenue
+
+Suite 650
+
+Campbell, CA 95008
+
++1-650-963-9828
+
+[Privacy Policy](https://legal.mirantis.com/#privacy-notice)
+
+[Do Not Sell My Information](mailto:dataprivacy@mirantis.com)
+
+[UK Modern Slavery Act Statement](https://legal.mirantis.com/?_gl=1*1wo636m*_ga*MjE5MDE4ODU0LjE2OTU2NTM4MjA.*_ga_M1T8XN6VZK*MTcwMzcwNzU2MS40MC4xLjE3MDM3MDc1NzIuMC4wLjA.#template-mp3oj-9nr)
+
+###### Why k0rdent?
+
+- [Overview](https://www.mirantis.com/why-k0rdent/)
+
+###### Products
+
+- [Mirantis k0rdent AI](https://www.mirantis.com/software/mirantis-k0rdent-ai/)
+- [Mirantis k0rdent Enterprise](https://www.mirantis.com/software/mirantis-k0rdent-enterprise/)
+- [Mirantis Kubernetes Engine](https://www.mirantis.com/software/mirantis-kubernetes-engine/)
+- [Mirantis OpenStack for Kubernetes](https://www.mirantis.com/software/mirantis-openstack-for-kubernetes/)
+- [Mirantis Container Runtime](https://www.mirantis.com/software/mirantis-container-runtime/)
+- [Mirantis Secure Registry](https://www.mirantis.com/software/mirantis-secure-registry/)
+- [Lens Desktop](https://k8slens.dev/)
+- [amazee.io](https://www.amazee.io/)
+
+###### Open Source
+
+- [k0rdent](https://k0rdent.io/)
+- [k0smotron](https://k0smotron.io/)
+- [k0s](https://www.mirantis.com/software/k0s/)
+
+###### Solutions
+
+- [IaaS](https://www.mirantis.com/infrastructure-as-a-service/)
+- [GPU PaaS](https://www.mirantis.com/gpu-platform-as-a-service/)
+- [AI PaaS](https://www.mirantis.com/ai-platform-as-a-service/)
+- [AI Services](https://www.mirantis.com/ai-services/)
+
+###### Services
+
+- [Modern Application Delivery](https://www.mirantis.com/modern-application-development/)
+- [App Modernization](https://www.mirantis.com/application-migration-and-modernization/)
+- [Cloud Platform Operations](https://www.mirantis.com/cloud-platform-operations/)
+- [AI Inferencing Platform](https://www.mirantis.com/ai-inferencing-platform/)
+- [Workload Migration](https://www.mirantis.com/workload-migration/)
+- [Enterprise Support](https://www.mirantis.com/support/enterprise-support-options/)
+
+###### Knowledge Base
+
+- [Resource Library](https://www.mirantis.com/resources/)
+- [Blog](https://www.mirantis.com/blog/)
+- [Case Studies](https://www.mirantis.com/cloud-case-studies/)
+- [Webinars](https://www.mirantis.com/cloud-webinars/)
+- [Tech Talks](https://www.mirantis.com/labs/)
+- [Cloud Native Cookbook](https://www.mirantis.com/cloud-native-cookbook/)
+- [OpenShift vs Rancher vs Mirantis](https://www.mirantis.com/openshift-vs-rancher-vs-mirantis/)
+
+###### Company
+
+- [Why Mirantis](https://www.mirantis.com/why-mirantis/)
+- [Press Releases](https://www.mirantis.com/company/press-center/)
+- [About](https://www.mirantis.com/about/)
+- [Careers](https://www.mirantis.com/careers/)
+- [Leadership](https://www.mirantis.com/company/leadership/)
+- [Events](https://www.mirantis.com/events/)
+- [Contact Us](https://www.mirantis.com/contact/)
+
+© 2005 - 2026 Mirantis, Inc. All rights reserved. “Mirantis” and “FUEL” are registered trademarks of Mirantis, Inc. All other trademarks are the property of their respective owners.
+
+---
+
+Title: What are Kubernetes Pods? - VMware
+[Read the accessibility statement or contact us with accessibility-related questions.](https://www.broadcom.com/company/legal/accessibility)
+
+[Skip to main content](https://www.vmware.com/topics/kubernetes-pods#content)
+
+Login
+
+- [Cloud Services Console](https://console.cloud.vmware.com/)
+- [Broadcom Support](https://support.broadcom.com/)
+- [Partner Portal](https://partnerportal.broadcom.com/)
+
+1. [Resources](https://www.vmware.com/resources)
+2. [Topics](https://www.vmware.com/topics)
+3. Kubernetes Pods
+
+# What are Kubernetes Pods?
+
+A pod is the smallest execution unit in Kubernetes. A pod encapsulates one or more applications. Pods are ephemeral by nature, if a pod (or the node it executes on) fails, Kubernetes can automatically create a new replica of that pod to continue operations. Pods include one or more [containers](https://www.vmware.com/topics/containers)(such as Docker containers).
+
+Pods also provide environmental dependencies, including persistent storage volumes (storage that is permanent and available to all pods in the cluster) and configuration data needed to run the container(s) within the pod.
+
+![](https://www.vmware.com/media/blt8c9a8aaca0ffd4ac/bltf470e51a38407f8e/660d602439022f1de0c2ea6e/tn-kubernetes-in-mins.jpg)
+
+### Kubernetes in 5 mins
+
+- [Watch Now](https://www.youtube.com/watch?v=PH-2FfFD2PU)
+
+## What does a Pod do?
+
+Pods represent the processes running on a cluster. By limiting pods to a single process, Kubernetes can report on the health of each process running in the cluster. Pods have:
+
+- a unique IP address (which allows them to communicate with each other)
+
+- persistent storage volumes (as required)
+
+- configuration information that determine how a container should run.
+
+
+Although most pods contain a single container, many will have a few containers that work closely together to execute a desired function.
+
+## What are the benefits of a pod?
+
+When pods contain multiple containers, communications, and data sharing between them is simplified. Since all containers in a pod share the same network namespace, they can locate each other and communicate via localhost. Pods can communicate with each other by using another pods IP address or by referencing a resource that resides in another pod.
+
+Pods can include containers that run when the pod is started, say to perform initiation required before the application containers run. Additionally, pods simplify scalability, enabling replica pods to be created and shut down automatically based on changes in demand.
+
+## How does a pod work?
+
+Pods are created by workload resources called controllers, which manage rollout, replication, and health of pods in the cluster. For example, if a node in the cluster fails, a controller detects that the pods on that node are unresponsive and creates replacement pod(s) on other nodes.
+
+The three most common types of controllers are:
+
+- **Jobs** for batch-type jobs that are ephemeral, and will run a task to completion
+
+- **Deployments** for applications that are stateless and persistent, such as web servers (HPPT servers)
+
+- **StatefulSets** for applications that are both stateful and persistent such as databases
+
+
+If a pod has multiple containers, they are all scheduled together on the same server in the cluster, whether VM or physical server. All containers in the pod share their resources and dependencies and can coordinate their execution and termination. For example, pods can contain ‘init’ containers that run before the application containers run, setting up the environment for the applications that follow.
+
+Pods are almost always created by controllers which then can automatically manage the pod lifecycle, including replacing failed pods, replicating pods when necessary, and evicting the pod from cluster nodes when they are complete or no longer needed.
+
+Controllers use information in a pod template to create the pods, and controllers ensure that running pods match the deployment defined in the pod template, for example by creating replicas to match the number defined in the deployment.
+
+## How do pods communicate with each other?
+
+When a pod is created it is assigned its own unique IP address. If there are multiple containers within the pod, they can communicate between each other simply by using localhost. Communications outside of the pod is achieved by exposing a port. Communications between pods in a cluster takes advantage of the fact that Kubernetes assigns a cluster-private IP address to every pid in a cluster, eliminating the need to either explicitly create links between pods or to map container ports to host ports. In this way, every pod in a cluster can ‘see’ each other without the need for NAT.
+
+## What are the basic kubectl commands?
+
+Kubectl provides a number of commands that allow a user to create pods, run them by using deployments, check on status of running pods, and halt pods that are no longer needed. Either JSON (JavaScript Object Notation) or YAML (YAML Ain’t Markup Language) commands are valid for encoding commands.
+
+Commonly used kubectl commands are listed below:
+
+#### Get
+
+The kubectl get command will display tabular information on one or more resources. Information can be filtered using label selectors. Information can be displayed just from the existing namespace or for all namespaces in the cluster.
+
+The command “kubectl api-resources” will produce a list of all supported resources about which you can ‘get’ information. The general format for the kubectl get command is:
+
+$ kubectl get \[(-o\|--output=)json\|yaml\|wide\|custom-columns=...\|custom-columns-file=...\|go-template=...\|go-template-file=...\|jsonpath=...\|jsonpath-file=...\] (TYPE\[.VERSION\]\[.GROUP\] \[NAME \| -l label\] \| TYPE\[.VERSION\]\[.GROUP\]/NAME ...) \[flags\]
+
+#### Create Pods
+
+Pods are created using the create command in the format:
+
+$ kubectl create -f FILENAME.
+
+For example, the command:
+
+kubectl create -f ./mypod.yaml will create a new pod from the YAML file “mypod”
+
+#### Delete Pods
+
+The command “kubectl delete -f ./mypod.yaml” will delete the pod “mypod” from the cluster. Deleting pods is a graceful process; pods will continue running for a grace period (default of 30 seconds) before being forcefully terminated. The grace period value can be overwritten with the –grace-period flag if desired.
+
+## Recommended for You
+
+- [Kubernetes](https://www.vmware.com/topics/kubernetes)
+- [Kubernetes Deployment](https://www.vmware.com/topics/kubernetes-deployment)
+
+- [Kubernetes Networking](https://www.vmware.com/topics/kubernetes-networking)
+
+Currently viewing:
+
+What are Kubernetes Pods?
+
+- [What are Kubernetes Pods?](https://www.vmware.com/topics/kubernetes-pods#what-are-kubernetes-pods)
+- [What does a Pod do?](https://www.vmware.com/topics/kubernetes-pods#what-does-a-pod-do)
+- [What are the benefits of a pod?](https://www.vmware.com/topics/kubernetes-pods#what-are-the-benefits-of-a-pod)
+- [How does a pod work?](https://www.vmware.com/topics/kubernetes-pods#how-does-a-pod-work)
+- [How do pods communicate with each other?](https://www.vmware.com/topics/kubernetes-pods#how-do-pods-communicate-with-each-other)
+- [What are the basic kubectl commands?](https://www.vmware.com/topics/kubernetes-pods#what-are-the-basic-kubectl-commands)
+- [Recommended for You](https://www.vmware.com/topics/kubernetes-pods#recommended-for-you)
+
+## Related Solutions and Products
+
+![](https://www.vmware.com/media/blt8c9a8aaca0ffd4ac/bltfeb464f60902e383/660d437c77c35b8ee5903a37/icon-prod-tanzu-kubernetes-grid-rgb-400px.svg)
+
+[Enterprise-ready Kubernetes runtime](https://tanzu.vmware.com/kubernetes-grid)
+
+Streamline operations across multi-cloud infrastructure.
+
+![](https://www.vmware.com/media/blt8c9a8aaca0ffd4ac/blt7654672d248b6b92/660d4392b3ecbd77b7f75d42/icon-prod-tanzu-rgb-400px.svg)
+
+[Kubernetes Versus Docker](https://www.vmware.com/topics/kubernetes-vs-docker)
+
+What tools should you choose to succeed with containers?
+
+![](https://www.vmware.com/media/blt8c9a8aaca0ffd4ac/blt7654672d248b6b92/660d4392b3ecbd77b7f75d42/icon-prod-tanzu-rgb-400px.svg)
+
+[Docker Containers on Kubernetes](https://kube.academy/courses/hands-on-with-kubernetes-and-containers)
+
+Once you understand what [containers](https://tanzu.vmware.com/developer/guides/containers/what-are-containers) and [Kubernetes](https://tanzu.vmware.com/developer/guides/kubernetes/what-is-kubernetes) are, the next step is to learn how the two work together.

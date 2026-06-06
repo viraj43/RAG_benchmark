@@ -1,0 +1,336 @@
+Title: Dependencies with yield - FastAPI
+Key Highlights:
+Python 3.10+
+[...]
+Python 3
+[...]
+10+
+[...]
+.10+
+[...]
+.10+
+[...]
+This works thanks to Python's Context Managers.
+
+FastAPI uses them internally to achieve this.
+[...]
+Python 3.1
+[...]
+app = FastAPI()
+[...]
+Python 3.10+
+[...]
+from typing import Annotated
+[...]
+from fastapi import
+[...]
+app = FastAPI()
+[...]
+## Context Managers¶
+[...]
+`with` statement
+[...]
+When you create a dependency with`yield`, FastAPI will internally create a context manager for it, and combine it with some other related tools.
+[...]
+### Using context managers in dependencies with yield¶
+[...]
+In Python, you can create Context Managers by creating a class with two methods: __enter__() and __exit__().
+
+You can also use them inside of FastAPI dependencies with`yield` by using`with` or`async with` statements inside of the dependency function:
+[...]
+Python 3.10+
+[...]
+```
+class MySuperContextManager:
+    def __init__(self):
+        self.db = DBSession()
+
+    def __enter__(self):
+        return self.db
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.db.close()
+[...]
+async def get_db():
+    with MySuperContextManager() as db:
+        yield db
+
+```
+[...]
+Another way to create a context manager is with:
+[...]
+using them to decorate a function with a single`yield`.
+[...]
+That's what FastAPI uses internally for dependencies with`yield`.
+
+But you don't have to use the decorators for FastAPI dependencies (and you shouldn't).
+
+FastAPI will do it for you internally.
+
+---
+
+Title: Dependencies with Yield | FastAPI Basics | FastAPI Tutorial
+Key Highlights:
+Dependencies with Yield | FastAPI Basics | FastAPI Tutorial
+
+---
+
+Title: docs/en/docs/tutorial/dependencies/dependencies-with-yield.md at master · fastapi/fastapi
+Key Highlights:
+FastAPI supports dependencies that do some <dfn title='sometimes also called "exit code", "cleanup code", "teardown code", "closing code", "context manager exit code", etc.'>extra steps after finishing</dfn>.
+
+To do this, use `yield` instead of `return`, and write the extra steps (code) after.
+[...]
+/// tip
+
+Make sure to use `yield` one single time per dependency.
+[...]
+/// note | Technical Details
+
+Any function that is valid to use with:
+[...]
+* `@contextlib.contextmanager` or
+* `@contextlib.asynccontextmanager`
+
+would be valid to use as a **FastAPI** dependency.
+
+In fact, FastAPI uses those two decorators internally.
+[...]
+For example, you could use this
+[...]
+create a database session and close it after finishing.
+[...]
+Only the code prior to and including the `yield` statement is executed before creating a response:
+[...]
+The yielded value is what is injected into *path operations* and other dependencies:
+[...]
+The code following the `yield` statement is executed after the response:
+[...]
+| Technical Details
+[...]
+This works thanks to Python's Context Managers.
+
+**FastAPI** uses them internally to achieve this.
+[...]
+## Context Managers { #context-managers }
+[...]
+"Context Managers" are any of those Python objects that you can use in a `with` statement.
+[...]
+For example, you can use `with` to read a file:
+[...]
+("./somefile.txt") as f:
+    contents = f.read()
+    print(contents
+[...]
+Underneath, the `open("./somefile.txt")` creates an object that is called a "Context Manager".
+[...]
+When the `with` block finishes, it makes sure to close the file, even if there were exceptions.
+[...]
+When you create a dependency with `yield`, **FastAPI** will internally create a context manager for it, and combine it with some other related tools.
+[...]
+### Using context managers in dependencies with `yield` { #using-context-managers-in-dependencies-with-yield }
+[...]
+This is, more or less, an "advanced" idea.
+[...]
+If you are just starting with **FastAPI** you might want to skip it for now.
+[...]
+///
+
+In Python, you can create Context Managers by creating a class with two methods: `__enter__()` and `__exit__()`.
+
+You can also use them inside of **FastAPI** dependencies with `yield` by using
+`with` or `async with` statements inside of the dependency function:
+[...]
+{* ../../docs_src/dependencies/tutorial010_py310.py hl[1:9,13] *}
+[...]
+/// tip
+
+Another way to create a context manager is with:
+[...]
+* `@contextlib.contextmanager` or
+* `@contextlib.asynccontextmanager`
+
+using them to decorate a function with a single `yield`.
+
+That's what **FastAPI** uses internally for dependencies with `yield`.
+
+But you don't have to use the decorators for FastAPI dependencies (and you shouldn't).
+
+FastAPI will do it for you internally.
+
+---
+
+Title: Unlocking the Power of Async: A Deep Dive into FastAPI's User Guide on Mastering Dependencies with Yield
+Key Highlights:
+Dependencies in FastAPI are a way to share logic and data between different parts of your application, such as database connections or user authentication. They can be injected into path operation functions, reducing code duplication and separating concerns for cleaner, more maintainable codebases.
+[...]
+The magic happens when you combine dependencies with Python's yield keyword. Traditionally used in generators, yield in FastAPI dependencies allows for creating and cleaning up resources on-demand. This pattern is incredibly useful for ensuring resources like database connections are properly managed, avoiding leaks and ensuring that each request has a fresh, isolated environment.
+[...]
+Consider a scenario where you need to connect to a database to fetch some data for your API. Using FastAPI's dependency injection system with yield, you can create a dependency that handles the connection setup and teardown process seamlessly.
+[...]
+```
+from fastapi import Depends, FastAPI
+from sqlalchemy.orm import Session
+from . import models, schemas, database
+
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+app = FastAPI()
+
+@app.get("/items/")
+def read_items(db: Session = Depends(get_db)):
+    items = db.query(models.Item).all()
+    return items
+
+```
+[...]
+This example demonstrates how a database session is opened when a request is made and closed after the response is sent, without requiring explicit connection management in your path operation functions.
+[...]
+FastAPI's dependency system is not limited to simple use cases. It can handle more complex scenarios with ease. For instance, you can use dependencies within other dependencies, create sub-dependencies, and even utilize them for tasks like authentication and authorization, background tasks, and more.
+[...]
+The flexibility of the dependency system, combined with the power of async and yield, opens up a plethora of possibilities for efficiently managing shared resources, pre-request data processing, and post-request operations in your FastAPI applications.
+[...]
+- Asynchronous Dependencies: When dealing with I/O-bound operations in your dependencies, prefer using asynchronous database libraries and async functions to get the full benefit of FastAPI's async capabilities.
+- Error Handling: Implement try/except blocks within your dependencies to handle exceptions gracefully. This ensures that your application can respond appropriately to errors and maintain a consistent state.
+- Resource Management: Always ensure that any resource acquired in a dependency (like a database connection) is properly released or closed. This prevents resource leaks that could degrade your application's performance over time.
+[...]
+maintainable APIs
+
+---
+
+Title: Use of `contextlib.contextmanager` with `Depends` · Issue #2212 · fastapi/fastapi
+Key Highlights:
+lib.contextmanager
+[...]
+Based on A dependency with yield and try I wanted to try and reuse the same code to manage sessions in other parts of my app (tests, management scripts, setup, etc.). So based on my reading of the Tip at the bottom, I tried adding `@contextlib.contextmanager` to the function. Which prevents `Depends(get_db)` from working correctly.
+[...]
+The Tip says you don't *have* to use the decorators, and that you *shouldn't*. To me, this implies it is possible to use the decorator, but discouraged. Unfortunately, it appears it is not possible. I would guess this functionality is probably working as intended, and the docs can be updated to be more clear. Perhaps just remove reference to `@contextlib.contextmanager`?
+[...]
+Below is a standalone snippet to show the current functionality. It remains true for async generators as well.
+[...]
+```Python
+from contextlib import contextmanager
+from typing import Generator
+from fastapi import FastAPI, Depends
+[...]
+class DBSession:
+    def query(self, text: str) -> str:
+        return text
+
+    def close(self) -> None:
+        pass
+[...]
+def get_session_without() -> Generator[DBSession, None, None]:
+    session = DBSession()
+    try:
+        yield session
+    finally:
+        session.close()
+[...]
+@contextmanager
+def get_session_with() -> Generator[DBSession, None, None]:
+    session = DBSession()
+    try:
+        yield session
+    finally:
+        session.close()
+[...]
+app = FastAPI()
+
+@app.get("/without")
+async def route_without_session(
+    session: DBSession = Depends(get_session_without),
+) -> str:
+    return session.query("blah")
+
+@app.get("/with")
+async def route_with_session(
+    session: DBSession = Depends(get_session_with),
+) -> str:
+    return session.query("blah")
+[...]
+if __name__ == "__main__":
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    print(client.get("/without"))
+    print(client.get("/with"))
+```
+[...]
+```
+<Response [200]>
+Traceback (most recent call last):
+  File "mvp.py", line 54, in <module>
+    print(client.get("/with"))
+...
+  File "mvp.py", line 46, in route_with_session
+    return session.query("blah")
+AttributeError: '_GeneratorContextManager' object has no attribute 'query'
+```
+[...]
+The workaround is something like this:
+[...]
+```python
+@contextmanager
+def get_session_with() -> Generator[DBSession, None, None]:
+    session = DBSession()
+    try:
+        yield session
+    finally:
+        session.close()
+
+def get_session_without() -> Generator[DBSession, None, None]:
+    with get_session_with() as session:
+        yield session
+```
+[...]
+Where you `Depends(get_session_without)` on your routes, and `with get_session_with() as session:` anywhere else you want to use it. Which is totally OK.
+[...]
+> I would like to dump this one as I think this would be a great improvement to FastAPI.
+> 
+> Let's say I have a simplified service like this:
+> 
+> ```python
+> class FooService:
+> def __init__(self):
+> self._conn = None
+> 
+> def __enter__(self):
+> self._conn = BarConnection() # init connection
+> return self
+> 
+> def __exit__(self, exc_type, exc_value, traceback):
+> self._conn.close() # close connection
+> 
+> def do_something():
+> self._conn.do_something() # use connection
+> ```
+> 
+> If support for context managers was added I could simply use it this way:
+> 
+> ```python
+> @app.get("/endpoint")
+> def endpoint(foo_service: FooService = Depends()):
+> foo_service.do_something()
+> ```
+> 
+> But unfortunately, now I have to use a workaround from documentation:
+> 
+> ```python
+> def get_foo_service():
+> with FooService() as service:
+> yield service
+> 
+> @app.get("/endpoint")
+> def endpoint(foo_service: FooService = Depends(get_foo_service)):
+> foo_service.do_something()
+> ```
+> 
+> I know it's essentially an aesthetic change, but for some people stuff like this matters.
+> 
+> I would be happy to contribute with the needed changes if only I could get some pointers from the maintainers on how they would see this implemented.

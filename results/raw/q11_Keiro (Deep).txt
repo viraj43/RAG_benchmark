@@ -1,0 +1,883 @@
+Title: Async/await - The Modern JavaScript Tutorial
+ENARعربيENEnglishESEspañolFAفارسیFRFrançaisIDIndonesiaITItalianoJA日本語KO한국어RUРусскийTRTürkçeUKУкраїнськаUZOʻzbekZH简体中文We want to make this open-source project available for people all around the world. Help to translate the content of this tutorial to your language! BuyEPUB/PDFSearchSearchTutorial mapLight themeDark themeShareعربيEnglishEspañolفارسیFrançaisIndonesiaItaliano日本語한국어РусскийTürkçeУкраїнськаOʻzbek简体中文There’s a special syntax to work with promises in a more comfortable fashion, called “async/await”. It’s surprisingly easy to understand and use. Async functionsLet’s start with the async keyword. It can be placed before a function, like this: async function f() { return 1; } The word “async” before a function means one simple thing: a function always returns a promise. Other values are wrapped in a resolved promise automatically. For instance, this function returns a resolved promise with the result of 1; let’s test it: async function f() { return 1; } f().then(alert); // 1 …We could explicitly return a promise, which would be the same: async function f() { return Promise.resolve(1); } f().then(alert); // 1 So, async ensures that the function returns a promise, and wraps non-promises in it. Simple enough, right? But not only that. There’s another keyword, await, that works only inside async functions, and it’s pretty cool. AwaitThe syntax: // works only inside async functions let value = await promise; The keyword await makes JavaScript wait until that promise settles and returns its result. Here’s an example with a promise that resolves in 1 second: async function f() { let promise = new Promise((resolve, reject) => { setTimeout(() => resolve("done!"), 1000) }); let result = await promise; // wait until the promise resolves (*) alert(result); // "done!" } f(); The function execution “pauses” at the line (*) and resumes when the promise settles, with result becoming its result. So the code above shows “done!” in one second. Let’s emphasize: await literally suspends the function execution until the promise settles, and then resumes it with the promise result. That doesn’t cost any CPU resources, because the JavaScript engine can do other jobs in the meantime: execute other scripts, handle events, etc. It’s just a more elegant syntax of getting the promise result than promise.then. And, it’s easier to read and write. Can’t use await in regular functions If we try to use await in a non-async function, there would be a syntax error: function f() { let promise = Promise.resolve(1); let result = await promise; // Syntax error } We may get this error if we forget to put async before a function. As stated earlier, await only works inside an async function. Let’s take the showAvatar() example from the chapter Promises chaining and rewrite it using async/await: We’ll need to replace .then calls with await. Also we should make the function async for them to work. async function showAvatar() { // read our JSON let response = await fetch('/article/promise-chaining/user.json'); let user = await response.json(); // read github user let githubResponse = await fetch(`https://api.github.com/users/${user.name}`); let githubUser = await githubResponse.json(); // show the avatar let img = document.createElement('img'); img.src = githubUser.avatar_url; img.className = "promise-avatar-example"; document.body.append(img); // wait 3 seconds await new Promise((resolve, reject) => setTimeout(resolve, 3000)); img.remove(); return githubUser; } showAvatar(); Pretty clean and easy to read, right? Much better than before. Modern browsers allow top-level await in modules In modern browsers, await on top level works just fine, when we’re inside a module. We’ll cover modules in article Modules, introduction. For instance: // we assume this code runs at top level, inside a module let response = await fetch('/article/promise-chaining/user.json'); let user = await response.json(); console.log(user); If we’re not using modules, or older browsers must be supported, there’s a universal recipe: wrapping into an anonymous async function. Like this: (async () => { let response = await fetch('/article/promise-chaining/user.json'); let user = await response.json(); ... })(); await accepts “thenables” Like promise.then, await allows us to use thenable objects (those with a callable then method). The idea is that a third-party object may not be a promise, but promise-compatible: if it supports .then, that’s enough to use it with await. Here’s a demo Thenable class; the await below accepts its instances: class Thenable { constructor(num) { this.num = num; } then(resolve, reject) { alert(resolve); // resolve with this.num*2 after 1000ms setTimeout(() => resolve(this.num * 2), 1000); // (*) } } async function f() { // waits for 1 second, then result becomes 2 let result = await new Thenable(1); alert(result); } f(); If await gets a non-promise object with .then, it calls that method providing the built-in functions resolve and reject as arguments (just as it does for a regular Promise executor). Then await waits until one of them is called (in the example above it happens in the line (*)) and then proceeds with the result. Async class methods To declare an async class method, just prepend it with async: class Waiter { async wait() { return await Promise.resolve(1); } } new Waiter() .wait() .then(alert); // 1 (this is the same as (result => alert(result))) The meaning is the same: it ensures that the returned value is a promise and enables await. Error handlingIf a promise resolves normally, then await promise returns the result. But in the case of a rejection, it throws the error, just as if there were a throw statement at that line. This code: async function f() { await Promise.reject(new Error("Whoops!")); } …is the same as this: async function f() { throw new Error("Whoops!"); } In real situations, the promise may take some time before it rejects. In that case there will be a delay before await throws an error. We can catch that error using try..catch, the same way as a regular throw: async function f() { try { let response = await fetch('http://no-such-url'); } catch(err) { alert(err); // TypeError: failed to fetch } } f(); In the case of an error, the control jumps to the catch block. We can also wrap multiple lines: async function f() { try { let response = await fetch('/no-user-here'); let user = await response.json(); } catch(err) { // catches errors both in fetch and response.json alert(err); } } f(); If we don’t have try..catch, then the promise generated by the call of the async function f() becomes rejected. We can append .catch to handle it: async function f() { let response = await fetch('http://no-such-url'); } // f() becomes a rejected promise f().catch(alert); // TypeError: failed to fetch // (*) If we forget to add .catch there, then we get an unhandled promise error (viewable in the console). We can catch such errors using a global unhandledrejection event handler as described in the chapter Error handling with promises. async/await and promise.then/catch When we use async/await, we rarely need .then, because await handles the waiting for us. And we can use a regular try..catch instead of .catch. That’s usually (but not always) more convenient. But at the top level of the code, when we’re outside any async function, we’re syntactically unable to use await, so it’s a normal practice to add .then/catch to handle the final result or falling-through error, like in the line (*) of the example above. async/await works well with Promise.all When we need to wait for multiple promises, we can wrap them in Promise.all and then await: // wait for the array of results let results = await Promise.all([ fetch(url1), fetch(url2), ... ]); In the case of an error, it propagates as usual, from the failed promise to Promise.all, and then becomes an exception that we can catch using try..catch around the call. SummaryThe async keyword before a function has two effects: Makes it always return a promise. Allows await to be used in it. The await keyword before a promise makes JavaScript wait until that promise settles, and then: If it’s an error, an exception is generated — same as if throw error were called at that very place. Otherwise, it returns the result. Together they provide a great framework to write asynchronous code that is easy to both read and write. With async/await we rarely need to write promise.then/catch, but we still shouldn’t forget that they are based on promises, because sometimes (e.g. in the outermost scope) we have to use these methods. Also Promise.all is nice when we are waiting for many tasks simultaneously. TasksRewrite using async/awaitRewrite this example code from the chapter Promises chaining using async/await instead of .then/catch: function loadJson(url) { return fetch(url) .then(response => { if (response.status == 200) { return response.json(); } else { throw new Error(response.status); } }); } loadJson('https://javascript.info/no-such-user.json') .catch(alert); // Error: 404 solutionThe notes are below the code: async function loadJson(url) { // (1) let response = await fetch(url); // (2) if (response.status == 200) { let json = await response.json(); // (3) return json; } throw new Error(response.status); } loadJson('https://javascript.info/no-such-user.json') .catch(alert); // Error: 404 (4) Notes: The function loadJson becomes async. All .then inside are replaced with await. We can return response.json() instead of awaiting for it, like this: if (response.status == 200) { return response.json(); // (3) } Then the outer code would have to await for that promise to resolve. In our case it doesn’t matter. The error thrown from loadJson is handled by .catch. We can’t use await loadJson(…) there, because we’re not in an async function. Rewrite "rethrow" with async/awaitBelow you can find the “rethrow” example. Rewrite it using async/await instead of .then/catch. And get rid of the recursion in favour of a loop in demoGithubUser: with async/await that becomes easy to do. class HttpError extends Error { constructor(response) { super(`${response.status} for ${response.url}`); this.name = 'HttpError'; this.response = response; } } function loadJson(url) { return fetch(url) .then(response => { if (response.status == 200) { return response.json(); } else { throw new HttpError(response); } }); } // Ask for a user name until github returns a valid user function demoGithubUser() { let name = prompt("Enter a name?", "iliakan"); return loadJson(`https://api.github.com/users/${name}`) .then(user => { alert(`Full name: ${user.name}.`); return user; }) .catch(err => { if (err instanceof HttpError && err.response.status == 404) { alert("No such user, please reenter."); return demoGithubUser(); } else { throw err; } }); } demoGithubUser(); solutionThere are no tricks here. Just replace .catch with try..catch inside demoGithubUser and add async/await where needed: class HttpError extends Error { constructor(response) { super(`${response.status} for ${response.url}`); this.name = 'HttpError'; this.response = response; } } async function loadJson(url) { let response = await fetch(url); if (response.status == 200) { return response.json(); } else { throw new HttpError(response); } } // Ask for a user name until github returns a valid user async function demoGithubUser() { let user; while(true) { let name = prompt("Enter a name?", "iliakan"); try { user = await loadJson(`https://api.github.com/users/${name}`); break; // no error, exit loop } catch(err) { if (err instanceof HttpError && err.response.status == 404) { // loop continues after the alert alert("No such user, please reenter."); } else { // unknown error, rethrow throw err; } } } alert(`Full name: ${user.name}.`); return user; } demoGithubUser(); Call async from non-asyncWe have a “regular” function called f. How can you call the async function wait() and use its result inside of f? async function wait() { await new Promise(resolve => setTimeout(resolve, 1000)); return 10; } function f() { // ...what should you write here? // we need to call async wait() and wait to get 10 // remember, we can't use "await" } P.S. The task is technically very simple, but the question is quite common for developers new to async/await. solutionThat’s the case when knowing how it works inside is helpful. Just treat async call as promise and attach .then to it: async function wait() { await new Promise(resolve => setTimeout(resolve, 1000)); return 10; } function f() { // shows 10 after 1 second wait().then(result => alert(result)); } f(); Dangerous Promise.allPromise.all is a great way to parallelize multiple operations. It’s especially useful when we need to make parallel requests to multiple services. However, there’s a hidden danger. We’ll see an example in this task and explore how to avoid it. Let’s say we have a connection to a remote service, such as a database. There’re two functions: connect() and disconnect(). When connected, we can send requests using database.query(...) – an async function which usually returns the result but also may throw an error. Here’s a simple implementation: let database; function connect() { database = { async query(isOk) { if (!isOk) throw new Error('Query failed'); } }; } function disconnect() { database = null; } // intended usage: // connect() // ... // database.query(true) to emulate a successful call // database.query(false) to emulate a failed call // ... // disconnect() Now here’s the problem. We wrote the code to connect and send 3 queries in parallel (all of them take different time, e.g. 100, 200 and 300ms), then disconnect: // Helper function to call async function `fn` after `ms` milliseconds function delay(fn, ms) { return new Promise((resolve, reject) => { setTimeout(() => fn().then(resolve, reject), ms); }); } async function run() { connect(); try { await Promise.all([ // these 3 parallel jobs take different time: 100, 200 and 300 ms // we use the `delay` helper to achieve this effect delay(() => database.query(true), 100), delay(() => database.query(false), 200), delay(() => database.query(false), 300) ]); } catch(error) { console.log('Error handled (or was it?)'); } disconnect(); } run(); Two of these queries happen to be unsuccessful, but we’re smart enough to wrap the Promise.all call into a try..catch block. However, this doesn’t help! This script actually leads to an uncaught error in console! Why? How to avoid it? solutionThe root of the problem is that Promise.all immediately rejects when one of its promises rejects, but it do nothing to cancel the other promises. In our case, the second query fails, so Promise.all rejects, and the try...catch block catches this error.Meanwhile, other promises are not affected – they independently continue their execution. In our case, the third query throws an error of its own after a bit of time. And that error is never caught, we can see it in the console. The problem is especially dangerous in server-side environments, such as Node.js, when an uncaught error may cause the process to crash. How to fix it? An ideal solution would be to cancel all unfinished queries when one of them fails. This way we avoid any potential errors. However, the bad news is that service calls (such as database.query) are often implemented by a 3rd-party library which doesn’t support cancellation. Then there’s no way to cancel a call. As an alternative, we can write our own wrapper function around Promise.all which adds a custom then/catch handler to each promise to track them: results are gathered and, if an error occurs, all subsequent promises are ignored. function customPromiseAll(promises) { return new Promise((resolve, reject) => { const results = []; let resultsCount = 0; let hasError = false; // we'll set it to true upon first error promises.forEach((promise, index) => { promise .then(result => { if (hasError) return; // ignore the promise if already errored results[index] = result; resultsCount++; if (resultsCount === promises.length) { resolve(results); // when all results are ready - successs } }) .catch(error => { if (hasError) return; // ignore the promise if already errored hasError = true; // wops, error! reject(error); // fail with rejection }); }); }); } This approach has an issue of its own – it’s often undesirable to disconnect() when queries are still in the process. It may be important that all queries complete, especially if some of them make important updates. So we should wait until all promises are settled before going further with the execution and eventually disconnecting. Here’s another implementation. It behaves similar to Promise.all – also resolves with the first error, but waits until all promises are settled. function customPromiseAllWait(promises) { return new Promise((resolve, reject) => { const results = new Array(promises.length); let settledCount = 0; let firstError = null; promises.forEach((promise, index) => { Promise.resolve(promise) .then(result => { results[index] = result; }) .catch(error => { if (firstError === null) { firstError = error; } }) .finally(() => { settledCount++; if (settledCount === promises.length) { if (firstError !== null) { reject(firstError); } else { resolve(results); } } }); }); }); } Now await customPromiseAllWait(...) will stall the execution until all queries are processed. This is a more reliable approach, as it guarantees a predictable execution flow. Lastly, if we’d like to process all errors, we can use either use Promise.allSettled or write a wrapper around it to gathers all errors in a single AggregateError object and rejects with it. // wait for all promises to settle // return results if no errors // throw AggregateError with all errors if any function allOrAggregateError(promises) { return Promise.allSettled(promises).then(results => { const errors = []; const values = []; results.forEach((res, i) => { if (res.status === 'fulfilled') { values[i] = res.value; } else { errors.push(res.reason); } }); if (errors.length > 0) { throw new AggregateError(errors, 'One or more promises failed'); } return values; }); } Ctrl + ←Previous lessonCtrl + →Next lessonShareTutorial mapCommentsread this before commenting…If you have suggestions what to improve - please submit a GitHub issue or a pull request instead of commenting.If you can't understand something in the article – please elaborate.To insert few words of code, use the <code> tag, for several lines – wrap them in <pre> tag, for more than 10 lines – use a sandbox (plnkr, jsbin, codepen…)© 2007—2026  Ilya Kantorabout the projectcontact usterms of usageprivacy policy
+
+---
+
+Title: async function - JavaScript - MDN Web Docs - Mozilla
+# async function
+
+Baseline Widely available 
+
+This feature is well established and works across many devices and browser versions. It’s been available across browsers since April 2017. 
+
+The **`async function`**declaration creates a [binding](/en-US/docs/Glossary/Binding)of a new async function to a given name. The `await`keyword is permitted within the function body, enabling asynchronous, promise-based behavior to be written in a cleaner style and avoiding the need to explicitly configure promise chains. 
+
+You can also define async functions using the [async function expression](/en-US/docs/Web/JavaScript/Reference/Operators/async_function). 
+
+## Try it
+
+```
+function resolveAfter2Seconds() {
+ return new Promise((resolve) => {
+ setTimeout(() => {
+ resolve("resolved");
+ }, 2000);
+ });
+}
+
+async function asyncCall() {
+ console.log("calling");
+ const result = await resolveAfter2Seconds();
+ console.log(result);
+ // Expected output: "resolved"
+}
+
+asyncCall();
+```
+
+## Syntax
+
+js 
+
+```
+async function name(param0) {
+ statements
+}
+async function name(param0, param1) {
+ statements
+}
+async function name(param0, param1, /* …, */ paramN) {
+ statements
+}
+```
+
+**Note: **There cannot be a line terminator between `async`and `function`, otherwise a semicolon is [automatically inserted](/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion), causing `async`to become an identifier and the rest to become a `function`declaration. 
+
+### Parameters
+
+name
+
+The function's name. 
+
+param Optional
+
+The name of a formal parameter for the function. For the parameters' syntax, see the [Functions reference](/en-US/docs/Web/JavaScript/Guide/Functions#function_parameters). 
+
+statements Optional
+
+The statements comprising the body of the function. The `await`mechanism may be used. 
+
+## Description
+
+An `async function`declaration creates an [AsyncFunction](/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction)object. Each time when an async function is called, it returns a new [Promise](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)which will be resolved with the value returned by the async function, or rejected with an exception uncaught within the async function. 
+
+Async functions can contain zero or more [await](/en-US/docs/Web/JavaScript/Reference/Operators/await)expressions. Await expressions make promise-returning functions behave as though they're synchronous by suspending execution until the returned promise is fulfilled or rejected. The resolved value of the promise is treated as the return value of the await expression. Use of `async`and `await`enables the use of ordinary `try`/ `catch`blocks around asynchronous code. 
+
+**Note: **The `await`keyword is only valid inside async functions within regular JavaScript code. If you use it outside of an async function's body, you will get a [SyntaxError](/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError). 
+
+`await`can be used on its own with [JavaScript modules.](/en-US/docs/Web/JavaScript/Guide/Modules)
+
+**Note: **The purpose of `async`/ `await`is to simplify the syntax
+necessary to consume promise-based APIs. The behavior
+of `async`/ `await`is similar to combining [generators](/en-US/docs/Web/JavaScript/Guide/Iterators_and_generators)and
+promises. 
+
+Async functions always return a promise. If the return value of an async function is
+not explicitly a promise, it will be implicitly wrapped in a promise. 
+
+For example, consider the following code: 
+
+js 
+
+```
+async function foo() {
+ return 1;
+}
+```
+
+It is similar to: 
+
+js 
+
+```
+function foo() {
+ return Promise.resolve(1);
+}
+```
+
+Note that even though the return value of an async function behaves as if it's wrapped in a `Promise.resolve`, they are not equivalent. An async function will return a different *reference *, whereas `Promise.resolve`returns the same reference if the given value is a promise. It can be a problem when you want to check the equality of a promise and a return value of an async function. 
+
+js 
+
+```
+const p = new Promise((res, rej) => {
+ res(1);
+});
+
+async function asyncReturn() {
+ return p;
+}
+
+function basicReturn() {
+ return Promise.resolve(p);
+}
+
+console.log(p === basicReturn()); // true
+console.log(p === asyncReturn()); // false
+```
+
+The body of an async function can be thought of as being split by zero or more await
+expressions. Top-level code, up to and including the first await expression (if there is
+one), is run synchronously. In this way, an async function without an await expression
+will run synchronously. If there is an await expression inside the function body,
+however, the async function will always complete asynchronously. 
+
+For example: 
+
+js 
+
+```
+async function foo() {
+ await 1;
+}
+```
+
+It is also equivalent to: 
+
+js 
+
+```
+function foo() {
+ return Promise.resolve(1).then(() => undefined);
+}
+```
+
+Code after each await expression can be thought of as existing in a `.then`callback. In this way a promise chain is progressively constructed with each reentrant
+step through the function. The return value forms the final link in the chain. 
+
+In the following example, we successively await two promises. Progress moves through
+function `foo`in three stages. 
+
+js 
+
+```
+async function foo() {
+ const result1 = await new Promise((resolve) =>
+ setTimeout(() => resolve("1")),
+ );
+ const result2 = await new Promise((resolve) =>
+ setTimeout(() => resolve("2")),
+ );
+}
+foo();
+```
+
+Note how the promise chain is not built-up in one go. Instead, the promise chain is
+constructed in stages as control is successively yielded from and returned to the async
+function. As a result, we must be mindful of error handling behavior when dealing with
+concurrent asynchronous operations. 
+
+For example, in the following code an unhandled promise rejection error will be thrown,
+even if a `.catch`handler has been configured further along the promise
+chain. This is because `p2`will not be "wired into" the promise chain until
+control returns from `p1`. 
+
+js 
+
+```
+async function foo() {
+ const p1 = new Promise((resolve) => setTimeout(() => resolve("1"), 1000));
+ const p2 = new Promise((_, reject) =>
+ setTimeout(() => reject(new Error("failed")), 500),
+ );
+ const results = [await p1, await p2]; // Do not do this! Use Promise.all or Promise.allSettled instead.
+}
+foo().catch(() => {}); // Attempt to swallow all errors...
+```
+
+`async function`declarations behave similar to [function](/en-US/docs/Web/JavaScript/Reference/Statements/function)declarations — they are [hoisted](/en-US/docs/Glossary/Hoisting)to the top of their scope and can be called anywhere in their scope, and they can be redeclared only in certain contexts. 
+
+## Examples
+
+### Async functions and execution order
+
+js 
+
+```
+function resolveAfter2Seconds() {
+ console.log("starting slow promise");
+ return new Promise((resolve) => {
+ setTimeout(() => {
+ resolve("slow");
+ console.log("slow promise is done");
+ }, 2000);
+ });
+}
+
+function resolveAfter1Second() {
+ console.log("starting fast promise");
+ return new Promise((resolve) => {
+ setTimeout(() => {
+ resolve("fast");
+ console.log("fast promise is done");
+ }, 1000);
+ });
+}
+
+async function sequentialStart() {
+ console.log("== sequentialStart starts ==");
+
+ // 1. Start a timer, log after it's done
+ const slow = resolveAfter2Seconds();
+ console.log(await slow);
+
+ // 2. Start the next timer after waiting for the previous one
+ const fast = resolveAfter1Second();
+ console.log(await fast);
+
+ console.log("== sequentialStart done ==");
+}
+
+async function sequentialWait() {
+ console.log("== sequentialWait starts ==");
+
+ // 1. Start two timers without waiting for each other
+ const slow = resolveAfter2Seconds();
+ const fast = resolveAfter1Second();
+
+ // 2. Wait for the slow timer to complete, and then log the result
+ console.log(await slow);
+ // 3. Wait for the fast timer to complete, and then log the result
+ console.log(await fast);
+
+ console.log("== sequentialWait done ==");
+}
+
+async function concurrent1() {
+ console.log("== concurrent1 starts ==");
+
+ // 1. Start two timers concurrently and wait for both to complete
+ const results = await Promise.all([
+ resolveAfter2Seconds(),
+ resolveAfter1Second(),
+ ]);
+ // 2. Log the results together
+ console.log(results[0]);
+ console.log(results[1]);
+
+ console.log("== concurrent1 done ==");
+}
+
+async function concurrent2() {
+ console.log("== concurrent2 starts ==");
+
+ // 1. Start two timers concurrently, log immediately after each one is done
+ await Promise.all([
+ (async () => console.log(await resolveAfter2Seconds()))(),
+ (async () => console.log(await resolveAfter1Second()))(),
+ ]);
+ console.log("== concurrent2 done ==");
+}
+
+sequentialStart(); // after 2 seconds, logs "slow", then after 1 more second, "fast"
+
+// wait above to finish
+setTimeout(sequentialWait, 4000); // after 2 seconds, logs "slow" and then "fast"
+
+// wait again
+setTimeout(concurrent1, 7000); // same as sequentialWait
+
+// wait again
+setTimeout(concurrent2, 10000); // after 1 second, logs "fast", then after 1 more second, "slow"
+```
+
+#### await and concurrency
+
+In `sequentialStart`, execution suspends 2 seconds for the first `await`, and then another second for the second `await`. The
+second timer is not created until the first has already fired, so the code finishes
+after 3 seconds. 
+
+In `sequentialWait`, both timers are created and then `await`ed.
+The timers run concurrently, which means the code finishes in 2 rather than 3 seconds,
+i.e., the slowest timer.
+However, the `await`calls still run in series, which means the second `await`will wait for the first one to finish. In this case, the result of
+the fastest timer is processed after the slowest. 
+
+If you wish to safely perform other jobs after two or more jobs run concurrently and are complete, you must await a call
+to [Promise.all()](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)or [Promise.allSettled()](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)before that job. 
+
+**Warning: **The functions `sequentialWait`and `concurrent1`are not functionally equivalent. 
+
+In `sequentialWait`, if promise `fast`rejects before promise `slow`is fulfilled, then an unhandled promise rejection error will be
+raised, regardless of whether the caller has configured a catch clause. 
+
+In `concurrent1`, `Promise.all`wires up the promise
+chain in one go, meaning that the operation will fail-fast regardless of the order of
+rejection of the promises, and the error will always occur within the configured
+promise chain, enabling it to be caught in the normal way. 
+
+### Rewriting a Promise chain with an async function
+
+An API that returns a [Promise](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)will result in a promise chain, and it
+splits the function into many parts. Consider the following code: 
+
+js 
+
+```
+function getProcessedData(url) {
+ return downloadData(url) // returns a promise
+ .catch((e) => downloadFallbackData(url)) // returns a promise
+ .then((v) => processDataInWorker(v)); // returns a promise
+}
+```
+
+it can be rewritten with a single async function as follows: 
+
+js 
+
+```
+async function getProcessedData(url) {
+ let v;
+ try {
+ v = await downloadData(url);
+ } catch (e) {
+ v = await downloadFallbackData(url);
+ }
+ return processDataInWorker(v);
+}
+```
+
+Alternatively, you can chain the promise with `catch()`: 
+
+js 
+
+```
+async function getProcessedData(url) {
+ const v = await downloadData(url).catch((e) => downloadFallbackData(url));
+ return processDataInWorker(v);
+}
+```
+
+In the two rewritten versions, notice there is no `await`statement after the `return`keyword, although that would be valid too: The return value of an
+async function is implicitly wrapped in [Promise.resolve](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve)- if
+it's not already a promise itself (as in the examples). 
+
+## Specifications
+
+| Specification | 
+|---|---|
+| ECMAScript® 2027 Language Specification# sec-asy | 
+
+## Browser compatibility
+
+## See also
+
+## Help improve MDN
+
+Was this page helpful to you? Yes No [Learn how to contribute](/en-US/docs/MDN/Community/Getting_started)
+
+This page was last modified on Jul 8, 2025 by [MDN contributors](/en-US/docs/Web/JavaScript/Reference/Statements/async_function/contributors.txt). 
+
+[View this page on GitHub](https://github.com/mdn/content/blob/main/files/en-us/web/javascript/reference/statements/async_function/index.md?plain=1)• [Report a problem with this content](https://github.com/mdn/content/issues/new?template=page-report.yml&mdn-url=https%3A%2F%2Fdeveloper.mozilla.org%2Fen-US%2Fdocs%2FWeb%2FJavaScript%2FReference%2FStatements%2Fasync_function&metadata=%3C%21--+Do+not+make+changes+below+this+line+--%3E%0A%3Cdetails%3E%0A%3Csummary%3EPage+report+details%3C%2Fsummary%3E%0A%0A*+Folder%3A+%60en-us%2Fweb%2Fjavascript%2Freference%2Fstatements%2Fasync_function%60%0A*+MDN+URL%3A+https%3A%2F%2Fdeveloper.mozilla.org%2Fen-US%2Fdocs%2FWeb%2FJavaScript%2FReference%2FStatements%2Fasync_function%0A*+GitHub+URL%3A+https%3A%2F%2Fgithub.com%2Fmdn%2Fcontent%2Fblob%2Fmain%2Ffiles%2Fen-us%2Fweb%2Fjavascript%2Freference%2Fstatements%2Fasync_function%2Findex.md%0A*+Last+commit%3A+https%3A%2F%2Fgithub.com%2Fmdn%2Fcontent%2Fcommit%2Ffad67be4431d8e6c2a89ac880735233aa76c41d4%0A*+Document+last+modified%3A+2025-07-08T13%3A18%3A45.000Z%0A%0A%3C%2Fdetails%3E)
+
+---
+
+Title: JavaScript Asynchronous Programming - W3Schools
+
+ +1](https://profile.w3schools.com/log-in)[Get Certified](https://campus.w3schools.com/collections/course-catalog)[Upgrade](https://order.w3schools.com/plans)[Teachers](/academy/index.php)[Spaces](/spaces/index.php)[Bootcamps](/bootcamp/index.php)[Get Certified](https://campus.w3schools.com/collections/course-catalog)[Upgrade](https://order.w3schools.com/plans)[Teachers](/academy/index.php)[Spaces](https://spaces.w3schools.com)[Bootcamps](/bootcamp/index.php)❮ ❯ [HTML](/html/default.asp)[CSS](/css/default.asp)[JAVASCRIPT](/js/default.asp)[SQL](/sql/default.asp)[PYTHON](/python/default.asp)[JAVA](/java/default.asp)[PHP](/php/default.asp)[HOW TO](/howto/default.asp)[W3.CSS](/w3css/default.asp)[C](/c/index.php)[C++](/cpp/default.asp)[C#](/cs/index.php)[BOOTSTRAP](/bootstrap/bootstrap_ver.asp)[REACT](/react/default.asp)[MYSQL](/mysql/default.asp)[JQUERY](/jquery/default.asp)[EXCEL](/excel/index.php)[XML](/xml/default.asp)[DJANGO](/django/index.php)[NUMPY](/python/numpy/default.asp)[PANDAS](/python/pandas/default.asp)[NODEJS](/nodejs/default.asp)[DSA](/dsa/index.php)[TYPESCRIPT](/typescript/index.php)[ANGULAR](/angular/default.asp)[ANGULARJS](/angularjs/default.asp)[GIT](/git/default.asp)[POSTGRESQL](/postgresql/index.php)[MONGODB](/mongodb/index.php)[ASP](/asp/default.asp)[AI](/ai/default.asp)[R](/r/default.asp)[GO](/go/index.php)[KOTLIN](/kotlin/index.php)[SWIFT](/swift/default.asp)[SASS](/sass/default.asp)[VUE](/vue/index.php)[GEN AI](/gen_ai/index.php)[SCIPY](/python/scipy/index.php)[AWS](/aws/index.php)[CYBERSECURITY](/cybersecurity/index.php)[DATA SCIENCE](/datascience/default.asp)[INTRO TO PROGRAMMING](/programming/index.php)[INTRO TO HTML & CSS](/htmlcss/default.asp)[BASH](/bash/index.php)[RUST](/rust/index.php)[TOOLS](/tools/index.php)
+
+## Basic JavaScript
+
+[JS Tutorial](default.asp)[JS Introduction](js_intro.asp)[JS Where To](js_whereto.asp)[JS Output](js_output.asp)
+
+## JS Syntax
+
+[JS Syntax](js_syntax.asp)[JS Statements](js_statements.asp)[JS Comments](js_comments.asp)[JS Variables](js_variables.asp)[JS Let](js_let.asp)[JS Const](js_const.asp)[JS Types](js_types.asp)
+
+## JS Operators
+
+[JS Operators](js_operators.asp)[JS Operators](js_operators.asp)[JS Arithmetic](js_arithmetic.asp)[JS Assignment](js_assignment.asp)[JS Comparisons](js_comparisons.asp)[JS Conditional](js_conditionals.asp)
+
+## JS If Else
+
+[JS If Conditions](js_if.asp)[JS If](js_if.asp)[JS If Else](js_if_else.asp)[JS Ternary](js_if_ternary.asp)[JS Switch](js_switch.asp)[JS Booleans](js_booleans.asp)[JS Logical](js_logical.asp)
+
+## JS Loops
+
+[JS Loops](js_loops.asp)[JS Loops](js_loops.asp)[JS Loop for](js_loop_for.asp)[JS Loop while](js_loop_while.asp)[JS Break](js_break.asp)[JS Continue](js_continue.asp)[JS Control Flow](js_control_flow.asp)
+
+## JS Strings
+
+[JS Strings](js_strings.asp)[JS Strings](js_strings.asp)[JS String Templates](js_string_templates.asp)[JS String Methods](js_string_methods.asp)[JS String Search](js_string_search.asp)[JS String Reference](js_string_reference.asp)
+
+## JS Numbers
+
+[JS Numbers](js_numbers.asp)[JS Numbers](js_numbers.asp)[JS Number Methods](js_number_methods.asp)[JS Number Properties](js_number_properties.asp)[JS Number Reference](js_number_reference.asp)[JS Bitwise](js_bitwise.asp)[JS BigInt](js_bigint.asp)
+
+## JS Functions
+
+[JS Functions](js_functions.asp)[Function Path](js_functions.asp)[Function Intro](js_function_intro.asp)[Function Invocation](js_function_invocation.asp)[Function Parameters](js_function_parameters.asp)[Function Returns](js_function_return.asp)[Function Arguments](js_function_arguments.asp)[Function Expressions](js_function_expressions.asp)[Function Arrow](js_arrow_function.asp)[Function Quiz](js_function_quiz.asp)
+
+## JS Objects
+
+[JS Objects](js_objects.asp)[Object Path](js_objects.asp)[Object Intro](js_object_intro.asp)[Object Properties](js_object_properties.asp)[Object Methods](js_object_methods.asp)[Object this](js_object_this.asp)[Object Display](js_object_display.asp)[Object Constructors](js_object_constructors.asp)
+
+## JS Scope
+
+[JS Scope](js_scope.asp)[JS Scope](js_scope.asp)[JS Code Blocks](js_codeblocks.asp)[JS Hoisting](js_hoisting.asp)[JS Strict Mode](js_strict.asp)
+
+## JS Dates
+
+[JS Dates](js_dates.asp)[JS Dates](js_dates.asp)[JS Date Formats](js_date_formats.asp)[JS Date Get](js_date_methods.asp)[JS Date Set](js_date_methods_set.asp)[JS Date Methods](js_date_reference.asp)
+
+## JS Temporal
+
+[JS Temporal  New](js_temporal.asp)[Temporal Study Path](js_temporal.asp)[Temporal Intro](js_temporal_intro.asp)[Temporal vs Date](js_temporal_vs_date.asp)[Temporal Duration](js_temporal_duration.asp)[Temporal Instant](js_temporal_instant.asp)[Temporal PlainDateTime](js_temporal_plaindatetime.asp)[Temporal PlainDate](js_temporal_plain.asp)[Temporal PlainYearMonth](js_temporal_plainyearmonth.asp)[Temporal PlainMonthDay](js_temporal_plainmonthday.asp)[Temporal PlainTime](js_temporal_plaintime.asp)[Temporal ZonedDateTime](js_temporal_zoneddatetime.asp)[Temporal Now](js_temporal_now.asp)[Temporal Add/Subtract](js_temporal_arithmetic.asp)[Temporal Since/Until](js_temporal_differences.asp)[Temporal Compare](js_temporal_compare.asp)[Temporal Conversion](js_temporal_conversion.asp)[Temporal Formats](js_temporal_formats.asp)[Temporal Mistakes](js_temporal_mistakes.asp)[Temporal Migrate](js_temporal_migrate.asp)[Temporal Standards](js_temporal_standards.asp)[Temporal Reference](js_temporal_reference.asp)
+
+## JS Arrays
+
+[JS Arrays](js_arrays.asp)[JS Arrays](js_arrays.asp)[JS Array Methods](js_array_methods.asp)[JS Array Search](js_array_search.asp)[JS Array Sort](js_array_sort.asp)[JS Array Iterations](js_array_iteration.asp)[JS Array Reference](js_array_reference.asp)[JS Array Const](js_array_const.asp)
+
+## JS Sets
+
+[JS Sets](js_sets.asp)[JS Sets](js_sets.asp)[JS Set Methods](js_set_methods.asp)[JS Set Logic](js_set_logic.asp)[JS Set WeakSet](js_sets_weak.asp)[JS Map Reference](js_set_reference.asp)
+
+## JS Maps
+
+[JS Maps](js_maps.asp)[JS Maps](js_maps.asp)[JS Map Methods](js_map_methods.asp)[JS Map WeakMap](js_maps_weak.asp)[JS Map Reference](js_map_reference.asp)
+
+## JS Iterations
+
+[JS Loops](js_looping.asp)[JS Loops](js_looping.asp)[JS Iterables](js_iterables.asp)[JS Iterators](js_iterators.asp)[JS Generators](js_generators.asp)
+
+## JS Math
+
+[JS Math](js_math.asp)[JS Math](js_math.asp)[JS Math Reference](js_math_reference.asp)[JS Math Random](js_random.asp)
+
+## JS RegExp
+
+[JS RegExp](js_regexp.asp)[JS RegExp](js_regexp.asp)[JS RegExp Flags](js_regexp_flags.asp)[JS RegExp Classes](js_regexp_characters.asp)[JS RegExp Metachars](js_regexp_meta_characters.asp)[JS RegExp Assertions](js_regexp_assertions.asp)[JS RegExp Quantifiers](js_regexp_quantifiers.asp)[JS RegExp Patterns](js_regexp_patterns.asp)[JS RegExp Objects](js_regexp_objects.asp)[JS RegExp Methods](js_regexp_methods.asp)
+
+## JS DataTypes
+
+[JS Data Types](js_datatypes.asp)[JS Data Types](js_datatypes.asp)[JS Primitive Data](js_datatypes_primitives.asp)[JS Object Types](js_datatypes_objects.asp)[JS typeof](js_typeof.asp)[JS toString](js_tostring.asp)[JS Type Conversion](js_type_conversion.asp)[JS Destructuring](js_destructuring.asp)
+
+## JS Errors
+
+[JS Errors](js_errors_intro.asp)[JS Errors Intro](js_errors_intro.asp)[JS Errors Silent](js_errors_silent.asp)[JS Error Statements](js_errors.asp)[JS Error Object](js_error_object.asp)
+
+## JS Debugging
+
+[JS Debugging](js_debugging.asp)[Debugging Intro](js_debugging.asp)[Debugging Console](js_debugging_console.asp)[Debugging Breakpoints](js_debugging_breakpoints.asp)[Debugging Errors](js_debugging_errors.asp)[Debugging Async](js_debugging_async.asp)[Debugging Reference](js_debugging_reference.asp)
+
+## JS Conventions
+
+[JS Style Guide](js_conventions.asp)[JS Style Guide](js_conventions.asp)[JS Best Practices](js_best_practices.asp)[JS Mistakes](js_mistakes.asp)[JS Performance](js_performance.asp)
+
+## JS Reference
+
+[JS Reference](js_alphabetic_reference.asp)[JS Alphabetic](js_alphabetic_reference.asp)[JS Statements](js_statements_reference.asp)[JS Keywords](js_reserved.asp)[JS Operators](js_operators_reference.asp)[JS Precedence](js_precedence.asp)
+
+## JS Projects
+
+[JS Projects New](js_project_counter.asp)[JS Counter](js_project_counter.asp)[JS Event Listener](js_project_eventlistener.asp)[JS To-Do List](js_project_todo.asp)[JS Modal Popup](js_project_modal_popup.asp)[JS Form Validation](js_project_form_validation.asp)
+
+## JS Versions
+
+[JS 2026](js_2026.asp)[JS 2026](js_2026.asp)[JS 2025](js_2025.asp)[JS 2024](js_2024.asp)[JS 2023](js_2023.asp)[JS 2022](js_2022.asp)[JS 2021](js_2021.asp)[JS 2020](js_2020.asp)[JS 2019](js_2019.asp)[JS 2018](js_2018.asp)[JS 2017](js_2017.asp)[JS 2016](js_2016.asp)[JS 2015 (ES6)](js_es6.asp)[JS 2009 (ES5)](js_es5.asp)[JS 1999 (ES3)](js_es3.asp)[JS Versions](js_versions.asp)[JS History](js_history.asp)
+
+## JS HTML
+
+[JS HTML DOM](js_htmldom.asp)[HTML DOM](js_htmldom.asp)[HTML DOM API](js_htmldom_methods.asp)[Selecting Elements](js_htmldom_elements.asp)[Changing HTML](js_htmldom_html.asp)[Changing CSS](js_htmldom_css.asp)[Form Validation](js_validation.asp)[DOM Animations](js_htmldom_animate.asp)[Document Reference](js_htmldom_document.asp)[Element Reference](js_htmldom_element_reference.asp)[JS Events](js_events.asp)[Intro to Events](js_events.asp)[Mouse Events](js_events_mouse.asp)[Keyboard Events](js_events_keyboard.asp)[Load Events](js_events_load.asp)[Timing Events](js_events_timing.asp)[Manage Events](js_events_management.asp)[Event Examples](js_htmldom_events.asp)[Event Listener](js_htmldom_eventlistener.asp)
+
+## JS Advanced
+
+[JS Functions](js_function_advanced.asp)[Functions Advanced](js_function_advanced.asp)[Function Definitions](js_function_definition.asp)[Function Callbacks](js_callback.asp)[Function this](js_function_this.asp)[Function Call](js_function_call.asp)[Function Apply](js_function_apply.asp)[Function Bind](js_function_bind.asp)[Function IIFE](js_function_iife.asp)[Function Closures](js_function_closures.asp)[Function Reference](js_function_reference.asp)[Function Quiz](js_function_advanced_quiz.asp)[JS Objects](js_object_advanced.asp)[Object Study Path](js_object_advanced.asp)[Object Definitions](js_object_definition.asp)[Object this](js_this.asp)[Object Iterations](js_object_iterations.asp)[Object Get / Set](js_object_accessors.asp)[Object Management](js_object_management.asp)[Object Protection](js_object_protection.asp)[Object Prototypes](js_object_prototypes.asp)[Object Reference](js_object_reference.asp)[JS Classes](js_classes.asp)[JS Classes](js_classes.asp)[JS Class Inheritance](js_class_inheritance.asp)[JS Class Static](js_class_static.asp)[JS Asynchronous](js_asynchronous.asp)[Async Path](js_asynchronous.asp)[Async Intro](js_async.asp)[Async Timeouts](js_async_timeouts.asp)[Async Callbacks](js_async_callbacks.asp)[Async Promises](js_promise.asp)[Async Await](js_async_await.asp)[Async Fetch](js_async_fetch.asp)[Async Debug](js_async_debug.asp)[Async Reference](js_promise_reference.asp)[JS Modules](js_modules.asp)[Modules Intro](js_modules.asp)[Modules Export](js_modules_export.asp)[Modules Import](js_modules_import.asp)[Modules Namespace](js_modules_namespace.asp)[Modules Dynamic](js_modules_dynamic.asp)[JS Meta & Proxy](js_meta_programming.asp)[Meta Programming](js_meta_programming.asp)[Meta Reflect](js_meta_reflect.asp)[Meta Proxy](js_meta_proxy.asp)[Meta Reference](js_meta_reference.asp)[JS Typed Arrays](js_typed_arrays.asp)[Typed Arrays](js_typed_arrays.asp)[Typed Methods](js_typed_methods.asp)[Typed Reference](js_typed_reference.asp)[Array Buffers](js_arraybuffers.asp)[DataViews](js_dataview.asp)[JS Atomics](js_atomics.asp)[JS DOM Navigation](js_htmldom_navigation.asp)[DOM Navigation](js_htmldom_navigation.asp)[DOM Nodes](js_htmldom_nodes.asp)[DOM Collections](js_htmldom_collections.asp)[DOM Node Lists](js_htmldom_nodelist.asp)[JS Windows](js_window.asp)[JS Window](js_window.asp)[JS Screen](js_window_screen.asp)[JS Location](js_window_location.asp)[JS History](js_window_history.asp)[JS Navigator](js_window_navigator.asp)[JS Popup Alert](js_popup.asp)[JS Timing](js_timing.asp)[JS Cookies](js_cookies.asp)[JS Web APIs](js_api_intro.asp)[Web APIs Intro](js_api_intro.asp)[Fetch API](js_api_fetch.asp)[Geolocation API](js_api_geolocation.asp)[Web History API](js_api_history.asp)[Web Pointer API](js_api_pointer_events.asp)[Web Storage API](js_api_web_storage.asp)[Validation API](js_validation_api.asp)[Web Worker API](js_api_web_workers.asp)[JS AJAX](js_ajax_intro.asp)[AJAX Intro](js_ajax_intro.asp)[AJAX XMLHttp](js_ajax_http.asp)[AJAX Request](js_ajax_http_send.asp)[AJAX Response](js_ajax_http_response.asp)[AJAX XML File](js_ajax_xmlfile.asp)[AJAX PHP](js_ajax_php.asp)[AJAX ASP](js_ajax_asp.asp)[AJAX Database](js_ajax_database.asp)[AJAX Applications](js_ajax_applications.asp)[AJAX Examples](js_ajax_examples.asp)[JS JSON](js_json.asp)[JSON Intro](js_json.asp)[JSON Syntax](js_json_syntax.asp)[JSON vs XML](js_json_xml.asp)[JSON Data Types](js_json_datatypes.asp)[JSON Parse](js_json_parse.asp)[JSON Stringify](js_json_stringify.asp)[JSON Objects](js_json_objects.asp)[JSON Arrays](js_json_arrays.asp)[JSON Server](js_json_server.asp)[JSON PHP](js_json_php.asp)[JSON HTML](js_json_html.asp)[JSON JSONP](js_json_jsonp.asp)[JS jQuery](js_jquery_selectors.asp)[jQuery Selectors](js_jquery_selectors.asp)[jQuery HTML](js_jquery_elements.asp)[jQuery CSS](js_jquery_css.asp)[jQuery DOM](js_jquery_dom.asp)[JS Graphics](js_graphics.asp)[JS Graphics](js_graphics.asp)[JS Canvas](js_graphics_canvas.asp)[JS Plotly](js_graphics_plotly.asp)[JS Chart.js](js_graphics_chartjs.asp)[JS Google Chart](js_graphics_google_chart.asp)[JS D3.js](js_graphics_d3js.asp)[JS Examples](js_examples.asp)[JS Examples](js_examples.asp)[JS HTML DOM](js_dom_examples.asp)[JS HTML Input](js_input_examples.asp)[JS HTML Objects](js_ex_dom.asp)[JS HTML Events](js_events_examples.asp)[JS Browser](js_ex_browser.asp)[JS Editor](js_editor.asp)[JS Exercises](js_exercises.asp)[JS Quiz](js_quiz.asp)[JS Website](js_website.asp)[JS Syllabus](js_syllabus.asp)[JS Study Plan](js_study_plan.asp)[JS Interview Prep](js_interview_prep.asp)[JS Bootcamp](js_bootcamp.asp)[JS Certificate](js_exam.asp)[JS Reference](/jsref/default.asp)
+
+# Asynchronous Programming
+
+[❮ Previous](js_asynchronous.asp)[Next ❯](js_async_timeouts.asp)
+
+## Asynchronous Code
+
+**Async code **allows a program to start a long-running task (like fetching data from a file).
+and continue with other tasks before the first one finishes. 
+
+**Async code **prevents the application from freezing, which is critical for user experience. 
+
+## Control Flow
+
+**Control Flow **is the order in which statements are executed in a program. 
+
+By default, JavaScript runs code **from top to bottom **and left to right. 
+
+**Async programming can change this **. 
+
+## How JavaScript Runs Code
+
+JavaScript executes code one line at a time. 
+
+Each line must finish before the next line runs. 
+
+Example: 
+
+myDisplayer("A"); 
+myDisplayer("B"); 
+myDisplayer("C"); 
+[Try it Yourself »](tryit.asp?filename=tryjs_synchronous)
+
+The output is always A B C. 
+
+## Function Sequence
+
+JavaScript functions are executed in the sequence they are called.
+Not in the sequence they are defined. 
+
+This example will display " **Hello Goodbye **" because the functions are called in that order: 
+
+### Example
+
+function myFirst() { 
+myDisplayer("Hello"); 
+} 
+
+function 
+ mySecond() { 
+myDisplayer("Goodbye"); 
+} 
+
+myFirst(); 
+mySecond(); 
+
+[Try it Yourself »](tryit.asp?filename=tryjs_function_flow1)
+
+This example will display " **Goodbye Hello **" because the functions are called in that order: 
+
+### Example
+
+function myFirst() { 
+myDisplayer("Hello"); 
+} 
+
+function 
+ mySecond() { 
+myDisplayer("Goodbye"); 
+} 
+
+mySecond(); 
+myFirst(); 
+
+[Try it Yourself »](tryit.asp?filename=tryjs_function_flow2)
+
+The examples above are normal **synchronous flow **. 
+
+## Why Async Code
+
+**Some tasks take time to finish **(network requests, timers, user input). 
+
+**To stay responsive **, JavaScript can use **async programming **. 
+
+**Asynchronous flow **refers to how JavaScript allows certain operations to **run in the background **and let their results be **handled when they are ready **. 
+
+If JavaScript waited for these tasks, the page would freeze. 
+
+Asych code lets the rest of the program continue to run. 
+
+Async code does not run immediately: 
+
+A frozen page is a broken page. 
+
+Asynch code does not block execution. 
+
+### Example
+
+myDisplayer("A"); 
+
+setTimeout(function() { 
+myDisplayer("B"); 
+}, 1000); 
+
+myDisplayer("C"); 
+[Try it Yourself »](tryit.asp?filename=tryjs_asynchronous)
+
+The output from the above example is A C B. 
+
+## Common Beginner Confusion
+
+### Example
+
+let result; 
+
+setTimeout(function() { 
+result = 5; 
+}, 1000); 
+
+// What is result here? [Try it Yourself »](tryit.asp?filename=tryjs_async_timeout)
+
+Result is `undefined`because the async code has not finished yet. 
+
+Beginners expect async results immediately. 
+
+## JavaScript Events
+
+**Events **are actions or occurrences that happen in the browser,
+often triggered by user interactions (like clicks, keypresses, or form submissions)
+or by the browser itself (like page loading or resizing). 
+
+### Example (Events)
+
+<button onclick="displayDate()">The time is?</button> [Try it Yourself »](tryit.asp?filename=tryjs_events1)
+
+## Asynchronous Concepts
+
+JavaScript handles asynchronus programming using different core concepts. 
+
+| Concept | Description | 
+|---|---|
+| Synchronus | The JavaScript standard flow is executing line by | 
+| Timers | Allows code to run while other code is waiting | 
+| Callbacks | Callbacks were the first solution for async JavaSc | 
+| Events | Stores callback function waiting to be executed | 
+| Promises | Tools to handle asynchronous operations cleanly | 
+| Async/Await | The clean and modern way to handle async code | 
+
+## Asynchronous vs Parallel
+
+Parallel means doing multiple things at the same time on different processors. 
+
+Asynchronous means switching between tasks, not necessarily running them simultaneously. 
+
+A single-threaded JavaScript engine handles asynchronous tasks by using an event
+loop to switch between them, rather than utilizing multiple CPU cores.
+When a task finishes, it signals the main thread (via a callback, promise, or event) to handle the result. 
+
+| 
+| Feature | Async (Deferred) | Parallel (Simultaneous) | 
+| Goal | Responsiveness (Don't freeze) | Performance (Get it done faster) | 
+| Execution | Non-blocking (waiting for I/O) | Simultaneous (crunching many numbers) | 
+| Hardware | Can run on 1 processor | Requires multiple processors | 
+| Example | Running code while the user scrolls | Processing 10,000 images at once | 
+
+In short, asynchronous tells the system: 
+
+## Analogy:
+
+Ordering food at a restaurant. 
+
+## What You Will Learn
+
+This tutorial will build the understanding of async programming step by step: 
+
+Each of these tools was created to solve problems from the previous tool. 
+
+## Next Chapter
+
+A JavaScript timeout schedules a function to run after a delay in milliseconds. 
+
+A timeout is an async operation used to delay code execution without freezing the browser. 
+
+[JavaScript Timeouts](js_async_timeouts.asp)
+
+[❮ Previous](js_asynchronous.asp)[Next ❯](js_async_timeouts.asp)[★
+
+ +1](https://profile.w3schools.com/log-in?redirect_url=https%3A%2F%2Fmy-learning.w3schools.com)[Sign in to track progress](https://profile.w3schools.com/log-in?redirect_url=https%3A%2F%2Fpathfinder.w3schools.com)
+
+#### COLOR PICKER
+
+[REMOVE ADS](https://order.w3schools.com/plans)
+
+[PLUS](https://order.w3schools.com/plans)[SPACES](/spaces/index.php)[GET CERTIFIED](https://campus.w3schools.com/collections/certifications)[FOR TEACHERS](/academy/index.php)[BOOTCAMPS](/bootcamp/index.php)CONTACT US× 
+
+## Contact Sales
+
+If you want to use W3Schools services as an educational institution, team or enterprise, send us an e-mail: 
+sales@w3schools.com 
+
+## Report Error
+
+If you want to report an error, or if you want to make a suggestion, send us an e-mail: 
+help@w3schools.com 
+
+#### Top Tutorials
+
+[HTML Tutorial](/html/default.asp)
+[CSS Tutorial](/css/default.asp)
+[JavaScript Tutorial](/js/default.asp)
+[How To Tutorial](/howto/default.asp)
+[SQL Tutorial](/sql/default.asp)
+[Python Tutorial](/python/default.asp)
+[W3.CSS Tutorial](/w3css/default.asp)
+[Bootstrap Tutorial](/bootstrap/bootstrap_ver.asp)
+[PHP Tutorial](/php/default.asp)
+[Java Tutorial](/java/default.asp)
+[C++ Tutorial](/cpp/default.asp)
+[jQuery Tutorial](/jquery/default.asp)
+
+#### Top References
+
+[HTML Reference](/tags/default.asp)
+[CSS Reference](/cssref/index.php)
+[JavaScript Reference](/jsref/default.asp)
+[SQL Reference](/sql/sql_ref_keywords.asp)
+[Python Reference](/python/python_reference.asp)
+[W3.CSS Reference](/w3css/w3css_references.asp)
+[Bootstrap Reference](/bootstrap/bootstrap_ref_all_classes.asp)
+[PHP Reference](/php/php_ref_overview.asp)
+[HTML Colors](/colors/colors_names.asp)
+[Java Reference](/java/java_ref_keywords.asp)
+[AngularJS Reference](/angularjs/angularjs_ref_directives.asp)
+[jQuery Reference](/jquery/jquery_ref_overview.asp)
+
+#### Top Examples
+
+[HTML Examples](/html/html_examples.asp)
+[CSS Examples](/css/css_examples.asp)
+[JavaScript Examples](/js/js_examples.asp)
+[How To Examples](/howto/default.asp)
+[SQL Examples](/sql/sql_examples.asp)
+[Python Examples](/python/python_examples.asp)
+[W3.CSS Examples](/w3css/w3css_examples.asp)
+[Bootstrap Examples](/bootstrap/bootstrap_examples.asp)
+[PHP Examples](/php/php_examples.asp)
+[Java Examples](/java/java_examples.asp)
+[XML Examples](/xml/xml_examples.asp)
+[jQuery Examples](/jquery/jquery_examples.asp)
+[Get Certified](https://campus.w3schools.com/collections/course-catalog)[HTML Certificate](https://campus.w3schools.com/collections/certifications/products/html-certificate)
+[CSS Certificate](https://campus.w3schools.com/collections/certifications/products/css-certificate)
+[JavaScript Certificate](https://campus.w3schools.com/collections/certifications/products/javascript-certificate)
+[Front End Certificate](https://campus.w3schools.com/collections/certifications/products/front-end-certificate)
+[SQL Certificate](https://campus.w3schools.com/collections/certifications/products/sql-certificate)
+[Python Certificate](https://campus.w3schools.com/collections/certifications/products/python-certificate)
+[PHP Certificate](https://campus.w3schools.com/collections/certifications/products/php-certificate)
+[jQuery Certificate](https://campus.w3schools.com/collections/certifications/products/jquery-certificate)
+[Java Certificate](https://campus.w3schools.com/collections/certifications/products/java-certificate)
+[C++ Certificate](https://campus.w3schools.com/collections/certifications/products/c-certificate)
+[C# Certificate](https://campus.w3schools.com/collections/certifications/products/c-certificate-1)
+[XML Certificate](https://campus.w3schools.com/collections/certifications/products/xml-certificate)
+[](https://www.linkedin.com/company/w3schools.com/)[](https://discord.com/invite/w3schools)[](https://www.facebook.com/w3schoolscom/)[](https://www.instagram.com/w3schools.com_official/)[FORUM](/forum/index.php)[ABOUT](/about/default.asp)[ACADEMY](/academy/index.php)W3Schools is optimized for learning and training. Examples might be simplified to improve reading and learning. 
+Tutorials, references, and examples are constantly reviewed to avoid errors, but we cannot warrant full correctness 
+
+---
+
+Title: Async / Await in JavaScript - DEV Community
+Here's a question for you. Is JavaScript synchronous, as in it finishes one task at a time, or is it asynchronous, where it can work on many tasks at one time? Now, JavaScript 101 would tell us that it is synchronous, because it basically works its way down the code and works on each task one at a time. If that is the case, how do async functions work? If JavaScript is synchronous, how can you have an asynchronous function? Isn't that contradictory? I'm going to take a deeper look and like many of my other articles I will use the MDN documents as my source with links at the bottom. 
+
+So, what happens if you are loading an application or a site and let's say you need to pull information from another source? Obviously, it is going to take longer to pull the information from the other source than it is to finish loading all of your application and your own content. I use this example because calling an API call with an async function is probably one of the most common uses of async functions. 
+
+Async functions are made to return a promise that is either resolved or rejected. They were made in order to make promises easier to write. Many times, an async function is accompanied by an await, but an await is not required when writing async functions. Without an await expression, the async function will run synchronously, but the await expression allows the async function to run asynchronously, because this is exactly when the promise is returned. 
+
+Here is an example of syntax without the await expression: 
+
+```
+async function name(){
+ return value;
+}
+```
+
+Here is an example of syntax with an await expression: 
+
+```
+async function name(){
+ const x = await promiseFunction(val);
+ console.log(val); //Value from the promise
+}
+```
+
+So, to explain these two blocks. In the first block, the code is just called synchronously, and then the value is returned. In the second block, when the code is called, it starts synchronously also until it reaches the await expression. Every time it goes through the await expression it evaluates if the promise is resolved, rejected or still unfulfilled. If it has been resolved, then the value of the promise is returned and the function is finished. If the promise is rejected, then the value of course will be rejected and also the function is finished. However, if the promise is unfulfilled, the program continues to execute the next functions in the stack. Whenever the promise is either resolved or rejected, then it will be returned and added to the stack. In this way, even though JavaScript is technically synchronous, it can act as though it is asynchronous. 
+
+I really wanted to cover this topic because to be honest, this was a topic that was a little hard for me to get my head around in the beginning. I wanted to spend time on this topic to really understand it more in a deeper way and hopefully be able to explain it to more people. 
+
+Photo by [Ferenc Almasi](https://unsplash.com/@flowforfrank?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)on [Unsplash](https://unsplash.com/photos/text-tvHtIGbbjMo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+
+Async Function - MDN. (n.d.). Retrieved June 18, 2024, from [https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers. 
+
+[Log in](https://dev.to/enter?signup_subforem=1)[Create account](https://dev.to/enter?signup_subforem=1&state=new-user)![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+---
+
+Title: Async and Await in JavaScript - GeeksforGeeks
+
+# Async and Await in JavaScript
+
+Last Updated : 2 May, 2026 
+
+Async/Await in JavaScript allows you to write asynchronous code in a clean, synchronous-like manner, making it easier to read, understand, and maintain while working with promises. 
+
+JavaScript `async function fetchData() {
+ try {
+ // Simulated API response (mock data)
+ const response = await Promise.resolve({
+ json: async () => ({
+ userId: 1,
+ id: 1,
+ title: "Sample Post",
+ body: "This is mock data for async/await demonstration"
+ })
+ });
+
+ const data = await response.json();
+ console.log(data);
+ } catch (error) {
+ console.error("Error fetching data:", error);
+ }
+}
+
+fetchData();`
+
+### Syntax:
+
+```
+async function functionName() { try { const result = await someAsyncFunction(); console.log(result); } catch (error) { console.error("Error:", error.message); }}
+```
+
+## Async Function
+
+Async functions let us write promise-based code in a synchronous-looking way, improving readability while keeping the execution non-blocking. An async function always returns a Promise—if it returns a non-promise value, JavaScript automatically wraps it in a resolved Promise. 
+
+****Syntax: ****
+
+```
+async function myFunction() {  return "Hello";}
+```
+
+javascript `const getData = async () => {
+ let data = "Hello World";
+ return data;
+}
+
+getData().then(data => console.log(data));`
+
+## Await Keyword
+
+The await keyword pauses the execution of an async function until a Promise is resolved or rejected. It can only be used inside an async function, making asynchronous code easier to read and manage. 
+
+javascript `const getData = async () => {
+ let y = await Promise.resolve("Hello World");
+ console.log(y);
+}
+
+console.log(1);
+getData();
+console.log(2);`
+
+## Error Handling in Async/Await
+
+Errors in async/await are handled using try...catch instead of resolve and reject. 
+
+JavaScript `async function fetchData() {
+ try {
+ let response = await fetch('https://api.example.com/data');
+ let data = await response.json();
+ console.log(data);
+ } catch (error) {
+ console.error('Error fetching data:', error);
+ }
+}`
+
+Comment Article Tags: Article Tags: [JavaScript](https://www.geeksforgeeks.org/category/web-technologies/javascript/)[Web Technologies](https://www.geeksforgeeks.org/category/web-technologies/)[javascript-functions](https://www.geeksforgeeks.org/tag/javascript-functions/)

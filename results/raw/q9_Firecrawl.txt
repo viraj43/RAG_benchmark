@@ -1,0 +1,1462 @@
+Title: Getting Started - NextAuth.js
+[Skip to main content](https://next-auth.js.org/getting-started/example#)
+
+🎉 NextAuth.js is now part of [Better Auth](https://better-auth.com/)!
+
+Version: v4
+
+On this page
+
+The example code below describes how to add authentication to a Next.js app.
+
+## New Project [​](https://next-auth.js.org/getting-started/example\#new-project "Direct link to heading")
+
+The easiest way to get started is to clone the [example app](https://github.com/nextauthjs/next-auth-example) and follow the instructions in README.md. You can try out a live demo at [https://next-auth-example.vercel.app/](https://next-auth-example.vercel.app/)
+
+## Existing Project [​](https://next-auth.js.org/getting-started/example\#existing-project "Direct link to heading")
+
+### Install NextAuth [​](https://next-auth.js.org/getting-started/example\#install-nextauth "Direct link to heading")
+
+- npm
+- yarn
+- pnpm
+
+```bash
+npm install next-auth
+```
+
+```bash
+yarn add next-auth
+```
+
+```bash
+pnpm add next-auth
+```
+
+info
+
+If you are using TypeScript, NextAuth.js comes with its types definitions within the package. To learn more about TypeScript for `next-auth`, check out the [TypeScript documentation](https://next-auth.js.org/getting-started/typescript)
+
+### Add API route [​](https://next-auth.js.org/getting-started/example\#add-api-route "Direct link to heading")
+
+To add NextAuth.js to a project create a file called `[...nextauth].js` in `pages/api/auth`. This contains the dynamic route handler for NextAuth.js which will also contain all of your global NextAuth.js configurations.
+
+If you're using [Next.js 13.2](https://nextjs.org/blog/next-13-2#custom-route-handlers) or above with the new App Router (`app/`), you can initialize the configuration using the new [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) by following our [guide](https://next-auth.js.org/configuration/initialization#route-handlers-app).
+
+pages/api/auth/\[...nextauth\].js
+
+```javascript
+import NextAuth from "next-auth"import GithubProvider from "next-auth/providers/github"export const authOptions = {  // Configure one or more authentication providers  providers: [    GithubProvider({      clientId: process.env.GITHUB_ID,      clientSecret: process.env.GITHUB_SECRET,    }),    // ...add more providers here  ],}export default NextAuth(authOptions)
+```
+
+All requests to `/api/auth/*` (`signIn`, `callback`, `signOut`, etc.) will automatically be handled by NextAuth.js.
+
+**Further Reading**:
+
+- See the [options documentation](https://next-auth.js.org/configuration/options) for more details on how to configure providers, databases and other options.
+- Read more about how to add authentication providers [here](https://next-auth.js.org/providers).
+
+#### Configure Shared session state [​](https://next-auth.js.org/getting-started/example\#configure-shared-session-state "Direct link to heading")
+
+To be able to use `useSession` first you'll need to expose the session context, [`<SessionProvider />`](https://next-auth.js.org/getting-started/client#sessionprovider), at the top level of your application:
+
+pages/\_app.jsx
+
+```jsx
+import { SessionProvider } from "next-auth/react"export default function App({  Component,  pageProps: { session, ...pageProps },}) {  return (    <SessionProvider session={session}>      <Component {...pageProps} />    </SessionProvider>  )}
+```
+
+Instances of `useSession` will then have access to the session data and status. The `<SessionProvider />` also takes care of keeping the session updated and synced between browser tabs and windows.
+
+tip
+
+Check out the [client documentation](https://next-auth.js.org/getting-started/client) to see how you can improve the user experience and page performance by using the NextAuth.js client.
+If you are using the Next.js App Router, please note that `<SessionProvider />` requires a client component and therefore cannot be put inside the root layout. For more details, check out the [Next.js documentation](https://nextjs.org/docs/app/getting-started/layouts-and-pages).
+
+### Frontend - Add React Hook [​](https://next-auth.js.org/getting-started/example\#frontend---add-react-hook "Direct link to heading")
+
+The [`useSession()`](https://next-auth.js.org/getting-started/client#usesession) React Hook in the NextAuth.js client is the easiest way to check if someone is signed in.
+
+components/login-btn.jsx
+
+```jsx
+import { useSession, signIn, signOut } from "next-auth/react"export default function Component() {  const { data: session } = useSession()  if (session) {    return (      <>        Signed in as {session.user.email} <br />        <button onClick={() => signOut()}>Sign out</button>      </>    )  }  return (    <>      Not signed in <br />      <button onClick={() => signIn()}>Sign in</button>    </>  )}
+```
+
+You can use the `useSession` hook from anywhere in your application (e.g. in a header component).
+
+### Backend - API Route [​](https://next-auth.js.org/getting-started/example\#backend---api-route "Direct link to heading")
+
+To protect an API Route, you can use the [`getServerSession()`](https://next-auth.js.org/configuration/nextjs#unstable_getserversession) method.
+
+pages/api/restricted.js
+
+```javascript
+import { getServerSession } from "next-auth/next"import { authOptions } from "./auth/[...nextauth]"export default async (req, res) => {  const session = await getServerSession(req, res, authOptions)  if (session) {    res.send({      content:        "This is protected content. You can access this content because you are signed in.",    })  } else {    res.send({      error: "You must be signed in to view the protected content on this page.",    })  }}
+```
+
+### Extensibility [​](https://next-auth.js.org/getting-started/example\#extensibility "Direct link to heading")
+
+#### Using NextAuth.js Callbacks [​](https://next-auth.js.org/getting-started/example\#using-nextauthjs-callbacks "Direct link to heading")
+
+NextAuth.js allows you to hook into various parts of the authentication flow via our [built-in callbacks](https://next-auth.js.org/configuration/callbacks).
+
+For example, to pass a value from the sign-in to the frontend, client-side, you can use a combination of the [`session`](https://next-auth.js.org/configuration/callbacks#session-callback) and [`jwt`](https://next-auth.js.org/configuration/callbacks#jwt-callback) callback like so:
+
+pages/api/auth/\[...nextauth\].js
+
+```javascript
+...
+callbacks: {
+  async jwt({ token, account }) {
+    // Persist the OAuth access_token to the token right after signin
+    if (account) {
+      token.accessToken = account.access_token
+    }
+    return token
+  },
+  async session({ session, token, user }) {
+    // Send properties to the client, like an access_token from a provider.
+    session.accessToken = token.accessToken
+    return session
+  }
+}
+...
+```
+
+Now whenever you call [`getSession`](https://next-auth.js.org/getting-started/client#getsession) or [`useSession`](https://next-auth.js.org/getting-started/client#usesession), the data object which is returned will include the `accessToken` value.
+
+components/accessToken.jsx
+
+```jsx
+import { useSession, signIn, signOut } from "next-auth/react"export default function Component() {  const { data } = useSession()  const { accessToken } = data  return <div>Access Token: {accessToken}</div>}
+```
+
+## Configuring callback URL (OAuth only) [​](https://next-auth.js.org/getting-started/example\#configuring-callback-url-oauth-only "Direct link to heading")
+
+If you are using an OAuth provider either through one of our [built-in providers](https://next-auth.js.org/configuration/providers/oauth)
+or through a [custom provider](https://next-auth.js.org/configuration/providers/oauth#using-a-custom-provider), you'll need to configure
+a callback URL in your provider's settings. Each provider has a "Configuration" section that should give you pointers on how to do that.
+
+Follow [these steps](https://next-auth.js.org/configuration/providers/oauth#how-to) to learn how to integrate with an OAuth provider.
+
+## Deploying to production [​](https://next-auth.js.org/getting-started/example\#deploying-to-production "Direct link to heading")
+
+When deploying your site set the `NEXTAUTH_URL` environment variable to the canonical URL of the website.
+
+```text
+NEXTAUTH_URL=https://example.com
+```
+
+tip
+
+In production, this needs to be set as an environment variable on the service you use to deploy your app.
+
+To set environment variables on Vercel, you can use the [dashboard](https://vercel.com/dashboard) or the `vercel env pull` [command](https://vercel.com/docs/build-step#development-environment-variables).
+
+For more information please check out our [deployment page](https://next-auth.js.org/deployment).
+
+- [New Project](https://next-auth.js.org/getting-started/example#new-project)
+- [Existing Project](https://next-auth.js.org/getting-started/example#existing-project)
+  - [Install NextAuth](https://next-auth.js.org/getting-started/example#install-nextauth)
+  - [Add API route](https://next-auth.js.org/getting-started/example#add-api-route)
+  - [Frontend - Add React Hook](https://next-auth.js.org/getting-started/example#frontend---add-react-hook)
+  - [Backend - API Route](https://next-auth.js.org/getting-started/example#backend---api-route)
+  - [Extensibility](https://next-auth.js.org/getting-started/example#extensibility)
+- [Configuring callback URL (OAuth only)](https://next-auth.js.org/getting-started/example#configuring-callback-url-oauth-only)
+- [Deploying to production](https://next-auth.js.org/getting-started/example#deploying-to-production)
+
+---
+
+Title: Here's how to set up authentication using Next-Auth/Auth.js in just 1 ...
+Here's how to set up authentication using Next-Auth/Auth.js in just 1 hour 30 mins. · Email magic link · Google OAuth · Role Based Access Control.
+
+---
+
+Title: Building a Complete Authentication System with NextAuth.js v4 and ...
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40muhebollah.diu%2Fbuilding-a-complete-authentication-system-with-nextauth-js-v4-and-external-api-in-next-js-15-3544c3dc561c&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40muhebollah.diu%2Fbuilding-a-complete-authentication-system-with-nextauth-js-v4-and-external-api-in-next-js-15-3544c3dc561c&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/0*Lu0H5kK7chk7x5xT)
+
+Photo by [FlyD](https://unsplash.com/@flyd2069?utm_source=medium&utm_medium=referral) on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+
+# Building a Complete Authentication System with NextAuth.js v4 and External API in Next.js 15
+
+[![Muhibullah](https://miro.medium.com/v2/da:true/resize:fill:32:32/0*P_70OzTsNvg7ND0t)](https://medium.com/@muhebollah.diu?source=post_page---byline--3544c3dc561c---------------------------------------)
+
+[Muhibullah](https://medium.com/@muhebollah.diu?source=post_page---byline--3544c3dc561c---------------------------------------)
+
+Follow
+
+9 min read
+
+·
+
+Jul 20, 2025
+
+7
+
+2
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D3544c3dc561c&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40muhebollah.diu%2Fbuilding-a-complete-authentication-system-with-nextauth-js-v4-and-external-api-in-next-js-15-3544c3dc561c&source=---header_actions--3544c3dc561c---------------------post_audio_button------------------)
+
+Share
+
+_Learn how to implement secure authentication with automatic token refresh, session management, and route protection in your Next.js 15 application using the App Router_
+
+## Introduction
+
+Authentication is one of the most critical aspects of modern web applications, but it’s also one of the most complex to implement correctly. Between managing tokens, handling expiry, securing routes, and providing a smooth user experience, there’s a lot that can go wrong.
+
+If you’re building a Next.js application that needs to authenticate against an external API (maybe your backend is built with Node.js, Django, or .NET), this guide will show you exactly how to implement a robust authentication system using NextAuth.js v4.
+
+**What you’ll learn:**
+
+- Complete NextAuth.js setup with external API integration
+- Automatic token refresh mechanisms
+- Secure session management
+- Route protection strategies
+- Error handling and user experience considerations
+
+## Why NextAuth.js?
+
+NextAuth.js handles the heavy lifting of authentication while giving you complete control over the process. It provides:
+
+- **Security by default** — CSRF protection, secure cookies, JWT handling
+- **Flexible authentication** — Works with any authentication provider or custom API
+- **Session management** — Both JWT and database sessions
+- **TypeScript support** — Full type safety out of the box
+
+## Prerequisites
+
+Before we dive in, make sure you have:
+
+- A Next.js 15 application set up with App Router
+- An external API with login and refresh token endpoints
+- Basic understanding of React Server Components and Next.js App Router
+- Node.js 18.18 or later (required for Next.js 15)
+
+## Understanding the Authentication Flow
+
+Let’s start by understanding what happens during authentication:
+
+```
+1. User submits login form
+2. NextAuth calls your external API
+3. API returns user data + access/refresh tokens
+4. NextAuth stores tokens in encrypted JWT cookie
+5. User accesses protected pages
+6. When token expires, NextAuth automatically refreshes it
+7. If refresh fails, user is signed out
+```
+
+This flow ensures users stay authenticated seamlessly while maintaining security through token rotation.
+
+## Step 1: Installation and Setup
+
+First, install the required packages:
+
+```
+npm install next-auth
+```
+
+Create your environment variables in `.env.local`:
+
+```
+NEXTAUTH_SECRET=your-super-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=https://your-api.com
+```
+
+## Step 2: Core NextAuth Configuration (App Router)
+
+Create `/app/api/auth/[...nextauth]/route.js` (note the new App Router structure):
+
+```
+import NextAuth from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+// Authenticate user with your external API
+async function authenticateUser(email, password) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return null
+    }
+
+    // Your API should return:
+    // {
+    //   user: { id, name, email, role },
+    //   accessToken: "jwt-token",
+    //   refreshToken: "refresh-token",
+    //   expiresIn: 3600
+    // }
+    return data
+  } catch (error) {
+    console.error("Authentication error:", error)
+    return null
+  }
+}
+
+export const authOptions = {
+  providers: [\
+    CredentialsProvider({\
+      name: "credentials",\
+      credentials: {\
+        email: { label: "Email", type: "email" },\
+        password: { label: "Password", type: "password" }\
+      },\
+      async authorize(credentials) {\
+        if (!credentials?.email || !credentials?.password) {\
+          return null\
+        }\
+\
+        const authResult = await authenticateUser(\
+          credentials.email,\
+          credentials.password\
+        )\
+\
+        if (!authResult) return null\
+\
+        return {\
+          id: authResult.user.id,\
+          name: authResult.user.name,\
+          email: authResult.user.email,\
+          role: authResult.user.role,\
+          accessToken: authResult.accessToken,\
+          refreshToken: authResult.refreshToken,\
+          accessTokenExpires: Date.now() + (authResult.expiresIn * 1000),\
+        }\
+      }\
+    })\
+  ],
+
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
+}
+
+// App Router requires explicit exports
+const handler = NextAuth(authOptions)
+export { handler as GET, handler as POST }
+```
+
+## Step 3: Implementing Token Refresh
+
+The magic happens in the JWT callback. This is where we handle automatic token renewal:
+
+```
+// Add this to your authOptions
+callbacks: {
+  async jwt({ token, user }) {
+    // Initial sign-in
+    if (user) {
+      return {
+        ...token,
+        id: user.id,
+        role: user.role,
+        accessToken: user.accessToken,
+        refreshToken: user.refreshToken,
+        accessTokenExpires: user.accessTokenExpires,
+      }
+    }
+
+    // Token hasn't expired yet
+    if (Date.now() < token.accessTokenExpires) {
+      return token
+    }
+
+    // Token expired, refresh it
+    return await refreshAccessToken(token)
+  },
+
+  async session({ session, token }) {
+    // Send properties to client
+    session.user.id = token.id
+    session.user.role = token.role
+    session.accessToken = token.accessToken
+    session.error = token.error
+
+    return session
+  }
+}
+
+// Token refresh function
+async function refreshAccessToken(token) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        refreshToken: token.refreshToken,
+      }),
+    })
+
+    const refreshedTokens = await response.json()
+
+    if (!response.ok) {
+      throw refreshedTokens
+    }
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.accessToken,
+      refreshToken: refreshedTokens.refreshToken || token.refreshToken,
+      accessTokenExpires: Date.now() + (refreshedTokens.expiresIn * 1000),
+    }
+  } catch (error) {
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    }
+  }
+}
+```
+
+## Step 4: Creating the Login Component (Client Component)
+
+In Next.js 15 with App Router, we need to explicitly mark interactive components as client components:
+
+```
+// components/LoginForm.jsx
+'use client' // Required for client-side interactivity in App Router
+
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation' // Note: next/navigation for App Router
+
+export default function LoginForm() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setError('Invalid credentials. Please try again.')
+    } else {
+      router.push('/dashboard')
+    }
+
+    setLoading(false)
+  }
+
+  return (
+    <div className="max-w-md mx-auto mt-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+          />
+        </div>
+
+        {error && (
+          <div className="text-red-600 text-sm">{error}</div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
+      </form>
+    </div>
+  )
+}
+```
+
+## Step 5: Route Protection
+
+Create an AuthGuard component to protect your routes:
+
+```
+// components/AuthGuard.jsx
+'use client' // Client component for interactivity
+
+import { useSession, signOut } from 'next-auth/react'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation' // App Router import
+
+export default function AuthGuard({ children }) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    // Handle refresh token failure
+    if (session?.error === "RefreshAccessTokenError") {
+      signOut({ callbackUrl: '/login' })
+    }
+  }, [session])
+
+  if (status === "loading") {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (status === "unauthenticated") {
+    router.push('/login')
+    return null
+  }
+
+  if (session?.error === "RefreshAccessTokenError") {
+    return (
+      <div className="text-center mt-8">
+        Session expired. Redirecting to login...
+      </div>
+    )
+  }
+
+  return children
+}
+```
+
+## Step 6: Setting Up Your App with App Router
+
+Configure your `app/layout.js` to provide session context (App Router uses layout.js instead of \_app.js):
+
+```
+// app/layout.js
+import { Inter } from 'next/font/google'
+import SessionProvider from './providers/SessionProvider'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'My App with Auth',
+  description: 'Complete authentication system with NextAuth.js v4',
+}
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+Create a custom SessionProvider component:
+
+```
+// app/providers/SessionProvider.jsx
+'use client'
+
+import { SessionProvider as NextAuthSessionProvider } from "next-auth/react"
+
+export default function SessionProvider({ children }) {
+  return (
+    <NextAuthSessionProvider>
+      {children}
+    </NextAuthSessionProvider>
+  )
+}
+```
+
+## Step 7: Creating Protected Pages (App Router)
+
+Create a dashboard page using the new App Router structure:
+
+```
+// app/dashboard/page.js
+'use client' // Client component for session hooks
+
+import { useSession, signOut } from 'next-auth/react'
+import AuthGuard from '../components/AuthGuard'
+
+export default function DashboardPage() {
+  const { data: session } = useSession()
+
+  return (
+    <AuthGuard>
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+          <div className="mb-6">
+            <p className="text-gray-600">Welcome back, <strong>{session?.user?.name}</strong>!</p>
+            <p className="text-sm text-gray-500">Role: {session?.user?.role}</p>
+          </div>
+
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </AuthGuard>
+  )
+}
+```
+
+For a login page:
+
+```
+// app/login/page.js
+import LoginForm from '../components/LoginForm'
+
+export const metadata = {
+  title: 'Login - My App',
+  description: 'Sign in to your account',
+}
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full">
+        <h2 className="text-3xl font-bold text-center mb-8">Sign In</h2>
+        <LoginForm />
+      </div>
+    </div>
+  )
+}
+```
+
+## Step 8: Making Authenticated API Calls (App Router)
+
+Here’s how to make API calls using the stored access token in App Router:
+
+```
+// app/api/user-profile/route.js
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "../auth/[...nextauth]/route"
+
+export async function GET() {
+  const session = await getServerSession(authOptions)
+
+  if (!session || session.error === "RefreshAccessTokenError") {
+    return new Response(
+      JSON.stringify({ message: "Unauthorized" }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
+  try {
+    // Use the access token to call your API
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
+      headers: {
+        'Authorization': `Bearer ${session.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('API call failed')
+    }
+
+    const userData = await response.json()
+    return new Response(JSON.stringify(userData), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ message: "Failed to fetch user data" }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+}
+```
+
+For server components that need authentication:
+
+```
+// app/profile/page.js - Server Component
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "../api/auth/[...nextauth]/route"
+import { redirect } from 'next/navigation'
+
+export default async function ProfilePage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session) {
+    redirect('/login')
+  }
+
+  // You can make API calls directly in server components
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
+    headers: {
+      'Authorization': `Bearer ${session.accessToken}`,
+    },
+    cache: 'no-store', // Ensure fresh data
+  })
+
+  const userData = await response.json()
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-4">User Profile</h1>
+      <div className="bg-white rounded-lg shadow p-6">
+        <p><strong>Name:</strong> {userData.name}</p>
+        <p><strong>Email:</strong> {userData.email}</p>
+        <p><strong>Role:</strong> {userData.role}</p>
+      </div>
+    </div>
+  )
+}
+```
+
+## API Response Format
+
+Your external API should follow this response format:
+
+## Get Muhibullah’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+**Login endpoint** (`POST /auth/login`):
+
+```
+{
+  "user": {
+    "id": "123",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "user"
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "refresh_token_here",
+  "expiresIn": 3600
+}
+```
+
+**Refresh endpoint** (`POST /auth/refresh`):
+
+```
+{
+  "accessToken": "new_access_token",
+  "refreshToken": "new_refresh_token_optional",
+  "expiresIn": 3600
+}
+```
+
+## Best Practices and Security Considerations
+
+## 1\. Environment Variables
+
+Always store sensitive data in environment variables:
+
+```
+NEXTAUTH_SECRET=use-a-long-random-string-in-production
+NEXTAUTH_URL=https://yourdomain.com
+NEXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com
+```
+
+## 2\. Error Handling
+
+Implement comprehensive error handling:
+
+```
+// Always handle network failures
+try {
+  const response = await fetch('/api/protected')
+  if (!response.ok) {
+    throw new Error('Request failed')
+  }
+} catch (error) {
+  // Handle error gracefully
+  console.error('API call failed:', error)
+}
+```
+
+## 3\. Loading States
+
+Provide feedback during authentication:
+
+```
+const { data: session, status } = useSession()
+
+if (status === "loading") return <LoadingSpinner />
+if (status === "unauthenticated") return <LoginForm />
+```
+
+## 4\. Token Security
+
+- Never store tokens in localStorage
+- Use secure, httpOnly cookies (NextAuth handles this)
+- Implement proper CORS policies on your API
+
+## Troubleshooting Common Issues
+
+## Issue 1: “Configuration is not defined.” Error
+
+**Solution**: Make sure you’re exporting `authOptions`:
+
+```
+export const authOptions = { /* your config */ }
+export default NextAuth(authOptions)
+```
+
+## Issue 2: Infinite Refresh Loops
+
+**Solution**: Check your token expiry logic:
+
+```
+// Make sure this comparison is correct
+if (Date.now() < token.accessTokenExpires) {
+  return token // Don't refresh
+}
+```
+
+## Issue 3: Session Not Updating in App Router
+
+**Solution**: Make sure you’re using the correct session strategy and properly wrapping your app:
+
+```
+// app/layout.js - Make sure SessionProvider is properly configured
+import SessionProvider from './providers/SessionProvider'
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+## Next.js 15 Specific Considerations
+
+## App Router vs Pages Router
+
+Next.js 15 defaults to App Router, which brings several important changes:
+
+1. **API Routes Structure**: `/app/api/auth/[...nextauth]/route.js` instead of `/pages/api/auth/[...nextauth].js`
+2. **Export Pattern**: Must export `GET` and `POST` handlers explicitly
+3. **Navigation**: Use `next/navigation` instead of `next/router`
+4. **Client Components**: Must use `'use client'` directive for interactive components
+5. **Server Components**: Can directly access sessions and make API calls
+
+## Performance Benefits
+
+- **Server Components**: Better SEO and initial page load performance
+- **Automatic Code Splitting**: Improved bundle optimization
+- **Streaming**: Better perceived performance with loading states
+
+## Migration Notes
+
+If you’re migrating from Pages Router:
+
+- Move API routes from `/pages/api/` to `/app/api/`
+- Update imports from `next/router` to `next/navigation`
+- Add `'use client'` to components that use hooks or event handlers
+- Consider converting some pages to Server Components for better performance
+
+## Conclusion
+
+You now have a complete, production-ready authentication system that:
+
+- Handles login/logout securely
+- Automatically refreshes tokens
+- Protects routes effectively
+- Provides excellent user experience
+- Follows security best practices
+
+This setup scales well and works with any backend API. The automatic token refresh ensures users never experience unexpected logouts, while the route protection keeps your application secure.
+
+## Next Steps
+
+Consider implementing these additional features:
+
+- Role-based access control
+- Remember me functionality
+- Multi-factor authentication
+- Social login providers
+- Advanced error tracking
+
+## Resources
+
+- [NextAuth.js Documentation](https://next-auth.js.org/)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [JWT Best Practices](https://auth0.com/blog/a-look-at-the-latest-draft-for-jwt-bcp/)
+
+_Found this helpful? Follow me for more web development tutorials and share this with fellow developers who might benefit from a robust authentication setup!_
+
+[Nextjs](https://medium.com/tag/nextjs?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Authentication](https://medium.com/tag/authentication?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Web Development](https://medium.com/tag/web-development?source=post_page-----3544c3dc561c---------------------------------------)
+
+[JavaScript](https://medium.com/tag/javascript?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Nextauth](https://medium.com/tag/nextauth?source=post_page-----3544c3dc561c---------------------------------------)
+
+[![Muhibullah](https://miro.medium.com/v2/resize:fill:48:48/0*P_70OzTsNvg7ND0t)](https://medium.com/@muhebollah.diu?source=post_page---post_author_info--3544c3dc561c---------------------------------------)
+
+[![Muhibullah](https://miro.medium.com/v2/resize:fill:64:64/0*P_70OzTsNvg7ND0t)](https://medium.com/@muhebollah.diu?source=post_page---post_author_info--3544c3dc561c---------------------------------------)
+
+Follow
+
+[**Written by Muhibullah**](https://medium.com/@muhebollah.diu?source=post_page---post_author_info--3544c3dc561c---------------------------------------)
+
+[29 followers](https://medium.com/@muhebollah.diu/followers?source=post_page---post_author_info--3544c3dc561c---------------------------------------)
+
+· [5 following](https://medium.com/@muhebollah.diu/following?source=post_page---post_author_info--3544c3dc561c---------------------------------------)
+
+A skilled software developer with a passion for creating innovative solutions using cutting-edge technologies. With extensive experience in web development.
+
+Follow
+
+## Responses (2)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40muhebollah.diu%2Fbuilding-a-complete-authentication-system-with-nextauth-js-v4-and-external-api-in-next-js-15-3544c3dc561c&source=---post_responses--3544c3dc561c---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----3544c3dc561c---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----3544c3dc561c---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----3544c3dc561c---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----3544c3dc561c---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: Credentials | NextAuth.js
+[Skip to main content](https://next-auth.js.org/providers/credentials#)
+
+🎉 NextAuth.js is now part of [Better Auth](https://better-auth.com/)!
+
+Version: v4
+
+On this page
+
+## Overview [​](https://next-auth.js.org/providers/credentials\#overview "Direct link to heading")
+
+The Credentials provider allows you to handle signing in with arbitrary credentials, such as a username and password, domain, or two factor authentication or hardware device (e.g. YubiKey U2F / FIDO).
+
+It is intended to support use cases where you have an existing system you need to authenticate users against.
+
+It comes with the constraint that users authenticated in this manner are not persisted in the database, and consequently that the Credentials provider can only be used if JSON Web Tokens are enabled for sessions.
+
+danger
+
+The functionality provided for credentials based authentication is intentionally limited to discourage use of passwords due to the inherent security risks associated with them and the additional complexity associated with supporting usernames and passwords.
+
+## Options [​](https://next-auth.js.org/providers/credentials\#options "Direct link to heading")
+
+The **Credentials Provider** comes with a set of default options:
+
+- [Credentials Provider options](https://github.com/nextauthjs/next-auth/blob/main/packages/core/src/providers/credentials.ts)
+
+You can override any of the options to suit your own use case.
+
+## Example - Username / Password [​](https://next-auth.js.org/providers/credentials\#example---username--password "Direct link to heading")
+
+The Credentials provider is specified like other providers, except that you need to define a handler for `authorize()` that accepts credentials submitted via HTTP POST as input and returns either:
+
+1. A `user` object, which indicates the credentials are valid.
+
+If you return an object it will be persisted to the JSON Web Token and the user will be signed in, unless a custom `signIn()` callback is configured that subsequently rejects it.
+
+2. If you return `null` then an error will be displayed advising the user to check their details.
+
+3. If you throw an Error, the user will be sent to the error page with the error message as a query parameter.
+
+
+The Credentials provider's `authorize()` method also provides the request object as the second parameter (see example below).
+
+pages/api/auth/\[...nextauth\]/route.js
+
+```js
+import CredentialsProvider from "next-auth/providers/credentials";
+...
+providers: [\
+  CredentialsProvider({\
+    // The name to display on the sign in form (e.g. "Sign in with...")\
+    name: "Credentials",\
+    // `credentials` is used to generate a form on the sign in page.\
+    // You can specify which fields should be submitted, by adding keys to the `credentials` object.\
+    // e.g. domain, username, password, 2FA token, etc.\
+    // You can pass any HTML attribute to the <input> tag through the object.\
+    credentials: {\
+      username: { label: "Username", type: "text", placeholder: "jsmith" },\
+      password: { label: "Password", type: "password" }\
+    },\
+    async authorize(credentials, req) {\
+      // Add logic here to look up the user from the credentials supplied\
+      const user = { id: "1", name: "J Smith", email: "jsmith@example.com" }\
+\
+      if (user) {\
+        // Any object returned will be saved in `user` property of the JWT\
+        return user\
+      } else {\
+        // If you return null then an error will be displayed advising the user to check their details.\
+        return null\
+\
+        // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter\
+      }\
+    }\
+  })\
+]
+...
+```
+
+See the [callbacks documentation](https://next-auth.js.org/configuration/callbacks) for more information on how to interact with the token.
+
+## Example - Web3 / Signin With Ethereum [​](https://next-auth.js.org/providers/credentials\#example---web3--signin-with-ethereum "Direct link to heading")
+
+The credentials provider can also be used to integrate with a service like [Sign-in With Ethereum](https://login.xyz/).
+
+For more information, check out the links below:
+
+- [Tutorial](https://docs.login.xyz/integrations/nextauth.js)
+- [Example App Repo](https://github.com/spruceid/siwe-next-auth-example).
+- [Example App Demo](https://siwe-next-auth-example2.vercel.app/).
+
+## Multiple providers [​](https://next-auth.js.org/providers/credentials\#multiple-providers "Direct link to heading")
+
+### Example [​](https://next-auth.js.org/providers/credentials\#example "Direct link to heading")
+
+You can specify more than one credentials provider by specifying a unique `id` for each one.
+
+You can also use them in conjunction with other provider options.
+
+As with all providers, the order you specify them is the order they are displayed on the sign in page.
+
+```js
+providers: [\
+  CredentialsProvider({\
+    id: "domain-login",\
+    name: "Domain Account",\
+    async authorize(credentials, req) {\
+      const user = {\
+        /* add function to get user */\
+      }\
+      return user\
+    },\
+    credentials: {\
+      domain: {\
+        label: "Domain",\
+        type: "text ",\
+        placeholder: "CORPNET",\
+        value: "CORPNET",\
+      },\
+      username: { label: "Username", type: "text ", placeholder: "jsmith" },\
+      password: { label: "Password", type: "password" },\
+    },\
+  }),\
+  CredentialsProvider({\
+    id: "intranet-credentials",\
+    name: "Two Factor Auth",\
+    async authorize(credentials, req) {\
+      const user = {\
+        /* add function to get user */\
+      }\
+      return user\
+    },\
+    credentials: {\
+      username: { label: "Username", type: "text ", placeholder: "jsmith" },\
+      "2fa-key": { label: "2FA Key" },\
+    },\
+  }),\
+  /* ... additional providers ... /*/\
+]
+```
+
+![](https://next-auth.js.org/assets/images/signin-complex-ee85e2ba139b73903bbb9723aa846865.png)
+
+- [Overview](https://next-auth.js.org/providers/credentials#overview)
+- [Options](https://next-auth.js.org/providers/credentials#options)
+- [Example - Username / Password](https://next-auth.js.org/providers/credentials#example---username--password)
+- [Example - Web3 / Signin With Ethereum](https://next-auth.js.org/providers/credentials#example---web3--signin-with-ethereum)
+- [Multiple providers](https://next-auth.js.org/providers/credentials#multiple-providers)
+  - [Example](https://next-auth.js.org/providers/credentials#example)
+
+---
+
+Title: Implementing Credential-Based Authentication with NextAuth.js in ...
+## Implementing Credential-Based Authentication with NextAuth.js in Next.js
+
+Authentication is crucial in controlling user access to web applications. While OAuth providers like Google and GitHub are popular, email/password-based authentication is still one of the most widely-used and secure methods. In this article, we will dive deep into how to implement credential-based authentication using **NextAuth.js** in a **Next.js** app. We’ll break down each step clearly, so you can follow along and implement this functionality in your own projects.
+
+### What is NextAuth.js?
+
+[NextAuth.js](https://next-auth.js.org/) is an authentication library designed for Next.js applications. It simplifies handling authentication, including support for third-party providers (OAuth) like Google, GitHub, and Facebook. In this article, however, we’ll focus on using **Credential Providers** for email and password-based authentication.
+
+### What is the Credentials Provider?
+
+The **Credentials Provider** in NextAuth.js allows you to authenticate users using custom credentials (e.g., email and password), giving you full control over how users log in and how their credentials are validated.
+
+#### Why use the Credentials Provider?
+
+- **Complete Control**: You can define custom logic for login, error handling, and validation (e.g., checking if a user is verified).
+- **Simple and Secure**: Email/password remains one of the most secure and widely-used methods for authentication.
+
+Let’s walk through the code setup and explain each step.
+
+* * *
+
+### Step 1: Configure NextAuth.js with the Credentials Provider
+
+The **NextAuthOptions** configuration object tells NextAuth.js how to handle the authentication process. Below is the full code snippet for setting it up:
+
+```
+import { NextAuthOptions } from "next-auth";
+import CredentialProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { dbConnect } from "@/lib/dbConnect";
+import UserModel from "@/model/User";
+
+export const authOptions: NextAuthOptions = {
+  providers: [\
+    CredentialProvider({\
+      id: "credentials", // Unique identifier for the provider\
+      name: "Credentials", // Display name in the UI\
+      credentials: {\
+        email: { label: "Email", type: "text" },\
+        password: { label: "Password", type: "password" },\
+      },\
+      async authorize(credentials: any): Promise<any> {\
+        await dbConnect(); // Connect to the database\
+\
+        try {\
+          const user = await UserModel.findOne({\
+            $or: [\
+              { email: credentials.identifier },\
+              { username: credentials.identifier },\
+            ],\
+          });\
+\
+          if (!user) {\
+            throw new Error("No user found with this email or username");\
+          }\
+\
+          if (!user.isVerified) {\
+            throw new Error("Please verify your account before logging in");\
+          }\
+\
+          const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);\
+          if (isPasswordCorrect) {\
+            return user; // Successfully authenticated\
+          } else {\
+            throw new Error("Incorrect password");\
+          }\
+        } catch (err: any) {\
+          throw new Error(err);\
+        }\
+      },\
+    }),\
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token._id = user._id?.toString();
+        token.isVerified = user?.isVerified;
+        token.username = user?.username;
+        token.isAcceptingMessages = user?.isAcceptingMessages;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user._id = token._id?.toString();
+        session.user.isVerified = token?.isVerified;
+        session.user.username = token?.username;
+        session.user.isAcceptingMessages = token?.isAcceptingMessages;
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/sign-in", // Custom sign-in page
+    error: "/sign-in",  // Custom error page
+  },
+  session: {
+    strategy: "jwt", // Use JWT for session management
+  },
+  secret: process.env.NEXTAUTH_SECRET, // Secret key to secure sessions and JWT tokens
+};
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+### Explanation of the Code
+
+- **Providers**: The Credentials Provider is used here to define the fields needed for login (email and password).
+  - **id**: The unique identifier for the provider (credentials in this case).
+  - **credentials**: The fields required for login (email and password).
+  - **authorize()**: This function handles the login logic. It checks if the user exists, if the account is verified, and whether the entered password matches the one stored in the database.
+- **Callbacks**:
+  - **jwt**: This callback is called when generating a JWT. We add custom data like the user's ID, username, and verification status.
+  - **session**: This callback is triggered when a session is created or updated. We store additional information from the JWT into the session object.
+- **Pages**:
+  - **signIn**: The URL path for the custom sign-in page.
+  - **error**: Custom error handling page for authentication failures.
+
+* * *
+
+### Step 2: Create the API Route to Handle Authentication
+
+Next, we need an API route to handle authentication logic. This is where the actual NextAuth.js authentication mechanism is invoked.
+
+```
+// pages/api/auth/[...nextauth].ts
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/authOptions"; // Import the authOptions configuration
+
+export default NextAuth(authOptions); // Use the configuration to handle authentication requests
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+This file simply imports the `authOptions` from your configuration file and passes it to `NextAuth()`. The API route will automatically handle requests like logging in, managing sessions, and handling authentication errors.
+
+* * *
+
+### Step 3: File Structure
+
+To keep things organized, we can structure the project like this:
+
+```
+/lib
+  /authOptions.ts        // Configuration for NextAuth.js
+/model
+  /User.ts               // User model for querying the database
+/pages
+  /api
+    /auth
+      [...nextauth].ts    // NextAuth API route
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+* * *
+
+### Step 4: How to Handle the Route in Next.js 13+
+
+With the **App Router** (Next.js 13+), the code should look like this:
+
+```
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/authOptions"; // Import the configuration
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST }; // Handle both GET and POST requests
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+This setup allows the route to handle both **GET** requests (e.g., fetching session info) and **POST** requests (e.g., logging in).
+
+* * *
+
+### Conclusion
+
+By following this guide, you should now be able to implement credential-based authentication using NextAuth.js in your Next.js application. With the flexibility of the **Credentials Provider**, you have full control over the authentication process, from user verification to password comparison.
+
+If you found this tutorial helpful, feel free to share it with others on Dev.to, and don’t hesitate to ask any questions in the comments. Happy coding!
+
+* * *
+
+Let me know if you'd like me to modify or add anything further!
+
+[![profile](https://media2.dev.to/dynamic/image/width=64,height=64,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Forganization%2Fprofile_image%2F1%2Fd908a186-5651-4a5a-9f76-15200bc6801f.jpg)\\
+The DEV Team](https://dev.to/devteam) Promoted
+
+Dropdown menu
+
+- [What's a billboard?](https://dev.to/billboards)
+- [Manage preferences](https://dev.to/settings/customization#sponsors)
+
+* * *
+
+- [Report billboard](https://dev.to/report-abuse?billboard=263337)
+
+[![100 Days of Solana image](https://media2.dev.to/dynamic/image/width=775%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fi.imgur.com%2F9NOihdV.jpeg)](https://events.mlh.io/events/13995-100-days-of-solana?bb=263337)
+
+## [Explored Web3 but not sure where to start? 🤔](https://events.mlh.io/events/13995-100-days-of-solana?bb=263337)
+
+100 Days of Solana is a hands-on challenge series that takes you from curiosity to capability. By the end, you won’t just understand Solana, you’ll be ready to build something useful with it.
+
+See the latest from [100 Days of Solana on DEV.](https://dev.to/100daysofsolana?bb=263337)
+
+[Start here](https://events.mlh.io/events/13995-100-days-of-solana?bb=263337)
+
+Read More
+
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+[Create template](https://dev.to/settings/response-templates)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+SubmitPreview [Dismiss](https://dev.to/404.html)
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](https://dev.to/master-rj/implementing-credential-based-authentication-with-nextauthjs-in-nextjs-1n6g#).
+
+
+Hide child comments as well
+
+Confirm
+
+
+For further actions, you may consider blocking this person and/or [reporting abuse](https://dev.to/report-abuse)
+
+[![profile](https://media2.dev.to/dynamic/image/width=64,height=64,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Forganization%2Fprofile_image%2F6839%2F3d85988f-d18e-4522-b261-f86613cd9b50.png)\\
+Sonar](https://dev.to/sonar) Promoted
+
+Dropdown menu
+
+- [What's a billboard?](https://dev.to/billboards)
+- [Manage preferences](https://dev.to/settings/customization#sponsors)
+
+* * *
+
+- [Report billboard](https://dev.to/report-abuse?billboard=259978)
+
+[![State of Code Developer Survey report](https://media2.dev.to/dynamic/image/width=775%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fucarecdn.com%2F2f2ce9b0-68e0-48a1-bf3e-46c08831a9be%2F)](https://www.sonarsource.com/sem/the-state-of-code/developer-survey-report/?utm_medium=paid&utm_source=dev&utm_campaign=ss-state-of-code-developer-survey26&utm_content=report-devsurvey-banner-x-2&utm_term=ww-all-x&s_category=Paid&s_source=Paid+Social&s_origin=dev&bb=259978)
+
+## [State of Code Developer Survey report](https://www.sonarsource.com/sem/the-state-of-code/developer-survey-report/?utm_medium=paid&utm_source=dev&utm_campaign=ss-state-of-code-developer-survey26&utm_content=report-devsurvey-banner-x-2&utm_term=ww-all-x&s_category=Paid&s_source=Paid+Social&s_origin=dev&bb=259978)
+
+Did you know 96% of developers don't fully trust that AI-generated code is functionally correct, yet only 48% always check it before committing? Check out Sonar's new report on the real-world impact of AI on development teams.
+
+[Read the results](https://www.sonarsource.com/sem/the-state-of-code/developer-survey-report/?utm_medium=paid&utm_source=dev&utm_campaign=ss-state-of-code-developer-survey26&utm_content=report-devsurvey-banner-x-2&utm_term=ww-all-x&s_category=Paid&s_source=Paid+Social&s_origin=dev&bb=259978)
+
+DEV Education Tracks
+
+Dropdown menu
+
+- [What's a billboard?](https://dev.to/billboards)
+- [Manage preferences](https://dev.to/settings/customization#sponsors)
+
+* * *
+
+- [Report billboard](https://dev.to/report-abuse?billboard=238629)
+
+x
+
+### Announcing the First DEV Education Track: "Build Apps with Google AI Studio"
+
+The moment is here! We recently announced DEV Education Tracks, our new initiative to bring you structured learning paths directly from industry experts.
+
+
+[Dive in and Learn](https://dev.to/devteam/announcing-the-first-dev-education-track-build-apps-with-google-ai-studio-ej7?bb=238629)
+
+DEV is bringing Education Tracks to the community. Dismiss if you're not interested. ❤️
+
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+
+[Log in](https://dev.to/enter?signup_subforem=1) [Create account](https://dev.to/enter?signup_subforem=1&state=new-user)
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)

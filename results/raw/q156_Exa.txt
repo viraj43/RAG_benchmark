@@ -1,0 +1,636 @@
+Title: Advanced DevOps Practices | Microsoft Learn
+Key Highlights:
+Advanced DevOps Practices | Microsoft Learn
+
+Episode
+
+# Advanced DevOps Practices
+
+Feb 12, 2016
+
+This session explains and demonstrates some advanced DevOps practices like Testing in Production, Fault Injection, User Telemetry, and A/B Testing.
+
+[00:27] Automated Recovery - roll back [02:30] Automated Recovery - roll forward [03:58] Automated Environment De-provisioning [07:10] Hypothesis Driven Development [09:08] Testing in Production [12:35] User Telemetry [14:17] Fault Injection [17:18] Demo - Deployment Slots and Testing in Production [22:55] Resources
+
+Resources:
+
+- DevOps Dimension Show
+- Parts Unlimited HOL
+
+Follow @nzthiago Follow @dtzar
+
+Description
+
+Embed
+
+This session explains and demonstrates some advanced DevOps practices like Testing in Production, Fault Injection, User Telemetry, and A/B Testing.
+
+[00:27] Automated Recovery - roll back [02:30] Automated Recovery - roll forward [03:58] Automated Environment De-provisioning [07:10] Hypothesis Driven Development [09:08] Testing in Production [12:35] User Telemetry [14:17] Fault Injection [17:18] Demo - Deployment Slots and Testing in Production [22:55] Resources
+
+Resources:
+
+- DevOps Dimension Show
+- Parts Unlimited HOL
+
+Follow @nzthiago Follow @dtzar
+
+Have feedback? Submit an issue here.
+
+---
+
+Title: CD Best Practices | Harness Developer Hub
+Key Highlights:
+Harness Continuous Delivery gives teams the building blocks to ship software reliably — deployment strategies, environment modeling, rollback automation, governance policies, and concurrency controls. How you combine those building blocks determines whether releases are smooth or stressful.
+[...]
+This page collects deployment-focused best practices drawn from production patterns across Kubernetes, Helm, ECS, serverless, and traditional platforms. Use it as a checklist when designing new pipelines or hardening existing ones.
+[...]
+Every deployment strategy trades off between speed, safety, and infrastructure cost. Pick the one that matches your risk tolerance and traffic profile.
+[...]
+- Blue-Green: Runs two identical
+[...]
+atomically. Ideal
+[...]
+you need instant
+[...]
+versions. Works
+[...]
+- Canary: Routes a small percentage of traffic to the new
+[...]
+first, then gradually increases. Best
+[...]
+you want to validate real user behavior before full rollout
+[...]
+Harness supports phased canary with traffic shifting on Kubernetes, ECS, and Helm.
+[...]
+If you are new to Harness CD, start with rolling deployments. Once you have confidence in your pipeline, add a canary phase in front of the rolling phase so a small slice of traffic validates the release before the full rollout.
+[...]
+Use the Harness propagate service feature to carry the same service definition and artifact version across multiple stages. Pair it with service overrides to swap only environment-specific values (endpoints, secrets, replica counts) without changing the artifact or manifest structure.
+[...]
+- Model environments explicitly. Create distinct Harness environments for each tier (dev, staging, production) with matching infrastructure definitions. Mark production environments as`Production` type so RBAC and governance policies can target them.
+[...]
+- Use overrides instead
+[...]
+forked manifests. Rather than maintaining
+[...]
+environment, define a single base manifest and apply environment-level or infrastructure-level overrides for values that change.
+[...]
+Scope infrastructure to services. When
+[...]
+back should never
+[...]
+Harness automatically adds
+[...]
+you can strengthen
+[...]
+net further.
+[...]
+- Understand default rollback behavior. For Kubernetes, Harness performs a`kubectl rollout undo` on failure. For Helm, it runs`helm rollback`. Blue-green deployments revert traffic to the previous environment by swapping selectors or routes. Review the details in Kubernetes rollback and Helm rollback.
+[...]
+- Customize failure strategies. The default stage-level failure strategy is to roll back the stage. You can override this per step or step group — for example, retrying a flaky integration test before falling back to a full rollback. See Failure strategy settings.
+[...]
+- Enable post-deployment rollback. For supported deployment types (Kubernetes, Native Helm, ECS, ASG, Tanzu), Harness lets you roll back a completed, successful deployment to a previous version — even after the pipeline has finished.
+[...]
+- Define freeze windows at the account, org, or project level with specific schedules, recurrence rules, and scope (services, environments, pipelines). See Deployment freeze.
+[...]
+- Use exceptions
+[...]
+. You can
+[...]
+- Resource constraints (default): Every service + infrastructure combination gets a unique infrastructure key. By default, only one deployment runs at a time per key. Enable`allowSimultaneousDeployments` only when your deployment type genuinely supports it. See Deployment resource constraints.
+[...]
+- Apply policies on save to validate service definitions, environment configurations, infrastructure definitions, and overrides before they are ever used in a pipeline. See OPA policies for CD entities.
+[...]
+- Apply policies on run to evaluate pipeline state during execution. This is useful for rules like "production deployments require at least one approval step" or "canary weight must not exceed 25% in
+[...]
+first phase." See Add a governance policy step.
+[...]
+- Use RBAC to restrict production access. Combine resource groups and roles to ensure only authorized users can deploy to production environments. A practical walkthrough is available in Prevent developers from deploying to higher environments.
+[...]
+- Add a Verify step after deployment to connect your APM provider (Datadog, Prometheus, New Relic, Splunk, AppDynamics, etc.) and let Harness analyze metrics and logs for anomalies. See Verify deployments with the Verify step.
+[...]
+- Pair verification with canary deployments. Run the Verify step during the canary phase so anomalies are caught while only a fraction of traffic is exposed. If verification fails, the automatic rollback removes the canary before users are broadly impacted.
+[...]
+Create stage templates for your standard deployment patterns (e.g., "K8s Canary + Verify + Approval" or "Helm Blue-Green"). Teams reference the template and supply only the service and environment inputs. See Stage templates.
+[...]
+- Use pipeline templates when the entire flow — build, deploy to staging, approve, deploy to production — should be consistent across services.
+[...]
+- Store templates in Git so
+[...]
+pipelines in Git using Harness Git Experience. Git
+[...]
+- Use the Harness
+[...]
+Configure pipeline notifications for stage start
+[...]
+approval events. Harness supports Slack
+[...]
+Teams, email
+[...]
+Large, monolithic pipeline definitions can hit the YAML parser's code-point limit, resulting in`The incoming YAML exceeds the limit` errors. Rather than packing dozens of stages or steps into a single pipeline, use matrix and looping strategies to generate stages dynamically from a compact definition. This keeps your YAML small while still deploying across many targets.
+[...]
+Harness allows up to 256 parallel stages or steps per pipeline, but the number that execute simultaneously depends on your plan tier (for example, up to 100 concurrent stages on Enterprise). Anything beyond the concurrent limit is queued automatically — no executions are dropped. When designing high-parallelism pipelines, set`maxConcurrency` on your matrix or multi-service stage to a value that matches your delegate capacity and target infrastructure.
+[...]
+The maximum pipeline timeout is 35 days on Enterprise and 30 days on Team plans, but most deployments should complete in minutes, not days. Set explicit, realistic timeouts on stages and steps so stalled executions fail fast instead of consuming a concurrency slot. You can configure timeout defaults at the account, org, or project scope. See Pipeline settings.
+[...]
+information. See
+
+---
+
+Title: Advanced CI/CD Pipeline Guide — GitHub Actions, ArgoCD, Tekton, and Security Pipelines | Chaos and Order
+Key Highlights:
+Have you ever moved past understanding CI/CD as simply "code gets deployed automatically when pushed" and considered what a production-grade pipeline truly requires? In real production environments, dozens of stages must be orchestrated seamlessly: security scanning, static analysis, container image signing, multi-cluster deployments, and automated rollbacks.
+[...]
+This guide covers everything from CI/CD maturity models to advanced GitHub Actions patterns, ArgoCD GitOps, Tekton cloud-native pipelines, DevSecOps security pipelines, and advanced deployment strategies.
+[...]
+Pipelines are standardized across the organization with reusable templates. Test coverage gates, code quality checks, and security scans are included by default. Environment-specific (dev, staging, prod) deployment pipelines are separated.
+[...]
+GitOps-based declarative deployments, canary/blue-green deployment strategies, automated security pipelines (SAST, DAST, container scanning), and SBOM generation with artifact signing are integrated into the pipeline. Deployment cycles shrink to sub-daily.
+[...]
+Metric-based automatic rollbacks, SLO violation auto-recovery, ML-based anomaly detection, and production feedback automatically fed back into the pipeline. Deployments are fully automated so developers never think about deploying.
+[...]
+To share identical pipeline logic across multiple repositories, use reusable workflows. The calling side references external workflows with the`uses` keyword.
+[...]
+), use OIDC (
+[...]
+Connect) tokens to securely authenticate with cloud providers. AWS, GCP, and Azure all support this.
+[...]
+The key advantage of OIDC is eliminating secret management. GitHub issues a short-lived token that AWS STS validates to issue temporary credentials. The token is only valid during workflow execution, making leaked tokens difficult to exploit.
+[...]
+GitOps is an operational model that uses Git as the single source of truth for managing the declarative state of infrastructure and applications. Four core principles define it.
+[...]
+ArgoCD is a declarative GitOps continuous delivery tool for Kubernetes.
+[...]
+When`syncPolicy.automated` is configured, Git changes are automatically reflected in the cluster.`selfHeal: true` means that if someone manually modifies the cluster state, it automatically reverts to the Git state.
+[...]
+Tekton is a Kubernetes-native CI/CD framework. Unlike GitHub Actions or Jenkins, all pipeline components are defined as Kubernetes Custom Resources (CRDs). Each task runs as a separate Pod, providing complete isolation and scalability.
+[...]
+## 5. Security Pipeline (DevSecOps)
+[...]
+A production-grade security pipeline automatically performs the following stages.
+[...]
+| Stage | Tools | Purpose |
+| --- | --- | --- |
+| SAST (Static Analysis) | SonarQube, Semgrep, CodeQL | Detect source code vulnerabilities |
+| SCA (Dependency Analysis) | Snyk, Dependabot, OWASP DC | Detect open-source dependency vulnerabilities |
+| Secret Scanning | GitLeaks, TruffleHog | Detect secrets embedded in code |
+| Container Scanning | Trivy, Grype | Detect container image vulnerabilities |
+| DAST (Dynamic Analysis) | OWASP ZAP, Nuclei | Detect running application vulnerabilities |
+| SBOM Generation | Syft, CycloneDX | Generate software component inventory |
+| Artifact Signing | Cosign, Notation | Ensure build artifact integrity |
+[...]
+### 5
+[...]
+Trivy scans both OS packages and language-specific
+[...]
+. Setting`
+[...]
+: '1'` causes the
+[...]
+to fail when CRITICAL or HIGH vulnerabilities are found.
+[...]
+### 5-4. SBOM Generation and Cosign Signing
+[...]
+Cosign is part of the Sigstore project and supports keyless signing. It uses OIDC tokens to sign images without requiring separate signing key management.
+[...]
+## 6. Test Automation Strategy
+[...]
+## 7. Advanced Deployment Strategies
+[...]
+Argo Rollouts is a controller that implements advanced deployment strategies in Kubernetes. It provides a Rollout resource that replaces the standard Deployment.
+[...]
+### 7-2. AnalysisTemplate - Metric-Based Automated Decisions
+[...]
+If three consecutive analyses show a success rate below 95%, an automatic rollback is triggered. This is the core of Level 5 self-healing pipelines.
+[...]
+In blue-green deployment, after the new version (green) is fully ready, all traffic switches at once.`prePromotionAnalysis` runs smoke tests before the switch, and`scaleDownDelaySeconds` keeps the old version for a period to enable quick rollback.
+[...]
+## 8. Multi-Environment Management
+[...]
+manifests per environment. It applies environment-specific overlays on top of a base configuration.
+[...]
+## 9. Monitoring and Rollback
+[...]
+### 9-2. Prometheus-Based Automatic Rollback
+[...]
+### 9-3. SLO-Based Deployment Gates
+[...]
+Here is how error budget calculation works. With a 99.9% SLO, roughly 43 minutes of downtime are allowed per month. If 30 minutes have already been consumed, the remaining 13 minutes of error budget mean risky deployments should not proceed.
+[...]
+## 10. Production Pipeline Architecture in Practice
+[...]
+[CI Stage - GitHub Actions]
+[...]
+|-- Code checkout
+    |-- Dependency install (with caching)
+    |-- Lint + format check
+    |-- Unit tests (parallel 4 shards)
+    |-- Integration tests
+    |-- SAST (SonarQube)
+    |-- Secret scanning (GitLeaks
+[...]
+[CD Stage - ArgoCD / GitOps]
+[...]
+### 10-2. Pipeline Optimization Tips
+[...]
+Caching strategy: Cache dependency installation, Docker layers, and test results to reduce pipeline time by over 50%.
+[...]
+### 10-3. Pipeline Metrics
+[...]
+DORA metrics (
+[...]
+an automation tool but critical infrastructure that determines software quality and development velocity. Here is a summary of everything covered.
+[...]
+1. Assess your current level against the maturity model. Do not aim for Level 5 all at once; build capabilities incrementally.
+2. Design reusable pipelines. Use GitHub Actions reusable workflows and Composite Actions to standardize pipelines across your organization.
+3. Adopt GitOps. Implementing declarative deployments with tools like ArgoCD gives you audit trails, automatic recovery, and consistency.
+[...]
+4. Embed security in the pipeline. DevSecOps is not a separate stage but security woven into every stage of the pipeline.
+[...]
+5. Make metric-based decisions. Use SLOs and error budgets to quantitatively manage deployment risk.
+[...]
+6. Track DORA metrics. Continuously improve the performance of the pipeline itself.
+[...]
+Production-grade CI/CD is not built overnight. But by understanding each component and introducing them incrementally, your team's deployment capabilities will improve dramatically.
+
+---
+
+Title: Advanced DevOps Technique Guides - Atlassian
+Key Highlights:
+Advanced DevOps Technique Guides | Atlassian
+
+Close
+
+View this page in your language?
+
+All languages
+
+Choose your language
+
+# DevOps for advanced teams
+
+Make observability a key part of your development cycle.
+
+## Use advanced tools and techniques to deal with increased complexity
+
+---
+
+An organization with a high degree of cross-team collaboration and extensive automated processes has a significant advantage over one that struggles in these areas.
+
+Even highly successful DevOps teams can reach the next level by having a laser focus on observability, both at the organization and system level.
+
+From the system perspective, observability means deriving an understanding of the internal functions of a complex system by observing its external behaviors.
+
+At the organization level, observability is developing natural lines of communication and collaboration between the customer and teams that creates new solutions.
+
+### Observability reference architecture
+
+Workflow
+
+Practice
+
+##### Plan and track
+
+###### Flow
+
+Plan in terms of outcomes
+
+###### Feedback
+
+Measure in terms of business value
+
+##### Code
+
+###### Flow
+
+Manage infrastructure as a code
+
+###### Feedback
+
+Detect infrastructure problems proactively with synthetic monitoring
+
+##### Detect
+
+###### Flow
+
+Base service-level objectives on empirical data
+
+###### Feedback
+
+Test with and in production
+
+##### Package
+
+###### Flow
+
+Platform provides autonomous infrastructure
+
+###### Feedback
+
+Exercise operational characteristics with chaos engineering
+
+##### Deploy
+
+###### Flow
+
+Continuous delivery becomes continuous deployment
+
+###### Feedback
+
+Stage deployments through mulitple, distributed environments
+
+### About this guide
+
+As systems and organizations grow more complex, no one person can grasp a model of the entire thing.
+
+Advanced tooling and techniques tame the cognitive load of increasing complexity, enabling the move from reactive to proactive product development.
+
+This guide will help identify a few key areas of focus for the successful DevOps team to cross into unicorn territory.
+
+## Where you are today
+
+---
+
+### Indicators
+
+- Lead time for changes: Less than one week
+- Deployment frequency: Once per week or more
+- Time to restore service: Less than one hour
+- Change failure rate: 0-15%
+
+### Tech
+
+- Technology tools stack: stream-aligned toolchain
+- Technology platform: Function as a Service (FaaS)
+
+## How to implement observability
+
+---
+
+### Build a DevOps culture
+
+Culture should be addressed at every level of an organization’s growth, since it helps companies align people, processes, and tools toward company goals.
+
+An organization with a DevOps-oriented culture works to produce what sociologist Dr. Ron Westrum calls a “generative (performance-oriented)” structure, compared to “pathological (power-oriented), or “bureaucratic (rule-oriented)” structures.
+
+A generative culture is based on trust. Trust fosters open communication and prioritizes learning from mistakes over identifying a person or team to blame.
+
+### Focus on outcome-driven development
+
+Advanced DevOps teams will embrace outcome-driven development. This model is characterized by a strong relationship with the customer that informs processes from initial development through continuous evolution.
+
+Another emergent feature from the outcome-driven development approach is improved synchronicity between internal divisions within an organization, such as engineering and product development. When everyone in the organization has a customer-centric focus, that alignment emerges naturally.
+
+###### Recommended resources
+
+Atlassian’s playbook to build a DevOps culture
+
+###### Recommended resources
+
+Understand outcome-driven development
+
+### Embrace chaos engineering
+
+Chaos engineering can be defined as the facilitation of experiments to uncover systemic weaknesses. Modern software products are exponentially increasing in complexity, which makes it more difficult to anticipate and mitigate system failures.
+
+Chaos engineering is a practice where a team uses exploration and experimentation to uncover emergent connections and dependencies in a complex system. It’s a way to solve for “unknown unknowns” that generate failures in a complex system.
+
+### Observe systems as a whole
+
+Increased complexity in modern software applications creates a need for new diagnostic models to replace traditionally segregated logs, traces, and metrics.
+
+Similar to chaos engineering practices, new tools enable aggregation and analysis of data sources to help programmatically identify the emergent properties of a complex system that cannot be predicted and monitored -- the “unknown unknowns”.
+
+---
+
+### Not quite ready for observability?
+
+Visit our previous guide around automation.
+
+### Need a refresher on the basics?
+
+Visit our beginner’s guide around customer-centricity.
+
+---
+
+Title: Advanced CI/CD Pipeline Guide 2025: Deployment Strategies, GitOps, Monorepo, Security Pipeline | Chaos and Order
+Key Highlights:
+Monorepo
+[...]
+Chaos and Order
+[...]
+According to the 2024 DORA (DevOps Research and Assessment) report, elite teams deploy multiple times per day with a change failure rate below 5%. Low-performing teams deploy once a month and take weeks to recover. The key differentiator is CI/CD pipeline maturity.
+[...]
+Beyond simple build-test-deploy, modern CI/CD encompasses deployment strategies (Blue-Green, Canary), GitOps, monorepo optimization, feature flags, and security pipelines. This guide systematically covers advanced CI/CD strategies proven in production environments in 2025.
+[...]
+## 1. Deployment Strategies
+[...]
+### 1.1
+[...]
+Pros: Simple, minimal extra resources, gradual replacement Cons: Mixed v1/v2 traffic during deployment, difficult instant rollback
+[...]
+### 1.2 Blue-Green Deployment
+[...]
+Maintain two identical environments (Blue/Green) and switch traffic all at once.
+[...]
+Pros: Instant rollback (switch traffic to Blue), zero downtime Cons: 2x infrastructure cost, complex database migrations
+[...]
+### 1.3 Canary Deployment
+[...]
+Deploy the new version to a small percentage of traffic first for validation.
+[...]
+Pros: Minimized risk, validation with real traffic, progressive rollout Cons: Implementation complexity, requires metrics-based automation
+[...]
+### 1.4 Deployment Strategy Comparison
+[...]
+| Strategy |
+[...]
+| Best For |
+| --- | --- | --- | --- | --- | --- |
+[...]
+| Low | General
+[...]
+| High (
+[...]
+| None |
+[...]
+A/B Testing | None | Fast | Medium | Very High | Feature experiments |
+[...]
+## 2. GitOps
+[...]
+### 2.1 GitOps Principles
+[...]
+```
+┌──────────────────────────────────────────────────────┐
+│ GitOps Principles                                    │
+│                                                      │
+│ 1. Declarative                                       │
+│    - System state declared as code                   │
+│                                                      │
+│ 2. Versioned                                         │
+│    - Git is the Single Source of Truth (SSOT)         │
+│                                                      │
+│ 3. Automated                                         │
+│    - Approved changes auto-applied to system          │
+│                                                      │
+│ 4. Self-healing                                      │
+│    - Auto-corrects drift between desired/actual state │
+└──────────────────────────────────────────────────────┘
+
+```
+[...]
+### 2.2 ArgoCD Configuration
+[...]
+### 2.3 ArgoCD App-of-Apps Pattern
+[...]
+### 2.4 ArgoCD vs Flux Comparison
+[...]
+| Feature | ArgoCD | Flux v2 |
+| --- | --- | --- |
+| UI Dashboard | Built-in web UI | Weave GitOps (separate) |
+| Multi-cluster | Supported | Supported |
+| Helm Support | Native | HelmRelease CRD |
+| Kustomize | Native | Native |
+| Image Auto-update | ArgoCD Image Updater | Built-in |
+| Notifications | ArgoCD Notifications | Notification Controller |
+| RBAC | Built-in | Uses Kubernetes RBAC |
+| Approach | Pull-based | Pull-based |
+| Learning Curve | Medium | Medium-High |
+[...]
+### 2.5 ArgoCD Notification Setup
+[...]
+## 3. Monorepo CI
+[...]
+### 3.2 Turborepo Configuration
+[...]
+### 3.3 Nx Affected Builds
+[...]
+### 3.4 Turborepo vs Nx vs Bazel
+[...]
+| --- | --- | --- | --- |
+[...]
+| Medium |
+[...]
+/TS |
+[...]
+-language |
+[...]
+Config Complexity |
+[...]
+simple | Medium | Complex |
+[...]
+Scale Suitability | Medium | Large |
+[...]
+| Code Generation | None | Built-in Generator | Rules |
+[...]
+## 4. Feature Flags
+[...]
+### 4.1 Types of Feature Flags
+[...]
+```
+┌────────────────────────────────────────────────
+[...]
+│
+├
+[...]
+)             │
+│
+[...]
+. Experiment Flag                               │
+│
+[...]
+organization feature access
+[...]
+Permanent                         │
+└──────────────────────────────────────────────────┘
+[...]
+### 4.3 Progressive Rollout
+[...]
+### 4.4 LaunchDarkly vs Unleash vs Flagsmith
+[...]
+## 5. Environment Management
+[...]
+### 5.2 Ephemeral Environments
+[...]
+## 6. Pipeline Security
+[...]
+6.1 Secrets Management
+[...]
+### 6.2 SLSA (Supply-chain Levels for Software Artifacts)
+[...]
+### 6.3 Security Scanning Pipeline
+[...]
+## 7. Rollback Strategies
+[...]
+7.1 Instant Rollback
+[...]
+### 7.2 Database-Aware Rollback
+[...]
+### 7.3 Forward-Fix vs Rollback Decision Guide
+[...]
+| Situation | Recommended Strategy | Reason |
+| --- | --- | --- |
+| Simple bug fix | Forward-Fix | Fix is faster than rollback |
+| Critical outage | Instant Rollback | Service recovery is top priority |
+| Includes DB migration | Forward-Fix | Risk of data loss on rollback |
+| Performance degradation | Canary Rollback | Assess impact before deciding |
+[...]
+## 8. Pipeline Performance Optimization
+[...]
+### 8.1 Caching Strategies
+[...]
+### 8.2 Parallelization Strategy
+[...]
+### 8.3 Self-Hosted Runners
+[...]
+## 9. Release Management
+[...]
+### 9.2 Automated Release Notes
+[...]
+### 9.3 Conventional Commits
+[...]
+### 9.4 Release Train Model
+[...]
+## 10. Multi-Cloud Deployment
+[...]
+## 11. Quiz
+[...]
+Blue-Green deployment
+[...]
+In GitOps, the Git repository serves as the Single Source of Truth (SSOT) for infrastructure and application state. All changes go through Git, and tools like ArgoCD/Flux synchronize Git state with the actual cluster state.
+[...]
+A kill switch toggles a feature flag to OFF in production when problems occur,
+[...]
+disabling that feature
+[...]
+. This is much
+[...]
+SLSA is a security framework to prevent software supply chain attacks. It ensures software integrity through build provenance attestation, artifact signing, and build environment isolation.
+[...]
+## 12. CI/CD Maturity Checklist
+[...]
+```
+CI/CD Maturity Checklist:
+
+Level 1 - Basic
+[  ] Automated build pipeline
+[  ] Automated test execution
+[  ] Code review process
+[...]
+Level 2 - Standard
+[  ] Deployment strategy (Rolling/Blue-Green)
+[  ] Environment separation (dev/staging/prod)
+[  ] Secrets management (Vault/OIDC)
+[...]
+Level 3 - Advanced
+[  ] GitOps (ArgoCD/Flux)
+[  ] Feature Flags
+[  ] Canary deployment
+[  ] PR Preview environments
+[...]
+Level 4 - Elite
+[  ] Pipeline security (SLSA)
+[  ] Auto-rollback
+[  ] Monorepo optimization
+[  ] Release automation
+
+```

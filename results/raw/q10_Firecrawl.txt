@@ -1,0 +1,1543 @@
+Title: What are hooks? : r/react
+A hook is function that gives you access to React's internal Memory. You gain access to a value and a command to modify this value. A query and a command.
+
+---
+
+Title: Hooks at a Glance
+> These docs are old and won’t be updated. Go to [react.dev](https://react.dev/) for the new React docs.
+>
+> These new documentation pages teach React with Hooks:
+>
+> - [Quick Start](https://react.dev/learn)
+> - [Tutorial](https://react.dev/learn/tutorial-tic-tac-toe)
+> - [`react`: Hooks](https://react.dev/reference/react)
+
+_Hooks_ are a new addition in React 16.8. They let you use state and other React features without writing a class.
+
+Hooks are [backwards-compatible](https://legacy.reactjs.org/docs/hooks-intro.html#no-breaking-changes). This page provides an overview of Hooks for experienced React users. This is a fast-paced overview. If you get confused, look for a yellow box like this:
+
+> Detailed Explanation
+>
+> Read the [Motivation](https://legacy.reactjs.org/docs/hooks-intro.html#motivation) to learn why we’re introducing Hooks to React.
+
+**↑↑↑ Each section ends with a yellow box like this.** They link to detailed explanations.
+
+## 📌 State Hook
+
+This example renders a counter. When you click the button, it increments the value:
+
+```
+import React, { useState } from 'react';
+function Example() {
+  // Declare a new state variable, which we'll call "count"  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+Here, `useState` is a _Hook_ (we’ll talk about what this means in a moment). We call it inside a function component to add some local state to it. React will preserve this state between re-renders. `useState` returns a pair: the _current_ state value and a function that lets you update it. You can call this function from an event handler or somewhere else. It’s similar to `this.setState` in a class, except it doesn’t merge the old and new state together. (We’ll show an example comparing `useState` to `this.state` in [Using the State Hook](https://legacy.reactjs.org/docs/hooks-state.html).)
+
+The only argument to `useState` is the initial state. In the example above, it is `0` because our counter starts from zero. Note that unlike `this.state`, the state here doesn’t have to be an object — although it can be if you want. The initial state argument is only used during the first render.
+
+#### Declaring multiple state variables
+
+You can use the State Hook more than once in a single component:
+
+```
+function ExampleWithManyStates() {
+  // Declare multiple state variables!
+  const [age, setAge] = useState(42);
+  const [fruit, setFruit] = useState('banana');
+  const [todos, setTodos] = useState([{ text: 'Learn Hooks' }]);
+  // ...
+}
+```
+
+The [array destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#Array_destructuring) syntax lets us give different names to the state variables we declared by calling `useState`. These names aren’t a part of the `useState` API. Instead, React assumes that if you call `useState` many times, you do it in the same order during every render. We’ll come back to why this works and when this is useful later.
+
+#### But what is a Hook?
+
+Hooks are functions that let you “hook into” React state and lifecycle features from function components. Hooks don’t work inside classes — they let you use React without classes. (We [don’t recommend](https://legacy.reactjs.org/docs/hooks-intro.html#gradual-adoption-strategy) rewriting your existing components overnight but you can start using Hooks in the new ones if you’d like.)
+
+React provides a few built-in Hooks like `useState`. You can also create your own Hooks to reuse stateful behavior between different components. We’ll look at the built-in Hooks first.
+
+> Detailed Explanation
+>
+> You can learn more about the State Hook on a dedicated page: [Using the State Hook](https://legacy.reactjs.org/docs/hooks-state.html).
+
+## ⚡️ Effect Hook
+
+You’ve likely performed data fetching, subscriptions, or manually changing the DOM from React components before. We call these operations “side effects” (or “effects” for short) because they can affect other components and can’t be done during rendering.
+
+The Effect Hook, `useEffect`, adds the ability to perform side effects from a function component. It serves the same purpose as `componentDidMount`, `componentDidUpdate`, and `componentWillUnmount` in React classes, but unified into a single API. (We’ll show examples comparing `useEffect` to these methods in [Using the Effect Hook](https://legacy.reactjs.org/docs/hooks-effect.html).)
+
+For example, this component sets the document title after React updates the DOM:
+
+```
+import React, { useState, useEffect } from 'react';
+function Example() {
+  const [count, setCount] = useState(0);
+
+  // Similar to componentDidMount and componentDidUpdate:  useEffect(() => {    // Update the document title using the browser API    document.title = `You clicked ${count} times`;  });
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+When you call `useEffect`, you’re telling React to run your “effect” function after flushing changes to the DOM. Effects are declared inside the component so they have access to its props and state. By default, React runs the effects after every render — _including_ the first render. (We’ll talk more about how this compares to class lifecycles in [Using the Effect Hook](https://legacy.reactjs.org/docs/hooks-effect.html).)
+
+Effects may also optionally specify how to “clean up” after them by returning a function. For example, this component uses an effect to subscribe to a friend’s online status, and cleans up by unsubscribing from it:
+
+```
+import React, { useState, useEffect } from 'react';
+
+function FriendStatus(props) {
+  const [isOnline, setIsOnline] = useState(null);
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+
+  useEffect(() => {    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);    return () => {      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);    };  });
+  if (isOnline === null) {
+    return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
+}
+```
+
+In this example, React would unsubscribe from our `ChatAPI` when the component unmounts, as well as before re-running the effect due to a subsequent render. (If you want, there’s a way to [tell React to skip re-subscribing](https://legacy.reactjs.org/docs/hooks-effect.html#tip-optimizing-performance-by-skipping-effects) if the `props.friend.id` we passed to `ChatAPI` didn’t change.)
+
+Just like with `useState`, you can use more than a single effect in a component:
+
+```
+function FriendStatusWithCounter(props) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {    document.title = `You clicked ${count} times`;
+  });
+
+  const [isOnline, setIsOnline] = useState(null);
+  useEffect(() => {    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+    };
+  });
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+  // ...
+```
+
+Hooks let you organize side effects in a component by what pieces are related (such as adding and removing a subscription), rather than forcing a split based on lifecycle methods.
+
+> Detailed Explanation
+>
+> You can learn more about `useEffect` on a dedicated page: [Using the Effect Hook](https://legacy.reactjs.org/docs/hooks-effect.html).
+
+## ✌️ Rules of Hooks
+
+Hooks are JavaScript functions, but they impose two additional rules:
+
+- Only call Hooks **at the top level**. Don’t call Hooks inside loops, conditions, or nested functions.
+- Only call Hooks **from React function components**. Don’t call Hooks from regular JavaScript functions. (There is just one other valid place to call Hooks — your own custom Hooks. We’ll learn about them in a moment.)
+
+We provide a [linter plugin](https://www.npmjs.com/package/eslint-plugin-react-hooks) to enforce these rules automatically. We understand these rules might seem limiting or confusing at first, but they are essential to making Hooks work well.
+
+> Detailed Explanation
+>
+> You can learn more about these rules on a dedicated page: [Rules of Hooks](https://legacy.reactjs.org/docs/hooks-rules.html).
+
+## 💡 Building Your Own Hooks
+
+Sometimes, we want to reuse some stateful logic between components. Traditionally, there were two popular solutions to this problem: [higher-order components](https://legacy.reactjs.org/docs/higher-order-components.html) and [render props](https://legacy.reactjs.org/docs/render-props.html). Custom Hooks let you do this, but without adding more components to your tree.
+
+Earlier on this page, we introduced a `FriendStatus` component that calls the `useState` and `useEffect` Hooks to subscribe to a friend’s online status. Let’s say we also want to reuse this subscription logic in another component.
+
+First, we’ll extract this logic into a custom Hook called `useFriendStatus`:
+
+```
+import React, { useState, useEffect } from 'react';
+
+function useFriendStatus(friendID) {  const [isOnline, setIsOnline] = useState(null);
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+
+  useEffect(() => {
+    ChatAPI.subscribeToFriendStatus(friendID, handleStatusChange);
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(friendID, handleStatusChange);
+    };
+  });
+
+  return isOnline;
+}
+```
+
+It takes `friendID` as an argument, and returns whether our friend is online.
+
+Now we can use it from both components:
+
+```
+function FriendStatus(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+  if (isOnline === null) {
+    return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
+}
+```
+
+```
+function FriendListItem(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+  return (
+    <li style={{ color: isOnline ? 'green' : 'black' }}>
+      {props.friend.name}
+    </li>
+  );
+}
+```
+
+The state of each component is completely independent. Hooks are a way to reuse _stateful logic_, not state itself. In fact, each _call_ to a Hook has a completely isolated state — so you can even use the same custom Hook twice in one component.
+
+Custom Hooks are more of a convention than a feature. If a function’s name starts with ”`use`” and it calls other Hooks, we say it is a custom Hook. The `useSomething` naming convention is how our linter plugin is able to find bugs in the code using Hooks.
+
+You can write custom Hooks that cover a wide range of use cases like form handling, animation, declarative subscriptions, timers, and probably many more we haven’t considered. We are excited to see what custom Hooks the React community will come up with.
+
+> Detailed Explanation
+>
+> You can learn more about custom Hooks on a dedicated page: [Building Your Own Hooks](https://legacy.reactjs.org/docs/hooks-custom.html).
+
+## 🔌 Other Hooks
+
+There are a few less commonly used built-in Hooks that you might find useful. For example, [`useContext`](https://legacy.reactjs.org/docs/hooks-reference.html#usecontext) lets you subscribe to React context without introducing nesting:
+
+```
+function Example() {
+  const locale = useContext(LocaleContext);  const theme = useContext(ThemeContext);  // ...
+}
+```
+
+And [`useReducer`](https://legacy.reactjs.org/docs/hooks-reference.html#usereducer) lets you manage local state of complex components with a reducer:
+
+```
+function Todos() {
+  const [todos, dispatch] = useReducer(todosReducer);  // ...
+```
+
+> Detailed Explanation
+>
+> You can learn more about all the built-in Hooks on a dedicated page: [Hooks API Reference](https://legacy.reactjs.org/docs/hooks-reference.html).
+
+## Next Steps
+
+Phew, that was fast! If some things didn’t quite make sense or you’d like to learn more in detail, you can read the next pages, starting with the [State Hook](https://legacy.reactjs.org/docs/hooks-state.html) documentation.
+
+You can also check out the [Hooks API reference](https://legacy.reactjs.org/docs/hooks-reference.html) and the [Hooks FAQ](https://legacy.reactjs.org/docs/hooks-faq.html).
+
+Finally, don’t miss the [introduction page](https://legacy.reactjs.org/docs/hooks-intro.html) which explains _why_ we’re adding Hooks and how we’ll start using them side by side with classes — without rewriting our apps.
+
+Is this page useful? [Edit this page](https://github.com/reactjs/reactjs.org/tree/main/content/docs/hooks-overview.md)
+
+- Previous article
+
+
+
+[Introducing Hooks](https://legacy.reactjs.org/docs/hooks-intro.html)
+
+- Next article
+
+
+
+[Using the State Hook](https://legacy.reactjs.org/docs/hooks-state.html)
+
+---
+
+Title: React Hooks
+[Home](https://www.w3schools.com/ "Home")
+Menu
+
+
+Search field
+
+
+_×_
+
+See More
+
+
+Sign In
+
+[★+1](https://profile.w3schools.com/log-in?redirect_url=https%3A%2F%2Fwww.w3schools.com%2Freact%2Freact_hooks.asp "Your W3Schools Profile") [Get Certified](https://campus.w3schools.com/collections/course-catalog "W3Schools Certificates") [Upgrade](https://order.w3schools.com/plans "Become a PLUS user and unlock powerful features") [Teachers](https://www.w3schools.com/academy/index.php "Contact us about W3Schools Academy for educational institutions") [Spaces](https://www.w3schools.com/spaces/index.php "Get Your Own Website With W3Schools Spaces") [Bootcamps](https://www.w3schools.com/bootcamp/index.php "W3Schools Bootcamps") [Get Certified](https://campus.w3schools.com/collections/course-catalog "W3Schools Certificates") [Upgrade](https://order.w3schools.com/plans "Get personalized learning journey based on your current skills and goals") [Teachers](https://www.w3schools.com/academy/index.php "Contact us about W3Schools Academy for educational institutions") [Spaces](https://spaces.w3schools.com/ "Go to Your W3Schools Space") [Bootcamps](https://www.w3schools.com/bootcamp/index.php "W3Schools Bootcamps")
+
+❮
+
+     ❯
+
+[HTML](https://www.w3schools.com/html/default.asp "HTML Tutorial") [CSS](https://www.w3schools.com/css/default.asp "CSS Tutorial") [JAVASCRIPT](https://www.w3schools.com/js/default.asp "JavaScript Tutorial") [SQL](https://www.w3schools.com/sql/default.asp "SQL Tutorial") [PYTHON](https://www.w3schools.com/python/default.asp "Python Tutorial") [JAVA](https://www.w3schools.com/java/default.asp "Java Tutorial") [PHP](https://www.w3schools.com/php/default.asp "PHP Tutorial") [HOW TO](https://www.w3schools.com/howto/default.asp "How to") [W3.CSS](https://www.w3schools.com/w3css/default.asp "W3.CSS Tutorial") [C](https://www.w3schools.com/c/index.php "C Tutorial") [C++](https://www.w3schools.com/cpp/default.asp "C++ Tutorial") [C#](https://www.w3schools.com/cs/index.php "C# Tutorial") [BOOTSTRAP](https://www.w3schools.com/bootstrap/bootstrap_ver.asp "Bootstrap Tutorial") [REACT](https://www.w3schools.com/react/default.asp "React Tutorial") [MYSQL](https://www.w3schools.com/mysql/default.asp "MySQL Tutorial") [JQUERY](https://www.w3schools.com/jquery/default.asp "JQuery Tutorial") [EXCEL](https://www.w3schools.com/excel/index.php "Excel Tutorial") [XML](https://www.w3schools.com/xml/default.asp "XML Tutorial") [DJANGO](https://www.w3schools.com/django/index.php "Django Tutorial") [NUMPY](https://www.w3schools.com/python/numpy/default.asp "NumPy Tutorial") [PANDAS](https://www.w3schools.com/python/pandas/default.asp "Pandas Tutorial") [NODEJS](https://www.w3schools.com/nodejs/default.asp "Node.js Tutorial") [DSA](https://www.w3schools.com/dsa/index.php "DSA Tutorial") [TYPESCRIPT](https://www.w3schools.com/typescript/index.php "TypeScript Tutorial") [ANGULAR](https://www.w3schools.com/angular/default.asp "Angular Tutorial") [ANGULARJS](https://www.w3schools.com/angularjs/default.asp "Angular.js Tutorial") [GIT](https://www.w3schools.com/git/default.asp "Git Tutorial") [POSTGRESQL](https://www.w3schools.com/postgresql/index.php "PostgreSQL Tutorial") [MONGODB](https://www.w3schools.com/mongodb/index.php "MongoDB Tutorial") [ASP](https://www.w3schools.com/asp/default.asp "ASP Tutorial") [AI](https://www.w3schools.com/ai/default.asp "A.I. Tutorial") [R](https://www.w3schools.com/r/default.asp "R Tutorial") [GO](https://www.w3schools.com/go/index.php "Go Tutorial") [KOTLIN](https://www.w3schools.com/kotlin/index.php "Kotlin Tutorial") [SWIFT](https://www.w3schools.com/swift/default.asp "Swift Tutorial") [SASS](https://www.w3schools.com/sass/default.asp "Sass Tutorial") [VUE](https://www.w3schools.com/vue/index.php "Vue.js Tutorial") [GEN AI](https://www.w3schools.com/gen_ai/index.php "Gen A.I. Tutorial") [SCIPY](https://www.w3schools.com/python/scipy/index.php "SciPy Tutorial") [AWS](https://www.w3schools.com/aws/index.php "AWS Tutorial") [CYBERSECURITY](https://www.w3schools.com/cybersecurity/index.php "Cyber security Tutorial") [DATA SCIENCE](https://www.w3schools.com/datascience/default.asp "Data science Tutorial") [INTRO TO PROGRAMMING](https://www.w3schools.com/programming/index.php "Introduction to Programming") [INTRO TO HTML & CSS](https://www.w3schools.com/htmlcss/default.asp "Introduction to HTML & CSS") [BASH](https://www.w3schools.com/bash/index.php "Bash Tutorial") [RUST](https://www.w3schools.com/rust/index.php "Rust Tutorial") [TOOLS](https://www.w3schools.com/tools/index.php "Web Developer Tools")
+
+## React Tutorial
+
+[React Home](https://www.w3schools.com/react/default.asp) [React Intro](https://www.w3schools.com/react/react_intro.asp) [React Get Started](https://www.w3schools.com/react/react_getstarted.asp) [React First App](https://www.w3schools.com/react/react_first_app.asp) [React Render HTML](https://www.w3schools.com/react/react_render.asp) [React Upgrade](https://www.w3schools.com/react/react_upgrade.asp) [React ES6](https://www.w3schools.com/react/react_es6.asp)
+
+[React ES6](https://www.w3schools.com/react/react_es6.asp) [ES6 Classes](https://www.w3schools.com/react/react_es6_classes.asp) [ES6 Arrow Functions](https://www.w3schools.com/react/react_es6_arrow.asp) [ES6 Variables](https://www.w3schools.com/react/react_es6_variables.asp) [ES6 Array map()](https://www.w3schools.com/react/react_es6_array_map.asp) [ES6 Destructuring](https://www.w3schools.com/react/react_es6_destructuring.asp) [ES6 Spread Operator](https://www.w3schools.com/react/react_es6_spread.asp) [ES6 Modules](https://www.w3schools.com/react/react_es6_modules.asp) [ES6 Ternary Operator](https://www.w3schools.com/react/react_es6_ternary.asp) [ES6 Template Strings](https://www.w3schools.com/react/react_es6_template_strings.asp)
+
+[React JSX Intro](https://www.w3schools.com/react/react_jsx.asp) [React JSX Expressions](https://www.w3schools.com/react/react_jsx_expressions.asp) [React JSX Attributes](https://www.w3schools.com/react/react_jsx_attributes.asp) [React JSX If Statements](https://www.w3schools.com/react/react_jsx_if_statements.asp) [React Components](https://www.w3schools.com/react/react_components.asp) [React Class](https://www.w3schools.com/react/react_class.asp) [React Props](https://www.w3schools.com/react/react_props.asp) [React Props Destructuring](https://www.w3schools.com/react/react_props_destructuring.asp) [React Props Children](https://www.w3schools.com/react/react_props_children.asp) [React Events](https://www.w3schools.com/react/react_events.asp) [React Conditionals](https://www.w3schools.com/react/react_conditional_rendering.asp) [React Lists](https://www.w3schools.com/react/react_lists.asp) [React Forms](https://www.w3schools.com/react/react_forms.asp) [React Forms Submit](https://www.w3schools.com/react/react_forms_submit.asp) [React Textarea](https://www.w3schools.com/react/react_forms_textarea.asp) [React Select](https://www.w3schools.com/react/react_forms_select.asp) [React Multiple Inputs](https://www.w3schools.com/react/react_forms_multiple_inputs.asp) [React Checkbox](https://www.w3schools.com/react/react_forms_checkbox.asp) [React Radio](https://www.w3schools.com/react/react_forms_radio.asp) [React Portals](https://www.w3schools.com/react/react_portals.asp) [React Suspense](https://www.w3schools.com/react/react_suspense.asp) [React CSS Styling](https://www.w3schools.com/react/react_css_styling.asp) [React CSS Modules](https://www.w3schools.com/react/react_css_modules.asp) [React CSS-in-JS](https://www.w3schools.com/react/react_css_js.asp) [React Router](https://www.w3schools.com/react/react_router.asp) [React Transitions](https://www.w3schools.com/react/react_transitions.asp) [React Forward Ref](https://www.w3schools.com/react/react_forward_ref.asp) [React HOC](https://www.w3schools.com/react/react_hoc.asp) [React Sass](https://www.w3schools.com/react/react_sass_styling.asp)
+
+## React Hooks
+
+[What is Hooks?](https://www.w3schools.com/react/react_hooks.asp) [React useState](https://www.w3schools.com/react/react_usestate.asp) [React useEffect](https://www.w3schools.com/react/react_useeffect.asp) [React useContext](https://www.w3schools.com/react/react_usecontext.asp) [React useRef](https://www.w3schools.com/react/react_useref.asp) [React useReducer](https://www.w3schools.com/react/react_usereducer.asp) [React useCallback](https://www.w3schools.com/react/react_usecallback.asp) [React useMemo](https://www.w3schools.com/react/react_usememo.asp) [React Custom Hooks](https://www.w3schools.com/react/react_customhooks.asp)
+
+## React Cert
+
+[React Certificate](https://www.w3schools.com/react/react_exam.asp)
+
+## React Exercises
+
+[React Compiler](https://www.w3schools.com/react/react_compiler.asp) [React Quiz](https://www.w3schools.com/react/react_quiz.asp) [React Exercises](https://www.w3schools.com/react/react_exercises.asp) [React Syllabus](https://www.w3schools.com/react/react_syllabus.asp) [React Study Plan](https://www.w3schools.com/react/react_study_plan.asp) [React Server](https://www.w3schools.com/react/react_server.asp) [React Interview Prep](https://www.w3schools.com/react/react_interview_prep.asp) [React Bootcamp](https://www.w3schools.com/react/react_bootcamp.asp)
+
+# React Hooks
+
+[❮ Previous](https://www.w3schools.com/react/react_sass_styling.asp) [Next ❯](https://www.w3schools.com/react/react_usestate.asp)
+
+* * *
+
+Hooks allow functions to have access to state and other React features without using classes.
+
+They provide a more direct API to React concepts like props, state, context, refs, and lifecycle.
+
+* * *
+
+## What is a Hook?
+
+Hooks are functions that let you "hook into" React state and lifecycle features from functional components.
+
+### Example: [Get your own React.js Server](https://www.w3schools.com/react/react_server.asp "W3Schools Spaces")
+
+Here is an example of a Hook. Don't worry if it doesn't make sense. We will go into more detail in the [next section](https://www.w3schools.com/react/react_usestate.asp).
+
+```jsx
+import { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+
+function FavoriteColor() {
+  const [color, setColor] = useState("red");
+
+  return (
+    <>
+      <h1>My favorite color is {color}!</h1>
+      <button
+        type="button"
+        onClick={() => setColor("blue")}
+      >Blue</button>
+      <button
+        type="button"
+        onClick={() => setColor("red")}
+      >Red</button>
+      <button
+        type="button"
+        onClick={() => setColor("pink")}
+      >Pink</button>
+      <button
+        type="button"
+        onClick={() => setColor("green")}
+      >Green</button>
+    </>
+  );
+}
+
+createRoot(document.getElementById('root')).render(
+  <FavoriteColor />
+);
+```
+
+[Run \\
+Example »](https://www.w3schools.com/react/showreact.asp?filename=demo_react_hooks)
+
+You must `import` Hooks from `react`.
+
+Here we are using the `useState` Hook to keep track of the application state.
+
+State generally refers to application data or properties that need to be tracked.
+
+* * *
+
+[REMOVE ADS](https://order.w3schools.com/plans)
+
+* * *
+
+## Hook Rules
+
+There are 3 rules for hooks:
+
+- Hooks can only be called inside React function components.
+- Hooks can only be called at the top level of a component.
+- Hooks cannot be conditional
+
+**Note:** Hooks will not work in React class components.
+
+* * *
+
+## Custom Hooks
+
+If you have stateful logic that needs to be reused in several components, you can build your own custom Hooks.
+
+We'll go into more detail in the [Custom Hooks section](https://www.w3schools.com/react/react_customhooks.asp).
+
+* * *
+
+[❮ Previous](https://www.w3schools.com/react/react_sass_styling.asp) [Next ❯](https://www.w3schools.com/react/react_usestate.asp)
+
+[★+1](https://profile.w3schools.com/log-in?redirect_url=https%3A%2F%2Fwww.w3schools.com%2Freact%2Freact_hooks.asp "Your W3Schools Profile")
+
+[Sign in to track progress](https://profile.w3schools.com/log-in?redirect_url=https%3A%2F%2Fpathfinder.w3schools.com&origin=https%3A%2F%2Fwww.w3schools.com%2Freact%2Freact_hooks.asp "Sign in to track your progress")
+
+[![Get Certified Offer](https://www.w3schools.com/images/img_2026_spring_academy_300.webp)](https://www.w3schools.com/academy/index.php)
+
+#### [COLOR PICKER](https://www.w3schools.com/colors/colors_picker.asp)
+
+[![colorpicker](https://www.w3schools.com/images/colorpicker2000.png)](https://www.w3schools.com/colors/colors_picker.asp)
+
+[W3Schools on YouTube](https://www.youtube.com/@w3schools "W3Schools on YouTube")[W3Schools on LinkedIn](https://www.linkedin.com/company/w3schools.com/ "W3Schools on LinkedIn")[Join the W3schools community on Discord](https://discord.com/invite/w3schools "Join the W3schools community on Discord")[W3Schools on Facebook](https://www.facebook.com/w3schoolscom/ "W3Schools on Facebook")[W3Schools on Instagram](https://www.instagram.com/w3schools.com_official/ "W3Schools on Instagram")[New: W3Schools on TikTok](https://www.tiktok.com/@w3schools.com "New: W3Schools on TikTok")
+
+[REMOVE ADS](https://order.w3schools.com/plans)
+
+[W3Schools.com](https://www.w3schools.com/)
+
+[PLUS](https://order.w3schools.com/plans "Become a PLUS user and unlock powerful features")
+
+[SPACES](https://www.w3schools.com/spaces/index.php "Get your own website with W3Schools Spaces")
+
+[GET CERTIFIED](https://campus.w3schools.com/collections/certifications "Document your knowledge by getting certified")
+
+[FOR TEACHERS](https://www.w3schools.com/academy/index.php "Contact us about W3Schools Academy for educational institutions")
+
+[BOOTCAMPS](https://www.w3schools.com/bootcamp/index.php "W3Schools Bootcamps")
+
+CONTACT US
+
+×
+
+## Contact Sales
+
+If you want to use W3Schools services as an educational institution, team or enterprise, send us an e-mail:
+
+sales@w3schools.com
+
+## Report Error
+
+If you want to report an error, or if you want to make a suggestion, send us an e-mail:
+
+help@w3schools.com
+
+##### Top Tutorials
+
+[HTML Tutorial](https://www.w3schools.com/html/default.asp)
+
+[CSS Tutorial](https://www.w3schools.com/css/default.asp)
+
+[JavaScript Tutorial](https://www.w3schools.com/js/default.asp)
+
+[How To Tutorial](https://www.w3schools.com/howto/default.asp)
+
+[SQL Tutorial](https://www.w3schools.com/sql/default.asp)
+
+[Python Tutorial](https://www.w3schools.com/python/default.asp)
+
+[W3.CSS Tutorial](https://www.w3schools.com/w3css/default.asp)
+
+[Bootstrap Tutorial](https://www.w3schools.com/bootstrap/bootstrap_ver.asp)
+
+[PHP Tutorial](https://www.w3schools.com/php/default.asp)
+
+[Java Tutorial](https://www.w3schools.com/java/default.asp)
+
+[C++ Tutorial](https://www.w3schools.com/cpp/default.asp)
+
+[jQuery Tutorial](https://www.w3schools.com/jquery/default.asp)
+
+##### Top References
+
+[HTML Reference](https://www.w3schools.com/tags/default.asp)
+
+[CSS Reference](https://www.w3schools.com/cssref/index.php)
+
+[JavaScript Reference](https://www.w3schools.com/jsref/default.asp)
+
+[SQL Reference](https://www.w3schools.com/sql/sql_ref_keywords.asp)
+
+[Python Reference](https://www.w3schools.com/python/python_reference.asp)
+
+[W3.CSS Reference](https://www.w3schools.com/w3css/w3css_references.asp)
+
+[Bootstrap Reference](https://www.w3schools.com/bootstrap/bootstrap_ref_all_classes.asp)
+
+[PHP Reference](https://www.w3schools.com/php/php_ref_overview.asp)
+
+[HTML Colors](https://www.w3schools.com/colors/colors_names.asp)
+
+[Java Reference](https://www.w3schools.com/java/java_ref_keywords.asp)
+
+[AngularJS Reference](https://www.w3schools.com/angularjs/angularjs_ref_directives.asp)
+
+[jQuery Reference](https://www.w3schools.com/jquery/jquery_ref_overview.asp)
+
+##### Top Examples
+
+[HTML Examples](https://www.w3schools.com/html/html_examples.asp)
+
+[CSS Examples](https://www.w3schools.com/css/css_examples.asp)
+
+[JavaScript Examples](https://www.w3schools.com/js/js_examples.asp)
+
+[How To Examples](https://www.w3schools.com/howto/default.asp)
+
+[SQL Examples](https://www.w3schools.com/sql/sql_examples.asp)
+
+[Python Examples](https://www.w3schools.com/python/python_examples.asp)
+
+[W3.CSS Examples](https://www.w3schools.com/w3css/w3css_examples.asp)
+
+[Bootstrap Examples](https://www.w3schools.com/bootstrap/bootstrap_examples.asp)
+
+[PHP Examples](https://www.w3schools.com/php/php_examples.asp)
+
+[Java Examples](https://www.w3schools.com/java/java_examples.asp)
+
+[XML Examples](https://www.w3schools.com/xml/xml_examples.asp)
+
+[jQuery Examples](https://www.w3schools.com/jquery/jquery_examples.asp)
+
+[**Get Certified**](https://campus.w3schools.com/collections/course-catalog) [HTML Certificate](https://campus.w3schools.com/collections/certifications/products/html-certificate)
+
+[CSS Certificate](https://campus.w3schools.com/collections/certifications/products/css-certificate)
+
+[JavaScript Certificate](https://campus.w3schools.com/collections/certifications/products/javascript-certificate)
+
+[Front End Certificate](https://campus.w3schools.com/collections/certifications/products/front-end-certificate)
+
+[SQL Certificate](https://campus.w3schools.com/collections/certifications/products/sql-certificate)
+
+[Python Certificate](https://campus.w3schools.com/collections/certifications/products/python-certificate)
+
+[PHP Certificate](https://campus.w3schools.com/collections/certifications/products/php-certificate)
+
+[jQuery Certificate](https://campus.w3schools.com/collections/certifications/products/jquery-certificate)
+
+[Java Certificate](https://campus.w3schools.com/collections/certifications/products/java-certificate)
+
+[C++ Certificate](https://campus.w3schools.com/collections/certifications/products/c-certificate)
+
+[C# Certificate](https://campus.w3schools.com/collections/certifications/products/c-certificate-1)
+
+[XML Certificate](https://campus.w3schools.com/collections/certifications/products/xml-certificate)
+
+[W3Schools on YouTube](https://www.youtube.com/@w3schools "W3Schools on YouTube")[__](https://www.linkedin.com/company/w3schools.com/ "W3Schools on LinkedIn") [__](https://discord.com/invite/w3schools "Join the W3schools community on Discord") [__](https://www.facebook.com/w3schoolscom/ "W3Schools on Facebook") [__](https://www.instagram.com/w3schools.com_official/ "W3Schools on Instagram")
+
+[FORUM](https://www.w3schools.com/forum/index.php "Forum") [ABOUT](https://www.w3schools.com/about/default.asp "About W3Schools") [ACADEMY](https://www.w3schools.com/academy/index.php "Contact us about W3Schools Academy for educational institutions and organizations")
+
+W3Schools is optimized for learning and training. Examples might be simplified to improve reading and learning.
+
+Tutorials, references, and examples are constantly reviewed to avoid errors, but we cannot warrant full correctness
+
+of all content. While using W3Schools, you agree to have read and accepted our [terms of use](https://www.w3schools.com/about/about_copyright.asp),
+cookies and
+[privacy policy](https://www.w3schools.com/about/about_privacy.asp).
+
+[Copyright 1999-2026](https://www.w3schools.com/about/about_copyright.asp) by Refsnes Data. All Rights Reserved.
+[W3Schools is Powered by W3.CSS](https://www.w3schools.com/w3css/default.asp).
+
+ -->
+
+---
+
+Title: Making Sense of React Hooks
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40dan_abramov%2Fmaking-sense-of-react-hooks-fdbde8803889&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40dan_abramov%2Fmaking-sense-of-react-hooks-fdbde8803889&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+# Making Sense of React Hooks
+
+[![Dan Abramov](https://miro.medium.com/v2/resize:fill:32:32/1*xxVEfOOAmIKHWOUloRKLhw.jpeg)](https://medium.com/@dan_abramov?source=post_page---byline--fdbde8803889---------------------------------------)
+
+[Dan Abramov](https://medium.com/@dan_abramov?source=post_page---byline--fdbde8803889---------------------------------------)
+
+Follow
+
+11 min read
+
+·
+
+Oct 30, 2018
+
+38K
+
+65
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3Dfdbde8803889&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40dan_abramov%2Fmaking-sense-of-react-hooks-fdbde8803889&source=---header_actions--fdbde8803889---------------------post_audio_button------------------)
+
+Share
+
+**_(This article is also_** [**_available_**](https://dev.to/dan_abramov/making-sense-of-react-hooks-2eib) **_on the DEV community without the paywall.)_**
+
+This week, [Sophie Alpert](https://mobile.twitter.com/sophiebits) and I presented the “Hooks” proposal at React Conf, followed by a deep dive from [Ryan Florence](https://mobile.twitter.com/ryanflorence):
+
+I strongly recommend to watch this opening keynote to see the problems we’re trying to solve with the Hooks proposal. However, even an hour is a big time investment, so I decided to share a few thoughts on Hooks below.
+
+> **Note: Hooks are an experimental proposal to React.** **You don’t need to learn about them right now. Also, note that this post contains my personal opinions and doesn’t necessarily reflect the positions of the React team.**
+
+## Why Hooks?
+
+We know that components and top-down data flow help us organize a large UI into small, independent, reusable pieces. **However, we often can’t break complex components down any further because the logic is stateful and can’t be extracted to a function or another component.** Sometimes that’s what people mean when they say React doesn’t let them “separate concerns.”
+
+These cases are very common and include animations, form handling, connecting to external data sources, and many other things we want to do from our components. When we try to solve these use cases with components alone, we usually end up with:
+
+- **Huge components** that are hard to refactor and test.
+- **Duplicated logic** between different components and lifecycle methods.
+- **Complex patterns** like render props and higher-order components.
+
+We think Hooks are our best shot at solving all of these problems. **Hooks let us organize the logic _inside_ a component into reusable isolated units:**
+
+**Hooks apply the React philosophy (explicit data flow and composition) _inside_ a component, rather than just _between_ the components.** That’s why I feel that Hooks are a natural fit for the React component model.
+
+Unlike patterns like render props or higher-order components, Hooks don’t introduce unnecessary nesting into your component tree. They also don’t suffer from the [drawbacks of mixins](https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html#why-mixins-are-broken).
+
+Even if you have a visceral first reaction (as I did at first!), I encourage you to give this proposal a fair try and play with it. I think you’ll like it.
+
+## Do Hooks Make React Bloated?
+
+Before we look at Hooks in detail, you might be worried that we’re just adding more concepts to React with Hooks. That’s a fair criticism. I think that while there is definitely going to be a short-term cognitive cost to learning them, the end result will be the opposite.
+
+**If the React community embraces the Hooks proposal, it will _reduce_ the number of concepts you need to juggle when writing React applications.** Hooks let you always use functions instead of having to constantly switch between functions, classes, higher-order components, and render props.
+
+In terms of the implementation size, the Hooks support increases React only by ~1.5kB (min+gzip). While this isn’t much, it’s also likely that **adopting Hooks could _reduce_ your bundle size** because code using Hooks tends to minify better than equivalent code using classes. This example below is a bit extreme but it effectively demonstrates why (click to see the whole thread):
+
+**The Hooks proposal doesn’t include any breaking changes.** Your existing code would keep on working even if you adopted Hooks in the newly written components. In fact, that’s exactly what we recommend — don’t do any big rewrites! It’s a good idea to wait with adopting Hooks in any critical code. Still, we’d appreciate if you could experiment with the 16.7 alpha to provide us with feedback on the [Hooks proposal](https://github.com/reactjs/rfcs/pull/68) and [report any bugs](https://github.com/facebook/react/issues/new).
+
+## What Are Hooks, Exactly?
+
+To understand Hooks, we need to take a step back and think about code reuse.
+
+Today, there are a lot of ways to reuse logic in React apps. We can write simple functions and call them to calculate something. We can also write components (which themselves could be functions or classes). Components are more powerful, but they have to render some UI. This makes them inconvenient for sharing non-visual logic. This is how we end up with complex patterns like render props and higher-order components. **Wouldn’t React be simpler if there was just****_one_****common way to reuse code instead of so many?**
+
+Functions seem to be a perfect mechanism for code reuse. Moving logic between functions takes the least amount of effort. However, functions can’t have local React state inside them. You can’t extract behavior like “watch window size and update the state” or “animate a value over time” from a class component without restructuring your code or introducing an abstraction like Observables. Both approaches hurt the simplicity that we like about React.
+
+Hooks solve exactly that problem. Hooks let you use React features (like state) from a function — by doing a single function call. React provides a few built-in Hooks exposing the “building blocks” of React: state, lifecycle, and context.
+
+**Since Hooks are regular JavaScript functions, you can combine built-in Hooks provided by React into your own “custom Hooks”.** This lets you turn complex problems into one-liners and share them across your application or with the React community:
+
+Note that custom Hooks are not technically a React feature. The possibility of writing your own Hooks naturally follows from the way Hooks are designed.
+
+## Show Me Some Code!
+
+Let’s say we want to subscribe a component to the current window width (for example, to display different content on a narrow viewport).
+
+There are several ways you can write this kind of code today. They involve writing a class, setting up some lifecycle methods, or maybe even extracting a render prop or a higher-order component if you want to reuse it between components. But I think nothing quite beats this:
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*j8U3U0nZvmEKJrSOK7iH5g.png)
+
+[https://gist.github.com/gaearon/cb5add26336003ed8c0004c4ba820eae](https://gist.github.com/gaearon/cb5add26336003ed8c0004c4ba820eae)
+
+**If you read this code, it does exactly what it says.**We _use the window width_ in our component, and React re-renders our component if it changes.And that’s the goal of Hooks — to make components truly declarative even if they contain state and side effects.
+
+Let’s look at how we could implement this custom Hook. We’d _use the React local state_ to keep the current window width, and _use a side effect_ to set that state when the window resizes:
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*9QhpwSGTKM-c8sc4UNcxqA.png)
+
+[https://gist.github.com/gaearon/cb5add26336003ed8c0004c4ba820eae](https://gist.github.com/gaearon/cb5add26336003ed8c0004c4ba820eae)
+
+As you can see above, the built-in React Hooks like _useState_ and _useEffect_ serve as the basic building blocks. We can use them from our components directly, or we can combine them into custom Hooks like _useWindowWidth_. Using custom Hooks feels as idiomatic as using React’s built-in API.
+
+You can learn more about built-in Hooks from [this overview](https://reactjs.org/docs/hooks-overview.html).
+
+## Get Dan Abramov’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+**Hooks are fully encapsulated — each time you call a Hook, it gets isolated local state within the currently executing component.** This doesn’t matter for this particular example (window width is the same for all components!), but it’s what makes Hooks so powerful. They’re not a way to share _state_ — but a way to share _stateful logic_. We don’t want to break the top-down data flow!
+
+Each Hook may contain some local state and side effects. You can pass data between multiple Hooks just like you normally do between functions. They can take arguments and return values because they _are_ JavaScript functions.
+
+Here’s an example of a React animation library experimenting with Hooks:
+
+Note how in the demo source code, the staggering animation is implemented by passing values through several custom Hooks in the same render function.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*NJ2G1R_32k95WiPel5JHpg.png)
+
+[https://codesandbox.io/s/ppxnl191zx](https://codesandbox.io/s/ppxnl191zx)
+
+(If you want to learn more about this example, check out [this tutorial](https://medium.com/@drcmda/hooks-in-react-spring-a-tutorial-c6c436ad7ee4).)
+
+While it’s not the primary purpose of Hooks, they also open the door for powerful interactive debugging tools:
+
+The ability to pass data between Hooks make them a great fit for expressing animations, data subscriptions, form management, and other stateful abstractions. **Unlike render props or higher-order components, Hooks don’t create a “false hierarchy” in your render tree.** They’re more like a flat list of “memory cells” attached to a component. No extra layers.
+
+## So What About Classes?
+
+Custom Hooks are, in our opinion, the most appealing part of the Hooks proposal. But in order for custom Hooks to work, React needs to provide functions with a way to declare state and side effects. And that’s exactly what built-in Hooks like _useState_ and _useEffect_ let us do. You can learn about them in the [documentation](https://reactjs.org/docs/hooks-overview.html).
+
+It turns out that these built-in Hooks aren’t _only_ useful for creating custom Hooks. They are _also_ sufficient for defining components in general, as they provide us with all the necessary features like state. This is why we’d like Hooks to become the primary way to define React components in the future.
+
+We have no plans to deprecate classes. At Facebook we have tens of thousands of class components and, like you, we have no intention of rewriting them. But if the React community embraces Hooks, it doesn’t make sense to have two different recommended ways to write components. Hooks can cover all use cases for classes while providing more flexibility in extracting, testing, and reusing code. This is why Hooks represent our vision for the future of React.
+
+## But Aren’t Hooks Magic?
+
+You may have been surprised by the [Rules of Hooks](https://reactjs.org/docs/hooks-rules.html).
+
+**While it’s unusual that Hooks have to be called at the top level, you probably wouldn’t want to define state in a condition even if you could.** For example, you can’t define state conditionally in a class either, and over four years of talking to React users I haven’t heard a complaint about this.
+
+This design is crucial to enabling custom Hooks without introducing extra syntactic noise or other pitfalls. We recognize the initial unfamiliarity but we think this tradeoff is worth the features it enables. If you disagree, I encourage you to play with it in practice and see if that changes how you feel.
+
+We’ve been using Hooks in production for a month to see whether engineers get confused by these rules. We found that in practice people get used to them in a matter of hours. Personally, I admit that these rules “felt wrong” to me at first too, but I quickly got over it. This experience mirrored my first impression with React. (Did you like React immediately? I didn’t until my second try.)
+
+Note that there is no “magic” in the implementation of Hooks either. As Jamie [points out](https://mobile.twitter.com/jamiebuilds/status/1055538414538223616), it looks pretty similar to this:
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*xNeUnpwUvFMuQu9Zr6A3AA.jpeg)
+
+[https://gist.github.com/gaearon/62866046e396f4de9b4827eae861ff19](https://gist.github.com/gaearon/62866046e396f4de9b4827eae861ff19)
+
+We keep a list of Hooks per component, and move to the next item in the list whenever a Hook is used. Thanks to the Rules of Hooks, their order is the same on every render, so we can provide the component with correct state for each call. Don’t forget that React doesn’t need to do anything special to know which component is rendering — React _is_ what’s calling your component.
+
+( [This article by Rudi Yardley](https://medium.com/@ryardley/react-hooks-not-magic-just-arrays-cd4f1857236e) contains a nice visual explanation!)
+
+Perhaps you’re wondering where React keeps the state for Hooks. The answer is it’s kept in the exact same place where React keeps state for classes. React has an internal update queue which is the source of truth for any state, no matter how you define your components.
+
+Hooks don’t rely on Proxies or getters which can be common in modern JavaScript libraries. So arguably Hooks are _less_ magic than some popular approaches to similar problems. I’d say Hooks are about as much magic as calling _array.push_ and _array.pop_ (for which the call order matters too!)
+
+The design of Hooks isn’t tied to React. In fact, during the first few days after the proposal was published, different people came up with experimental implementations of the same Hooks API for Vue, Web Components, and even plain JavaScript functions.
+
+Finally, if you’re a functional programming purist and feel uneasy about React relying on mutable state as an implementation detail, you might find it satisfactory that handling Hooks could be implemented in a pure way using algebraic effects (if JavaScript supported them). And of course React has always relied on mutable state internally — precisely so that _you_ don’t have to.
+
+Whether you were concerned from a more pragmatic or a dogmatic perspective (if you were at all), I hope that at least one of these justifications makes sense. If you’re curious, Sebastian (the author of the Hooks proposal) also responded to these and other concerns in [this comment](https://github.com/reactjs/rfcs/pull/68#issuecomment-439314884) on the RFC. Most importantly, I think Hooks let us build components with less effort, and create better user experiences. And that’s why I’m personally excited about Hooks.
+
+## Spread Love, Not Hype
+
+If Hooks still don’t seem compelling to you, I can totally understand it. I still hope that you’ll give them a try on a small pet project and see if that changes your opinion. Whether you haven’t experienced the problems Hooks solve, or if you have a different solution in mind, please let us know in the RFC!
+
+If I _did_ get you excited, or at least a little bit curious, that’s great! I have just one favor to ask. There are many folks who are learning React right now, and they will get confused if we hurry with writing tutorials and declaring best practices for a feature that has barely been out for a few days. There are some things about Hooks that aren’t quite clear yet even to us on the React team.
+
+**If you create any content about Hooks while they’re unstable, please mention prominently that they are an experimental proposal, and include a link to the** [**official documentation**](https://reactjs.org/hooks) **.** We’ll keep it up to date with any changes to the proposal. We’ve also spent quite a bit of effort to make it comprehensive, so many questions are already answered there.
+
+When you talk to other people who aren’t as excited as you are, please be courteous. If you see a misconception, you can share extra information if the other person is open to it. But any change is scary, and as a community we should try our best to help people instead of alienating them. And if I (or anyone else on the React team) fail to follow this advice, please call us out!
+
+## Next Steps
+
+Check out the documentation for Hooks proposal to learn more about it:
+
+- [Introducing Hooks](https://reactjs.org/docs/hooks-intro.html) (motivation)
+- [Hooks at a Glance](https://reactjs.org/docs/hooks-overview.html) (walkthrough)
+- [Building Your Own Hooks](https://reactjs.org/docs/hooks-custom.html) (that’s the fun part)
+- [Hooks FAQ](https://reactjs.org/docs/hooks-faq.html) (it’s likely your question is answered there!)
+
+Hooks are still in an early stage, but we’re excited to hear feedback from all of you. You can direct it to the [RFC](https://github.com/reactjs/rfcs/pull/68), but we’ll also do our best to keep up with the conversations on Twitter.
+
+Please let me know if something isn’t clear, and I’d be happy to chat about your concerns. Thank you for reading!
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*_XMyHqfFSyw03BiNjBoV3Q.jpeg)
+
+Vitra — Portemanteau Hang it all
+
+[React](https://medium.com/tag/react?source=post_page-----fdbde8803889---------------------------------------)
+
+[![Dan Abramov](https://miro.medium.com/v2/resize:fill:48:48/1*xxVEfOOAmIKHWOUloRKLhw.jpeg)](https://medium.com/@dan_abramov?source=post_page---post_author_info--fdbde8803889---------------------------------------)
+
+[![Dan Abramov](https://miro.medium.com/v2/resize:fill:64:64/1*xxVEfOOAmIKHWOUloRKLhw.jpeg)](https://medium.com/@dan_abramov?source=post_page---post_author_info--fdbde8803889---------------------------------------)
+
+Follow
+
+[**Written by Dan Abramov**](https://medium.com/@dan_abramov?source=post_page---post_author_info--fdbde8803889---------------------------------------)
+
+[75K followers](https://medium.com/@dan_abramov/followers?source=post_page---post_author_info--fdbde8803889---------------------------------------)
+
+· [914 following](https://medium.com/@dan_abramov/following?source=post_page---post_author_info--fdbde8803889---------------------------------------)
+
+Working on @reactjs. Co-author of Redux and Create React App. Building tools for humans.
+
+Follow
+
+## Responses (65)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40dan_abramov%2Fmaking-sense-of-react-hooks-fdbde8803889&source=---post_responses--fdbde8803889---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----fdbde8803889---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----fdbde8803889---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----fdbde8803889---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----fdbde8803889---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----fdbde8803889---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----fdbde8803889---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----fdbde8803889---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----fdbde8803889---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----fdbde8803889---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: React Hooks Explained Simply
+![close icon](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/660181cd9172335cd80c4ad9__Mini%20X_.svg)
+
+![daily.dev platform](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/660180848a3e21c9ad344747_daily.dev%20Feed%20-%201280x560%20(1).png)
+
+#### Discover more from daily.dev
+
+Personalized news feed, dev communities and search, much better than what’s out there. Maybe ;)
+
+[**Start reading** \- Free forever](https://play.google.com/store/apps/details?id=dev.daily) [**Start reading** \- Free forever](https://api.daily.dev/get)
+
+Continue reading >
+
+# React Hooks Explained Simply
+
+Apr 22, 2024
+
+![React Hooks Explained Simply](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/6625ecdaf70b73d7da345ad7_6625af7db1d581f127d2ca9d-11bd652d61629296807f9c0a7ed9eb33.jpeg)
+
+Author
+
+[![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)\\
+\\
+Nimrod Kramer\\
+\\
+@NimrodKramer](https://app.daily.dev/kramer)
+
+Related tags on daily.dev
+
+![toc](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa101034a8ea4254921ef1_Unread.svg)
+
+Table of contents
+
+![arrow-down](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa1092c2681854cb7d9e94_Arrow%20Down.svg)
+
+[Class Component Challenges](https://daily.dev/blog/react-hooks-explained-simply#class-component-challenges) [The Introduction of](https://daily.dev/blog/react-hooks-explained-simply#the-introduction-of-a-hrefhttpsreactjsorgdocshooks-referencehtml-target_blank-relnofollow-noopener-noreferrer-styledisplay-inlinehooksa) [Hooks](https://reactjs.org/docs/hooks-reference.html) [What Are React Hooks?](https://daily.dev/blog/react-hooks-explained-simply#what-are-react-hooks) [Core React Hooks Explained](https://daily.dev/blog/react-hooks-explained-simply#core-react-hooks-explained) [useState](https://daily.dev/blog/react-hooks-explained-simply#usestate) [useEffect](https://daily.dev/blog/react-hooks-explained-simply#useeffect) [useContext](https://daily.dev/blog/react-hooks-explained-simply#usecontext) [Additional Hooks](https://daily.dev/blog/react-hooks-explained-simply#additional-hooks) [useReducer](https://daily.dev/blog/react-hooks-explained-simply#usereducer) [useRef](https://daily.dev/blog/react-hooks-explained-simply#useref) [useMemo](https://daily.dev/blog/react-hooks-explained-simply#usememo) [useCallback](https://daily.dev/blog/react-hooks-explained-simply#usecallback) [Rules of Hooks](https://daily.dev/blog/react-hooks-explained-simply#rules-of-hooks) [Common Pitfalls and Solutions](https://daily.dev/blog/react-hooks-explained-simply#common-pitfalls-and-solutions) [Stale Closures in useEffect](https://daily.dev/blog/react-hooks-explained-simply#stale-closures-in-useeffect) [Forgetting to Clean Up Subscriptions](https://daily.dev/blog/react-hooks-explained-simply#forgetting-to-clean-up-subscriptions) [Overusing useEffect](https://daily.dev/blog/react-hooks-explained-simply#overusing-useeffect) [Refactoring Class Components](https://daily.dev/blog/react-hooks-explained-simply#refactoring-class-components) [Before - Class Component](https://daily.dev/blog/react-hooks-explained-simply#before-class-component) [After - Function Component with Hooks](https://daily.dev/blog/react-hooks-explained-simply#after-function-component-with-hooks) [Best Practices](https://daily.dev/blog/react-hooks-explained-simply#best-practices) [Keep Hooks Small and Focused](https://daily.dev/blog/react-hooks-explained-simply#keep-hooks-small-and-focused) [Extract Shared Logic into Custom Hooks](https://daily.dev/blog/react-hooks-explained-simply#extract-shared-logic-into-custom-hooks) [Follow React Hook Rules](https://daily.dev/blog/react-hooks-explained-simply#follow-react-hook-rules) [Conclusion](https://daily.dev/blog/react-hooks-explained-simply#conclusion) [Related Questions](https://daily.dev/blog/react-hooks-explained-simply#related-questions) [What is Hooks in React in simple words?](https://daily.dev/blog/react-hooks-explained-simply#what-is-hooks-in-react-in-simple-words) [What is React with Hooks for beginners?](https://daily.dev/blog/react-hooks-explained-simply#what-is-react-with-hooks-for-beginners) [What are the 10 React Hooks?](https://daily.dev/blog/react-hooks-explained-simply#what-are-the-10-react-hooks) [What are the 15 Hooks in react JS?](https://daily.dev/blog/react-hooks-explained-simply#what-are-the-15-hooks-in-react-js) [Related Blog Posts](https://daily.dev/blog/react-hooks-explained-simply#related-blog-posts)
+
+[Read more on daily.dev\\
+\\
+![open link icon](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65fc45c5f1fa2162fa715b91__Open%20Link_.svg)](https://app.daily.dev/?utm_source=landing&utm_medium=blog&utm_campaign=toc)
+
+🎯
+
+Learn about React Hooks, how they simplify code, manage state, and share logic in function components. Explore common pitfalls, core hooks, rules, refactoring tips, and best practices for using React Hooks effectively.
+
+[React Hooks](https://daily.dev/blog/form-react-hook-essentials-for-developers#redux-form) are tools that allow you to use state and other React features without writing class components. They're designed to simplify your code and make it easier to share logic across components. Here's a quick overview of what you need to know about React Hooks:
+
+- **Simplify Your Code**: Avoid the complexity of class components.
+- **Reusable Logic**: Easily share and reuse stateful logic.
+- **Built-in [Hooks](https://reactjs.org/docs/hooks-reference.html)**: Such as `useState`, `useEffect`, and `useContext` for managing state, side effects, and context.
+- **[Custom Hooks](https://app.daily.dev/posts/PnJlI6roI)**: Create your own hooks for custom reusable logic.
+- **Rules of Hooks**: Use them at the top level of your components and only in React functions.
+- **Common Pitfalls**: Understand common issues and how to avoid them, like stale closures in `useEffect`.
+- **Refactoring**: How to convert class components to function components using hooks.
+- **Best Practices**: Tips for using hooks effectively, like keeping them small and focused.
+
+Whether you're a beginner or an experienced developer, understanding and applying React Hooks can greatly improve your React applications by making your code cleaner, more modular, and easier to understand.
+
+### Class Component Challenges
+
+Class components in React are strong tools but they can make things like keeping track of changes and sharing code a bit tough:
+
+- **Complex lifecycle methods** \- Components have a bunch of steps like `componentDidMount`, `componentDidUpdate`, and more. Keeping up with all these can be tricky.
+- **Difficult to reuse logic** \- If you want to share code that deals with state between components, you usually need complex patterns. These can make your components harder to understand.
+- **Confusing 'this' binding** \- Classes sometimes make using `this` a headache, making it hard to keep track of what it refers to.
+
+### The Introduction of [Hooks](https://reactjs.org/docs/hooks-reference.html)
+
+![Hooks](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/6625ec3ebe4dd25c882fbd82_reactjs.org-64c0d850cf5eb1bdd6b269ac8bcd9420.jpeg)
+
+React Hooks were made to tackle these issues, letting you handle state and other React features without needing classes:
+
+- Hooks let you manage state and more without classes, which means you don't have to deal with the confusing parts of `this`.
+- You can create custom hooks to split out logic for things like state, effects, and context. This makes it much easier to use the same code in different places.
+- You don't have to juggle lifecycle methods anymore. Things like `useEffect` take care of that for you.
+
+Overall, Hooks give you a simpler and more flexible way to work with React. By moving away from complex patterns, they help make your code easier to read and share. This means you can reuse code more easily and keep your components neat.
+
+## What Are React Hooks?
+
+React Hooks are like special tools that let you add features such as keeping track of data (state) and doing things when your component loads or updates, all from within function components. This means you can do a lot without needing to write class components.
+
+Here’s what you should know about React Hooks:
+
+- **They are just functions** \- But they have to follow two rules:
+- You can only use them inside function components.
+- You have to use them at the top of your component, not inside loops or conditions.
+- **They let function components have their own state** \- With the `useState` hook, your components can remember things and change what they show based on that memory.
+- **You can share logic between components** \- By making your own hooks, you can take some logic about state out of your components and use it elsewhere. This is handy for things like fetching data.
+- **They replace the old ways of doing things when your component loads or updates** \- The `useEffect` hook helps you do stuff like fetching data or setting up subscriptions, similar to how you might have used `componentDidMount` or `componentDidUpdate` in class components.
+
+In short, React Hooks let you do more with function components, like keeping track of data and reacting to changes. They make it easier to share logic across different parts of your app and simplify how you work with React. This means less repeating yourself and clearer, simpler code.
+
+## Core React Hooks Explained
+
+React Hooks let you use state and other React features in function components. This means you can do things like keep track of data or perform actions at certain times without writing class components. Here are three main Hooks you should know about:
+
+### useState
+
+The `useState` Hook lets you keep track of data in your components. Here's how you use it:
+
+```js
+import { useState } from 'react';
+
+function MyComponent() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>Click me</button>
+    </div>
+  );
+}
+```
+
+In this example, `useState(0)` starts the `count` at 0. The `setCount` function updates it. `useState` gives back an array with the current state and a function to change it, which is why we use array destructuring to get `count` and `setCount`.
+
+### useEffect
+
+The `useEffect` Hook lets you do things after your component renders. For example, you can fetch data, set up subscriptions, or manually change the DOM. Here's how you might fetch data:
+
+```js
+import { useState, useEffect } from 'react';
+
+function MyComponent() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/data')
+      .then(res => res.json())
+      .then(data => setData(data));
+  }, []);
+
+  // ...
+}
+```
+
+`useEffect` needs two things: a function to run and an array of values it depends on. If the array is empty `[]`, it means the effect runs only once when the component is first shown and when it goes away.
+
+### useContext
+
+The `useContext` Hook lets you use context in your components. Context is a way to pass data through your component tree without having to pass props down manually at every level.
+
+Here's a simple example:
+
+```jsx
+const ThemeContext = React.createContext('light');
+
+function MyComponent() {
+  const theme = useContext(ThemeContext);
+  return <p>The theme is {theme}</p>;
+}
+```
+
+With `useContext`, `MyComponent` can use the theme value from context easily.
+
+These three Hooks - `useState`, `useEffect`, and `useContext` \- are key for managing state, side effects, and context in your function components. They make your code simpler and more straightforward.
+
+## Additional Hooks
+
+React has more handy hooks beyond `useState` and `useEffect` that help you do even more cool stuff in your components. Let's go over a few more that are super useful:
+
+### useReducer
+
+Think of `useReducer` as a more powerful version of `useState`, perfect for when your component's state gets complex. It works well for states that have multiple parts or when the new state depends on the old one.
+
+Here's a peek at how `useReducer` works:
+
+```js
+const [state, dispatch] = useReducer(reducer, initialState);
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return {...state, count: state.count + 1};
+    case 'decrement':
+      return {...state, count: state.count - 1};
+    default:
+      return state;
+  }
+}
+```
+
+### useRef
+
+`useRef` gives you a way to hang onto something (like a DOM element) that doesn't get wiped out when your component re-renders. It's like keeping a sticky note on something you don't want to lose.
+
+Example time:
+
+```jsx
+const inputEl = useRef(null);
+
+<input ref={inputEl} type="text"/>;
+
+// To get the DOM node:
+inputEl.current;
+```
+
+### useMemo
+
+`useMemo` is like a brainy assistant that remembers the result of a heavy-duty function so you don't have to run it again unless absolutely necessary. It helps keep things running smoothly and quickly.
+
+Example:
+
+```js
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+```
+
+### useCallback
+
+`useCallback` keeps your functions remembered so they don't get recreated every time your component re-renders. This is especially handy for functions that need to stick around, like event handlers.
+
+Here's how it looks:
+
+```js
+const handleClick = useCallback(() => {
+  // Something to do here
+}, []);
+```
+
+While there are even more hooks like `useImperativeHandle`, `useDebugValue`, and `useTransition` for special situations, the ones we've talked about are the big players. They make your components smarter and your code cleaner, without the need for classes. Getting the hang of these hooks will equip you with everything you need for most things you'll do in React.
+
+## Rules of Hooks
+
+When you're using React Hooks like `useState`, `useEffect`, or any others, there are two important rules you need to follow to avoid problems:
+
+- **Only Call Hooks at the Top Level**
+
+Don't put Hooks inside loops, conditions, or nested functions. Instead, always use them at the top of your component. This helps React keep track of your Hooks in the right order, which is crucial for things like keeping your component's state consistent across re-renders.
+
+Here's a no-go:
+
+```js
+// Wrong
+function MyComponent() {
+  const items = [1, 2, 3];
+
+  items.forEach(item => {
+    const [count, setCount] = useState(0); // Oops, inside a loop
+  });
+}
+```
+
+And the right way:
+
+```js
+// Correct
+function MyComponent() {
+  const [count, setCount] = useState(0); // Up top where it belongs
+
+  const items = [1, 2, 3];
+
+  items.forEach(item => {
+    // It's cool to use state here
+  });
+}
+```
+
+- **Only Call Hooks from React Functions**
+
+You can only use Hooks inside React function components or your own custom Hooks. They won't work in regular JavaScript functions.
+
+This won't fly:
+
+```js
+// Won't work
+function someFunction() {
+  const [count, setCount] = useState(0); // Trying this outside React
+}
+```
+
+But this is perfect:
+
+```js
+function useCounter() {
+  const [count, setCount] = useState(0); // This is a custom Hook
+  return { count, setCount };
+}
+
+function MyComponent() {
+  const { count, setCount } = useCounter(); // Using the custom Hook here
+}
+```
+
+Sticking to these rules makes sure your Hooks work as expected, keeping your components running smoothly. There's also a handy tool, [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks), that can help you stick to these rules without having to think too hard about it.
+
+Inline Banner
+
+## Try daily.dev Today
+
+Connect with developers around the world. Upgrade your developer journey with personalized content, collaboration, and an engaged community. [Start Reading - Free forever](https://api.daily.dev/get)
+
+## Common Pitfalls and Solutions
+
+React Hooks are super handy, but there are a few common mistakes that can trip you up if you're not careful. Let's talk about these mistakes and how to fix them so you can avoid any headaches.
+
+### Stale Closures in useEffect
+
+A common mistake with `useEffect` is ending up with a stale closure. This means you're accidentally using an old value of something that has changed, and it can lead to weird results.
+
+For instance:
+
+```js
+function MyComponent() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      console.log(count); // Oops - using an old count value
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    // Buttons to change count
+  );
+}
+```
+
+In this example, the `count` inside `setInterval` doesn't update because it's stuck with the value from the first render.
+
+**How to fix it:** Make sure your callback gets the latest value by including it in the `useEffect` dependency array:
+
+```js
+useEffect(() => {
+
+  const id = setInterval(() => {
+    console.log(count);
+  }, 1000);
+
+  return () => clearInterval(id);
+
+}, [count]);
+```
+
+Now, `count` will always be current.
+
+### Forgetting to Clean Up Subscriptions
+
+Not cleaning up after yourself, like forgetting to unsubscribe from something, can lead to memory leaks.
+
+Example problem:
+
+```js
+function MyComponent() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const channel = subscribeToData(data =>
+      setData(data)
+    );
+
+    // Oops, forgot the cleanup
+  }, []);
+
+  // ...
+}
+```
+
+**Solution:** Always include a cleanup function in your `useEffect` to prevent issues:
+
+```js
+useEffect(() => {
+  const channel = subscribeToData(data =>
+    setData(data)
+  );
+
+  return () => {
+    channel.unsubscribe();
+  };
+}, []);
+```
+
+### Overusing useEffect
+
+It's easy to want to put everything into `useEffect`, but doing so can cause unnecessary updates and slow things down.
+
+**What to do instead:** Keep things that aren't side effects out of `useEffect`. For example, if you're just filtering items, do it outside of `useEffect`:
+
+```js
+function MyComponent({ items }) {
+  const [filteredItems, setFilteredItems] = useState(
+    filterItems(items)
+  );
+
+  // ...
+}
+```
+
+This way, you keep your component running smoothly.
+
+Understanding these common mistakes and how to fix them can make working with React Hooks a lot easier. Keeping an eye on closures, cleaning up properly, and using `useEffect` wisely will help you avoid problems.
+
+## Refactoring Class Components
+
+Refactoring your existing React class components to use Hooks can make your code cleaner and more straightforward. Let's walk through how to change a class component into a function component using Hooks.
+
+### Before - Class Component
+
+Here's a basic class component that shows a counter with buttons to add or subtract:
+
+```jsx
+import React from "react";
+
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 0
+    };
+  }
+
+  increment = () => {
+    this.setState({ count: this.state.count + 1 });
+  }
+
+  decrement = () => {
+    this.setState({ count: this.state.count - 1 });
+  }
+
+  render() {
+    return (
+      <div>
+        <button onClick={this.decrement}>-</button>
+        <span>{this.state.count}</span>
+        <button onClick={this.increment}>+</button>
+      </div>
+    );
+  }
+}
+```
+
+This component works well but it's a bit too complex for what it does. Using Hooks, we can make it simpler.
+
+### After - Function Component with Hooks
+
+Now, let's convert that component to use the `useState` Hook:
+
+```jsx
+import React, { useState } from "react";
+
+function Counter() {
+
+  const [count, setCount] = useState(0);
+
+  const increment = () => {
+    setCount(count + 1);
+  }
+
+  const decrement = () => {
+    setCount(count - 1);
+  }
+
+  return (
+    <div>
+      <button onClick={decrement}>-</button>
+      <span>{count}</span>
+      <button onClick={increment}>+</button>
+    </div>
+  );
+}
+```
+
+With `useState`, we can keep track of the `count` without needing a class. Our component is now a straightforward function that manages state with `useState`.
+
+Here's why this is better:
+
+- It's simpler and has less code.
+- You don't have to worry about binding event handlers.
+- All the state stuff is done with just `useState`.
+- If you want to use the counter logic somewhere else, it's easier to make a custom hook.
+
+In short, changing class components to use Hooks makes them easier to get, work with, and maintain. By cutting out the complex parts, your components are more focused on what they do best: showing stuff on the screen and handling user input.
+
+## Best Practices
+
+When you're working with React Hooks, it's smart to keep things simple, direct, and ready to be used again. Here are some handy tips:
+
+### Keep Hooks Small and Focused
+
+**Do:**
+
+- Create hooks for just one job, like keeping track of data or getting data from the internet
+- Give your hooks clear names that say what they do
+- Make sure the inside of your hooks is easy to follow
+
+**Don't:**
+
+- Try to do too much in one hook
+- Make hooks that are big and complicated
+- Pick names for your hooks that don't make it clear what they do
+
+Small, focused hooks are easier to check, fix, and use in other places.
+
+### Extract Shared Logic into Custom Hooks
+
+If you see the same logic in more than one component, like getting data or handling state, pull it out into its own hook.
+
+**Benefits:**
+
+- Keeps your components simple
+- Stops you from writing the same code over and over
+- Lets you use and combine logical parts easily
+
+Here's how you might do it:
+
+```js
+function useFetch(url) {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch(url)
+      .then(res => res.json())
+      .then(setData);
+  }, [url]);
+
+  return data;
+}
+
+function ComponentA() {
+  const data = useFetch('/api/a');
+  // ...
+}
+
+function ComponentB() {
+  const data = useFetch('/api/b');
+  // ...
+}
+```
+
+Now, both components can use the same logic for fetching data!
+
+### Follow React Hook Rules
+
+Make sure to stick to the [Rules of Hooks](https://reactjs.org/docs/hooks-rules.html) to keep away from bugs:
+
+- Use hooks at the top level, not inside loops or if statements
+- Only use hooks in React components or custom hooks
+
+Adding [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks) to your project can help you automatically spot problems.
+
+By keeping your hooks straightforward, pulling out common logic, and following the rules, you'll create reliable, reusable hooks that make working with components much easier.
+
+## Conclusion
+
+React Hooks are like special tools that make it easier to add features to your function components, without the need for complex class components. They help you manage state, deal with component updates, and share logic across your app in a simpler way.
+
+Here's what you should remember:
+
+- Hooks help you deal with common issues like managing state and reusing logic without getting lost in complex class components.
+- Basic hooks like `useState`, `useEffect`, and `useContext` are your go-to for handling most of the work with state, updates, and context.
+- It's important to follow certain rules with hooks, like using them at the top of your components, to avoid running into problems.
+- Creating your own custom hooks can make your code cleaner by pulling out reusable logic into separate functions.
+- Keeping hooks small, focusing on one thing, and sticking to the rules can make your code better and your life easier.
+- Switching from class components to function components using hooks can make your code simpler and easier to understand.
+
+In short, React Hooks offer a more straightforward way to work with React features like state and lifecycles in your function components. By choosing hooks over more complicated setups, your code becomes easier to handle, test, and share.
+
+If this guide was helpful or if you have more questions about React Hooks, feel free to drop a comment. I'm always here to help with your React journey.
+
+## Related Questions
+
+### What is Hooks in React in simple words?
+
+Hooks are special functions in React that let you use features like state (a way to remember things) and do things when your component loads or updates, all from within function components. This means you can do a lot more with simple functions without needing to write class components. Hooks help you reuse code and make your components smarter.
+
+### What is React with Hooks for beginners?
+
+For beginners, here are a few things to know about React Hooks:
+
+- Hooks let function components use React features that were only available in class components before, like keeping track of data.
+- Common hooks such as `useState`, `useEffect`, and `useContext` are used for managing state, doing things after rendering, and accessing global data easily.
+- You should only use hooks at the top level of your components and not inside loops or conditions.
+- Custom hooks are a way to pull out component logic into reusable functions, making your components neater.
+- Learning hooks doesn't mean forgetting React basics. They're just another way to use React's features in your function components.
+
+### What are the 10 React Hooks?
+
+Here are ten commonly used React hooks:
+
+- `useState` \- Lets you track state changes.
+- `useEffect` \- Runs code after render.
+- `useContext` \- Accesses context data.
+- `useReducer` \- Manages complex state logic.
+- `useCallback` \- Caches functions.
+- `useMemo` \- Caches values.
+- `useRef` \- References DOM elements.
+- `useImperativeHandle` \- Customizes ref values.
+- `useLayoutEffect` \- Runs synchronously after DOM updates.
+- `useDebugValue` \- Labels custom hooks in React DevTools.
+
+### What are the 15 Hooks in react JS?
+
+Besides the built-in hooks, there are also custom hooks for various tasks:
+
+- `useIdle` \- Detects user inactivity.
+- `useInterval` \- Sets intervals.
+- `useScroll` \- Handles scroll events.
+- `useToggle` \- Toggles between states.
+- `useTitle` \- Changes the document title.
+- `usePrevious` \- Retrieves previous state or props.
+- `useSetState` \- Combines state updates.
+- `useCookie` \- Manages cookies.
+- `useSpeech` \- Converts text to speech.
+- `useGeolocation` \- Gets user location.
+- `useMutationObserver` \- Observes changes in the DOM.
+- `useWebSocket` \- Manages WebSocket connections.
+- `useLocalStorage` \- Stores data in local storage.
+- `useCss` \- Applies CSS dynamically.
+- `useMediaQuery` \- Uses media queries.
+
+## Related Blog Posts
+
+- [Form React Hook Essentials for Developers](https://daily.dev/blog/form-react-hook-essentials-for-developers/)
+- [React Hook Form Errors Not Working: Troubleshooting Tips](https://daily.dev/blog/react-hook-form-errors-not-working-troubleshooting-tips/)
+- [Form React Hook Basics for Beginners](https://daily.dev/blog/form-react-hook-basics-for-beginners/)
+- [Form on React: Best Practices](https://daily.dev/blog/form-on-react-best-practices/)
+
+Author
+
+[![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)\\
+\\
+Nimrod Kramer\\
+\\
+@NimrodKramer](https://app.daily.dev/kramer)
+
+Related tags on daily.dev
+
+![toc](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/60aa101034a8ea4254921ef1_Unread.svg)
+
+Table of contents
+
+[Class Component Challenges](https://daily.dev/blog/react-hooks-explained-simply#class-component-challenges) [The Introduction of](https://daily.dev/blog/react-hooks-explained-simply#the-introduction-of-a-hrefhttpsreactjsorgdocshooks-referencehtml-target_blank-relnofollow-noopener-noreferrer-styledisplay-inlinehooksa) [Hooks](https://reactjs.org/docs/hooks-reference.html) [What Are React Hooks?](https://daily.dev/blog/react-hooks-explained-simply#what-are-react-hooks) [Core React Hooks Explained](https://daily.dev/blog/react-hooks-explained-simply#core-react-hooks-explained) [useState](https://daily.dev/blog/react-hooks-explained-simply#usestate) [useEffect](https://daily.dev/blog/react-hooks-explained-simply#useeffect) [useContext](https://daily.dev/blog/react-hooks-explained-simply#usecontext) [Additional Hooks](https://daily.dev/blog/react-hooks-explained-simply#additional-hooks) [useReducer](https://daily.dev/blog/react-hooks-explained-simply#usereducer) [useRef](https://daily.dev/blog/react-hooks-explained-simply#useref) [useMemo](https://daily.dev/blog/react-hooks-explained-simply#usememo) [useCallback](https://daily.dev/blog/react-hooks-explained-simply#usecallback) [Rules of Hooks](https://daily.dev/blog/react-hooks-explained-simply#rules-of-hooks) [Common Pitfalls and Solutions](https://daily.dev/blog/react-hooks-explained-simply#common-pitfalls-and-solutions) [Stale Closures in useEffect](https://daily.dev/blog/react-hooks-explained-simply#stale-closures-in-useeffect) [Forgetting to Clean Up Subscriptions](https://daily.dev/blog/react-hooks-explained-simply#forgetting-to-clean-up-subscriptions) [Overusing useEffect](https://daily.dev/blog/react-hooks-explained-simply#overusing-useeffect) [Refactoring Class Components](https://daily.dev/blog/react-hooks-explained-simply#refactoring-class-components) [Before - Class Component](https://daily.dev/blog/react-hooks-explained-simply#before-class-component) [After - Function Component with Hooks](https://daily.dev/blog/react-hooks-explained-simply#after-function-component-with-hooks) [Best Practices](https://daily.dev/blog/react-hooks-explained-simply#best-practices) [Keep Hooks Small and Focused](https://daily.dev/blog/react-hooks-explained-simply#keep-hooks-small-and-focused) [Extract Shared Logic into Custom Hooks](https://daily.dev/blog/react-hooks-explained-simply#extract-shared-logic-into-custom-hooks) [Follow React Hook Rules](https://daily.dev/blog/react-hooks-explained-simply#follow-react-hook-rules) [Conclusion](https://daily.dev/blog/react-hooks-explained-simply#conclusion) [Related Questions](https://daily.dev/blog/react-hooks-explained-simply#related-questions) [What is Hooks in React in simple words?](https://daily.dev/blog/react-hooks-explained-simply#what-is-hooks-in-react-in-simple-words) [What is React with Hooks for beginners?](https://daily.dev/blog/react-hooks-explained-simply#what-is-react-with-hooks-for-beginners) [What are the 10 React Hooks?](https://daily.dev/blog/react-hooks-explained-simply#what-are-the-10-react-hooks) [What are the 15 Hooks in react JS?](https://daily.dev/blog/react-hooks-explained-simply#what-are-the-15-hooks-in-react-js) [Related Blog Posts](https://daily.dev/blog/react-hooks-explained-simply#related-blog-posts)
+
+[Read more on daily.dev\\
+\\
+![open link icon](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65fc45c5f1fa2162fa715b91__Open%20Link_.svg)](https://api.daily.dev/get)
+
+[![daily.dev platform](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65fc443cac134dd95826e584_daily.dev.jpg)\\
+Why not level up your reading with daily.dev?\\
+\\
+Stay up-to-date with the latest developer news every time you open a new tab.\\
+\\
+Start reading - Free forever](https://api.daily.dev/get)
+
+## Why not level up your reading with daily.dev?
+
+Stay up-to-date with the latest developer news every time you open a new tab.
+
+![browsers logos](https://cdn.prod.website-files.com/5e0a5d9d743608d0f3ea6753/65802a0f2f75540ff5e8c82c_Vectors-Wrapper.svg)[Start reading - Free forever](https://api.daily.dev/get)
+
+## Read more
+
+[![How we built a Linear coding agent: the hard parts](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/69c1278b8fc4633e16725415_huginn-cover-3.png)\\
+\\
+AI\\
+\\
+How we built a Linear coding agent: the hard parts\\
+\\
+Building a production coding agent that lives in Linear. Wrapping Claude Code and Codex as child processes, surviving state loss from archived threads, chaining three fallback parsers for structured LLM output, debugging session IDs that break on working directory changes, and testing everything against in-memory replicas of Linear and GitHub.\\
+\\
+![ Ido Shamun](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/5ef3b1b308700b8f3eebc271_dcb9e522-dd0a-4bdb-9ee8-9344a30c99a6.jpg)\\
+\\
+Ido Shamun\\
+\\
+March 23, 2026](https://daily.dev/blog/how-we-built-a-linear-coding-agent-the-hard-parts)
+
+[![SQLite for Production: When and How to Use It Beyond Prototyping](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/69e98ba28d6844c27cfbd89a_69e9655f09e6c77f4f7e6447-1776911791528.jpeg)\\
+\\
+Get into tech\\
+\\
+SQLite for Production: When and How to Use It Beyond Prototyping\\
+\\
+Practical guide to running SQLite in production: performance, limits, tuning (WAL/PRAGMA), replication tools and migration signs.\\
+\\
+![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)\\
+\\
+Nimrod Kramer\\
+\\
+April 23, 2026](https://daily.dev/blog/sqlite-production-guide-when-how-to-use-beyond-prototyping)
+
+[![The Developer Guide to API Security: OAuth 2.1, JWT Best Practices, and Common Vulnerabilities](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/69e88becf2ba7423cefd8b99_69e879d109e6c77f4f7e5940-1776846158611.png)\\
+\\
+Get into tech\\
+\\
+The Developer Guide to API Security: OAuth 2.1, JWT Best Practices, and Common Vulnerabilities\\
+\\
+Practical API security guide covering OAuth 2.1 with PKCE, JWT signing and storage, authorization models, gateways, and testing tools.\\
+\\
+![Nimrod Kramer](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/64b78e6fd75bbfcf43f84516_nimrod-square__3__720.png)\\
+\\
+Nimrod Kramer\\
+\\
+April 22, 2026](https://daily.dev/blog/dev-guide-api-security-oauth-2-1-jwt-vulnerabilities)
+
+[See more on daily.dev](https://api.daily.dev/get)

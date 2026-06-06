@@ -1,0 +1,517 @@
+Title: Linux Performance Monitoring Tools: A Comprehensive Guide
+Key Highlights:
+When it comes to day to day Linux administration tasks, being able to efficiently monitor system performance is critical to ensuring your servers are operating at their best.
+[...]
+Thankfully Linux includes a range of packages to make keeping track of system stats easy, but some can often leave you confused or unsure about how to interpret the results.
+[...]
+This article aims to dive into some of the key tools, how they work, and how they can help. For this guide we're including memory usage, CPU load, disk I/O, and file system utilization as our key metrics.
+[...]
+## CPU and Process Monitoring with top and htop
+[...]
+`top` command serves as a dynamic real-time monitor for system processes and their impact on CPU and memory.
+[...]
+- Load Average: The first thing to note is the load average values, indicative of the system load over the last 1, 5, and 15 minutes. Understanding these figures in relation to your system's CPU core count can help determine if processes are under or overloading the system.
+[...]
+Top is included out of the box with most modern Linux distributions, and provides a basic overview of your systems performance, covering the current load averages, CPU usage, memory usage and a list of runnning processes. Unlike`htop` which we'll cover below, this is not an interactive output and doesn't allow you to sort the list of processes or search through them. In many environments`top` has been replaced with`htop` due to its improvements and flexability.
+[...]
+An enhancement over`top`,`htop` provides a more accessible and visually appealing interface to process monitoring, along with improved interaction mechanisms.
+[...]
+Installation:`htop` might not be pre-installed on some older systems. Thankfully installing it is as simple as a one line command with your package installer.
+[...]
+Usage: Simply type`htop` in your terminal to launch it.
+[...]
+As you can see comparing the above`htop` output to the standard`top` output, you get a much easier to read display of events. Whatsmore, with`htop` you can click on the headings to sort the process list by usage (be it CPU, Memory, etc).
+[...]
+Unlike`top`,`htop` also includes the ability to search and filter through the results, making it easy to hunt down a specific process to see how it's performing on your server.
+[...]
+## Monitoring Disk I/O with iostat
+[...]
+Disk I/O performance insights are crucial for diagnosing system sluggishness related to disk usage patterns.
+[...]
+The`iostat` command on Linux is a system monitoring tool that provides information about input/output (I/O) statistics for block devices (like hard drives and SSDs) and CPUs. It can be used to analyze the performance and usage of these resources on your system.
+[...]
+The`i
+[...]
+` command is distributed
+[...]
+of the sysstat package. Depending on which Linux distro you are using you may need to install this using your package manager.
+[...]
+The`iostat` command is invaluable for identifying disk I/O bottlenecks. It provides detailed statistics about disk read/write operations and can help pinpoint inefficient disk usage patterns.
+[...]
+- tps: Indicates the number of transfers per second that are being issued to the device. A higher tps suggests more disk activity.
+- Blk_read/s, Blk_wrtn/s: Shows the amount of data read from or written to the device per second.
+- %util: Representing the percentage of CPU time during which I/O requests were issued to the device. High values here could point to disk saturation.
+[...]
+## Virtual Memory and System Activity with vmstat
+[...]
+The`vmstat` command in Linux is a powerful tool used to display various statistics about virtual memory, system processes, CPU usage, I/O, and system resource utilization. Its name stands for "virtual memory statistics."
+[...]
+`vmstat` provides real-time information about system performance and can be valuable for diagnosing performance issues and monitoring system health.
+[...]
+- si, so (swap in, swap out): These fields show how much memory is being swapped in from disk and out to disk. Consistent swapping indicates memory pressure.
+- bi, bo (block in, block out): Amounts of blocks received from a block device (like a disk) and blocks sent to a block device, helping in analyzing disk I/O.
+[...]
+`vmstat`
+[...]
+customize its output
+[...]
+- -a: Display active and inactive memory.
+- -s: Display summary information about memory usage.
+- -d: Display disk I/O statistics.
+- -p: Display information about system partitions.
+- -w: Wide output, which can be useful for readability.
+[...]
+## Exploring Disk Usage with df
+[...]
+The`df` command in Linux is used to display information about the disk space usage of filesystems.
+[...]
+Its name stands for "disk free."`df` provides details about the total disk space, used space, available space, and filesystem type for each mounted filesystem on the system.
+[...]
+- -h or --human-readable: Display sizes in a human-readable format (e.g., KB, MB, GB).
+- -T or --print-type: Display filesystem types in the output.
+- -t : Limit the display to specific filesystem types.
+- -i or --inodes: Display inode usage instead of block usage.
+- -x : Exclude certain filesystem types from the display.
+- -a or --all: Display information about all filesystems, including those with 0 blocks.
+- -l or --local: Limit the display to local filesystems only.
+[...]
+with ServerAuth
+[...]
+While the commands detailed above are indispensable for in-depth system analysis, ServerAuth provides a unified monitoring dashboard that compiles critical metrics like CPU load, memory usage, and disk utilization. This integration means you can keep tabs of server health at a glance, ideal for environments where quick oversight and minimal complexity are preferred.
+[...]
+The monitoring capability within ServerAuth extends its utility beyond SSH access management, server access control and website management, presenting a comprehensive tool for ensuring your Linux servers are operating as intended. Remember, effective server management is as much about proactive monitoring as it is about resolving issues post-detection!
+[...]
+Combining the granular insights provided by Linux's native commands with the high-level overview from ServerAuth's monitoring feature forms a robust approach to system performance monitoring. This blend of tools empowers system administrators to not only quickly identify and act on immediate concerns but also to maintain ongoing vigilance over system health, ensuring optimal operation across Linux environments.
+
+---
+
+Title: Monitor Linux Server Health: Guide to Built-in CLI Performance Tools – NIILAA
+Key Highlights:
+Linux already ships with the tools we need to answer that question—without agents, without heavyweight stacks, and without introducing new moving parts. In this guide, we will build a practical, production-grade approach to Linux Performance Monitoring using built-in CLI tools and lightweight & free tooling. We will focus on repeatability, security, and persistence across reboots, so the same approach works at home, in a professional environment, and at enterprise scale.
+[...]
+Before we look at CPU graphs or disk queues, we will capture identity and context: kernel, uptime, load, memory pressure, and what the system thinks it is doing. This baseline is what we will compare against later.
+[...]
+We now have a baseline
+[...]
+. The key output to keep in mind is the load
+[...]
+from`uptime`. Load is not “CPU usage”; it is runnable and uninterruptible tasks. High load with low CPU usage often points to I/O wait or blocked tasks.
+[...]
+Next, we will check CPU topology, memory availability, and swap usage. This helps us quickly spot common failure modes: memory pressure, swap thrashing, or a host that is simply undersized for its workload.
+[...]
+Many servers already have the basics, but production environments often run minimal images. We will install a small, widely accepted set of packages that remain lightweight & free:`procps`(often already present),`sysstat`(for`sar`,`iostat`,`pidstat`), and`iotop`(optional but useful for I/O attribution). We will also include`lsof` for quick “what is holding this file/port” checks.
+[...]
+At this point, the host has the standard CLI tooling we will use for CPU, memory, disk, and process-level attribution. The most important addition is`sysstat`, because it enables historical performance snapshots via`sar`.
+[...]
+Interactive tools are great, but they only show “now”. In production, the real question is often “what happened at 02:13?” or “did this start after the deploy?” For that, we want lightweight history that survives reboots.`sysstat` provides this through scheduled data collection and the`sar` command.
+[...]
+We are going to enable the`sysstat` service so it starts on boot, and start it immediately. This is a low-risk change: it collects metrics locally and writes to local files. No inbound network exposure is introduced.
+[...]
+If we see`
+[...]
+` output and daily files under`/var/log/sysstat` or`/var/log/sa`, we have persistent history. If not, we should wait a few minutes and re-check; collection is periodic.
+[...]
+When a server feels slow, we need a calm sequence that narrows the problem without guesswork. We will follow a consistent order: CPU and run queue, memory pressure, disk latency, then process attribution. This order prevents us from chasing symptoms.
+[...]
+We are going to use`vmstat` because it is fast, always available, and tells a story: run queue (`r`), blocked tasks (`b`), swap activity, I/O, and CPU breakdown including I/O wait (`wa`).
+[...]
+Next, we will use`top` in batch mode so the output is copy/paste friendly for incident notes. This avoids interactive key presses and gives us a stable snapshot.
+[...]
+We now see which processes are consuming CPU and memory at this moment. If CPU is high but the process list is not obvious, we will move to per-process statistics with`pidstat`.
+[...]
+short interval. This is especially useful when`top` is noisy or when short-lived processes spike and disappear
+[...]
+We are going to inspect memory and the kernel’s view of pressure.`free` gives a human-friendly view, while`/proc/meminfo` and`dmesg` help confirm whether the kernel has been under stress or killing processes.
+[...]
+We now know whether memory is genuinely scarce (`MemAvailable` low), whether swap is being consumed, and whether the kernel has invoked the OOM killer. If OOM events exist, performance issues are often secondary to memory sizing or runaway processes.
+[...]
+Disk problems often masquerade as “CPU is high” because tasks pile up waiting for I/O. We are going to use`iostat` to measure per-device utilization and latency indicators.
+[...]
+I/O
+[...]
+When disks are busy, we need attribution. We are going to use`iotop` to identify which processes are reading/writing the most. This requires elevated privileges to see all processes.
+[...]
+Performance incidents sometimes start as “disk full” or “no inodes left”, which then cascades into application failures and high load. We are going to check both capacity and inode usage.
+[...]
+Even without deep packet analysis, we can quickly validate whether the server is overwhelmed by connections or if key services are listening as expected. We are going to list listening sockets and summarize TCP stats.
+[...]
+We now see what is listening, which processes own the ports, and a high-level socket summary. If established connections are unexpectedly high, we may be dealing with traffic spikes, connection leaks, or upstream retries.
+[...]
+In real operations, the hardest part is not running commands—it is running the same commands every time and keeping the output somewhere safe. We will create a small local script that captures a timestamped snapshot. This stays lightweight, requires no inbound access, and is easy to audit.
+[...]
+Manual snapshots are helpful, but production reliability improves when evidence is collected automatically. We will schedule the snapshot script using`systemd` timers. This is lightweight, local-only, and survives reboots cleanly.
+[...]
+Now that sysstat is enabled, we can answer the questions that usually matter most: “When did CPU spike?”, “Was disk wait high overnight?”, “Did network traffic jump after a change?” This is where built-in history becomes operationally powerful.
+[...]
+We are going to check memory and swap activity over time. This helps confirm whether the host is under sustained memory pressure or experiencing periodic spikes
+[...]
+### Review disk and I/O wait history
+[...]
+are going to check block device activity and I/O wait trends. This is often the missing link in “load is high but CPU is not” incidents
+[...]
+historical I/O activity
+[...]
+- Symptom:`uptime` shows high load, but`top` shows low CPU usage.
+[...]
+- Likely causes: tasks blocked on disk or network I/O, or filesystem issues.
+[...]
+- Fix: Check blocked tasks and I/O wait with`vmstat` and`iostat`, then attribute with`iotop`.
+[...]
+cannot prove what happened later
+[...]
+batch outputs (`top -b
+[...]
+- Symptom: Load is high, so we assume CPU is the problem, but scaling CPU does not help.
+[...]
+- Fix: Use`vmstat` and`iostat` to confirm whether tasks are blocked and whether I/O wait is driving the load.
+
+---
+
+Title: Using sysstat to Monitor and Review System Resource Usage Statistics
+Key Highlights:
+Enable the`sysstat` service to collect system logs, then use the`sar`,`mpstat`,`top`,`iostat`, and`iotop` commands to review detailed information about CPU load, memory use, and remaining storage capacity.
+[...]
+Before running the`sar`,`mpstat`, or`iostat` commands, enable the`sysstat` service and its related`systemd` timers so that it generates log entries every 10 minutes while the system is running, and then retains that information for every day of the current month:
+[...]
+The information that the`sysstat` service collects is stored in directory paths following the`/var/log/sa/saDD` pattern. To display the contents of the`sar` log of a specific day of the current month, run the following command:
+[...]
+You can also use the`sar` command to create a customized log that contains a record of specific information that you want to monitor. Use the following syntax:
+[...]
+, datafile is the full
+[...]
+command, the
+[...]
+To display the results of this monitoring, run the following command, specifying the log file:
+[...]
+sudo sar -A -f datafile
+[...]
+Reviewing CPU Usage Statistics
+[...]
+To review information about the system CPU load average, run the following command:
+[...]
+```bourne
+sar -q
+[...]
+To review CPU usage statistics for each CPU core and averaged the data across all the CPU cores, run the following command:
+[...]
+```bourne
+sar -u -P ALL
+[...]
+The same information that was collected by the`sysstat` service can also be used with the`mpstat` command to view further detail that was collected about CPU resource usage:
+[...]
+mpstat -P ALL
+[...]
+For a live summary of CPU usage for each running process, and a navigable interface for ending those processes, use the`top` command:
+[...]
+By default, the top command output lists the most CPU-intensive processes on the system. The upper section displays general information including the load averages over the past 1, 5, and 15 minutes, the number of running and sleeping processes or tasks, and total CPU, and memory usage.
+[...]
+To review memory usage statistics, such as free (`kbmemfree`), available (`kbavail`), and used (`kbmemused`) memory, run the following command:
+[...]
+```bourne
+sar -r
+[...]
+The output also includes`%memused`, which is the percentage of physical memory in use.
+[...]
+To review memory paging statistics, such as page in (`pgpgin/s`) and page out (`pgpgout/s`), page faults and major faults, run the following command:
+[...]
+```bourne
+sar -B
+[...]
+The output also includes
+[...]
+scanned by the`
+[...]
+swapd`
+[...]
+directly each second.
+[...]
+To review swapping statistics, including`pswpin/s` and`pswpout/s`, which are the numbers of pages each second swapped in and out each second, run the following command:
+[...]
+```bourne
+sar -W
+[...]
+If`%memused` is near 100% and the scan rate is continuously over 200 pages each second, the system has a memory shortage.
+[...]
+When a system runs out of real or physical memory and starts using swap space, system performance deteriorates. If swap space is full then some programs or even the entire OS can malfunction. If the free or top commands indicate that little swap space remains available, then the system is running low on memory.
+[...]
+To review the number of unused cache entries in the directory cache (`dentunusd`) and the numbers of in-use file handles (`file-nr`),`inode` handlers (`inode-nr`), and pseudo terminals (`pty-nr`), run the following command:
+[...]
+The iostat command monitors the loading of block I/O devices by observing the time that the devices are active relative to the average data transfer rates. You can use this information to adjust the system configuration to balance the I/O loading across disks and host adapters. The following is a sample of the command output:
+[...]
+iostat -x reports extended statistics about block I/O activity at one second intervals, including`%util`, which is the percentage of CPU time spent handling I/O requests to a device, and`avgqu-sz`, which is the average queue length of I/O requests that were issued to that device. If`%util` approaches 100% or`avgqu-sz` is greater than 1, device saturation is occurring.
+[...]
+Use the sar -d command to review similar information on block I/O activity, including values for`%util` and`avgqu-sz`.
+[...]
+If the`iotop` package is installed, the iotop utility can be used to identify which processes are responsible for excessive disk I/O. iotop has a similar user interface to the top command. In its upper section, iotop displays the total disk input and output usage in bytes per second. In its earlier section, iotop displays I/O information for each process, including disk input output usage in bytes per second, the percentage of time spent swapping in pages from disk or waiting on I/O, and the command name. The following is a sample command output:
+[...]
+While reviewing the output, use the arrow keys to change the sort field, and press A to switch the I/O units between bytes each second and total number of bytes, or O to switch between displaying all processes or only those processes that are performing I/O.
+[...]
+The`nfsiostat` command reports I/O statistics for each NFS file system that's mounted. If this command isn't available, install the`nfs-utils` package.
+
+---
+
+Title: How to monitor a Linux server
+Key Highlights:
+Linux server monitoring is the practice of continuously tracking system performance, resource usage, and health metrics to ensure optimal operation and prevent downtime.
+[...]
+This comprehensive guide takes you from basic command-line monitoring to production-ready monitoring systems, covering everything from essential Linux commands to enterprise solutions like Prometheus, Grafana, and Nagios.
+[...]
+## What to monitor ?
+[...]
+The core metrics taxonomy covers four fundamental areas:
+[...]
+- CPU: Utilization percentage, load averages, process counts
+- Memory: Available RAM, swap usage, buffer/cache utilization
+- Disk: Space usage, I/O operations per second, read/write latency
+- Network: Bandwidth utilization, packet loss, connection counts
+[...]
+Monitoring frequency depends on your system's criticality. Financial trading systems might need second-by-second monitoring, while development servers can be checked every five minutes. The key is establishing baselines, understanding what "normal" looks like for your specific workload.
+[...]
+## Commands Every Admin Should Master
+[...]
+Linux provides powerful built-in monitoring tools that require no additional software. These commands form the foundation of server monitoring and troubleshooting.
+[...]
+System Overview with top and htop
+[...]
+The`top` command provides real-time system statistics. Run it to see CPU usage, memory consumption, and active processes:
+[...]
+This updates every 5 seconds instead of the default 3. The output shows load averages(1, 5, and 15-minute averages), total processes, and per-process resource usage. A load average equal to your CPU core count indicates full utilization.
+[...]
+Memory Analysis with free and vmstat
+[...]
+Check memory usage with human-readable output:
+[...]
+```
+free -h
+[...]
+This shows total, used, free, and available memory. The "available" column is most important, it represents memory that can be freed for new processes.
+[...]
+For deeper memory analysis, use`vmstat`:
+[...]
+```
+vmstat 2 5
+[...]
+This displays memory, swap, I/O, and CPU statistics every 2 seconds for 5 iterations. Watch the "si" and "so" columns, consistent swap activity indicates memory pressure.
+[...]
+Disk Performance with iostat and df
+[...]
+Monitor disk I/O performance:
+[...]
+```
+iostat -x 2
+[...]
+The "-x" flag provides extended statistics including %util (utilization percentage). Values consistently above 80% indicate I/O bottlenecks.
+[...]
+Check disk space usage:
+[...]
+```
+df -h
+[...]
+Network Monitoring with ss and netstat
+[...]
+Modern Linux systems use`ss` instead of the older`netstat`:
+[...]
+```
+ss -tuln
+[...]
+This shows TCP (-t) and UDP (-u) listening (-l) ports with numeric (-n) addresses. Use this to verify services are running and accessible.
+[...]
+Command Chaining for Quick Diagnostics
+[...]
+Combine commands for rapid system assessment:
+[...]
+```
+# Quick system health check
+uptime && free -h && df -h / && ss -tuln | grep :80
+[...]
+This one-liner shows system load, memory usage, root disk space, and whether a web server is listening.
+[...]
+## Monitoring Scripts Example
+[...]
+Manual monitoring doesn't scale. Automated scripts provide consistent monitoring and can trigger alerts when thresholds are exceeded.
+[...]
+Automating with Cron
+[...]
+Schedule the script to run every 10 minutes:
+[...]
+For critical systems, run checks more frequently. Database servers might need minute-by-minute monitoring, while development systems can be checked every 30 minutes.
+[...]
+## Prometheus and Grafana for an enterprise grade monitoring
+[...]
+Prometheus and Grafana provide a powerful, scalable monitoring solution that's become the industry standard for modern infrastructure monitoring.
+[...]
+Node Exporter collects system metrics:
+[...]
+Installing Grafana
+[...]
+Access Grafana at`http://your-server:3000`(default login: admin/admin). Add Prometheus as a data source using URL`http://localhost:9090`.
+[...]
+Performance Impact Considerations
+[...]
+This monitoring stack typically uses 200-500MB RAM and 1-2% CPU on a moderately busy server. Node Exporter adds minimal overhead (usually under 50MB RAM), making it suitable for production environments.
+[...]
+## Log Analysis and Security Monitoring
+[...]
+System logs contain crucial information about security events, application errors, and system behavior. Log monitoring can prevent security breaches and identify problems before they impact users.
+[...]
+Modern Linux systems use systemd's journal for logging. Key commands for log analysis:
+[...]
+## Container and Modern Infrastructure Monitoring
+[...]
+Container monitoring requires different approaches than traditional server monitoring. Containers are ephemeral, and traditional monitoring tools may not capture container-specific metrics effectively.
+[...]
+Google's cAdvisor provides detailed container metrics:
+[...]
+Access the cAdvisor web interface at`http://your-server:8080` to view container metrics.
+[...]
+Docker Stats and Logs
+[...]
+Use Docker's built-in monitoring commands:
+[...]
+```
+# Real-time container resource usage
+docker stats
+[...]
+# Container logs with timestamps
+docker logs -f --timestamps container_name
+[...]
+# Inspect container resource limits
+docker inspect container_name | grep -A 10 "Memory\|Cpu"
+[...]
+# Monitor container resource usage
+[...]
+format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage
+[...]
+while read line
+[...]
+line | awk '{print $2}' |
+[...]
+/%//')
+[...]
+80
+[...]
+Kubernetes Monitoring Basics
+[...]
+For Kubernetes environments, monitor cluster health with:
+[...]
+## Nagios and Zabbix Implementation
+[...]
+Enterprise monitoring solutions provide
+[...]
+Basic Nagios Configuration
+[...]
+Configure Nagios to monitor your servers:
+[...]
+## Monitoring Best Practices and Alert Management
+[...]
+based on historical data and business impact:
+[...]
+- Warning thresholds: 70-80% of capacity
+- Critical thresholds: 85-95% of capacity
+- Emergency thresholds: 95%+ or service unavailable
+[...]
+to prevent flapping
+[...]
+, set recovery
+[...]
+## Troubleshooting Common Monitoring Issues
+[...]
+Monitoring systems themselves can fail or create performance problems. Here's how to identify and resolve common issues.
+[...]
+If monitoring tools consume
+[...]
+Monitoring System Failures
+[...]
+Implement meta-monitoring:
+[...]
+## Scaling Your Monitoring Strategy
+[...]
+Effective Linux server monitoring is an ongoing process that evolves with your infrastructure and business needs. Start with the fundamentals, master the built-in Linux commands and establish baseline monitoring with simple scripts. As your confidence and requirements grow, implement more sophisticated solutions like Prometheus and Grafana.
+
+---
+
+Title: Troubleshoot and monitor Linux system performance with nmon
+Key Highlights:
+Nigel's Monitor (`nmon`) is a system performance monitoring tool originally developed by IBM for the AIX operating system and later ported for Linux on several CPU architectures.
+[...]
+The main benefit of`nmon` is that it allows you to monitor different aspects of your system, such as CPU utilization, memory, disk busy, network utilization, and more, in a single, concise view. Without`nmon`, you have to use specialized monitoring tools like`top` for processes,`iostat` for disks, and`ifstat` for the network to monitor various resources. Each of them presents the data differently.
+[...]
+In addition to interactively monitoring your system, you can also use`nmon` in batch mode to collect and save performance data for analysis. For more information about`nmon` for Linux, consult the project's official page.
+[...]
+Install nmon
+[...]
+`nmon` is available in the default repository of many Linux distributions. For example, use DNF to install it on Fedora 35:
+[...]
+Then install`nmon` using`dnf`:
+[...]
+Now that you have installed`nmon`, use it to monitor your system.
+[...]
+## Use nmon interactively
+[...]
+With the applications installed, you can monitor your system interactively by running`nmon`. You're presented with an initial screen containing system information and a little help menu, displaying which keys you can press to toggle different metrics:
+[...]
+│Use these keys to toggle statistics on/off:                      │
+│  c = CPU         l = CPU Long-term     - = Faster screen updates│
+│  C = " WideView  U = Utilisation       + = Slower screen updates│
+│  m = Memory      V = Virtual memory    j = File Systems         │
+│  d = Disks       n = Network           . = only busy disks/procs│
+│  r = Resource    N = NFS               h = more options         │
+│  k = Kernel      t = Top-processes     q = Quit                 │
+│─────────────────────────────────────────────────────────────────│
+[...]
+For example, pressing C toggles the CPU utilization display:
+[...]
+Pressing N toggles the network display and automatically stacks it under the CPU display:
+[...]
+Continue to press other keys to stack additional metrics in the same view. For example, use D for Disk I/O, M for Memory, and T for Top processes.
+[...]
+In addition to stacking new monitors, you can also press the dot or period key (.) to display only busy CPUs and disks, as well as + and - to increase or decrease the screen refresh time. Use H to display help.
+[...]
+Because you can enable and disable different monitors and metrics at any time,`nmon` is a highly flexible tool that helps you to understand your system's behavior. It also aids in troubleshooting issues by displaying different metrics simultaneously, providing a holistic view of the system and improving your ability to understand issues.
+[...]
+## Collect performance data
+[...]
+In addition to providing a holistic, interactive view of your system, you can also run`nmon` in batch mode to collect long-time performance data from your system for posterior analysis.
+[...]
+This feature allows you to understand how your system behaves over a longer period, in addition to the real-time metrics provided by the interactive mode. It's a powerful feature that enables capacity planning and the opportunity to troubleshoot sporadic issues that are hard to catch live.
+[...]
+To run`nmon` in batch, use the flag`-f` when launching the application. It has to be the first parameter provided. By default,`nmon` collects data every five minutes for one day. You can change these default values by specifying the parameters`-s` for collection interval and`-c` for the number of snapshots.
+[...]
+For example, to enable`nmon` in batch mode, collecting data every minute for one hour, including capturing of top processes`-t`, execute this command:
+[...]
+```
+$ nmon -f -s60 -c60 -t
+[...]
+In batch mode,`nmon` saves the collected data using the comma-separated value (CSV) format with the extension`.nmon` in the current directory:
+[...]
+, you can
+[...]
+text manipulation command
+[...]
+line tools, or open it using
+[...]
+software for further analysis.
+[...]
+CSV is a flexible format that allows you to export, analyze, and view this data using different applications such as spreadsheet processor software. The`nmon` developers created`nmonchart` to make it a little easier. This shell script converts this data to HTML using Google Charts JavaScript to visualize and interact with the data in a graphical environment.
+[...]
+Next, convert
+[...]
+` file created when you executed`n
+[...]
+` in batch mode with this command:
+[...]
+`nmonchart` creates a single HTML file for each`.nmon` source file you provide with the required charting JavaScript libraries embedded. If you have the HTML file on your local machine, view it directly in your web browser.
+[...]
+You can also serve these files using a web server. One of my favorite ways to do this is by using Nginx in a Podman container, as I suggested in 20 one-line Linux commands to add to your toolbox.
+[...]
+Then use Podman to serve
+[...]
+from the`html` directory using Nginx on port 8080:
+[...]
+If required, open port 8080 on your server's firewall to allow traffic:
+[...]
+Then point your browser to your URL`http://:8080/f35ks01_220213_1227.html` to view the charts:
+[...]
+Click on any of the buttons at the top of the screen to view the corresponding chart. The charts are interactive. You can zoom in and out to view more granular data or hover your mouse over the chart to see detailed data for a given time.
+[...]
+`nmon` is a flexible and powerful system-monitoring application that helps you better understand your system and troubleshoot it in case of issues. Its combined capabilities of monitoring and consolidating real-time data from different system resources with long-term performance data collection and analysis make it a fantastic tool to have in your sysadmin belt.

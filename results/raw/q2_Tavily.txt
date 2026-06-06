@@ -1,0 +1,1741 @@
+Title: A guide to enabling partial pre-rendering in Next.js - LogRocket Blog
+[###### Advisory boards aren’t only for executives. Join the LogRocket Content Advisory Board today →](https://lp.logrocket.com/blg/content-advisory-board-signup)
+
+[![LogRocket blog logo](https://blog.logrocket.com/wp-content/themes/logrocket/assets/logrocket-logo.png)](https://logrocket.com) 
+
+* [Blog](https://blog.logrocket.com/)
+  + [Dev](https://blog.logrocket.com/dev)
+  + [Product Management](https://blog.logrocket.com/product-management)
+  + [UX Design](https://blog.logrocket.com/ux-design)
+  + [Podcast](https://podrocket.logrocket.com)
+  + [Product Leadership](https://stories.logrocket.com/)
+* [Features](https://logrocket.com/features)
+* [Solutions](#)
+  + [Solve User-Reported Issues](https://logrocket.com/solutions/solve-user-issues)
+  + [Surface User Struggle](https://logrocket.com/solutions/surface-user-struggle)
+  + [Optimize Conversion and Adoption](https://logrocket.com/solutions/optimize-conversion-adoption)
+
+* [Start Monitoring for Free](https://app.logrocket.com/)
+* [Sign In](https://app.logrocket.com/)
+
+Chimezie Innocent
+
+   
+
+Jan 22, 2024 ⋅ 9 min read
+
+# A guide to enabling partial pre-rendering in Next.js
+
+[![](https://blog.logrocket.com/wp-content/uploads/2021/10/Chimezie-Innocent.png)](https://blog.logrocket.com/author/chimezieinnocent/) 
+
+[Chimezie Innocent](https://blog.logrocket.com/author/chimezieinnocent/) I am Chimezie, a software developer based in Nigeria. I am highly skilled in HTML, CSS, and JS to build web-accessible and progressive apps. I'm also skilled with React for web, React Native for Android apps, and Tailwind CSS. I write technical articles, too.
+
+![](https://blog.logrocket.com/wp-content/uploads/2023/04/logrocket-logo-1.png)
+
+## See how LogRocket's Galileo AI surfaces the most severe issues for you
+
+### No signup required
+
+Check it out
+
+Next.js 14 introduced a new feature called partial pre-rendering. Partial pre-rendering allows developers to control which part of a page is pre-rendered or rendered first. It uses the React Suspense API, so it should be easy to understand and use if you’ve used React.
+
+![A Guide To Enabling Partial Pre-Rendering In Next.js](https://blog.logrocket.com/wp-content/uploads/2024/01/guide-enabling-partial-pre-rendering-next-js.png)
+
+Partial pre-rendering leverages a combination of static processing, specifically incremental static regeneration (ISR) and full server-side processing (SSR). With ISR, Next.js enables the pre-rendering of pages containing dynamic data during the build time. Subsequently, these pages are incrementally re-rendered in the background when needed, providing an efficient and dynamic user experience.
+
+In this article, we will explore how the partial pre-rendering feature works and how it can be used in Next.js applications. Keep in mind that this feature is still in the experimental phase and therefore, not recommended for use in a production environment yet.
+
+### 🚀 Sign up for The Replay newsletter
+
+[**The Replay**](https://blog.logrocket.com/the-replay-archive/) is a weekly newsletter for dev and engineering leaders.
+
+Delivered once a week, it's your curated guide to the most important conversations around frontend dev, emerging AI tools, and the state of modern software.
+
+## How does partial pre-rendering work?
+
+Partial pre-rendering in Next.js 14 allows developers to specify which parts or sections of a page should be pre-rendered, giving developers more control over the optimization process. The partial pre-rendering feature leverages React’s Concurrent API and Suspense to “suspend” or “pause” rendering until the data is ready and available, leading to a faster and more optimized performance.
+
+[The React Suspense API](https://blog.logrocket.com/async-rendering-react-suspense-hooks-other-methods/) allows components to suspend or pause rendering while awaiting data, usually during [asynchronous data fetching](https://blog.logrocket.com/data-fetching-react-suspense/).
+
+The Suspense API provides a fallback UI that appears while the data is loading. This fallback UI is loaded along with other static contents into the page. This means that as the page loads, the fallback UI is displayed with other contents that are not dynamically generated. The fallback UI then remains visible until the asynchronous data fetching is complete. Once the data is ready, the fallback UI is replaced with the data.
+
+The fallback UI is usually a loader that we want to show our users to let them know that contents are being loaded so they can keep going through other parts of the page that are already loaded or pre-rendered.
+
+To use partial pre-rendering, first determine the sections or parts in your application where the asynchronous operations are taking place. This is the ideal place that you want to apply the Suspense API to. For example, a component that fetches data asynchronously can be wrapped with the  component, indicating that the part should be suspended or delayed until the data is ready and available.
+
+Let’s look at the code below:
+
+```
+import React, { Suspense } from "react" const App = () => ( }> ....your component  ) 
+```
+
+The components wrapped within or inside the `Suspense` component are the ones that will be suspended. You don’t need to change your code to use partial pre-rendering at all — you only need to wrap the section or page with `Suspense` and Next.js will know which parts to render static or dynamic.
+
+## How to use partial pre-rendering
+
+To use the partial pre-rendering feature in Next.js, install the latest version of Canary using any of the commands below:
+
+```
+/* using npm */ npm install next@canary /* using yarn */ yarn add next@canary 
+```
+
+Next, in your `next.config.js` file, add the following configuration:
+
+```
+experimental: { ppr: true, }, 
+```
+
+Your `next.config.js` file should look like this:
+
+```
+/** @type {import('next').NextConfig} */ const nextConfig = { experimental: { ppr: true, }, } module.exports = nextConfig 
+```
+
+Now we can use the Suspense API. Let’s look at the code example below:
+
+```
+async function Posts() { const data = await fetch(`https://jsonplaceholder.typicode.com/posts`, { cache: 'no-store', }) const posts = await data.json() return ( <>
+
+## All Posts
+
+{posts.slice(0, 7).map((post) => (
+
+#### Title: {post.title}
+
+
+
+Content: {post.body}
+
+))} > ) } export default function Home() { return ( 
+
+# Partial Pre-Rendering
+
+
+
+Morbi eu ullamcorper urna, a condimentum massa. In fermentum ante non turpis cursus fringilla. Praesent neque eros, gravida vel ante sed, vehicula elementum orci. Sed eu ipsum eget enim mattis mollis. Morbi eu ullamcorper urna, a condimentum massa. In fermentum ante non turpis cursus fringilla. Praesent neque eros, gravida vel ante sed, vehicula elementum orci. Sed eu ipsum eget enim mattis mollis.
+
+  ) } 
+```
+
+In the above code, we have a simple page fetching and rendering some posts. With partial pre-rendering, we can defer the posts’ content until the data is available. During the fetching time, the fallback we specify will be rendered with the other static contents:
+
+```
+import { Suspense } from 'react' function LoadingPosts() { const shimmer = `relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent` return () } async function Posts() { const data = await fetch(`https://jsonplaceholder.typicode.com/posts`, { cache: 'no-store', }) const posts = await data.json() return ( <>
+
+## All Posts
+
+{posts.slice(0, 7).map((post) => (
+
+#### Title: {post.title}
+
+
+
+Content: {post.body}
+
+))} > ) } export default function Home() { return ( 
+
+# Partial Pre-Rendering
+
+
+
+Morbi eu ullamcorper urna, a condimentum massa. In fermentum ante non turpis cursus fringilla. Praesent neque eros, gravida vel ante sed, vehicula elementum orci. Sed eu ipsum eget enim mattis mollis. Morbi eu ullamcorper urna, a condimentum massa. In fermentum ante non turpis cursus fringilla. Praesent neque eros, gravida vel ante sed, vehicula elementum orci. Sed eu ipsum eget enim mattis mollis.
+
+}>    ) } 
+```
+
+We wrapped the `Posts` component with the Suspense API we imported from React and added a fallback UI of the `LoadingPosts` component.
+
+The `LoadingPosts` component represents the loading skeleton for the posts. It includes a shimmer effect (commonly used as a loading animation) and is styled to give users visual feedback that content is being loaded. If you reload your page, you should see the loading skeleton for a minute before the posts’ contents are rendered:
+
+## Use case for partial pre-rendering
+
+As we discussed earlier, pages with dynamic data loading are the best use case for partial pre-rendering because the data is fetched asynchronously. Let’s look at a good use case where we can leverage the partial pre-rendering feature.
+
+---
+
+[![](https://blog.logrocket.com/wp-content/uploads/2023/07/Screen-Shot-2023-07-06-at-7.43.53-AM.png)
+
+## Over 200k developers use LogRocket to create better digital experiences
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/08/rocket-button-icon.png)Learn more →](https://lp.logrocket.com/blg/learn-more)
+
+---
+
+### Partial pre-rendering of a blog page
+
+In every blog website, we have a list of blogs that we fetch from our server. With PPR, we can display a loader as the blog posts are being fetched and subsequently replaced when the data is ready.
+
+By wrapping the asynchronous data fetching with `Suspense`, you suspend the rendering of the component until the data is available. This approach optimizes the initial page loading efficiency by pre-rendering static content, including the fallback, and only fetches and renders the dynamic data when needed.
+
+Let’s look at the example below:
+
+```
+/* pages.js */ import Home from './components/Home'; const Page = () => (  
+
+# MezieIV Blog
+
+    ); export default Page; 
+```
+
+We are using the `App` router for this tutorial. In the code above, we have a header, body, and footer in our page layout. We are importing the `Home` component, which will contain our blog post.
+
+In your `Home` component, copy and paste the code below:
+
+```
+/* /components/Home.js */ import { Suspense } from 'react'; function LoadingPosts() { const shimmer = `relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent`; return (); } async function Posts() { const data = await fetch(`https://jsonplaceholder.typicode.com/posts`, { cache: 'no-store', }); const posts = await data.json(); return ( <>
+
+## All Posts
+
+{posts.slice(0, 7).map((post) => (
+
+#### Title: {post.title}
+
+
+
+Content: {post.body}
+
+))} > ); } export default function Home() { return ( <>
+
+## Partial Pre-Rendering
+
+
+
+Morbi eu ullamcorper urna, a condimentum massa. In fermentum ante non turpis cursus fringilla. Praesent neque eros, gravida vel ante sed, vehicula elementum orci. Sed eu ipsum eget enim mattis mollis. Morbi eu ullamcorper urna, a condimentum massa. In fermentum ante non turpis cursus fringilla. Praesent neque eros, gravida vel ante sed, vehicula elementum orci. Sed eu ipsum eget enim mattis mollis.
+
+}>   > ); } 
+```
+
+The page header and paragraphs are pre-rendered, as well as the fallback UI. When we load our page, we can see the loader displayed until the fetch is completed and the blog posts are ready:
+
+Let’s take our use case a step further. In the example above, we only have one section that uses the Suspense API of PPR.
+
+After a user clicks on a blog, they are taken to the blog page to continue reading the blog post. On the blog page, we want the user to have the blog post as well as an aside of similar blogs or recent blog posts. This is a good user experience in a real-world scenario so that the user doesn’t need to go back to find another post to read.
+
+Because both the main blog and the aside blog posts are fetched dynamically, we can use the Suspense API for both sections.
+
+Still inside the `Home` component, you can copy and replace with the code below:
+
+```
+/* /components/Home.js */ import { Suspense } from 'react'; function LoadingPosts() { const shimmer = `relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent`; return (); } async function fetchPosts() { return new Promise((resolve) => { setTimeout(async () => { const data = await fetch( `https://jsonplaceholder.typicode.com/posts`, { cache: 'no-store', } ); const posts = await data.json(); resolve(posts); }, 2000); }); } async function BlogPost() { const posts = await fetchPosts(); const post = posts[0]; return (
+
+#### Title - {post.title}
+
+
+
+{post.body} {post.body} {post.body} {post.body} {post.body}{' '} {post.body} {post.body} {post.body} {post.body} {post.body}
+
+); } async function Aside() { const posts = await fetchPosts(); return (  ); } export default function Home() { return (
+
+## Main Blog
+
+}>
+
+
+
+## Latest Blog Posts
+
+}>
+
+); } 
+```
+
+As you can see, we wrapped the `BlogPost` and the `Aside` components with two separate Suspense APIs. We are using the same loader skeleton for both but you can design yours based on how your UI is designed so that it looks much more compatible and aesthetically pleasing.
+
+The result will look like the gif below:
+
+You can find the [full code here](https://gitlab.com/Vic-Orlands/next-ppr).
+
+Another example use case of PPR is an Admin Dashboard. Dashboards have different sections consisting of graphs, bar and pie charts, lists of information, and so on. In such cases, you can use the partial pre-rendering capability on the sections that are fetched asynchronously. Similarly, the sections that are not being fetched asynchronously will be pre-rendered statically at build time.
+
+## Benefits of partial pre-rendering
+
+From what we have learned in this tutorial, we can deduce that partial pre-rendering has the following benefits:
+
+* **Faster initial page load**: Because static contents are pre-rendered instantly as the page loads, users don’t have to wait until all content, including the dynamic contents, is loaded. This leads to faster page loading — users can continue interacting with the static parts of the page while the dynamic contents are fetched in the background
+* **Improved user experience**: Dynamic contents are loaded seamlessly when it is ready. In the meantime, a loader is shown to the users to imply data is being fetched. This improves the site interactivity experience for users
+* **Reduced server load**: PPR reduces the load on the server. This is because the server only renders the dynamic sections of the page as PPR pre-renders the static contents on build time and subsequently, from a cache
+* **Resource utilization**: PPR combines the capabilities of static (ISR) and dynamic rendering (SSR). So, you can choose which parts of your page will be static and pre-rendered, and which parts will be dynamic
+
+## Conclusion
+
+In this article, we looked at partial pre-rendering and how it works in a Next.js application.
+
+Partial pre-rendering is beneficial in scenarios where parts of your website are rendered dynamically or where data is fetched asynchronously. Using PPR, you choose which parts of your page should be pre-rendered and which parts should be loaded on demand. This allows for a faster initial page load, as users see static or pre-rendered content immediately, and dynamic content is loaded when needed or ready.
+
+Although it is still in its initial and experimental stage, and not advisable to use it in production, you can always try it out to get a glance at what a stable version will look like.
+
+## [LogRocket](https://lp.logrocket.com/blg/nextjs-signup): Full visibility into production Next.js apps
+
+Debugging Next applications can be difficult, especially when users experience issues that are difficult to reproduce. If you’re interested in monitoring and tracking state, automatically surfacing JavaScript errors, and tracking slow network requests and component load time, [try LogRocket](https://lp.logrocket.com/blg/nextjs-signup).
+
+[LogRocket](https://lp.logrocket.com/blg/nextjs-signup) captures console logs, errors, network requests, and pixel-perfect DOM recordings from user sessions and lets you replay them as users saw it, eliminating guesswork around why bugs happen — compatible with all frameworks.
+
+[LogRocket's Galileo AI](https://lp.logrocket.com/blg/nextjs-signup) watches sessions for you, instantly identifying and explaining user struggles with automated monitoring of your entire product experience.
+
+The LogRocket Redux middleware package adds an extra layer of visibility into your user sessions. LogRocket logs all actions and state from your Redux stores.
+
+ [![](https://files.readme.io/27c94e7-Image_2017-06-05_at_9.46.04_PM.png)](https://lp.logrocket.com/blg/nextjs-signup)   [![LogRocket Dashboard Free Trial Banner](https://blog.logrocket.com/wp-content/uploads/2017/03/1d0cd-1s_rmyo6nbrasp-xtvbaxfg.png)](https://lp.logrocket.com/blg/nextjs-signup) 
+
+Modernize how you debug your Next.js apps — [start monitoring for free](https://lp.logrocket.com/blg/nextjs-signup).
+
+* [#nextjs](https://blog.logrocket.com/tag/nextjs/)
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/06/footer-cta-dots-left.png) ![](https://blog.logrocket.com/wp-content/uploads/2022/06/footer-cta-dots-right.png)
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/09/logrocket-logo-frontend-analytics.png)
+
+## Stop guessing about your digital experience with LogRocket
+
+[Get started for free](https://lp.logrocket.com/blg/signup)
+
+#### Recent posts:
+
+[![](https://blog.logrocket.com/wp-content/uploads/2026/04/What-if-you-could-lay-out-UI-without-CSS-Meet-Pretext.png)
+
+#### What if you could lay out UI without CSS? Meet Pretext](https://blog.logrocket.com/pretext-laying-out-ui-without-css/)
+
+CSS wasn’t built for dynamic UIs. Pretext flips the model by measuring text before rendering, enabling accurate layouts, faster performance, and better control in React apps.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2025/02/Chizaram-Ken-profile-picture-150x150.jpg)](https://blog.logrocket.com/author/emmanuelodioko/)  [Chizaram Ken](https://blog.logrocket.com/author/emmanuelodioko/)
+
+Apr 21, 2026 ⋅ 9 min read
+
+[![Why real-time frontends break at scale and how to fix them](https://blog.logrocket.com/wp-content/uploads/2026/04/Why-real-time-frontends-break-at-scale-and-how-to-fix-them.png)
+
+#### Why real-time frontends break at scale and how to fix them](https://blog.logrocket.com/real-time-frontends-break-scale/)
+
+Why do real-time frontends break at scale? Learn how event-driven patterns reduce drift, race conditions, and inconsistent UI state.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/10/IMG_20220809_120947-e1666638768500-150x150.jpg)](https://blog.logrocket.com/author/alexandergodwin/)  [Alexander Godwin](https://blog.logrocket.com/author/alexandergodwin/)
+
+Apr 20, 2026 ⋅ 12 min read
+
+[![I tested every major auth library for Next.js in 2026 Here’s what you should use](https://blog.logrocket.com/wp-content/uploads/2026/04/I-tested-every-major-auth-library-for-Next.js-in-2026-Heres-what-you-should-use.png)
+
+#### I tested every major auth library for Next.js in 2026: Here’s what you should use](https://blog.logrocket.com/best-auth-library-nextjs-2026/)
+
+Test out Auth.js, Clerk, WorkOS, and Better Auth in Next.js 16 to see which auth library fits your app in 2026.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/01/ikeh-akinyemi-150x150.jpeg)](https://blog.logrocket.com/author/ikehakinyemi/)  [Ikeh Akinyemi](https://blog.logrocket.com/author/ikehakinyemi/)
+
+Apr 20, 2026 ⋅ 14 min read
+
+[![When to move API logic out of Next.js](https://blog.logrocket.com/wp-content/uploads/2026/04/When-to-move-API-logic-out-of-Next.js.png)
+
+#### When to move API logic out of Next.js](https://blog.logrocket.com/when-move-api-logic-out-nextjs/)
+
+When should you move API logic out of Next.js? Learn when Route Handlers stop scaling and how ElysiaJS helps.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/02/Temitope-Oyedele-1-150x150.jpeg)](https://blog.logrocket.com/author/temitopeoyedele/)  [Temitope Oyedele](https://blog.logrocket.com/author/temitopeoyedele/)
+
+Apr 15, 2026 ⋅ 8 min read
+
+[View all posts](https://blog.logrocket.com/)
+
+Hey there, want to help make our blog better?
+
+Join LogRocket’s Content Advisory Board. You’ll help inform the type of content we create and get access to exclusive meetups, social accreditation, and swag.
+
+[Sign up now](https://lp.logrocket.com/blg/content-advisory-board-signup)
+
+ 
+
+---
+
+Title: Next.js Partial Prerendering (PPR) Deep Dive: How It Works, When to Use It, and Why It Changes Everything - DEV Community
+![DEV Community](https://media2.dev.to/dynamic/image/quality=100/https://dev-to-uploads.s3.amazonaws.com/uploads/logos/resized_logo_UQww2soKuUsjaOGNB38o.png)
+
+## DEV Community
+
+![](https://assets.dev.to/assets/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg)
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![HK Lee](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3679990%2F92792945-5cbc-4242-bbfa-8d8ca9986fe2.jpg)
+
+Posted on Mar 18
+• Originally published at [pockit.tools](https://pockit.tools/blog/nextjs-partial-prerendering-ppr-deep-dive/)
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+# Next.js Partial Prerendering (PPR) Deep Dive: How It Works, When to Use It, and Why It Changes Everything
+
+Every Next.js developer has faced the same impossible choice: static or dynamic? Pre-render the page at build time for blazing speed (SSG), or render it on every request for fresh data (SSR)? Pick one. You can't have both.
+
+Except now you can. Partial Prerendering (PPR) is the most significant architectural change to Next.js since the App Router itself. It lets you serve a static shell instantly — headers, navigation, layout, above-the-fold content — while streaming dynamic parts (user-specific data, real-time prices, personalized recommendations) in the same HTTP response. No client-side fetches. No layout shift. One request, one response, static speed with dynamic freshness.
+
+This isn't incremental. This is the end of the SSG vs. SSR decision tree. Let's break down exactly how it works, how to implement it, and where it falls apart.
+
+## The Problem PPR Solves
+
+Before PPR, you had four rendering strategies in Next.js, and each one came with a painful tradeoff:
+
+| Strategy | Speed | Freshness | Personalization |
+| --- | --- | --- | --- |
+| **SSG** (Static Site Generation) | ⚡ Instant | ❌ Stale until rebuild | ❌ Same for everyone |
+| **ISR** (Incremental Static Regeneration) | ⚡ Fast | ⚠️ Stale within revalidation window | ❌ Same for everyone |
+| **SSR** (Server-Side Rendering) | 🐌 Slow TTFB | ✅ Always fresh | ✅ Per-user |
+| **CSR** (Client-Side Rendering) | 🐌 Slow FCP | ✅ Always fresh | ✅ Per-user |
+
+Here's the real-world problem. Take an e-commerce product page:
+
+With SSG, your prices are stale. With SSR, your Time to First Byte (TTFB) is terrible because you're waiting for the database to return price, inventory, AND recommendations before sending a single byte. With CSR, the user stares at a skeleton screen while three separate API calls resolve.
+
+PPR eliminates this entire matrix. One page, one request: the static parts arrive instantly, the dynamic parts stream in as they resolve.
+
+## How PPR Actually Works Under the Hood
+
+PPR isn't magic, but the architecture is clever. Here's what happens when a request hits a PPR-enabled page:
+
+### Step 1: Build Time — Generate the Static Shell
+
+At `next build`, Next.js renders your page like it would for SSG. But when it hits a `<Suspense>` boundary wrapping a dynamic component, it stops. It doesn't try to resolve that component. Instead, it:
+
+`next build`
+`<Suspense>`
+`<Suspense>`
+`<Suspense>`
+`// app/product/[id]/page.tsx
+import { Suspense } from "react";
+import { ProductHeader } from "./ProductHeader";
+import { PricingSection } from "./PricingSection";
+import { Recommendations } from "./Recommendations";
+export default async function ProductPage({
+params,
+}: {
+params: { id: string };
+}) {
+const product = await getProduct(params.id); // Static — fetched at build time
+return (
+<main>
+{/* Static: rendered at build time, served from CDN */}
+<ProductHeader product={product} />
+{/* Dynamic: streamed at request time */}
+<Suspense fallback={<PricingSkeleton />}>
+<PricingSection productId={params.id} />
+</Suspense>
+{/* Dynamic: streamed at request time */}
+<Suspense fallback={<RecommendationsSkeleton />}>
+<Recommendations productId={params.id} />
+</Suspense>
+</main>
+);
+}`
+
+### Step 2: Request Time — Serve Shell + Stream Dynamic Parts
+
+When a user requests `/product/123`:
+
+`/product/123`
+`<Suspense>`
+`<Suspense>`
+
+This happens in a **single HTTP request**. The browser starts painting the static shell while the dynamic parts are still resolving on the server. No waterfall. No second round-trip.
+
+### Step 3: The Browser Receives a Progressive Response
+
+`Time (ms) What the user sees
+──────────────────────────────────────────
+0 Request sent
+50 Static shell arrives → Page is visible!
+(Header, nav, product title, images, skeleton loaders)
+120 Price data streams in → Skeleton replaced by real price
+200 Recommendations stream in → Skeleton replaced by cards`
+
+Compare this to traditional SSR:
+
+`Time (ms) What the user sees
+──────────────────────────────────────────
+0 Request sent
+350 NOTHING — server waiting for ALL data
+350 Full page arrives at once`
+
+The TTFB difference is dramatic. With PPR, your Largest Contentful Paint (LCP) can be **sub-100ms** from the edge, because the static shell is already cached.
+
+## Enabling PPR: Step-by-Step
+
+PPR was introduced as experimental in Next.js 14, refined in Next.js 15, and shipped as stable in **Next.js 16** (October 2025) via **Cache Components**. In Next.js 16, the `experimental.ppr` flag was removed and replaced with the `cacheComponents` config.
+
+`experimental.ppr`
+`cacheComponents`
+
+### 1. Update next.config.ts
+
+`// next.config.ts — Next.js 16+
+const nextConfig = {
+cacheComponents: true,
+};
+export default nextConfig;`
+
+**Note:** If you're still on Next.js 14 or 15, use the older experimental flag:
+
+`const nextConfig = { experimental: { ppr: true } };`
+
+In Next.js 16, all code is **dynamic by default**. You opt portions of your page into static caching using the `"use cache"` directive or by structuring your components with Suspense boundaries. This is the inverse of previous versions where pages were static by default.
+
+`"use cache"`
+
+### 2. Structure Your Page with Suspense Boundaries
+
+The key insight: **Suspense boundaries are the dividing line between static and dynamic**. Everything outside a `<Suspense>` boundary is pre-rendered at build time. Everything inside is deferred to request time.
+
+`<Suspense>`
+`// app/dashboard/page.tsx
+import { Suspense } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { UserProfile } from "@/components/UserProfile";
+import { RecentActivity } from "@/components/RecentActivity";
+import { Analytics } from "@/components/Analytics";
+export default function DashboardPage() {
+return (
+<DashboardLayout>
+{/* Static shell: navigation, sidebar, layout structure */}
+<h1>Dashboard</h1>
+<div className="grid grid-cols-3 gap-6">
+{/* Dynamic: depends on authenticated user */}
+<Suspense fallback={<ProfileSkeleton />}>
+<UserProfile />
+</Suspense>
+{/* Dynamic: real-time data */}
+<Suspense fallback={<ActivitySkeleton />}>
+<RecentActivity />
+</Suspense>
+{/* Dynamic: aggregated analytics */}
+<Suspense fallback={<AnalyticsSkeleton />}>
+<Analytics />
+</Suspense>
+</div>
+</DashboardLayout>
+);
+}`
+
+### 3. Make Dynamic Components Actually Dynamic
+
+A component becomes dynamic when it accesses request-time data. These are the triggers:
+
+`// This component is DYNAMIC because it reads cookies
+import { cookies } from "next/headers";
+export async function UserProfile() {
+const session = (await cookies()).get("session");
+const user = await getUser(session?.value);
+return (
+<div className="profile-card">
+<img src={user.avatar} alt={user.name} />
+<h2>{user.name}</h2>
+<p>{user.email}</p>
+</div>
+);
+}`
+
+**What makes a component dynamic** (triggers request-time rendering):
+
+`cookies()`
+`headers()`
+`searchParams`
+`connection()`
+`fetch()`
+`fetch(url, { cache: "no-store" })`
+
+**What stays static** (rendered at build time):
+
+`fetch()`
+`generateStaticParams()`
+
+## The Architecture Deep Dive: Why PPR is Fundamentally Different
+
+PPR isn't just "SSR with streaming" (that already existed with `loading.tsx`). The critical difference is the **static shell**:
+
+`loading.tsx`
+
+### Without PPR (Standard Streaming SSR)
+
+`Request → Server computes EVERYTHING → Streams progressively
+└── Still waits for the outermost layout to resolve
+└── TTFB depends on the slowest parent component`
+
+Even with streaming SSR, the server has to start rendering from the root of your component tree. If your layout reads from a database, the entire response is blocked until that query completes.
+
+### With PPR
+
+`Request → CDN serves pre-built static shell INSTANTLY
+└── Server only computes Suspense-wrapped components
+└── TTFB = CDN latency (~20-50ms from edge)`
+
+The static shell is served from the **CDN edge**, not from your origin server. This means your TTFB is determined by the user's proximity to the nearest edge node, not by your database query speed. The dynamic parts are then streamed from the origin server in parallel.
+
+### The HTML Structure
+
+When Next.js builds a PPR page, the static HTML includes special placeholder comments:
+
+`<!-- Static shell (served from CDN) -->
+<main>
+<header>
+<h1>Product: Premium Headphones</h1>
+<img src="/images/headphones.jpg" alt="Premium Headphones" />
+<p>High-fidelity wireless headphones with ANC...</p>
+</header>
+<!-- Dynamic placeholder — will be replaced by streamed content -->
+<template id="pricing-fallback">
+<div class="skeleton pricing-skeleton">Loading price...</div>
+</template>
+<!-- Another dynamic placeholder -->
+<template id="recommendations-fallback">
+<div class="skeleton recs-skeleton">Loading recommendations...</div>
+</template>
+</main>
+<!-- Later in the response, streamed from origin: -->
+<script>
+// React replaces the template with actual content
+$RC("pricing-fallback", "<div class='price'>$299.99</div>...")
+</script>`
+
+This is brilliant because the static HTML is **independently cacheable**. The CDN doesn't need to know about your dynamic data. It just serves the shell and lets the origin server handle the rest.
+
+## Real-World Performance: Before and After PPR
+
+Let's look at concrete metrics from a production e-commerce product page.
+
+### Before PPR (Pure SSR)
+
+`TTFB: 380ms (origin server rendering)
+FCP: 420ms
+LCP: 680ms
+CLS: 0.02
+Total Blocking Time: 45ms`
+
+The server waits for product data (50ms), pricing (120ms), inventory (80ms), and recommendations (200ms) before sending any HTML. The TTFB reflects the slowest query.
+
+### After PPR (Static Shell + Dynamic Streaming)
+
+`TTFB: 32ms (CDN edge, static shell)
+FCP: 65ms (static content paints immediately)
+LCP: 65ms (product image is in the static shell)
+CLS: 0.00 (skeletons reserve space)
+Total Blocking Time: 12ms`
+
+The LCP improved by **10x** because the product image and title are in the static shell. The user sees useful content in 65ms instead of 680ms.
+
+### The Metrics That Matter
+
+| Metric | SSR Only | PPR | Improvement |
+| --- | --- | --- | --- |
+| TTFB | 380ms | 32ms | **11.9x faster** |
+| FCP | 420ms | 65ms | **6.5x faster** |
+| LCP | 680ms | 65ms | **10.5x faster** |
+| CLS | 0.02 | 0.00 | **Eliminated** |
+
+These aren't synthetic benchmarks. These are the kinds of improvements you see when the static shell is served from the edge and the browser can start painting immediately.
+
+## Common Patterns and Anti-Patterns
+
+### ✅ Pattern: Granular Suspense Boundaries
+
+Wrap each independent data dependency in its own Suspense boundary. This lets each dynamic section stream independently:
+
+`// ✅ Good: Independent streaming
+<Suspense fallback={<PriceSkeleton />}>
+<Price productId={id} /> {/* Streams as soon as price resolves */}
+</Suspense>
+<Suspense fallback={<ReviewsSkeleton />}>
+<Reviews productId={id} /> {/* Streams independently */}
+</Suspense>`
+
+### ❌ Anti-Pattern: One Giant Suspense Boundary
+
+Don't wrap everything in a single Suspense boundary. This defeats the purpose of PPR by making the entire page dynamic:
+
+`// ❌ Bad: Everything waits for the slowest component
+<Suspense fallback={<PageSkeleton />}>
+<Price productId={id} />
+<Reviews productId={id} />
+<Recommendations userId={userId} />
+</Suspense>`
+
+If `Recommendations` takes 500ms and `Price` takes 50ms, the user waits 500ms to see the price. With separate boundaries, the price appears in 50ms.
+
+`Recommendations`
+`Price`
+
+### ✅ Pattern: Skeleton Components That Match Final Layout
+
+Prevent layout shift (CLS) by making skeleton components that match the exact dimensions of the final content:
+
+`export function PriceSkeleton() {
+return (
+<div className="price-section" style={{ minHeight: "120px" }}>
+<div className="skeleton-line" style={{ width: "60%", height: "32px" }} />
+<div className="skeleton-line" style={{ width: "40%", height: "20px" }} />
+</div>
+);
+}`
+
+### ❌ Anti-Pattern: Using Dynamic APIs in Layout
+
+If your root layout reads cookies or headers, the entire page becomes dynamic — PPR won't help:
+
+`// ❌ This makes the ENTIRE page dynamic
+// app/layout.tsx
+import { cookies } from "next/headers";
+export default async function RootLayout({ children }) {
+const theme = (await cookies()).get("theme"); // Makes everything dynamic
+return <html data-theme={theme?.value}>{children}</html>;
+}`
+
+Move dynamic data access into Suspense-wrapped components instead:
+
+`// ✅ Keep layout static, defer dynamic parts
+// app/layout.tsx
+import { Suspense } from "react";
+import { ThemeProvider } from "./ThemeProvider";
+export default function RootLayout({ children }) {
+return (
+<html>
+<body>
+<Suspense fallback={<NavSkeleton />}>
+<ThemeProvider />
+</Suspense>
+{children}
+</body>
+</html>
+);
+}`
+
+### ✅ Pattern: Parallel Data Fetching in Dynamic Components
+
+Inside dynamic components, fetch data in parallel rather than sequentially:
+
+`// ✅ Parallel fetches — total time = max(price, inventory)
+export async function PricingSection({ productId }: { productId: string }) {
+const [price, inventory] = await Promise.all([
+getPrice(productId),
+getInventory(productId),
+]);
+return (
+<div className="pricing">
+<span className="price">${price.amount}</span>
+{inventory.count < 10 && (
+<span className="low-stock">Only {inventory.count} left!</span>
+)}
+</div>
+);
+}`
+
+## PPR vs. Other Rendering Strategies: Decision Framework
+
+When should you use PPR vs. other approaches?
+
+### Use PPR When:
+
+### Stick with Pure SSG When:
+
+### Stick with SSR When:
+
+### Use ISR When:
+
+## Migration Guide: From SSR to PPR
+
+If you're currently using pure SSR and want to adopt PPR, here's your migration path:
+
+### Step 1: Identify Static vs. Dynamic Boundaries
+
+Audit your page components. Ask: "Does this component need request-time data?"
+
+`# Find all dynamic API usage in your app directory
+grep -rn "cookies()\|headers()\|searchParams\|connection()\|no-store\|noStore" \
+--include="*.tsx" --include="*.ts" ./app`
+
+### Step 2: Wrap Dynamic Components in Suspense
+
+For each component that uses dynamic APIs, wrap it in a Suspense boundary with a skeleton fallback:
+
+`// Before: Everything is dynamic
+export default async function Page() {
+const user = await getUser(); // Dynamic
+const posts = await getPosts(); // Could be static
+const notifications = await getNotifications(user.id); // Dynamic
+return (
+<div>
+<ProfileCard user={user} />
+<PostList posts={posts} />
+<NotificationBell count={notifications.length} />
+</div>
+);
+}
+// After: Static shell + dynamic streaming
+export default function Page() {
+return (
+<div>
+<Suspense fallback={<ProfileSkeleton />}>
+<ProfileCard /> {/* Reads cookies internally */}
+</Suspense>
+<PostList /> {/* Static — no dynamic dependencies */}
+<Suspense fallback={<NotificationSkeleton />}>
+<NotificationBell /> {/* Reads cookies internally */}
+</Suspense>
+</div>
+);
+}`
+
+### Step 3: Move Data Fetching Into Components
+
+PPR works best when each component owns its data fetching. Move `fetch()` calls from the page level into the component level:
+
+`fetch()`
+`// Before: Page fetches everything
+export default async function Page() {
+const [user, posts] = await Promise.all([getUser(), getPosts()]);
+return <Dashboard user={user} posts={posts} />;
+}
+// After: Each component fetches its own data
+export default function Page() {
+return (
+<Dashboard>
+<Suspense fallback={<UserSkeleton />}>
+<UserSection /> {/* Fetches user data internally */}
+</Suspense>
+<PostSection /> {/* Fetches posts internally (static) */}
+</Dashboard>
+);
+}`
+
+### Step 4: Enable PPR and Test
+
+`// next.config.ts — Next.js 16+
+const nextConfig = {
+cacheComponents: true,
+};
+// Next.js 14/15 (legacy):
+// const nextConfig = { experimental: { ppr: true } };`
+
+Build and analyze the output:
+
+`next build`
+
+In the build output, PPR pages are marked with a special indicator (◐) showing they have both static and dynamic parts:
+
+`Route (app) Size First Load
+─────────────────────────────────────────────────
+◐ /product/[id] 4.2 kB 89 kB
+○ /about 1.1 kB 82 kB
+● /blog/[slug] 2.3 kB 84 kB
+○ Static
+● SSG
+◐ Partial Prerendering`
+
+## Debugging PPR: Common Issues
+
+### Issue 1: Entire Page Becomes Dynamic
+
+**Symptom**: Build output shows your page as fully dynamic (λ) instead of partial (◐).
+
+**Cause**: A dynamic API is being called outside a Suspense boundary, usually in a layout or at the page level.
+
+**Fix**: Search for `cookies()`, `headers()`, or `connection()` calls in your page or layout and move them inside Suspense-wrapped components.
+
+`cookies()`
+`headers()`
+`connection()`
+
+### Issue 2: Static Shell Doesn't Include Expected Content
+
+**Symptom**: Content you expect to be static shows up as a skeleton.
+
+**Cause**: The component has an indirect dynamic dependency — perhaps it imports a module that calls `cookies()`.
+
+`cookies()`
+
+**Fix**: Trace the component's import tree. Use the Next.js build analyzer to identify which modules trigger dynamic rendering.
+
+### Issue 3: Layout Shift Despite Skeletons
+
+**Symptom**: CLS is non-zero even with skeleton components.
+
+**Fix**: Ensure skeleton components have explicit `min-height` or `aspect-ratio` that matches the final rendered content. Use CSS `contain: layout` on Suspense boundary containers.
+
+`min-height`
+`aspect-ratio`
+`contain: layout`
+`<div style={{ contain: "layout", minHeight: "200px" }}>
+<Suspense fallback={<Skeleton />}>
+<DynamicComponent />
+</Suspense>
+</div>`
+
+## The Bigger Picture: Why PPR Matters Beyond Performance
+
+PPR isn't just a performance optimization. It represents a fundamental shift in how we think about web architecture:
+
+**The End of Full-Page Rendering Decisions**: You no longer choose SSG *or* SSR. You choose SSG *and* SSR, per component, within the same page.
+
+**Edge-First by Default**: The static shell lives on the CDN edge. Your origin server only handles the dynamic parts. This naturally distributes your infrastructure.
+
+**Progressive Enhancement Built-in**: Users with slow connections see the static shell immediately. Dynamic content arrives as bandwidth allows. This is progressive enhancement at the HTTP level.
+
+**Simplified Caching**: Static parts are trivially cacheable forever (content-hash based). Dynamic parts are never cached. No more cache invalidation headaches for hybrid pages.
+
+**Aligns with React's Direction**: PPR is the natural convergence of React Server Components, Suspense, and streaming. It's not a Next.js hack — it's the culmination of React's architectural vision.
+
+## Should You Adopt PPR Now?
+
+**Yes, if:**
+
+**Wait if:**
+
+## Conclusion
+
+Partial Prerendering eliminates the oldest and most painful tradeoff in web development: static vs. dynamic. By leveraging React Suspense as the boundary between pre-rendered content and request-time computation, PPR delivers CDN-speed TTFB while still serving personalized, real-time data.
+
+The mental model is simple: everything outside `<Suspense>` is static. Everything inside is dynamic. The framework handles the rest — caching the shell on the edge, streaming dynamic content from the origin, and progressively enhancing the response as data resolves.
+
+`<Suspense>`
+
+With Next.js 16's Cache Components, PPR has graduated from experimental to stable. For most Next.js applications, PPR should be the default rendering strategy going forward. The performance gains are too significant to ignore, and the migration path from existing SSR pages is straightforward: identify your dynamic boundaries, wrap them in Suspense, and let Next.js handle the orchestration.
+
+Set `cacheComponents: true` in your `next.config.ts`. Build your app. Look at the build output. If you see the ◐ indicator, you've just made your pages faster than they've ever been — and you didn't have to sacrifice a single byte of dynamic functionality to do it.
+
+`cacheComponents: true`
+`next.config.ts`
+
+⚡ **Speed Tip:** Read the original post on the [Pockit Blog](https://pockit.tools/blog/nextjs-partial-prerendering-ppr-deep-dive/).
+
+Tired of slow cloud tools? [Pockit.tools](https://pockit.tools/json-formatter/) runs entirely in your browser. **[Get the Extension](https://chromewebstore.google.com/detail/pockit-developer-tools-pd/lojcamfhllebjmcjmipecgecbeopookg)** now for instant, zero-latency access to essential dev tools.
+
+## Top comments (0)
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](#).
+
+Hide child comments as well
+
+Confirm
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3679990%2F92792945-5cbc-4242-bbfa-8d8ca9986fe2.jpg)
+
+### More from [HK Lee](/pockit_tools)
+
+💎 DEV Diamond Sponsors
+
+Thank you to our Diamond Sponsors for supporting the DEV Community
+
+![Google AI - Official AI Model and Platform Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fxjlyhbdqehj3akhz166w.png)
+
+Google AI is the official AI Model and Platform Partner of DEV
+
+![Neon - Official Database Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fbnl88cil6afxzmgwrgtt.png)
+
+Neon is the official database partner of DEV
+
+![Algolia - Official Search Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv30ephnolfvnlwgwm0yz.png)
+
+Algolia is the official search partner of DEV
+
+[DEV Community](/) — A space to discuss and keep up software development and manage your software career
+
+Built on [Forem](https://www.forem.com) — the [open source](https://dev.to/t/opensource) software that powers [DEV](https://dev.to) and other inclusive communities.
+
+Made with love and [Ruby on Rails](https://dev.to/t/rails). DEV Community © 2016 - 2026.
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+---
+
+Title: Partial prerendering: Building towards a new default rendering model for web applications - Vercel
+##### [AI Cloud](/ai)
+
+One endpoint, all your models
+
+Isolated, safe code execution
+
+An agent that knows your stack
+
+The AI Toolkit for TypeScript
+
+Build applications with AI
+
+##### Core Platform
+
+Helping teams ship 6× faster
+
+Fast, scalable, and reliable
+
+Servers, in serverless form
+
+Long-running workflows at scale
+
+Trace every step
+
+##### [Security](/security)
+
+Scalable bot protection
+
+Invisible CAPTCHA
+
+DDoS Protection, Firewall
+
+Granular, custom protection
+
+##### Company
+
+Trusted by the best teams
+
+The latest posts and changes
+
+See what shipped
+
+Read the latest news
+
+Join us at an event
+
+##### Learn
+
+Vercel documentation
+
+Linear courses to level up
+
+Find help quickly
+
+Join the conversation
+
+##### Open Source
+
+The native Next.js platform
+
+The progressive web framework
+
+The web’s efficient UI framework
+
+Speed with Enterprise scale
+
+##### Use Cases
+
+Deploy at the speed of AI
+
+Power storefronts that convert
+
+Launch campaigns fast
+
+Scale apps with one codebase
+
+Ship features, not infrastructure
+
+##### Tools
+
+Extend and automate workflows
+
+Jumpstart app development
+
+Get help from solution partners
+
+##### Users
+
+Automate away repetition
+
+Deploy for every idea
+
+# Partial prerendering: Building towards a new default rendering model for web applications
+
+![](https://assets.vercel.com/image/upload/f_auto,c_fill,w_40,h_40,q_75/contentful/image/e5382hct74si/5li5FWRV9htl7bdeMHBkbM/e968b257e4474a1b9952d50a15140b7f/sebastian-markb-ge-128.jpg)
+![](https://assets.vercel.com/image/upload/f_auto,c_fill,w_40,h_40,q_75/contentful/image/e5382hct74si/4iicDbTA4KX4io2f2PPx7q/b11dbc333322bc5a0087056d162cb5cf/malte.ubl.jpg)
+
+3 min read
+
+A look at Partial Prerendering with Next.js 14 on Vercel.
+
+At this year’s [Next.js Conf](https://www.youtube.com/watch?v=gfU1iZnjRZM), we discussed the developer and user experience challenges of global delivery of dynamic web applications. How can we fetch data without expensive waterfalls and also deliver content directly from the edge?
+
+The answer to all of these current challenges: Partial Prerendering (PPR).
+
+PPR combines ultra-quick static edge delivery with fully dynamic capabilities and we believe it has the potential to become the default rendering model for web applications, bringing together the best of static site generation and dynamic delivery.
+
+Today, you can [try an experimental preview of PPR](#try-ppr-on-vercel-today) with Next.js 14 on Vercel [or visit our demo](https://www.partialprerendering.com/) for a first impression of PPR.
+
+## [Link to heading](#understanding-the-trade-offs-eliminated)Understanding the trade-offs eliminated
+
+PPR brings together the best aspects of popular rendering modes enabling both fast edge delivery and dynamic data access from core data centers.
+
+![This table shows the features of common rendering strategies compared to the features of PPR, which eliminates trade-offs experienced in other methods. ](/vc-ap-vercel-marketing/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fcontentful%2Fimage%2Fe5382hct74si%2F2tgZ9Elt1qerK15SyTTXJ4%2F67a26fd63c92956178a1a25005f82403%2FGraphic_1_-_Light.png&w=1920&q=75)
+![This table shows the features of common rendering strategies compared to the features of PPR, which eliminates trade-offs experienced in other methods. ](/vc-ap-vercel-marketing/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fcontentful%2Fimage%2Fe5382hct74si%2F5VDyzuymkOUuQVo1ECuayK%2F051b687701d68d1590068323eeb0be30%2FGraphic_1_-_Dark.png&w=1920&q=75)
+
+## [Link to heading](#one-battle-tested-programming-model)One battle-tested programming model
+
+With Partial Prerendering in Next.js, rendering happens in a single React render tree. Static optimization is on-by-default and covers all components until the app accesses incoming request information like headers or cookies, which is a clear signal that dynamic rendering is needed. Next.js then changes the smallest possible section of the page to be dynamic while keeping static optimization for everything else.
+
+You may be thinking: “We did this in the 90s with [server-side includes](https://en.wikipedia.org/wiki/Server_Side_Includes)”. That is true, but in that world static and dynamic were separated into completely different technology worlds and we didn’t have incremental updates of static content.
+
+Consider the following ecommerce page:
+
+`1
+
+export default function Page() {
+
+2
+
+return (
+
+3
+
+<main>
+
+4
+
+<header>
+
+5
+
+<h1>My Store</h1>
+
+6
+
+<Suspense fallback={<CartSkeleton />}>
+
+7
+
+<ShoppingCart />
+
+8
+
+</Suspense>
+
+9
+
+</header>
+
+10
+
+<Banner />
+
+11
+
+<Suspense fallback={<ProductListSkeleton />}>
+
+12
+
+<Recommendations />
+
+13
+
+</Suspense>
+
+14
+
+<NewProducts />
+
+15
+
+</main>
+
+16
+
+);
+
+17
+
+}`
+
+With PPR enabled, this page generates a static shell based on your `<Suspense />` boundaries. The `fallback` provided to React Suspense is prerendered.
+
+`<Suspense />`
+`fallback`
+
+Suspense fallbacks in the shell are then replaced with dynamic components, like reading cookies to determine the cart, or showing a banner based on the user.
+
+## [Link to heading](#under-the-hood-of-ppr)Under the hood of PPR
+
+When you build your application, Next.js will prerender a static *shell* for each page of your application, leaving *holes* for the dynamic content.
+
+When a user visits a page, the fast static shell is served from the end-user’s nearest [Vercel Region](https://vercel.com/docs/edge-network/overview), allowing the user to start consuming the page, and the client and server to work in parallel. The client can start parsing scripts, stylesheets, fonts, and static markup while the server renders dynamic chunks using [React’s new streaming architecture](/blog/understanding-react-server-components).
+
+PPR offers a unified model that blends the reliability and speed of [Incremental Static Regeneration (ISR)](https://vercel.com/docs/incremental-static-regeneration) and the dynamic capabilities of [Server-Side Rendering (SSR)](https://vercel.com/docs/frameworks/nextjs#server-side-rendering-ssr). In fact, this is exactly how PPR is implemented. Because PPR takes advantage of React <Suspense> boundary, *you* decide whether the boundary is static or dynamic.
+
+The static shell retains the ability to be updated via Incremental Static Regeneration (ISR).
+
+If you use features that require dynamic rendering, such as accessing cookies, Next.js automatically switches to dynamic rendering up to the closest Suspense boundary.
+
+## [Link to heading](#not-just-for-app-shells)Not just for app shells
+
+PPR can be leveraged for any app along the static/dynamic spectrum. Whether you have a dashboard containing mostly dynamic content and a relatively barebones shell around it, or a page that contains mostly static content with dynamic elements throughout.
+
+For example, in our [product detail page example](https://www.partialprerendering.com/) almost all content is part of the static prerender. Only the customer reviews section, shopping cart count, the personalized delivery time based on user zip code, and the below-the-fold recommendations stream in via dynamic streaming.
+
+This wireframe of a typical product detail page shows elements that are typically static in purple and elements that are often dynamic in blue. With PPR the vast majority of content for such a page can get delivered instantly from the edge.
+
+![](/vc-ap-vercel-marketing/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fcontentful%2Fimage%2Fe5382hct74si%2F5r33oKikQKnzTplANlbF20%2F9bf635b0a904840838d863241d5829a2%2Fthinking-in-server-components__1_.png&w=1920&q=75)
+![](/vc-ap-vercel-marketing/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fcontentful%2Fimage%2Fe5382hct74si%2F19oHbnORNyZdAYAxuzQHbP%2F4e7196649e205805d8ef419da4e25d6d%2Fthinking-in-server-components.png&w=1920&q=75)
+![](/vc-ap-vercel-marketing/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fcontentful%2Fimage%2Fe5382hct74si%2F5r33oKikQKnzTplANlbF20%2F9bf635b0a904840838d863241d5829a2%2Fthinking-in-server-components__1_.png&w=1920&q=75)
+![](/vc-ap-vercel-marketing/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fcontentful%2Fimage%2Fe5382hct74si%2F19oHbnORNyZdAYAxuzQHbP%2F4e7196649e205805d8ef419da4e25d6d%2Fthinking-in-server-components.png&w=1920&q=75)
+
+Additionally, because PPR is based on ISR, you can take advantage of the same on-demand, time-based, and tag-based revalidation for the static shell [that is available to ISR today](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#revalidating-data).
+
+## [Link to heading](#open-to-all-frameworks)Open to all frameworks
+
+The [framework-defined infrastructure](/blog/framework-defined-infrastructure) primitive that Partial Prerendering leverages when used on Vercel can be natively adopted by any frontend framework through [Vercel’s Build Output API](https://vercel.com/docs/build-output-api/v3). Framework authors can get in touch with us to talk about how to integrate PPR into their framework.
+
+## [Link to heading](#try-ppr-on-vercel-today)Try PPR on Vercel today
+
+You can try Partial Prerendering with the latest Next.js 14 Canary using the app directory on Vercel today.
+
+`1
+
+npm install next@canary`
+
+Add the following configuration to your `next.config.js` file or check out the [template](https://vercel.com/templates/next.js/partial-prerendering-nextjs) to get started.
+
+`next.config.js`
+`1
+
+experimental: {
+
+2
+
+ppr: true,
+
+3
+
+},`
+
+Please note that PPR is truly an experimental technology that is **not yet recommended for production use**. You may run into some developer experience issues, especially on larger code bases, and known issues such that client-side navigations do not yet perform a streaming render (coming soon).
+
+Partial Prerendering is a major step in web application delivery. We’re excited to see what the community builds on it, and we will continue to iterate on the best developer experience and best user experience for modern websites and web applications.
+
+**Ready to deploy?** Start building with a free account. Speak to an expert for your *Pro* or Enterprise needs.
+
+**Explore Vercel Enterprise** with an interactive product tour, trial, or a personalized demo.
+
+## Get Started
+
+## Build
+
+## Scale
+
+## Secure
+
+## Resources
+
+## Learn
+
+## Frameworks
+
+## SDKs
+
+## Use Cases
+
+## Company
+
+## Community
+
+Loading status…
+
+One endpoint, all your models
+
+Isolated, safe code execution
+
+An agent that knows your stack
+
+The AI Toolkit for TypeScript
+
+Build applications with AI
+
+Helping teams ship 6× faster
+
+Fast, scalable, and reliable
+
+Servers, in serverless form
+
+Long-running workflows at scale
+
+Trace every step
+
+Scalable bot protection
+
+Invisible CAPTCHA
+
+DDoS Protection, Firewall
+
+Granular, custom protection
+
+Trusted by the best teams
+
+The latest posts and changes
+
+See what shipped
+
+Read the latest news
+
+Join us at an event
+
+Vercel documentation
+
+Linear courses to level up
+
+Find help quickly
+
+Join the conversation
+
+The native Next.js platform
+
+The progressive web framework
+
+The web’s efficient UI framework
+
+Speed with Enterprise scale
+
+Deploy at the speed of AI
+
+Power storefronts that convert
+
+Launch campaigns fast
+
+Scale apps with one codebase
+
+Ship features, not infrastructure
+
+Extend and automate workflows
+
+Jumpstart app development
+
+Get help from solution partners
+
+Automate away repetition
+
+Deploy for every idea
+
+---
+
+Title: How Partial Prerendering Works Under the Hood | Wyatt Johnson
+[![Picture of Wyatt Johnson](/_astro/avatar.B91J8Gw9_2wxic1.webp)
+
+## Wyatt Johnson
+
+Full-stack developer](/)
+
+# How Partial Prerendering Works Under the Hood
+
+The architecture behind Next.js's fastest rendering model
+
+·  Post  · 7 min read
+
+---
+
+At last year’s Next.js Conf, we announced a new rendering paradigm, Partial Prerendering (or PPR). Building on Next.js’s strong support for data and route caching, PPR optimizes the way Next.js serves static parts of a page quickly while still allowing server rendering of components that require access to request data.
+
+Since announcing experimental support for the feature, we’ve iterated on some of the core mechanisms that Next.js uses to detect request data access through a new experimental flag, `dynamicIO`.
+
+## Understanding the Problem Space
+
+Before diving into PPR’s implementation details, let’s establish why this feature matters. In modern web development, we face a fundamental tension between performance and functionality:
+
+* **Static rendering** delivers content blazingly fast from the edge but lacks access to request-specific data
+* **Dynamic rendering** provides full functionality but requires server computation, increasing time to first byte
+
+This dichotomy forces developers into an all-or-nothing decision at the route level. Even accessing a single cookie marks an entire page as dynamic, sacrificing the performance benefits of static generation.
+
+## Core Web Vitals: The North Star
+
+PPR’s design centers around optimizing Core Web Vitals, particularly:
+
+* **Time to First Byte (TTFB)**: How quickly the server responds with initial content
+* **Largest Contentful Paint (LCP)**: When the main content becomes visible
+
+The goal is sub-2.5-second LCP times, though ideally we’re targeting hundreds of milliseconds. PPR achieves this by serving static shells immediately while fetching dynamic content in parallel.
+
+## Legacy Partial Prerendering
+
+When we announced PPR in Next.js 14, it relied on throwing errors to signal to Next.js that request data was accessed. We assumed it would work as well as other APIs we have, such as `redirect()` and `notFound()`, which still use error throwing as a signal today. The issue arose for developers migrating existing applications who now had errors being thrown in unexpected places.
+
+```
+import { setTimeout } from "node:timers/promises" import { setTimeout } from "node:timers/promises"import { cookies } from "next/headers" import { cookies } from "next/headers" async function getPosts() {async  function  getPosts() { for (let i = 0; i < 3; i++) { for (let  i =  0; i <  3; i ++) { try { try { // In Next.js 14, this threw an error during // In Next.js 14, this threw an error during // prerendering. // prerendering. const session = cookies().get("session")  const  session =  cookies(). get("session") // ... // ... } catch (err) { } catch (err) { if (i === 2) { if (i ===  2) { throw err  throw  err } }  // Here we have a timeout added when a // Here we have a timeout added when a // fetch failed. // fetch failed. await setTimeout(500 + i * 500)  await  setTimeout(500 +  i *  500) } } } }}} export default async function Page() {export  default  async  function  Page() { const posts = await getPosts()  const  posts =  await  getPosts()  // ... // ...}}
+```
+
+This was a common pattern that we found even within popular database drivers handling unreliable backends. The retry loop with backoffs would eventually throw the error we used to signal request data access (`cookies()` in this case), but only after running through the set of timeouts, dramatically slowing down builds.
+
+Additionally, we discovered cases where fallbacks were returned when operations failed or, worse, the error was shadowed:
+
+```
+async function checkAuthorization() {async  function  checkAuthorization() { try { try { const session = cookies().get("session")  const  session =  cookies(). get("session") // ... // ... } catch (err) { } catch (err) { throw new Error("AUTHORIZATION_CHECK_FAILED")  throw  new  Error("AUTHORIZATION_CHECK_FAILED") } }}}
+```
+
+In these cases, Next.js couldn’t determine which components accessed request data, as it relied on the surrounding suspense boundary to catch the special error that was thrown.
+
+We initially tried to solve this problem by introducing the `unstable_rethrow(err)` API:
+
+```
+import { unstable_rethrow } from "next/navigation" import { unstable_rethrow } from "next/navigation" async function checkAuthorization() {async  function  checkAuthorization() { try { try { const session = cookies().get("session")  const  session =  cookies(). get("session") // ... // ... } catch (err) { } catch (err) { unstable_rethrow(err)  unstable_rethrow(err)  throw new Error("AUTHORIZATION_CHECK_FAILED")  throw  new  Error("AUTHORIZATION_CHECK_FAILED") } }}}
+```
+
+This would re-throw internal errors that Next.js uses for signaling. However, this introduced a new problem: it required developers to remember to add it. Every call site that could potentially generate a Next.js internal error would need this re-throw function inserted before any other throw in the application code. We felt this wasn’t an acceptable developer experience.
+
+We were left with two options. Since we could detect that request data was accessed, but not where, we could either mark the entire page as dynamic and provide a warning to developers, or rethink the detection mechanism. The first option wasn’t ideal, as it might eliminate the entire static shell on revalidation, depending on the application’s logic. We decided on the latter approach.
+
+## Modern Partial Prerendering
+
+We needed a way to suspend the processing of user code when they tried to access request data. Errors were our first choice, but the problems with nested `try/catch` blocks meant that these signals that were meant to inform Next.js about request data being used would be unreliable, and possibly lead to longer than expected build times due to the retry logic.
+
+But if we can’t throw an error, then what primitives do we have left?
+
+The answer? **Promises**.
+
+Developers are already adept at managing Promises. With the advent of React Server Components, for the first time, users could write async components, allowing data fetching to be colocated, all while using the native APIs that they were already familiar with, such as fetch.
+
+## The Promise-Based Approach
+
+The key insight was to leverage JavaScript’s inherent asynchronous behavior. Instead of throwing errors that could be caught and mishandled, we needed our request APIs to return promises that would never resolve during a static prerender. This approach provides several advantages:
+
+```
+// Before - synchronous with error throwing// Before - synchronous with error throwingfunction cookies() {function  cookies() { if (isPrerendering) { if (isPrerendering) { throw new PostponeError("Cannot access cookies during prerendering")  throw  new  PostponeError("Cannot access cookies during prerendering") } } return getCookies()  return  getCookies()}} // After - asynchronous with promises// After - asynchronous with promisesasync function cookies() {async  function  cookies() { if (isPrerendering) { if (isPrerendering) { // Return a promise that never resolves // Return a promise that never resolves return new Promise(() => {})  return  new  Promise(() => {}) } } return getCookies()  return  getCookies()}}
+```
+
+This shift required updating all request APIs to be asynchronous:
+
+```
+// Next.js 15 Request APIs// Next.js 15 Request APIsawait cookies() await  cookies()await headers() await  headers()await connection() // replaces unstable_noStore() await  connection() // replaces unstable_noStore()
+```
+
+## Leveraging the Node.js Event Loop
+
+The real innovation comes from understanding how the Node.js event loop works. Node.js is single-threaded, meaning it can only run one block of synchronous code at a time. When it needs to perform I/O operations, it offloads them to native code.
+
+Here’s the crucial insight: **I/O that’s non-deterministic can’t complete in the same Task**.
+
+Next.js takes advantage of this by using a clever scheduling mechanism:
+
+```
+import { prerender } from 'react-dom/static.edge' import { prerender } from 'react-dom/static.edge' const controller = new AbortController() const  controller =  new  AbortController()await { prelude, postponed } = new Promise((resolve, reject) => {await { prelude, postponed } =  new  Promise((resolve, reject) => { let result  let  result setImmediate(() => { setImmediate(() => { try { try { result = prerender(<App />, { signal: controller.signal })  result =  prerender(< App />, { signal: controller.signal }) resolve(result)  resolve(result) } catch (err) { } catch (err) { reject(err)  reject(err) } } }) })  setImmediate(() => { setImmediate(() => { controller.abort() controller. abort() resolve(result)  resolve(result) }) })})})
+```
+
+This approach schedules a task to prerender the application, then immediately schedules another task to abort it. Node.js processes all microtasks (like resolving already-resolved promises) before moving to the next Task, allowing synchronous operations to complete while preventing asynchronous I/O from executing.
+
+## The Prospective Render Strategy
+
+One challenge remained: how to include external data in the static shell? Data from a CMS or database requires async fetches that won’t complete within a single event loop task.
+
+The solution is the **prospective render**:
+
+```
+// Using Next.js cache APIs// Using Next.js cache APIsasync function getData() {async  function  getData() { 'use cache'  'use cache' const res = await fetch('...')  const  res =  await  fetch('...') return res.json()  return res. json()}} // Or with unstable_cache// Or with unstable_cacheconst getData = unstable_cache(async () => {const  getData =  unstable_cache(async () => { const res = await fetch('...')  const  res =  await  fetch('...') return res.json()  return res. json()})})
+```
+
+During build time, Next.js performs a prospective render to fill cache entries for any cacheable data. This render’s output is discarded, but the caches are primed. When the actual prerender occurs, these cached values can be resolved synchronously within the first task, allowing them to be included in the static shell.
+
+## Partially Static vs. Fully Static Pages
+
+This leads to two categories of pages in PPR:
+
+### Partially Static Pages
+
+Pages that access uncached data or request information:
+
+```
+async function Page() {async  function  Page() { const data = await fetch('...') // No cache  const  data =  await  fetch('...') // No cache return ( return ( <Suspense fallback={<Skeleton />}> < Suspense  fallback ={< Skeleton />}> <Component data={data} /> < Component  data ={data} /> Suspense>  ) } Suspense> Suspense> ) )}}
+```
+
+These require the resume render to stream in dynamic content.
+
+### Fully Static Pages
+
+Pages where all async operations are cached:
+
+```
+async function Page() {async  function  Page() { const data = await getData() // Cached  const  data =  await  getData() // Cached return <Component data={data} />  return < Component  data ={data} />}}
+```
+
+These can be served entirely from the edge without any origin invocation.
+
+## The Streaming Architecture
+
+PPR uses a single HTTP response stream to deliver both static and dynamic content. This approach minimizes roundtrips and optimizes performance:
+
+1. **Static shell streams immediately** from the edge
+2. **Resume render starts concurrently** at the origin
+3. **Dynamic content streams in** as it becomes ready
+4. **Single response** contains everything
+
+This timing is critical - while the browser downloads static resources (CSS, JS) hinted by the static shell, the server is already rendering dynamic content.
+
+## Practical Implementation
+
+Let’s examine how PPR works in practice with a real-world example:
+
+```
+import { Suspense } from "react" import { Suspense } from  "react"import { cookies } from "next/headers" import { cookies } from "next/headers" async function getCart() {async  function  getCart() { const jar = await cookies()  const  jar =  await  cookies() // Fetch cart data based on session // Fetch cart data based on session return fetchCartData(jar.get("session"))  return  fetchCartData(jar. get("session"))}} async function Cart() {async  function  Cart() { const cart = await getCart()  const  cart =  await  getCart() return <CartDisplay items={cart.items} />  return < CartDisplay  items ={cart.items} />}} export default function Page() {export  default  function  Page() { return ( return ( <div> < div> <Header /> {/* Static - included in shell */} < Header /> {/* Static - included in shell */}  <Suspense fallback={<CartSkeleton />}> < Suspense  fallback ={< CartSkeleton />}> <Cart /> {/* Dynamic - streamed later */} < Cart /> {/* Dynamic - streamed later */} Suspense>   <ProductListing /> {/* Static - included in shell */}  div>  ) } Suspense> Suspense>  <ProductListing /> {/* Static - included in shell */} < ProductListing /> {/* Static - included in shell */} div>  ) } div> div> ) )}}
+```
+
+In this example:
+
+* `Header` and `ProductListing` are static and included in the initial shell
+* `Cart` accesses cookies, making it dynamic
+* The `CartSkeleton` is part of the static shell
+* The actual cart content streams in once available
+
+## Enabling Dynamic I/O
+
+Currently, PPR requires two experimental flags:
+
+```
+// next.config.js// next.config.jsmodule.exports = {module. exports = { experimental: { experimental: { ppr: true, ppr: true, dynamicIO: true dynamicIO: true } }}}
+```
+
+The `dynamicIO` flag enables the promise-based detection mechanism. The plan is to eventually remove this flag as PPR stabilizes.
+
+## Dynamic Path Parameters
+
+A special consideration for pathname-based APIs: with traditional rendering, dynamic paths like `/products/[id]` would force the entire page to be dynamic. With PPR and async params:
+
+```
+type Props = {type  Props = { params: Promise<{ id: string }>  params:  Promise<{ id:  string }>}} export default function Page({ params }: Props) {export  default  function  Page({ params }:  Props) { return ( return ( <Suspense fallback={}> < Suspense fallback ={}> <ProductDetails params={params} /> < ProductDetails params ={params} /> Suspense>  ) } Suspense> Suspense> ) )}}
+```
+
+This enables fallback static shells that work for any product ID, providing static-like performance even for dynamic routes.
+
+## Performance Implications
+
+The performance benefits of PPR are substantial:
+
+* **Reduced TTFB**: Static shells serve immediately from edge locations
+* **Improved LCP**: Critical content loads faster through parallel fetching
+* **Better perceived performance**: Users see content immediately instead of waiting
+* **Efficient caching**: Static portions cache effectively at CDN edge nodes
+
+## Developer Experience Considerations
+
+While PPR offers significant performance benefits, it’s important to understand its impact on development:
+
+### Benefits
+
+* No API changes required - existing Suspense boundaries just work
+* Granular control over static/dynamic boundaries
+* Automatic optimization without manual configuration
+
+### Current Limitations
+
+* Experimental status means potential breaking changes
+* Requires careful Suspense boundary placement
+* Debugging can be more complex with streaming responses
+* Limited platform support outside Vercel and self-hosting
+
+## Future Developments
+
+### CDN Interoperability
+
+Currently, the single-stream approach works on Vercel and self-hosted deployments, but broader CDN support is planned once PPR stabilizes. This will involve creating standardized protocols for CDNs to handle the static shell and dynamic streaming pattern.
+
+### Production Readiness
+
+While PPR represents a significant advancement, it remains experimental. The Next.js team is working towards:
+
+* Removing the `dynamicIO` flag requirement
+* Improving developer experience for larger codebases
+* Expanding platform compatibility
+* Stabilizing the API surface
+
+## Conclusion
+
+Partial Prerendering represents a paradigm shift in how we think about web application rendering. By combining static shells with streaming dynamic content, PPR offers:
+
+* **Optimal TTFB** through edge-served static content
+* **Improved LCP** via parallel data fetching
+* **Better UX** with immediate static content display
+* **Developer ergonomics** using familiar React patterns
+
+The journey from error-based detection to promise-based mechanisms showcases the thoughtful evolution of this feature. While challenges remain around platform compatibility and production readiness, PPR represents the future of web application rendering - one where developers no longer need to choose between speed and functionality.
+
+As we move forward, the goal is clear: make PPR the default rendering model for web applications, bringing together the best of static site generation and dynamic delivery without compromising on either. The technical foundations are solid, the performance benefits are clear, and the developer experience continues to improve with each iteration.
+
+For teams looking to push the boundaries of web performance while maintaining rich, dynamic functionality, Partial Prerendering offers a compelling path forward. While it may still be experimental, the principles and patterns it introduces are already shaping how we think about modern web architecture.
+
+ 
+
+---
+
+Title: Next.js 16 Partial Prerendering (PPR): The Best of Static and Dynamic Rendering | u11d
+[![u11d logo](/static/u11d-color-136ce418fbbb940b43748ef1bef30220.svg)](/)
+
+
+
+[![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='48'%20width='48'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/jpeg;base64,/9j/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wgARCAAUABQDASIAAhEBAxEB/8QAGQABAAMBAQAAAAAAAAAAAAAAAAIDBAYF/8QAFgEBAQEAAAAAAAAAAAAAAAAAAQAC/9oADAMBAAIQAxAAAAHbRDyB6ZjOeboGgK//xAAdEAACAgEFAAAAAAAAAAAAAAACAwEEABAREhQk/9oACAEBAAEFAiHkELBT9sfbhWdsgaN1JRYn06f/xAAUEQEAAAAAAAAAAAAAAAAAAAAg/9oACAEDAQE/AR//xAAUEQEAAAAAAAAAAAAAAAAAAAAg/9oACAECAQE/AR//xAAhEAACAgAFBQAAAAAAAAAAAAABAgAREBIhUXEDEzFysf/aAAgBAQAGPwKrI4ijp9wK3nNvgUXVvkDBF4u7mpynaN7GXh//xAAcEAACAwEAAwAAAAAAAAAAAAABEQAhMUFRYZH/2gAIAQEAAT8hfEAdO16gKwhTJ19hheqd5C3HbLOx988UKWmBQaXGan//2gAMAwEAAgADAAAAEAgwgv/EABcRAQEBAQAAAAAAAAAAAAAAAAERABD/2gAIAQMBAT8QEjr3/8QAFxEAAwEAAAAAAAAAAAAAAAAAAAEREP/aAAgBAgEBPxBp0m//xAAcEAEBAQACAwEAAAAAAAAAAAABEQAhMVFhcZH/2gAIAQEAAT8QGOYEpov1MXO+xiAl5IG6LM10aUxHz5fWL96qJKNrw/MXdSBs+J2ZN7Cf1xijh3lhLyg7/9k=)
+
+Kacper Drzewicz
+
+Senior Software Engineer](/author/kacper-drzewicz/)
+
+# Next.js 16 Partial Prerendering (PPR): The Best of Static and Dynamic Rendering
+
+Feb 11, 20263 min read
+
+![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='600'%20width='940'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAANCAIAAAAmMtkJAAAACXBIWXMAAAsTAAALEwEAmpwYAAADJElEQVR42gEZA+b8AAkCKwcBJgkCMgwCPg0CRQ4DSBAETxcFUx0GViUHWi4IXjsJZUQKajoHVC0FQygEPiIDNi4HRiwGSBUBJgATBE4LAjwTBVgbBnIZBm8eCHgkCoMtDIk6DY5HD5NYEZtuFqJnEoxVDHVWDnFPDGdEClxKDGg2Bk4nBD4AMQ+FKA52FwZhQxmyQhe3OxOxRBa5VBm+ZhzCdx7FhyLIkCK7lyW3qS/GsSq8lB+fhiCchCKaWhBxHwRAACIJcTsWoiUNdDEQkEocuV8l0nYw34Ey3ZI03qE23aY02bxE3t9j7+pp8O505uRr4Oh36LM+v04NZx4EQAALAT0aB28iCncUBFcxEYZfJ7WCOdOwVOq8WOy9UerHVuzfd/PxmvL0lPD7wPf0sPHAXcZ/HJBDCV81CWIAQxiANA+IQhSsLhF1IwpiWCGlZCa3hj/HwW3nzXHvv1rnz2Tj85Hw96ny96PvxFHGaA15QgdXbR6Miy61AGIitKNJ4m8swVglr0gflz8YlIRAzIA9yopEzplO0ZxI0rBP18Vg18ta074+yn0elDgIV2kbhLlP2HstqwA0C3eALMiPO9FbKKk6GIklCng/GJ9EHZpZJaqJPs5+PrpDGnRbGoplHJFZHpJNGI1hIJ2RPclSHo4eBU0AHgVSQgx8eyi0cSu9lk7Xol/feD/DNxSBIgdqKQxrEQNKGAVeJwthFQRGTRuNVxyUQhOAMBB2EQFGDgI0ABQEQyQHZDIKcTkNflIdmHw/t4NMv3A2s20yn14wiUUbgzUSex4JTh8JUC8KY1MfklEenCEGZBcFSQ8COAAHASYQBEIeClwaB08OAzoGAD8pDI5CF6NzLq96L7NTHps9FIY1D3s4D31RFZJqJKJLGH4zCmQmCVURAzYABAEeBAEeCAImFAU6EgU7FQdKIg1uKg12JAZeHANNGgNKIQdZQBF6RxN+JAZYDQA7DAE2FAM/EwM5CgEqAAQBHQcBJQkBKhYEPyMITBMENgcBLQYBKQ0DLg4DMhADNRgEQSsKWkgUeTALZBwFUhgFTxQDQQ0CMgcBJRr/9+V4T4G9AAAAAElFTkSuQmCC)
+
+Next.js has long been a leader in giving developers flexible, high-performance rendering strategies - [Static Site Generation (SSG), Server-Side Rendering (SSR), Incremental Static Regeneration (ISR), and Client-Side Rendering (CSR)](https://u11d.com/blog/ssg-isr-ssr-csr-which-strategy-should-i-use-in-my-next-js-e-commerce-platform/) all play roles depending on your use case. With Next.js 14, Partial Prerendering (PPR) was introduced as an experimental feature, starting from Next.js 16, PPR has become a stable and becomes a foundational part of this landscape by letting you *blend static pre-rendering and dynamic behavior in the same route*, improving perceived performance and SEO without sacrificing real-time data needs.
+
+## **What Is Partial Prerendering (PPR)?**
+
+**Partial Prerendering** is a rendering strategy that lets Next.js deliver a **static HTML “shell” immediately**, then *stream in dynamic content* as it becomes available - *all in the same server response*. Instead of choosing static *or* dynamic at the page level, PPR combines both on a per-component basis.
+
+* The **static shell** (layout, logo, product titles, navigation) is pre-generated at build time or cached ahead of requests.
+* **Dynamic parts** (cart state, recommendations, session data) load later and are *streamed* to the client using React’s  boundaries.
+* Users see meaningful UI immediately, with dynamic content filling in seamlessly.
+
+This leads to *faster Time to First Byte (TTFB)* and a smoother perceived experience, while still allowing data personalization and real-time updates.
+
+## **How Partial Prerendering Works in Next.js 16**
+
+### **Cache Components: The Heart of PPR**
+
+In Next.js 16, PPR isn’t just an experimental flag - it’s integrated into the [**Cache Components**](https://nextjs.org/docs/app/getting-started/cache-components) system. Cache Components lets you *opt-in to cache certain components or data instead of rendering them on every request*, making pre-rendering more predictable and performant.
+
+* **`cacheComponents: true`** in `next.config.ts` enables PPR and component-level caching.
+* The new [`"use cache"`](https://nextjs.org/docs/app/getting-started/cache-components#during-prerendering) directive lets you mark data-fetching functions or components as cacheable.
+* Anything not cacheable or depending on request-specific data can be wrapped in a  fallback.
+
+This approach gives you fine-grained control: static UI is reused across requests, while dynamic parts rehydrate or stream in only when needed.
+
+## **Streaming and Suspense: The Engine Under the Hood**
+
+React’s  plays a key role in PPR:
+
+* Wrap dynamic components in  with a fallback UI (like a skeleton loader).
+* During rendering, Suspense tells Next.js where to *halt pre-rendering* and stream dynamic content later.
+* The server sends the pre-rendered shell immediately and then streams dynamic sections in parallel as they’re ready.
+
+This strategy avoids blocks in page delivery and reduces the “white screen” effect often seen in traditional SSR or CSR approaches.
+
+## **Why PPR Matters for E-commerce**
+
+For e-commerce platforms, performance directly impacts sales and SEO - factors also emphasized in the U11D articles about rendering strategies. A slow page can hurt conversions and search rankings. Partial Prerendering improves this by:
+
+* **Faster initial loads:** Users see the page skeleton instantly, improving engagement and performance metrics.
+* **SEO advantages:** Static content is available for crawler indexing immediately.
+* **Dynamic personalization:** Cart contents, recommendations, user-specific prices or availability can appear without blocking the initial render.
+* **More flexible than SSG/SSR alone:** You’re not limited to fully static or completely dynamic pages - the best of both lives together.
+
+In e-commerce apps where product detail pages might be static for most users but show personalized recommendations or inventory status, PPR is a compelling hybrid.
+
+## **How to Enable and Use PPR in Next.js 16**
+
+1. **Enable Cache Components:**
+
+   In your `next.config.ts`:
+
+   ```
+
+
+   import type { NextConfig } from 'next'; import  type  { NextConfig  }  from  'next';   const nextConfig: NextConfig = {  const  nextConfig:  NextConfig  =  {  cacheComponents: true, // enables Partial Prerendering  cacheComponents:  true,  // enables Partial Prerendering  }; };   export default nextConfig;  export  default  nextConfig;
+
+
+   ```
+2. **Wrap dynamic UI:**
+
+   Use React’s `Suspense` for dynamic content:
+
+   ```
+
+
+   import { Suspense } from 'react'; import  { Suspense  }  from  'react';   export default function ProductPage() {  export  default  function  ProductPage()  {  return (  return  (  <>  <>   <Header />  < Header  />   <Suspense fallback={<div>Loading product...div>}>  < Suspense  fallback ={< div>Loading product... div>}>   <ProductDetails />  < ProductDetails  />   Suspense>   Suspense>   >  >   );  );  } }
+
+
+   ```
+3. **Use `use cache` for predictable dynamic data:**
+
+   Inside dynamic data functions, prefix with `"use cache"` to mark them cacheable:
+
+   ```
+
+
+   'use cache'; 'use cache';  const product = await getProduct(id);  const  product =  await  getProduct(id);
+
+
+   ```
+
+   This tells Next.js that caching is safe for that data.
+
+## **How PPR Fits with Other Rendering Strategies**
+
+Partial Prerendering doesn’t replace SSR, SSG, ISR, or CSR - but *coordinates with them*. While U11D’s articles give a great overview of traditional strategies like SSG, SSR, and ISR, PPR adds a hybrid strategy that sits between:
+
+* **SSG/ISR:** Good for full static pages or pages that regenerate occasionally.
+* **SSR:** Ideal for real-time personalized content.
+* **CSR:** Great for highly interactive client-heavy UI.
+* **PPR (Next.js 16):** Combines static cached shells with streaming dynamic content.
+
+Think of PPR as a *component-level SSG + dynamic hybrid -* fast to load like SSG, flexible like SSR.
+
+## **Wrapping Up**
+
+Next.js 16 elevates Partial Prerendering from an experimental concept to a practical, integrated performance strategy through **Cache Components** and React Suspense. It’s especially powerful for complex, dynamic sites like e-commerce stores, where you want the benefits of static pre-rendering *and* dynamic personalization without sacrificing UX or SEO.
+
+By serving instantly usable HTML and streaming dynamic parts in parallel, PPR bridges the traditional divide between static and dynamic rendering - helping your app *feel* faster while staying robust and scalable.
+
+If you’re building with Next.js 16, definitely explore PPR alongside other strategies like SSR, ISR, and CSR to find the most performance-optimized combination for your routes.
+
+RELATED POSTS
+
+[![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='48'%20width='48'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/jpeg;base64,/9j/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wgARCAAUABQDASIAAhEBAxEB/8QAGgABAAIDAQAAAAAAAAAAAAAAAAQFAQIDBv/EABcBAAMBAAAAAAAAAAAAAAAAAAADBAL/2gAMAwEAAhADEAAAAban9DVqq6Jo1nQZLAAf/8QAGxAAAgIDAQAAAAAAAAAAAAAAAQMAAhESIQT/2gAIAQEAAQUCNdVILB6LL6caqqQ8jsxGEi3/xAAWEQEBAQAAAAAAAAAAAAAAAAABEDH/2gAIAQMBAT8BY7P/xAAUEQEAAAAAAAAAAAAAAAAAAAAg/9oACAECAQE/AR//xAAfEAABAwMFAAAAAAAAAAAAAAABAAIRAxAxEyAhMmH/2gAIAQEABj8CJGYQDq+q13luVJ6jZlf/xAAbEAEBAQEBAAMAAAAAAAAAAAABEQAhMRBBUf/aAAgBAQABPyFEgBRfDd/5HxH6nwYKoTu58aArXuJx7bkBQLuBXn7v/9oADAMBAAIAAwAAABDzB/3/xAAYEQADAQEAAAAAAAAAAAAAAAAAAREQMf/aAAgBAwEBPxCKq87CbP/EABgRAAIDAAAAAAAAAAAAAAAAAAEQITFB/9oACAECAQE/EJxCl//EABkQAQEBAQEBAAAAAAAAAAAAAAERACFBMf/aAAgBAQABPxBF2xak4p6GTMw6xOrjnyc5irmgCqpYBikxto/DPNYHeZ1AQ8c35S2acGNQRv/Z)
+
+Michał Miler
+
+Senior Software Engineer
+
+## AWS Amplify vs Vercel: Complete Pricing Comparison for Next.js Applications
+
+Feb 18, 20268 min read
+
+![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='282'%20width='517'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAIAAADwazoUAAAACXBIWXMAAAsTAAALEwEAmpwYAAACbUlEQVR42j2S20/aYBiHKwc52SpigZYCUqQcyqlQaAtIgSIHC2LBgTrURfGwOJ3ozJaAm1dbpskutiWL2cWS3Sy72P+4j5gt+W6+5H3yO7wvhE7ZMBVBqBc9Wl9AF4kYkgkjx83ks0gph0hZRBLgYtqUYwxcWM9Q07Rb7XWo3TYVDkDIOoWBj1vjpaZDgGRNGYCVzY36QqeBdmX0Sc2iFOfqGbiQNAphA+PVUk61B1e5JjCmBrIeUkuF9NGEiQdqYLpt332KnzwjzveIs03HoGXbKs83BFiMG9J+XXhRswSc2lUO6NFwUBeJGVPAZNWiKNb+DnH6jv30ufLzLv9wRo169oMm2iuZVzNIMW5MBf7xkEtDkhoKpKX1DA+LNVQ5jbz5KH370f3zvvD1ofPr+8bvt7n7vudImm8kjPz/5BMYmyL8+jBIW8eUTe/+IPDyIjF6EXs9jN908f1D//BV+nbIjq+522FqXLWtpZAsaGdRuwSagphZbtlSPopcbJEHHfeOjHcGwfM8UsnPrhRmqzlYkizyCX2163vexLuDyNm6a6vr3WMRYaIs2eurDqXn28uaSzvUMY+I/cAhAEA3oPmoLtl2b3+QvsjYRhltHDMXNXz9lLnOm1dYOAOV8KqwICZgvuXqXnJjySZXbGsAA62G9LGgLpqY4S7Zm0P6vEX0BLMoO9tDflQjWmlkGQLu2TmhgjVl50YZlzk4z5qyoH+Pxgf2tzQdcKnIFbx5k7k7iV8CX5SODpliorVStFehIl4V0UrJXo/NJSfnZeKD+iimcoItPD63hgQCCr59TF+VsHrBUmuQbTDgN9B/ASPLhVYZbw3oAAAAAElFTkSuQmCC)](/blog/vercel-vs-aws-amplify-pricing-nextjs/)[![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='48'%20width='48'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/jpeg;base64,/9j/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wgARCAAUABQDASIAAhEBAxEB/8QAGgABAAIDAQAAAAAAAAAAAAAAAAQFAQIDBv/EABcBAAMBAAAAAAAAAAAAAAAAAAADBAL/2gAMAwEAAhADEAAAAban9DVqq6Jo1nQZLAAf/8QAGxAAAgIDAQAAAAAAAAAAAAAAAQMAAhESIQT/2gAIAQEAAQUCNdVILB6LL6caqqQ8jsxGEi3/xAAWEQEBAQAAAAAAAAAAAAAAAAABEDH/2gAIAQMBAT8BY7P/xAAUEQEAAAAAAAAAAAAAAAAAAAAg/9oACAECAQE/AR//xAAfEAABAwMFAAAAAAAAAAAAAAABAAIRAxAxEyAhMmH/2gAIAQEABj8CJGYQDq+q13luVJ6jZlf/xAAbEAEBAQEBAAMAAAAAAAAAAAABEQAhMRBBUf/aAAgBAQABPyFEgBRfDd/5HxH6nwYKoTu58aArXuJx7bkBQLuBXn7v/9oADAMBAAIAAwAAABDzB/3/xAAYEQADAQEAAAAAAAAAAAAAAAAAAREQMf/aAAgBAwEBPxCKq87CbP/EABgRAAIDAAAAAAAAAAAAAAAAAAEQITFB/9oACAECAQE/EJxCl//EABkQAQEBAQEBAAAAAAAAAAAAAAERACFBMf/aAAgBAQABPxBF2xak4p6GTMw6xOrjnyc5irmgCqpYBikxto/DPNYHeZ1AQ8c35S2acGNQRv/Z)
+
+Michał Miler
+
+Senior Software Engineer
+
+## Next.js 16 SSG on AWS Amplify: A Practical, Cost-Effective Deployment Guide
+
+Jan 30, 20265 min read
+
+![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='282'%20width='517'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAIAAADwazoUAAAACXBIWXMAAAsTAAALEwEAmpwYAAACqklEQVR42gGfAmD9ABoZVywnfjIriDUtjDcvjDcwjTgwjzgwkTgxlDYvlDYvkzUujjEriC4pgisnfCgkdiYicSMfax4cXxkYUwAuJ4E1LItMPKVRQKpVQq5XRLFWRLBUQq9TQqxaRa5QP6k1LpIuKYUyK4QvKX8uKHssJ3cpJHMmIW8jH2sAMyuGMyyLSDmfVUCoYEewZUu1gVrEnW/TY0SvfVG4oG7PclK5WEGkOC+TOjGZNCyJMiqDLCd8KiR2KSNxAEY0mEYzl0Y0l1E6nlE6n1k9pVk6ooxQwGY2qGwzr7dm25JXw04tjEgwj14+qWBBpUgyllU+olg9ok84nABXO6NhQKtqRbFvSrV3TLh1RrBYLp9rGbZMFaJHE6SdL9hdJ7FFLpyBW76Rac1kTbdSN6BUOaBONZlDLo4AWTmeYz6kakmvfU61ik60bzSWbzG6aT7SoEDepS3hp0LijlnmWGDXT1XCdF7Bg13EgUywa0CmXTujVDacAHRErW4+rYJRuZVYvZ1dwm84nXEvt2Ezx7M8474q54UXy5kh1GwotDkafWQ4lp9cwpZXu5FVuoZQtn5KsgCPULiNT72fXsWpZMiuacynZMikT82MKMRdD7KpKdyeIdepQNmGQ7l8RKOjX8GmYcWfXsOYWb+QUbmHS7QAUjKUXTmcYzyiaUCmbkOpckWshky8kkfJnUPS3WzwtkHhmkPPgEe6fEu2ckWuakGoYz2jWjidUDOWSC2NACQdZiogcDIkezwpiUgulEgrlUYjlmIjraAu1so87LI033ImuVEmn0ImkD8ojD4piTknhDMkfCwgdCcebAAgG18lHmgtIHM1JoI+K49BKo44IoYwG4BLFZ6EFshnFbM8Go0xHX4vIHguIXYrIHEoH2wkHWUfGl0cGFZOnQ2ecmYDQAAAAABJRU5ErkJggg==)](/blog/deploy-nextjs-16-ssg-aws-amplify/)[![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='48'%20width='48'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/jpeg;base64,/9j/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wgARCAAUABQDASIAAhEBAxEB/8QAGAABAQEBAQAAAAAAAAAAAAAAAAYEAwX/xAAXAQEBAQEAAAAAAAAAAAAAAAADBAAB/9oADAMBAAIQAxAAAAGj4z/nc1cxp3xThQVOCX//xAAeEAACAQMFAAAAAAAAAAAAAAACAwEABBQSEyEiMf/aAAgBAQABBQLyl3Ek5/JuPHWN6YVbHDUDOtm1GRPWv//EABkRAAIDAQAAAAAAAAAAAAAAAAABAhExQf/aAAgBAwEBPwFURw4hn//EABgRAAMBAQAAAAAAAAAAAAAAAAABAjEQ/9oACAECAQE/AU3WFaTz/8QAHhAAAgICAgMAAAAAAAAAAAAAAAECERIhAzFBgZH/2gAIAQEABj8CJQrSPRnm5boyXd7YpxVX4MHFUhce6sSSXw//xAAcEAEAAwADAQEAAAAAAAAAAAABABEhMUFRYbH/2gAIAQEAAT8hLXM5GBDPItYtbVsyriNY7I4/IWwcx0wbl00v9iNywF9wmAB4n//aAAwDAQACAAMAAAAQUMB8/8QAFxEAAwEAAAAAAAAAAAAAAAAAAAERIf/aAAgBAwEBPxCFomBkip//xAAXEQEBAQEAAAAAAAAAAAAAAAABABEh/9oACAECAQE/EANid3C5Df/EAB4QAQACAgIDAQAAAAAAAAAAAAEAESExQVGBkdGh/9oACAEBAAE/EKsaLoYw8gcEdrz8iGDgRiDRFm94ujHMuDIQU1wNZ33Uts4oosye4oEyDYydoSbsWNvFfkDpZM/Cf//Z)
+
+Paweł Sobolewski
+
+Senior Software Engineer
+
+## React Server and Client Components in Next.js: Understanding the Difference
+
+Dec 10, 20254 min read
+
+![](data:image/svg+xml;charset=utf-8,%3Csvg%20height='282'%20width='517'%20xmlns='http://www.w3.org/2000/svg'%20version='1.1'%3E%3C/svg%3E)
+
+![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAIAAADwazoUAAAACXBIWXMAAAsTAAALEwEAmpwYAAACcklEQVR42mNggAEmFjZ2HhFRCXkRIQFGZjYGJjYuWQ1WflEGZjZGFnZGZlYGJiYGDMAI1MjAyMzIxMbBJyOjZCotLs/OJcjOLSZh5MWjqMcsIMLMJ8DExcXEzszIyghUyMgI08rCys3KzsvAyM4jpmrgmxWQ2WnrnignayQlZWrkXyRpG8qlZcSlqsQpy88hxsYmwMLCycTKxsjKysjCwsjAzi3MyiUuo2FtHV2l65Tq7p0TGlGdmNbuZJMSkTdDL7lRwC2Q29aY10iSR5WHWwroIFZBYXZODmZ2NiYGYVkTCVUX7/TOgIzugMDS7tKJi9tmNZfMaK5aNW/RsaiZW9TKG00LQjVi9HSClU38VNWMBZV0hSyslcwNZRhya5bk1yybsvRobduq1csOvzp/8vbGVTsX7jp77MHLJ+/3PHjRcuZM36mtrXt6+nc3LNhf2Tc/parHZ+qiuMWL4xlMnVMsXLOjy+dEJjTVZzZtmLxoQ/vE/sqZ03p2bN1yqWr9MbOWXtuW3KDuCKdiB/9ss8QKZ8dQLVNbaW9fLQYWTmFWPkUxdXvXtBYz+3gv+7i0uLrklA5n2/SI3OlayU28riEcNgZ8FrK8mvzcstwcwiy8omw8vMyiIhwMrOw8bJzAiOXik9Y2DCr0S+90C8hVU7WSkTQ29CuStAnl1jDmUFVlkxFiF2VjFWBm4mJiBoc2KyswgpmAMczKxMTGyMzJJ6FhaOmjqqDCySXIySMhaezDq2jIIiDOLCDExMPLxMXCxM7ECIwhRlj6gCcwZhYODl5xMXEZcREBYGpjZGLnkdFh45cAJS9WDmAKA1qDrIGBgQEASVeFkS7iorUAAAAASUVORK5CYII=)](/blog/react-server-and-client-components-in-next-js/)
+
+[Show all blog posts](/blog/)

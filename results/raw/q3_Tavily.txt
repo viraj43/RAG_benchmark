@@ -1,0 +1,1422 @@
+Title: Dependencies with yield - FastAPI
+[Skip to content](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#dependencies-with-yield)
+
+
+
+1. [FastAPI](https://fastapi.tiangolo.com/)
+2. [Learn](https://fastapi.tiangolo.com/learn/)
+3. [Tutorial - User Guide](https://fastapi.tiangolo.com/tutorial/)
+4. [Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/)
+
+# Dependencies with yield[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#dependencies-with-yield)
+
+FastAPI supports dependencies that do some extra steps after finishing.
+
+To do this, use `yield` instead of `return`, and write the extra steps (code) after.
+
+Tip
+
+Make sure to use `yield` one single time per dependency.
+
+Technical Details
+
+Any function that is valid to use with:
+
+* [`@contextlib.contextmanager`](https://docs.python.org/3/library/contextlib.html#contextlib.contextmanager) or
+* [`@contextlib.asynccontextmanager`](https://docs.python.org/3/library/contextlib.html#contextlib.asynccontextmanager)
+
+would be valid to use as a **FastAPI** dependency.
+
+In fact, FastAPI uses those two decorators internally.
+
+## A database dependency with `yield`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#a-database-dependency-with-yield)
+
+For example, you could use this to create a database session and close it after finishing.
+
+Only the code prior to and including the `yield` statement is executed before creating a response:
+
+```
+async def get_db():
+    db = DBSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
+```
+
+The yielded value is what is injected into *path operations* and other dependencies:
+
+```
+async def get_db():
+    db = DBSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
+```
+
+The code following the `yield` statement is executed after the response:
+
+```
+async def get_db():
+    db = DBSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
+```
+
+Tip
+
+You can use `async` or regular functions.
+
+**FastAPI** will do the right thing with each, the same as with normal dependencies.
+
+## A dependency with `yield` and `try`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#a-dependency-with-yield-and-try)
+
+If you use a `try` block in a dependency with `yield`, you'll receive any exception that was thrown when using the dependency.
+
+For example, if some code at some point in the middle, in another dependency or in a *path operation*, made a database transaction "rollback" or created any other exception, you would receive the exception in your dependency.
+
+So, you can look for that specific exception inside the dependency with `except SomeException`.
+
+In the same way, you can use `finally` to make sure the exit steps are executed, no matter if there was an exception or not.
+
+```
+async def get_db():
+    db = DBSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
+```
+
+## Sub-dependencies with `yield`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#sub-dependencies-with-yield)
+
+You can have sub-dependencies and "trees" of sub-dependencies of any size and shape, and any or all of them can use `yield`.
+
+**FastAPI** will make sure that the "exit code" in each dependency with `yield` is run in the correct order.
+
+For example, `dependency_c` can have a dependency on `dependency_b`, and `dependency_b` on `dependency_a`:
+
+```
+from typing import Annotated
+
+from fastapi import Depends
+
+
+async def dependency_a():
+    dep_a = generate_dep_a()
+    try:
+        yield dep_a
+    finally:
+        dep_a.close()
+
+
+async def dependency_b(dep_a: Annotated[DepA, Depends(dependency_a)]):
+    dep_b = generate_dep_b()
+    try:
+        yield dep_b
+    finally:
+        dep_b.close(dep_a)
+
+
+async def dependency_c(dep_b: Annotated[DepB, Depends(dependency_b)]):
+    dep_c = generate_dep_c()
+    try:
+        yield dep_c
+    finally:
+        dep_c.close(dep_b)
+
+```
+
+🤓 Other versions and variants
+
+Tip
+
+Prefer to use the `Annotated` version if possible.
+
+```
+from fastapi import Depends
+
+
+async def dependency_a():
+    dep_a = generate_dep_a()
+    try:
+        yield dep_a
+    finally:
+        dep_a.close()
+
+
+async def dependency_b(dep_a=Depends(dependency_a)):
+    dep_b = generate_dep_b()
+    try:
+        yield dep_b
+    finally:
+        dep_b.close(dep_a)
+
+
+async def dependency_c(dep_b=Depends(dependency_b)):
+    dep_c = generate_dep_c()
+    try:
+        yield dep_c
+    finally:
+        dep_c.close(dep_b)
+
+```
+
+And all of them can use `yield`.
+
+In this case `dependency_c`, to execute its exit code, needs the value from `dependency_b` (here named `dep_b`) to still be available.
+
+And, in turn, `dependency_b` needs the value from `dependency_a` (here named `dep_a`) to be available for its exit code.
+
+```
+from typing import Annotated
+
+from fastapi import Depends
+
+
+async def dependency_a():
+    dep_a = generate_dep_a()
+    try:
+        yield dep_a
+    finally:
+        dep_a.close()
+
+
+async def dependency_b(dep_a: Annotated[DepA, Depends(dependency_a)]):
+    dep_b = generate_dep_b()
+    try:
+        yield dep_b
+    finally:
+        dep_b.close(dep_a)
+
+
+async def dependency_c(dep_b: Annotated[DepB, Depends(dependency_b)]):
+    dep_c = generate_dep_c()
+    try:
+        yield dep_c
+    finally:
+        dep_c.close(dep_b)
+
+```
+
+🤓 Other versions and variants
+
+Tip
+
+Prefer to use the `Annotated` version if possible.
+
+```
+from fastapi import Depends
+
+
+async def dependency_a():
+    dep_a = generate_dep_a()
+    try:
+        yield dep_a
+    finally:
+        dep_a.close()
+
+
+async def dependency_b(dep_a=Depends(dependency_a)):
+    dep_b = generate_dep_b()
+    try:
+        yield dep_b
+    finally:
+        dep_b.close(dep_a)
+
+
+async def dependency_c(dep_b=Depends(dependency_b)):
+    dep_c = generate_dep_c()
+    try:
+        yield dep_c
+    finally:
+        dep_c.close(dep_b)
+
+```
+
+The same way, you could have some dependencies with `yield` and some other dependencies with `return`, and have some of those depend on some of the others.
+
+And you could have a single dependency that requires several other dependencies with `yield`, etc.
+
+You can have any combinations of dependencies that you want.
+
+**FastAPI** will make sure everything is run in the correct order.
+
+Technical Details
+
+This works thanks to Python's [Context Managers](https://docs.python.org/3/library/contextlib.html).
+
+**FastAPI** uses them internally to achieve this.
+
+## Dependencies with `yield` and `HTTPException`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#dependencies-with-yield-and-httpexception)
+
+You saw that you can use dependencies with `yield` and have `try` blocks that try to execute some code and then run some exit code after `finally`.
+
+You can also use `except` to catch the exception that was raised and do something with it.
+
+For example, you can raise a different exception, like `HTTPException`.
+
+Tip
+
+This is a somewhat advanced technique, and in most of the cases you won't really need it, as you can raise exceptions (including `HTTPException`) from inside of the rest of your application code, for example, in the *path operation function*.
+
+But it's there for you if you need it. 🤓
+
+```
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
+
+
+data = {
+    "plumbus": {"description": "Freshly pickled plumbus", "owner": "Morty"},
+    "portal-gun": {"description": "Gun to create portals", "owner": "Rick"},
+}
+
+
+class OwnerError(Exception):
+    pass
+
+
+def get_username():
+    try:
+        yield "Rick"
+    except OwnerError as e:
+        raise HTTPException(status_code=400, detail=f"Owner error: {e}")
+
+
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id not in data:
+        raise HTTPException(status_code=404, detail="Item not found")
+    item = data[item_id]
+    if item["owner"] != username:
+        raise OwnerError(username)
+    return item
+
+```
+
+🤓 Other versions and variants
+
+Tip
+
+Prefer to use the `Annotated` version if possible.
+
+```
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
+
+
+data = {
+    "plumbus": {"description": "Freshly pickled plumbus", "owner": "Morty"},
+    "portal-gun": {"description": "Gun to create portals", "owner": "Rick"},
+}
+
+
+class OwnerError(Exception):
+    pass
+
+
+def get_username():
+    try:
+        yield "Rick"
+    except OwnerError as e:
+        raise HTTPException(status_code=400, detail=f"Owner error: {e}")
+
+
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: str = Depends(get_username)):
+    if item_id not in data:
+        raise HTTPException(status_code=404, detail="Item not found")
+    item = data[item_id]
+    if item["owner"] != username:
+        raise OwnerError(username)
+    return item
+
+```
+
+If you want to catch exceptions and create a custom response based on that, create a [Custom Exception Handler](https://fastapi.tiangolo.com/tutorial/handling-errors/#install-custom-exception-handlers).
+
+## Dependencies with `yield` and `except`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#dependencies-with-yield-and-except)
+
+If you catch an exception using `except` in a dependency with `yield` and you don't raise it again (or raise a new exception), FastAPI won't be able to notice there was an exception, the same way that would happen with regular Python:
+
+```
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
+
+
+class InternalError(Exception):
+    pass
+
+
+def get_username():
+    try:
+        yield "Rick"
+    except InternalError:
+        print("Oops, we didn't raise again, Britney 😱")
+
+
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id == "portal-gun":
+        raise InternalError(
+            f"The portal gun is too dangerous to be owned by {username}"
+        )
+    if item_id != "plumbus":
+        raise HTTPException(
+            status_code=404, detail="Item not found, there's only a plumbus here"
+        )
+    return item_id
+
+```
+
+🤓 Other versions and variants
+
+Tip
+
+Prefer to use the `Annotated` version if possible.
+
+```
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
+
+
+class InternalError(Exception):
+    pass
+
+
+def get_username():
+    try:
+        yield "Rick"
+    except InternalError:
+        print("Oops, we didn't raise again, Britney 😱")
+
+
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: str = Depends(get_username)):
+    if item_id == "portal-gun":
+        raise InternalError(
+            f"The portal gun is too dangerous to be owned by {username}"
+        )
+    if item_id != "plumbus":
+        raise HTTPException(
+            status_code=404, detail="Item not found, there's only a plumbus here"
+        )
+    return item_id
+
+```
+
+In this case, the client will see an *HTTP 500 Internal Server Error* response as it should, given that we are not raising an `HTTPException` or similar, but the server will **not have any logs** or any other indication of what was the error. 😱
+
+### Always `raise` in Dependencies with `yield` and `except`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#always-raise-in-dependencies-with-yield-and-except)
+
+If you catch an exception in a dependency with `yield`, unless you are raising another `HTTPException` or similar, **you should re-raise the original exception**.
+
+You can re-raise the same exception using `raise`:
+
+```
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
+
+
+class InternalError(Exception):
+    pass
+
+
+def get_username():
+    try:
+        yield "Rick"
+    except InternalError:
+        print("We don't swallow the internal error here, we raise again 😎")
+        raise
+
+
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id == "portal-gun":
+        raise InternalError(
+            f"The portal gun is too dangerous to be owned by {username}"
+        )
+    if item_id != "plumbus":
+        raise HTTPException(
+            status_code=404, detail="Item not found, there's only a plumbus here"
+        )
+    return item_id
+
+```
+
+🤓 Other versions and variants
+
+Tip
+
+Prefer to use the `Annotated` version if possible.
+
+```
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
+
+
+class InternalError(Exception):
+    pass
+
+
+def get_username():
+    try:
+        yield "Rick"
+    except InternalError:
+        print("We don't swallow the internal error here, we raise again 😎")
+        raise
+
+
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: str = Depends(get_username)):
+    if item_id == "portal-gun":
+        raise InternalError(
+            f"The portal gun is too dangerous to be owned by {username}"
+        )
+    if item_id != "plumbus":
+        raise HTTPException(
+            status_code=404, detail="Item not found, there's only a plumbus here"
+        )
+    return item_id
+
+```
+
+Now the client will get the same *HTTP 500 Internal Server Error* response, but the server will have our custom `InternalError` in the logs. 😎
+
+## Execution of dependencies with `yield`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#execution-of-dependencies-with-yield)
+
+The sequence of execution is more or less like this diagram. Time flows from top to bottom. And each column is one of the parts interacting or executing code.
+
+Info
+
+Only **one response** will be sent to the client. It might be one of the error responses or it will be the response from the *path operation*.
+
+After one of those responses is sent, no other response can be sent.
+
+Tip
+
+If you raise any exception in the code from the *path operation function*, it will be passed to the dependencies with yield, including `HTTPException`. In most cases you will want to re-raise that same exception or a new one from the dependency with `yield` to make sure it's properly handled.
+
+## Early exit and `scope`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#early-exit-and-scope)
+
+Normally the exit code of dependencies with `yield` is executed **after the response** is sent to the client.
+
+But if you know that you won't need to use the dependency after returning from the *path operation function*, you can use `Depends(scope="function")` to tell FastAPI that it should close the dependency after the *path operation function* returns, but **before** the **response is sent**.
+
+```
+from typing import Annotated
+
+from fastapi import Depends, FastAPI
+
+app = FastAPI()
+
+
+def get_username():
+    try:
+        yield "Rick"
+    finally:
+        print("Cleanup up before response is sent")
+
+
+@app.get("/users/me")
+def get_user_me(username: Annotated[str, Depends(get_username, scope="function")]):
+    return username
+
+```
+
+🤓 Other versions and variants
+
+Tip
+
+Prefer to use the `Annotated` version if possible.
+
+```
+from fastapi import Depends, FastAPI
+
+app = FastAPI()
+
+
+def get_username():
+    try:
+        yield "Rick"
+    finally:
+        print("Cleanup up before response is sent")
+
+
+@app.get("/users/me")
+def get_user_me(username: str = Depends(get_username, scope="function")):
+    return username
+
+```
+
+`Depends()` receives a `scope` parameter that can be:
+
+* `"function"`: start the dependency before the *path operation function* that handles the request, end the dependency after the *path operation function* ends, but **before** the response is sent back to the client. So, the dependency function will be executed **around** the *path operation **function***.
+* `"request"`: start the dependency before the *path operation function* that handles the request (similar to when using `"function"`), but end **after** the response is sent back to the client. So, the dependency function will be executed **around** the **request** and response cycle.
+
+If not specified and the dependency has `yield`, it will have a `scope` of `"request"` by default.
+
+### `scope` for sub-dependencies[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#scope-for-sub-dependencies)
+
+When you declare a dependency with a `scope="request"` (the default), any sub-dependency needs to also have a `scope` of `"request"`.
+
+But a dependency with `scope` of `"function"` can have dependencies with `scope` of `"function"` and `scope` of `"request"`.
+
+This is because any dependency needs to be able to run its exit code before the sub-dependencies, as it might need to still use them during its exit code.
+
+## Dependencies with `yield`, `HTTPException`, `except` and Background Tasks[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#dependencies-with-yield-httpexception-except-and-background-tasks)
+
+Dependencies with `yield` have evolved over time to cover different use cases and fix some issues.
+
+If you want to see what has changed in different versions of FastAPI, you can read more about it in the advanced guide, in [Advanced Dependencies - Dependencies with `yield`, `HTTPException`, `except` and Background Tasks](https://fastapi.tiangolo.com/advanced/advanced-dependencies/#dependencies-with-yield-httpexception-except-and-background-tasks).
+
+## Context Managers[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#context-managers)
+
+### What are "Context Managers"[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#what-are-context-managers)
+
+"Context Managers" are any of those Python objects that you can use in a `with` statement.
+
+For example, [you can use `with` to read a file](https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files):
+
+```
+with open("./somefile.txt") as f:
+    contents = f.read()
+    print(contents)
+
+```
+
+Underneath, the `open("./somefile.txt")` creates an object that is called a "Context Manager".
+
+When the `with` block finishes, it makes sure to close the file, even if there were exceptions.
+
+When you create a dependency with `yield`, **FastAPI** will internally create a context manager for it, and combine it with some other related tools.
+
+### Using context managers in dependencies with `yield`[¶](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#using-context-managers-in-dependencies-with-yield)
+
+This is, more or less, an "advanced" idea.
+
+If you are just starting with **FastAPI** you might want to skip it for now.
+
+In Python, you can create Context Managers by [creating a class with two methods: `__enter__()` and `__exit__()`](https://docs.python.org/3/reference/datamodel.html#context-managers).
+
+You can also use them inside of **FastAPI** dependencies with `yield` by using
+`with` or `async with` statements inside of the dependency function:
+
+```
+class MySuperContextManager:
+    def __init__(self):
+        self.db = DBSession()
+
+    def __enter__(self):
+        return self.db
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.db.close()
+
+
+async def get_db():
+    with MySuperContextManager() as db:
+        yield db
+
+```
+
+Tip
+
+Another way to create a context manager is with:
+
+* [`@contextlib.contextmanager`](https://docs.python.org/3/library/contextlib.html#contextlib.contextmanager) or
+* [`@contextlib.asynccontextmanager`](https://docs.python.org/3/library/contextlib.html#contextlib.asynccontextmanager)
+
+using them to decorate a function with a single `yield`.
+
+That's what **FastAPI** uses internally for dependencies with `yield`.
+
+But you don't have to use the decorators for FastAPI dependencies (and you shouldn't).
+
+FastAPI will do it for you internally.
+
+---
+
+Title: Dependencies with Yield - Theory | FastAPI Basics | FastAPI Tutorial
+[![FastAPI Interactive Tutorials](/fit-logo.png)
+
+FastAPIInteractive](https://fastapiinteractive.com)
+
+Loading FastAPI Runtime... (0%)
+
+
+
+FastAPI Basics• Lesson 33
+
+# Dependencies with Yield
+
+Learn to create dependencies that perform cleanup operations using yield for resource management.
+
+## 🎯 What You'll Learn
+
+* •Create dependencies with cleanup code using yield
+* •Use try/finally blocks for guaranteed resource cleanup
+* •Understand the execution order of yield dependencies
+* •Implement database session management following official FastAPI patterns
+
+# Dependencies with Yield
+
+## 🎯 What You'll Learn
+
+* Create dependencies that perform cleanup operations using yield
+* Use try/finally blocks for guaranteed cleanup
+* Understand the execution flow of yield dependencies
+* Implement database session management with proper resource cleanup
+
+## 📚 Theory
+
+FastAPI supports dependencies that do **extra steps after finishing**. To do this, use `yield` instead of `return`, and write the extra steps (code) after.
+
+### A Database Dependency with `yield`
+
+You can use this to create a database session and close it after finishing. Only the code prior to and including the `yield` statement is executed before creating a response:
+
+```
+async def get_db try yield finally
+```
+
+The **yielded value** is what is injected into path operations and other dependencies. The code following the `yield` statement is executed **after creating the response** but **before sending it**.
+
+### Execution Flow
+
+When you use `yield` in a dependency:
+
+1. **Setup Code**: Code before `yield` runs before the endpoint executes
+2. **Value Injection**: The yielded value is injected into your endpoint
+3. **Endpoint Execution**: Your path operation function runs
+4. **Response Creation**: FastAPI creates the response
+5. **Cleanup Code**: Code after `yield` runs before sending the response
+
+### Dependencies with `yield` and `try`
+
+If you use a `try` block in a dependency with `yield`, you'll receive any exception that was thrown when using the dependency. You can use `except` to handle specific exceptions and `finally` to ensure cleanup always happens:
+
+```
+async def get_db try yield except # Handle any exception that occurred during endpoint execution raise finally# This always runs, even if there was an exception
+```
+
+## 🔧 Key Concepts
+
+* **Resource Management**: Automatically clean up resources like database connections
+* **Exception Handling**: Use try/except blocks to handle errors during cleanup
+* **Execution Order**: FastAPI ensures cleanup code runs in the correct order for nested dependencies
+* **Context Managers**: Yield dependencies work similarly to Python's context managers
+
+## 💡 Best Practices
+
+* Always use `yield` only once per dependency function
+* Use try/finally blocks to ensure cleanup code always runs
+* Handle specific exceptions in except blocks when needed
+* Re-raise exceptions to maintain proper error handling
+* Keep setup and cleanup code minimal and focused
+
+## 🚀 Real-World Applications
+
+* **Database Sessions**: Create and close database connections
+* **File Handling**: Open and close files safely
+* **Cache Management**: Initialize and cleanup cache connections
+* **External API Clients**: Setup and teardown HTTP clients
+* **Logging Context**: Setup request-specific logging
+
+## 🔗 Additional Resources
+
+* [FastAPI Dependencies with Yield](https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/)
+* [Python Context Managers](https://docs.python.org/3/library/contextlib.html)
+
+## 💡 Hint
+
+Use yield instead of return to create dependencies that can perform cleanup operations. Follow the official pattern: setup code before yield, cleanup code in finally block.
+
+### Ready to Practice?
+
+Now that you understand the theory, let's put it into practice with hands-on coding!
+
+[Start Interactive Lesson](/fastapi-basics/26-dependencies-with-yield)
+
+---
+
+Title: FastAPI Dependencies with yield: A Comprehensive Tutorial | Orchestra
+![](https://cdn.prod.website-files.com/6540d9cead2d796446b60a56/692ddf0c320e51d7a073ceff_Hero%20background.avif)
+
+GUIDE
+
+January 4, 2024
+
+# FastAPI Dependencies with yield: A Comprehensive Tutorial
+
+FastAPI, a robust Python web framework, supports dependencies with yield, a feature that leverages Python's generator functions to create dependencies that can perform cleanup actions after the response is sent. This is particularly useful for resource management scenarios like database sessions, file handling, or network connections. In this tutorial, we'll explore how to use dependencies with yield in FastAPI, complete with Python code snippets.
+
+![](https://cdn.prod.website-files.com/6541750d4db1a741ed66738c/65417910165847a357ad7379_image%2036.png)
+
+Hugo Lu
+
+CEO | Orchestra
+
+![FastAPI Dependencies with yield: A Comprehensive Tutorial](https://cdn.prod.website-files.com/6541750d4db1a741ed66738c/6596b5f0dd36623e9db71542_FastAPI_Dependencies%20yield.png)
+
+TABLE OF CONTENTS
+
+[Text Link](#)
+
+[Text Link](#)
+
+### Preface
+
+*When we started* [*Orchestra*](https://getorchestra.io)*, we knew we wanted to create a centralised repository of content for data engineers to learn things.*
+
+‍
+
+*It was never just about learning simple facts, but was also around creating tutorials, best practices, thought leadership and so on. It was also never intended to simply focus on the technical aspect of data engineering, but to extend to analytics engineering, building BI, leadership, data product management, finops, and all sorts.*
+
+‍
+
+*This is why you see so many fascinating* [*integrations*](https://getorchestra.io/integrations) *on our roadmap and in the platform. We want to be able to be the beating heart of any data-driven organisation.*
+
+‍
+
+*It's also why we're expanding with a* ***FAST API &*** [***Pydantic***](https://docs.pydantic.dev/latest/) ***Glossary Project.***
+
+‍
+
+*This is is a combination of our own proprietary work, as well as the advances in Gen AI that we use to generate basic information and article structure so users can use* [*Orchestra*](https://getorchestra.io/product) *as the one-stop-shop for all things data.*
+
+‍
+
+*Be that* [*API Documentation*](https://fastapi.tiangolo.com/)*, Technical definition, Competitive analysis, or an understanding of use-cases.*
+
+*So without further ado, let’s dive into some* [*Fast API*](https://www.datacamp.com/tutorial/introduction-fastapi-tutorial) *and* [*Pydantic*](https://docs.pydantic.dev/latest/) *Basics.*
+
+‍
+
+*Want to see how Orchestra is saving Data Teams hours building and maintaining Data and Gen AI Pipelines? Check us out below.*
+
+‍
+
+## Understanding Dependencies with yield
+
+A dependency with **yield** in FastAPI is a Python generator function. It first yields a value that is injected into the path operation function. After the response is sent, the code following the **yield** statement is executed, allowing for cleanup or teardown actions.
+
+### Basic Example
+
+Let's start with a simple example of a dependency that connects to a database, yields a session, and then closes it after the request is handled.
+
+```
+from fastapi import FastAPI, Depends from sqlalchemy import create_engine from sqlalchemy.orm import sessionmaker SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db" engine = create_engine(SQLALCHEMY_DATABASE_URL) SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) app = FastAPI() def get_db(): db = SessionLocal() try: yield db finally: db.close() @app.get("/items/") def read_items(db = Depends(get_db)): # Perform operations with db return {"data": "sample data"} 
+```
+
+In this example, the get\_db function is a dependency that creates a new database session and yields it. After the path operation read\_items completes, the finally block ensures the database session is closed.
+
+### Advanced Usage
+
+Dependencies with **yield** can be used to manage more complex scenarios, such as temporarily modifying global settings or handling transactional operations.
+
+#### Example: Transaction Management
+
+Here's an example where we use a dependency to handle a database transaction:
+
+```
+def get_transactional_db(): db = SessionLocal() try: yield db db.commit() except: db.rollback() raise finally: db.close() @app.post("/create-item/") def create_item(item_data: dict, db = Depends(get_transactional_db)): # Create an item in the db return {"item_id": 123} 
+```
+
+In this case, the dependency get\_transactional\_db not only yields a database session but also handles transactions by committing if everything goes well or rolling back in case of exceptions.
+
+### Best Practices
+
+1. **Resource Management**: Use dependencies with **yield** for effective resource management, ensuring that resources like database connections are properly closed.
+2. **Error Handling**: Implement robust error handling within your dependencies to catch and deal with exceptions gracefully.
+3. **Testing**: Test these dependencies separately to ensure that the setup and teardown actions are performed correctly.
+
+## Conclusion
+
+Using dependencies with **yield** in FastAPI is an elegant way to handle resource management and cleanup actions in your API. This feature allows for cleaner, more maintainable, and efficient code, especially when dealing with resources that need explicit closure or disposal.
+
+## Find out more about Orchestra
+
+[Orchestra](https://getorchestra.io) is a platform for getting the most value out of your data as humanely possible. It’s also a [feature-rich orchestration](https://www.getorchestra.io/product) tool, and can solve for multiple [use-cases and solutions](https://www.getorchestra.io/solutions). Our docs are here, but why not also check out our [integrations](https://www.getorchestra.io/integrations) - we manage these so you can get started with your pipelines *instantly*. We also have a [blog](https://www.getorchestra.io/blog), written by the Orchestra team + guest writers, and some [whitepapers](https://www.getorchestra.io/whitepapers) for more in-depth reads.
+
+SUBSCRIBE
+
+## SIGN UP TO OUR MAILING LIST
+
+Stay informed on how companies around the world are solving pains with Orchestra
+
+Thank you! Your submission has been received!
+
+Oops! Something went wrong while submitting the form.
+
+![](https://cdn.prod.website-files.com/6540d9cead2d796446b60a56/69324b07a61b523488a01958_Mailing%20List%20BG%20grey%20200.avif)
+
+## More From The Orchestra Guides
+
+[View all](/guides)
+
+No items found.
+
+![](https://cdn.prod.website-files.com/6540d9cead2d796446b60a56/692fa4665bfedd1837af9efe_Footer%20Logo%20Container.svg)
+
+[Home](/)[Product](/product)[Solutions](/solutions)[Integrations](/integrations)[Careers - we're hiring!](/careers)
+
+[Orchestra vs. dbt CloudTM](https://www.getorchestra.io/blog/dbt-cloud-alternatives-orchestra-vs-dbt-cloud)[Orchestra. Astronomer](https://www.getorchestra.io/blog/ochestra-vs-astronomer-key-differences)[Orchestra. Dagster](https://www.getorchestra.io/blog/orchestra-vs-dagster-2025)[Cost Calculator](/calculator)
+
+[Github](https://github.com/orchestra-hq)[Substack](https://dataopsleadership.substack.com/)[Linkedin](https://www.linkedin.com/company/orchestra-go/?viewAsMember=true)[YouTube](https://www.youtube.com/@OrchestraDataPlatform)[Contact Us](/tell-us-more)
+
+Resources
+
+[Blog](/blog)[Docs](https://docs.getorchestra.io)[Press Kit](https://drive.google.com/drive/folders/11b7qJ__RgLWtSruxhYJ0oefzKmYebAe7?usp=sharing)[Live Demo](https://demo.getorchestra.io)[Feedback](/feedback)[What type of engineer are you?](https://www.getorchestra.io/data-engineering-quiz-find-out-your-data-eng-type)
+
+2026 Orchestra Technologies Limited
+
+[Privacy Policy](/privacy)[Terms of Service](https://cdn.prod.website-files.com/6540d9cead2d796446b60a56/65c3bb3d25baf9326a211501_Orchestra%20SaaS%20Agreement%20-%2001.02.24%20-%20117718178_1%20(1).pdf)[Continuity Plan](https://cdn.prod.website-files.com/6540d9cead2d796446b60a56/668d65a71a2a6d6ea32c1ffa_Business%20Continuity%20Plan.pdf)[Incident Response](https://cdn.prod.website-files.com/6540d9cead2d796446b60a56/668d65a34752d949cfecb33c_Incident%20Response%20Plan.pdf)[Cookie Policy](/cookies)[T&C’s](/terms)
+
+---
+
+Title: python - FastAPI dependencies (yield): how to call them manually? - Stack Overflow
+### [current community](https://stackoverflow.com)
+
+### your communities
+
+### [more stack exchange communities](https://stackexchange.com/sites)
+
+Communities for your favorite technologies. [Explore all Collectives](/collectives-all)
+
+Stack Overflow for Teams is now called **Stack Internal**. Bring the best of human thought and AI automation together at your work.
+
+Bring the best of human thought and AI automation together at your work.
+[Learn more](https://stackoverflow.co/internal/?utm_medium=referral&utm_source=stackoverflow-community&utm_campaign=side-bar&utm_content=explore-teams-compact)
+
+##### Collectives™ on Stack Overflow
+
+Find centralized, trusted content and collaborate around the technologies you use most.
+
+**Stack Internal**
+
+Knowledge at work
+
+Bring the best of human thought and AI automation together at your work.
+
+# [FastAPI dependencies (yield): how to call them manually?](/questions/66558958/fastapi-dependencies-yield-how-to-call-them-manually)
+
+FastAPI uses Depends() to inject variables either returned or yielded. Eg, [FastAPI/SQL](https://fastapi.tiangolo.com/tutorial/sql-databases/?h=sqlalchemy#main-fastapi-app):
+
+`# Dependency
+def get_db():
+db = SessionLocal()
+try:
+yield db
+finally:
+db.close()
+...
+def create_user(db: Session = Depends(get_db)):
+...`
+
+If I wanted to use that `get_db()` somewhere else (outside a FastAPI route), how would I do that? I know it's Python core knowledge, but I can't seem to figure it out. My initial thought was `db = yield from get_db()`, but I can't call `yield from` in async functions (and don't know if it would work besides). Then I tried:
+
+`get_db()`
+`db = yield from get_db()`
+`yield from`
+`with get_db() as db:
+pass`
+
+Which fails as the original `get_db()` isn't wrapped as a `@contextmanager`. (Note, I don't want to decorate this - I'm using `get_db` as an example, I need to work with more complicated dependencies). Finally, I tried `db = next(get_db())` - which works, but I don't think that's the correct solution. When/how will `finally` be invoked - when my method returns? And in some other dependencies, there's post-yield code that needs to execute; would I need to call `next()` again to ensure that code executes? Seems like `next()` isn't the right way. Any ideas?
+
+`get_db()`
+`@contextmanager`
+`get_db`
+`db = next(get_db())`
+`finally`
+`next()`
+`next()`
+![alex_noname's user avatar](https://i.sstatic.net/TnuKr.jpg?s=64)
+![lefnire's user avatar](https://www.gravatar.com/avatar/ff2dd194f7faa850a0410f93735280b8?s=64&d=identicon&r=PG)
+
+## 1 Answer 1
+
+You can use `contextmanager` not as a decorator but as a function returning context manager:
+
+`contextmanager`
+`from contextlib import contextmanager
+# Dependency
+def get_db():
+db = SessionLocal()
+try:
+yield db
+finally:
+db.close()
+# synchronously
+with contextmanager(get_db)() as session: # execute until yield. Session is yielded value
+pass
+# execute finally on exit from with`
+
+But keep in mind that the code will execute synchronously. If you want to execute it in a thread, then you can use the FastAPI tools:
+
+`import asyncio
+from contextlib import contextmanager
+from fastapi.concurrency import contextmanager_in_threadpool
+async def some_coro():
+async with contextmanager_in_threadpool(contextmanager(get_db)()) as session:
+pass`
+![alex_noname's user avatar](https://i.sstatic.net/TnuKr.jpg?s=64)
+
+## 3 Comments
+
+Add a comment
+
+![](https://www.gravatar.com/avatar/ff2dd194f7faa850a0410f93735280b8?s=48&d=identicon&r=PG)
+![](https://www.gravatar.com/avatar/f1680c66f4dac0733760f5de0d9dd1d8?s=48&d=identicon&r=PG)
+`with get_db() as session`
+![](https://i.sstatic.net/cHKnQ.png?s=64)
+`get_db`
+
+## Your Answer
+
+Thanks for contributing an answer to Stack Overflow!
+
+But *avoid* …
+
+To learn more, see our [tips on writing great answers](/help/how-to-answer).
+
+### Sign up or [log in](/users/login?ssrc=question_page&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f66558958%2ffastapi-dependencies-yield-how-to-call-them-manually%23new-answer)
+
+### Post as a guest
+
+Required, but never shown
+
+### Post as a guest
+
+Required, but never shown
+
+By clicking “Post Your Answer”, you agree to our [terms of service](https://stackoverflow.com/legal/terms-of-service/public) and acknowledge you have read our [privacy policy](https://stackoverflow.com/legal/privacy-policy).
+
+Start asking to get answers
+
+Find the answer to your question by asking.
+
+Explore related questions
+
+See similar questions with these tags.
+
+#### Linked
+
+#### Related
+
+#### [Hot Network Questions](https://stackexchange.com/questions?tab=hot)
+
+# Subscribe to RSS
+
+To subscribe to this RSS feed, copy and paste this URL into your RSS reader.
+
+![](/posts/66558958/ivc/97da?prg=4f8d3f68-28e9-4e4f-b2cc-20250dc996a8)
+
+##### [Stack Overflow](https://stackoverflow.com)
+
+##### [Business](https://stackoverflow.co/)
+
+##### [Company](https://stackoverflow.co/)
+
+##### [Stack Exchange Network](https://stackexchange.com)
+
+Site design / logo © 2026 Stack Exchange Inc; 
+user contributions licensed under 
+[CC BY-SA](https://stackoverflow.com/help/licensing)
+. 
+rev 2026.4.29.42719
+
+---
+
+Title: Add support for context manager dependencies · fastapi/fastapi · Discussion #11122 · GitHub
+## Navigation Menu
+
+# Search code, repositories, users, issues, pull requests...
+
+# Provide feedback
+
+We read every piece of feedback, and take your input very seriously.
+
+# Saved searches
+
+## Use saved searches to filter your results more quickly
+
+To see all available qualifiers, see our [documentation](https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax).
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# Add support for context manager dependencies #11122
+
+![@cofob](https://avatars.githubusercontent.com/u/49928332?s=40&v=4)
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{title}}
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{editor}}'s edit
+
+# {{editor}}'s edit
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+## [cofob](/cofob) [Feb 9, 2024](#discussion-6198331)
+
+![](https://avatars.githubusercontent.com/u/49928332?s=64&v=4)
+
+-
+
+|  |
+| --- |
+| First Check  * I added a very descriptive title here. * I used the GitHub search to find a similar question and didn't find it. * I searched the FastAPI documentation, with the integrated search. * I already searched in Google "How to X in FastAPI" and didn't find any information. * I already read and followed all the tutorial in the docs and didn't find an answer. * I already checked if it is not related to FastAPI but to [Pydantic](https://github.com/pydantic/pydantic). * I already checked if it is not related to FastAPI but to [Swagger UI](https://github.com/swagger-api/swagger-ui). * I already checked if it is not related to FastAPI but to [ReDoc](https://github.com/Redocly/redoc).  Example Code ``` from typing import Annotated, Generator from fastapi import FastAPI, Depends from contextlib import contextmanager  app = FastAPI()   def generator_dependency() -> Generator[str, None, None]:     # setup_work_here()     try:         yield "some useful data"     finally:         pass         # shutdown_work_here()   @contextmanager def contextmanager_dependency() -> Generator[str, None, None]:     # setup_work_here()     try:         yield "some useful data"     finally:         pass         # shutdown_work_here()   @app.get("/generator") def generator_endpoint(dep: Annotated[str, Depends(generator_dependency)]) -> str:     return dep   @app.get("/contextmanager") def contextmanager_endpoint(dep: Annotated[str, Depends(contextmanager_dependency)]) -> str:     return dep ``` Description I expect `/contextmanager` to work the same as `/generator`, but it doesn't. FastAPI does not use `contextmanager_dependency` as a context manager, and instead of executing it and substituting the result, it just substitutes the initialized `contextlib._GeneratorContextManager` class into `dep`.  I suggest adding support for `contextmanager` and `asynccontextmanager` to the DI system, as they are more convenient to use outside of the DI system. Operating System Linux Operating System Details *No response* FastAPI Version 0.109.2 Pydantic Version 2.6.1 Python Version Python 3.12.1 Additional Context Exception traceback at `/contextmanager`:  ``` INFO:     127.0.0.1:59372 - "GET /contextmanager HTTP/1.1" 500 Internal Server Error ERROR:    Exception in ASGI application Traceback (most recent call last):   File "/REDACTED/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 419, in run_asgi     result = await app(  # type: ignore[func-returns-value]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   File "/REDACTED/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__     return await self.app(scope, receive, send)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   File "/REDACTED/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__     await super().__call__(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/applications.py", line 123, in __call__     await self.middleware_stack(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__     raise exc   File "/REDACTED/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__     await self.app(scope, receive, _send)   File "/REDACTED/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app     raise exc   File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app     await app(scope, receive, sender)   File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 758, in __call__     await self.middleware_stack(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 778, in app     await route.handle(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 299, in handle     await self.app(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 79, in app     await wrap_app_handling_exceptions(app, request)(scope, receive, send)   File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app     raise exc   File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app     await app(scope, receive, sender)   File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 74, in app     response = await func(request)                ^^^^^^^^^^^^^^^^^^^   File "/REDACTED/lib/python3.12/site-packages/fastapi/routing.py", line 315, in app     content = await serialize_response(               ^^^^^^^^^^^^^^^^^^^^^^^^^   File "/REDACTED/lib/python3.12/site-packages/fastapi/routing.py", line 155, in serialize_response     raise ResponseValidationError( fastapi.exceptions.ResponseValidationError: 1 validation errors:   {'type': 'string_type', 'loc': ('response',), 'msg': 'Input should be a valid string', 'input': <contextlib._GeneratorContextManager object at 0x7f85bcb6e6f0>, 'url': 'https://errors.pydantic.dev/2.6/v/string_type'}  ``` |
+
+### First Check
+
+### Example Code
+
+### Description
+
+I expect `/contextmanager` to work the same as `/generator`, but it doesn't. FastAPI does not use `contextmanager_dependency` as a context manager, and instead of executing it and substituting the result, it just substitutes the initialized `contextlib._GeneratorContextManager` class into `dep`.
+
+`/contextmanager`
+`/generator`
+`contextmanager_dependency`
+`contextlib._GeneratorContextManager`
+`dep`
+
+I suggest adding support for `contextmanager` and `asynccontextmanager` to the DI system, as they are more convenient to use outside of the DI system.
+
+`contextmanager`
+`asynccontextmanager`
+
+### Operating System
+
+Linux
+
+### Operating System Details
+
+*No response*
+
+### FastAPI Version
+
+0.109.2
+
+### Pydantic Version
+
+2.6.1
+
+### Python Version
+
+Python 3.12.1
+
+### Additional Context
+
+Exception traceback at `/contextmanager`:
+
+`/contextmanager`
+`INFO: 127.0.0.1:59372 - "GET /contextmanager HTTP/1.1" 500 Internal Server Error
+ERROR: Exception in ASGI application
+Traceback (most recent call last):
+File "/REDACTED/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 419, in run_asgi
+result = await app( # type: ignore[func-returns-value]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/REDACTED/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+return await self.app(scope, receive, send)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/REDACTED/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+await super().__call__(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/applications.py", line 123, in __call__
+await self.middleware_stack(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+raise exc
+File "/REDACTED/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+await self.app(scope, receive, _send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+raise exc
+File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+await app(scope, receive, sender)
+File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 758, in __call__
+await self.middleware_stack(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 778, in app
+await route.handle(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 299, in handle
+await self.app(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 79, in app
+await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+raise exc
+File "/REDACTED/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+await app(scope, receive, sender)
+File "/REDACTED/lib/python3.12/site-packages/starlette/routing.py", line 74, in app
+response = await func(request)
+^^^^^^^^^^^^^^^^^^^
+File "/REDACTED/lib/python3.12/site-packages/fastapi/routing.py", line 315, in app
+content = await serialize_response(
+^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/REDACTED/lib/python3.12/site-packages/fastapi/routing.py", line 155, in serialize_response
+raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 1 validation errors:
+{'type': 'string_type', 'loc': ('response',), 'msg': 'Input should be a valid string', 'input': <contextlib._GeneratorContextManager object at 0x7f85bcb6e6f0>, 'url': 'https://errors.pydantic.dev/2.6/v/string_type'}`
+
+Beta
+Was this translation helpful?
+[Give feedback.](#)
+
+## Replies: 4 comments · 1 reply
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{title}}
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{editor}}'s edit
+
+# {{editor}}'s edit
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### [cofob](/cofob) [Jul 4, 2024](#discussioncomment-9953383) Author
+
+![](https://avatars.githubusercontent.com/u/49928332?s=64&v=4)
+
+-
+
+|  |
+| --- |
+| There is no solution for this at this time. It's sad that the maintainers are not following the project and responding to issues. I would have been ready to implement this, except there has been absolutely no response. Closing. |
+
+There is no solution for this at this time. It's sad that the maintainers are not following the project and responding to issues. I would have been ready to implement this, except there has been absolutely no response. Closing.
+
+Beta
+Was this translation helpful?
+[Give feedback.](#)
+
+![@shawnz](https://avatars.githubusercontent.com/u/192850?s=60&v=4)
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{title}}
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+#### [shawnz](/shawnz) [Jul 4, 2024](#discussioncomment-9953912)
+
+-
+
+|  |
+| --- |
+| Please leave this issue open as it's still a concern for me and surely many other users! |
+
+Please leave this issue open as it's still a concern for me and surely many other users!
+
+Beta
+Was this translation helpful?
+[Give feedback.](#)
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{title}}
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### [Danipulok](/Danipulok) [Jul 5, 2024](#discussioncomment-9964236)
+
+![](https://avatars.githubusercontent.com/u/45077699?s=64&v=4)
+
+-
+
+|  |
+| --- |
+| [@tiangolo](https://github.com/tiangolo) good day!  Was looking for context issues and found this.  It seems [@cofob](https://github.com/cofob) would be ready to maybe do a PR if the idea gets approved by you.  In my team we have some workaround for this, but it's not convenient at all so I'm sure 100% it's popular and on high demand.  Any possibility you could approve the idea? |
+
+[@tiangolo](https://github.com/tiangolo) good day!  
+Was looking for context issues and found this.  
+It seems [@cofob](https://github.com/cofob) would be ready to maybe do a PR if the idea gets approved by you.  
+In my team we have some workaround for this, but it's not convenient at all so I'm sure 100% it's popular and on high demand.  
+Any possibility you could approve the idea?
+
+Beta
+Was this translation helpful?
+[Give feedback.](#)
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{title}}
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{editor}}'s edit
+
+# {{editor}}'s edit
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### [YuriiMotov](/YuriiMotov) [May 27, 2025](#discussioncomment-13281384) Collaborator
+
+![](https://avatars.githubusercontent.com/u/109919500?s=64&v=4)
+
+-
+
+|  |
+| --- |
+| As a workaround you can create a generator that will use that context manager, then use this generator as dependency:  ``` from typing import Annotated, Generator from fastapi import FastAPI, Depends from contextlib import contextmanager  app = FastAPI()  @contextmanager def contextmanager_dependency() -> Generator[str, None, None]:     # setup_work_here()     try:         yield "some useful data"     finally:         pass         # shutdown_work_here()   def contextmanager_dependency_gen() -> Generator[str, None, None]:     with contextmanager_dependency() as dep:         yield dep  @app.get("/contextmanager") def contextmanager_endpoint(dep: Annotated[str, Depends(contextmanager_dependency_gen)]) -> str:     return dep ``` |
+
+As a workaround you can create a generator that will use that context manager, then use this generator as dependency:
+
+Beta
+Was this translation helpful?
+[Give feedback.](#)
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+# {{title}}
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+### [bjmc](/bjmc) [Oct 28, 2025](#discussioncomment-14805592)
+
+![](https://avatars.githubusercontent.com/u/328557?s=64&v=4)
+
+-
+
+|  |
+| --- |
+| [@cofob](https://github.com/cofob) Thank you for raising this issue.  I've run into this with a SQLAlchemy database connection, and it's kind of clunky to have a separate `@contextmanager` function  ``` @contextmanager def get_connection() -> Generator[Connection, None, None]:     # context manager to automatically commit     # or rollback at the end of the request.     with engine.begin() as connection:         yield connection   # https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#using-context-managers-in-dependencies-with-yield # "you don't have to use the decorators for FastAPI dependencies (and you shouldn't)" def _get_connection():     with get_connection() as conn:         yield conn   Database = Annotated[Connection, Depends(_get_connection)] ```  Given that FastAPI is flexible and accepting in many other contexts (e.g. `async` vs non-async) it seems like it should accept a context manager dependency, unless there's some wrinkle I'm missing. |
+
+[@cofob](https://github.com/cofob) Thank you for raising this issue.
+
+I've run into this with a SQLAlchemy database connection, and it's kind of clunky to have a separate `@contextmanager` function
+
+`@contextmanager`
+
+Given that FastAPI is flexible and accepting in many other contexts (e.g. `async` vs non-async) it seems like it should accept a context manager dependency, unless there's some wrinkle I'm missing.
+
+`async`
+
+Beta
+Was this translation helpful?
+[Give feedback.](#)
+
+![@cofob](https://avatars.githubusercontent.com/u/49928332?s=48&v=4)
+![@shawnz](https://avatars.githubusercontent.com/u/192850?s=48&v=4)
+![@bjmc](https://avatars.githubusercontent.com/u/328557?s=48&v=4)
+![@Danipulok](https://avatars.githubusercontent.com/u/45077699?s=48&v=4)
+![@YuriiMotov](https://avatars.githubusercontent.com/u/109919500?s=48&v=4)
+
+# Select a reply
+
+### Uh oh!
+
+There was an error while loading. Please reload this page.
+
+There was an error while loading. Please reload this page.
+
+## Footer
+
+### Footer navigation

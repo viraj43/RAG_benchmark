@@ -1,0 +1,385 @@
+Title: React Compiler Deep Dive: From Principles to Output
+Key Highlights:
+```tsx
+const ExpensiveList = memo(function ExpensiveList({ data, onClick }) {
+  const processed = useMemo(() => expensiveProcessing(data), [data])
+
+  const handleClick = useCallback((item) => {
+    onClick(item.id)
+  }, [onClick])
+
+  return (
+    <ul>
+      {processed.map(item => (
+        <Item key={item.id} onClick={() => handleClick(item)} />
+      ))}
+    </ul>
+  )
+})
+[...]
+To summarize what the compiler does in one sentence: "It automatically inserts code that determines whether this value has changed from the previous render." To achieve this, the compiler transforms the code we write into a form suitable for analysis (steps 1-4), identifies the characteristics of each value (steps 5-7), determines which values to group together for caching (step 8), and outputs the final code (step 9).
+[...]
+see the output of each step directly by enabling
+[...]
+Internals" in the
+[...]
+Playground. The entire pipeline consists of 44 steps, but this is the general flow when
+[...]
+a high level.
+[...]
+With HIR, we've captured the execution
+[...]
+of the code. However, when a single variable is reassigned in multiple places, it becomes difficult
+[...]
+track "where did
+[...]
+value of `x` at this point come from?" To solve this problem,
+[...]
+SSA (Static
+[...]
+Assignment) form. SSA is a form where each variable is assigned exactly once, forming the foundation of compiler optimizations.
+[...]
+#### Step 4: Validation and Basic Optimization
+[...]
+- PruneMaybeThrows
+[...]
+- DropManualMemo
+[...]
+`useMemo`/`useCallback
+[...]
+with compiler optimizations
+[...]
+Removes unnecessary φ nodes
+[...]
+ates constant values
+[...]
+DeadCodeElimination: Removes unused code
+[...]
+### Steps 5-7: Identifying Value Characteristics
+[...]
+Now the code is
+[...]
+and whether values change
+[...]
+#### Step 6: Effect Analysis (InferMutationAliasingEffects)
+[...]
+--- | --- | --- |
+[...]
+| Store | Stores values | Marks creation of new values |
+[...]
+| Capture | Closures capture value references | Opens possibility of captured value changes |
+[...]
+| Mutate | Changes values | Extends
+[...]
+| Freeze | Values become immutable | Safe to cache from this point |
+[...]
+`data` is a literal `{ count: 0 }` so its value won't change between renders (non-reactive). That's why it's created only once using the sentinel pattern. Conversely, `handler` captures `onClick` (reactive prop
+[...]
+label`, so if either changes,
+[...]
+gets recreated.
+[...]
+After `result` is created, it continues to be mutated in the for loop. The compiler must group everything up to the point where mutation ends into one scope. If the scope is split in the middle, incomplete values that are still being mutated could be cached.
+[...]
+#### Step 7: Reactive Analysis (InferReactivePlaces)
+[...]
+This distinction is the core of memoization strategy. Non-reactive values, once cached, remain valid forever (sentinel check pattern). Computations depending on reactive values are recalculated only when those values change (dependency comparison pattern).
+[...]
+### Step 8: Determining Cache Units (Reactive Scope Configuration)
+[...]
+Based on the analysis results from steps 5-7, this step actually decides "what to group into one cache chunk." Related values are grouped into scopes, and one scope becomes one cache unit (one `if` block in the final output). You can see the scopes the compiler constructed by expanding the BuildReactiveFunction pass in Playground.
+[...]
+```
+function CaptureExample(t0) {
+  [1] Destructure { onClick, label } = t0
+
+  scope @1 dependencies=[0] declarations=[data] {
+    [4] data = Object { count: 0 }
+  }
+
+  scope @2 dependencies=[onClick, data] declarations=[handler] {
+    [8] handler = Function @context[read onClick, capture data]
+  }
+
+  scope @3 dependencies=[handler, label] declarations=[t3] {
+[...]
+[11
+[...]
+t3 = <button onClick={handler}>{label}</
+[...]
+>
+  }
+
+  return t3
+[...]
+were created. Each becomes one `if` block in the final output. Why were they split this way?
+[...]
+| Scope | Dependencies | Final Cache Pattern | Reason for Separation |
+| --- | --- | --- | --- |
+| @1 `data` | `0` (primitive) | sentinel check | Depends only on literal → once created, valid forever |
+| @2 `handler` | `onClick`, `data` | `$[1] !== onClick` | `onClick` is reactive. Since `data` is immutable from @1, actual dependency is only `onClick` |
+| @3 JSX | `handler`, `label` | `$[3] !== handler || $[4] !== label` | Both are reactive. If either changes, JSX recreates |
+[...]
+The key criterion for scope separation is independence of dependencies. If only `onClick` changes, only @2 re-executes while @1's `data` is reused. If only `label` changes, @2's `handler` also comes from cache and only @3 re-executes. If @2 and @3 were merged into one scope, changing only `label` would unnecessarily recreate the handler.
+[...]
+### Step 9: Codegen (Code Generation)
+[...]
+All analysis and optimization is complete. Finally, the internal representation is converted back to Babel AST to output JavaScript. Variables are converted to `t0`, `t1`, and cache arrays and comparison logic are inserted.
+[...]
+Each scope operates independently. When `items` changes, both `$[0]``$[1]` and `$[2]``$[3]` are updated. While manual `useMemo` would only cache the `processItems(items)` result, the compiler caches the dependent `` JSX as a separate scope.
+[...]
+Cache arrays created by `_c` are stored in React's Fiber nodes. Fiber is React's internal object for tracking each component instance, where hook state and effect information are stored as linked lists. Like `useMemo`, the compiler reuses this existing hook storage mechanism.
+[...]
+- Per instance: `and` have separate caches.
+- Lifecycle bound: Created on mount, released on unmount. No memory leak concerns.
+- Memory-performance tradeoff: Cache arrays use memory, but this is usually offset by reduced component re-rendering costs.
+[...]
+If you already have code using `useMemo`, `useCallback`, `React.memo`, you don't need to remove them immediately. The compiler works alongside existing manual memoization without conflicts.
+[...]
+However, removing existing manual memoization can change compiler output. So if cleaning up existing code, do so after thorough testing. For new code, let the compiler handle it and use `useMemo`/`useCallback` only when you need precise control over effect dependencies.
+[...]
+React Compiler performs automatic memoization through a sophisticated 44-stage pipeline that starts from Babel AST and goes through HIR, SSA, Effect analysis, and Reactive Scope inference. It operates at a more granular level than manual developer optimization, without dependency management mistakes.
+
+---
+
+Title: React Compiler Deep Dive: How Automatic Memoization Actually Works Under the Hood | Code With Seb
+Key Highlights:
+### Step 3: Analyze with High-Level Intermediate Representation (HIR
+[...]
+feeds into a High-Level IR where
+[...]
+compiler performs data
+[...]
+This is where React Compiler does something manual memoization can't: it memoizes across conditional branches. Consider:
+[...]
+With`useMemo`, you'd have to restructure this component to avoid calling hooks after a conditional return. The compiler handles it automatically because it operates at the CFG level, not at the syntax level.
+[...]
+### Step 4: Memoization Insertion
+[...]
+Based on the analysis, the compiler inserts memoization at the granularity of individual values and JSX elements. It doesn't just wrap your whole component in`React.memo`— it figures out exactly which pieces can be cached and which need to re-compute.
+[...]
+### Step 5: Code Generation
+[...]
+The transformed code ships to the browser. It's still plain React — no special runtime needed. The memoization is expressed using React's existing primitives, just inserted automatically.
+[...]
+const ExpensiveList = memo(function ExpensiveList({ items, onSelect }) {
+  const sorted = useMemo(
+    () => items.slice().sort((a, b) => b.score - a.score),
+    [items]
+  );
+
+  const handleSelect = useCallback(
+    (id) => onSelect(id),
+    [onSelect]
+  );
+
+  return (
+    <ul>
+      {sorted.map(item => (
+        <ListItem
+          key={item.id}
+          item={item}
+          onSelect
+[...]
+handleSelect}
+        />
+      ))}
+    </ul>
+  );
+[...]
+After enabling React Compiler, the same logic becomes:
+[...]
+```javascript
+function ExpensiveList({ items, onSelect }) {
+  const sorted = items.slice().sort((a, b) => b.score - a.score);
+
+  const handleSelect = (id) => onSelect(id);
+
+  return (
+    <ul>
+      {sorted.map(item => (
+        <ListItem
+          key={item.id}
+          item={item}
+          onSelect={handleSelect}
+        />
+      ))}
+    </ul>
+  );
+}
+[...]
+Same behavior. Same performance. Zero memoization boilerplate. The compiler figures out what needs caching and handles it at build time.
+[...]
+But notice what's different: you don
+[...]
+t see`memo()`,`useMemo()
+[...]
+or`useCallback()` anymore. The code is cleaner and easier to reason about. The performance optimization is invisible — which is exactly the point.
+[...]
+### Step
+[...]
+Then add`'use memo'` to components you want compiled:
+[...]
+```javascript
+'use memo';
+[...]
+function MyComponent() {
+  // This component will be compiled
+}
+[...]
+1. Effect dependencies — When a memoized value is used as an effect dependency, explicit`useMemo` ensures the effect doesn't fire repeatedly
+[...]
+```javascript
+const config = useMemo(() => ({ threshold: 0.5, enabled }), [enabled]);
+[...]
+useEffect(() => {
+  initializeSDK(config);  // Only re-runs when 'enabled' changes
+}, [config]);
+[...]
+React Compiler is the most impactful addition to the React ecosystem since Hooks — and combined with React 19.2's Activity component and useEffectEvent, it's reshaping how we think about React performance. It eliminates an entire category of performance bugs — the ones caused by forgetting to memoize, getting dependency arrays wrong, or breaking memoization with inline arrow functions.
+
+---
+
+Title: How to decide if useMemo and useCallback are obsolete with React Forget Compiler | BSWEN
+Key Highlights:
+import { useMemo, useCallback } from '
+[...]
+';function ProductPage({ productId, referrer }) {  const product = useData('/product/' + productId);  const requirements = useMemo(()
+[...]
+{    return computeRequirements(product);  }, [product]);  const handleSubmit = useCallback((orderDetails) => {    post('/product/' + productId + '/buy', {      referrer,      orderDetails,    });  }, [productId, referrer]);  return (    <div className={
+[...]
+}>      <ShippingForm requirements={requirements} onSubmit={handleSubmit} />    </div>  );}
+[...]
+React Compiler (the official name for what was called “React Forget”) automates memoization. When I enabled it on my project, I removed all the manual memoization:
+[...]
+function ProductPage({ productId
+[...]
+referrer }) {
+[...]
+product = useData('/product/' + productId);
+[...]
+requirements = compute
+[...]
+(product);
+[...]
+handleSubmit = (orderDetails) => {    post('/product/' + productId + '/buy', {      referrer,      orderDetails,    });  };
+[...]
+(    <div className={
+[...]
+}>      <ShippingForm requirements={requirements} onSubmit={handleSubmit} />    </div>  );}
+[...]
+The compiler analyzes my code and automatically memoizes`requirements` and`handleSubmit`. I don’t need dependency arrays. I don’t need to think about whether I should memoize something. The compiler handles it.
+[...]
+When I first adopted React Compiler, I removed every`useMemo` and`useCallback` from my codebase. Then I noticed some bugs.
+[...]
+```
+function Form() {  const { watch } = useForm();  // This never updates because watch() mutates internally  const name = useMemo(() => watch('name'), [watch]);  return <div>Name: {name}</div>;}
+[...]
+I thought the compiler would handle this, but it can’t detect that`watch` changes internally. The solution: keep manual memoization for library-specific cases:
+[...]
+```
+function Form() {  const { watch } = useForm();  const name = watch('name'); // Compiler can optimize this  return <div>Name: {name}</div>;}
+[...]
+```
+import { useDrag } from 'react-dnd';function DraggableItem({ item, onDrop }) {  // Keep manual memoization for react-dnd  const dragProps = useMemo(() => ({    type: 'ITEM',    item: { id: item.id, data: item },    collect: (monitor) => ({      isDragging: monitor.isDragging(),    }),  }), [item.id, item.data]);  const [{ isDragging }, drag] = useDrag(() => dragProps);  const handleDrop = useCallback(() => {    onDrop(item.id);  }, [item.id, onDrop]);  return (    <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>      <button onClick={handleDrop}>Drop</button>    </div>  );}
+```
+[...]
+When I removed the memoization, drag-and-drop re-registered on every render. The compiler couldn’t detect this external dependency on reference equality.
+[...]
+React Compiler optimizes your code through static analysis:
+[...]
+1. Summary
+2. It reads your component and builds a dependency graph
+3. It identifies values that can be memoized
+4. It injects the equivalent of`useMemo`/`useCallback` automatically
+5. It validates that your code follows the Rules of React
+[...]
+The key difference: the compiler’s memoization is often more precise than what I wrote manually. It doesn’t over-memoize, and it doesn’t miss dependencies.
+[...]
+Based on my experience, here’s when you still need`useMemo` and`useCallback`:
+[...]
+Keep manual memoization for:
+[...]
+- Third-party libraries that depend on reference equality (DnD libraries, animation libraries)
+- Integration with libraries that have interior mutability (react-hook-form’s`watch`, some state management libraries)
+- Explicit performance tuning when you’ve measured that the compiler’s heuristics need adjustment
+[...]
+Remove manual memoization for:
+[...]
+- All typical component logic
+- Context value optimization
+- Child component callbacks (unless required by a library)
+[...]
+When I migrated my codebase to React Compiler, I followed this approach:
+[...]
+1. Enable the compiler in development mode
+2. Run the app and look for console errors (the compiler validates Rules of React)
+3. Remove all`useMemo` and`useCallback` by default
+4. Add back manual memoization only when tests fail or performance degrades
+5. Use the ESLint rule`react-hooks/exhaustive-deps` with compiler integration to identify problematic removals
+[...]
+This approach worked better than trying to predict what needed memoization. The compiler told me through runtime errors and performance issues.
+[...]
+In this post, I showed how React Compiler eliminates most manual memoization in React applications. The key point is that`useMemo` and`useCallback` aren’t obsolete, but they’re now niche tools for specific library integrations rather than everyday optimization.
+[...]
+For 95% of your components, remove the memoization hooks and let the compiler handle it. Only add them back when you’re integrating with third-party libraries that depend on reference equality, or when you’ve measured a performance issue that the compiler’s heuristics don’t handle well.
+
+---
+
+Title: React Compiler: Automatic Memoization and the End of useMemo Boilerplate (2026) | React Dev
+Key Highlights:
+The React Compiler is a Babel/SWC
+[...]
+that transforms your source code before it reaches the browser. It reads each component, builds a dependency graph of every value and function, and generates optimized output -
+[...]
+with`useMemo
+[...]
+`useCallback`, but more precise.
+[...]
+But it goes further than what most developers write manually. Functions passed as props get stable references automatically. Child components are treated as effectively memoized when their inputs do not change. The compiler applies memoization at the granularity of individual expressions, not just at the hook call level.
+[...]
+Remove defensive memoization - start with`useMemo` calls that wrap cheap operations, and`useCallback` calls that only exist to satisfy`React.memo` on a child. The compiler covers these automatically.
+[...]
+Understanding the compiler is easier if you already know how React's render pipeline works. When a component re-renders, React calls the component function and reconciles the output against the previous virtual DOM. The compiler does not change this model - it makes the inputs to that process more stable, so reconciliation finds fewer differences and skips more work.
+[...]
+The commit phase,`useEffect` timing, and the Server/Client boundary in Next.js App Router are all unaffected. The compiler is purely a render-phase optimization.
+
+---
+
+Title: React Compiler
+Key Highlights:
+In order to optimize applications, React Compiler automatically memoizes your code. You may be familiar today with memoization through APIs such as`useMemo`,`useCallback`, and`React.memo`. With these APIs you can tell React that certain parts of your application don’t need to recompute if their inputs haven’t changed, reducing work on updates. While powerful, it’s easy to forget to apply memoization or apply them incorrectly. This can lead to inefficient updates as React has to check parts of your UI that don’t have any meaningful changes.
+[...]
+The compiler uses its knowledge of JavaScript and React’s rules to automatically memoize values or groups of values within your components and hooks. If it detects breakages of the rules, it will automatically skip over just those components or hooks, and continue safely compiling other code.
+[...]
+React lets you express your UI as a function of their current state (more concretely: their props, state, and context). In its current implementation, when a component’s state changes, React will re-render that component and all of its children — unless you have applied some form of manual memoization with`useMemo()`,`useCallback()`, or`React.memo()`. For example, in the following example,` ` will re-render whenever` `’s state changes:
+[...]
+React Compiler automatically applies the equivalent of manual memoization, ensuring that only the relevant parts of an app re-render as state changes, which is sometimes referred to as “fine-grained reactivity”. In the above example, React Compiler determines that the return value of` ` can be reused even as`friends` changes, and can avoid recreating this JSX and avoid re-rendering` ` as the count changes.
+[...]
+display any violations
+[...]
+React in your
+[...]
+the compiler has
+[...]
+over optimizing that
+[...]
+or hook. This is perfectly okay
+[...]
+the compiler can recover and continue optimizing other
+[...]
+in your codebase.
+[...]
+If you have eslint-plugin-react-compiler installed, the compiler will display any violations of the rules of React in your editor. When it does this, it means that the compiler has skipped over optimizing that component or hook. This is perfectly okay, and the compiler can recover and continue optimizing other components in your codebase. You don’t have to fix all ESLint violations straight away. You can address them at your own
+[...]
+to increase the amount of components and hooks being optimized
+[...]
+If your app doesn’t work properly after compilation and you aren’t seeing any ESLint errors, the compiler may be incorrectly compiling your code. To confirm this, try to make the issue go away by aggressively opting out any component or hook you think might be related via the`"use no memo"` directive.
+[...]
+`"use no memo"` is a temporary escape hatch that lets you opt-out components and hooks from being compiled by the React Compiler. This directive is not meant to be long lived the same way as eg "use client" is.
+[...]
+It is not recommended to reach for this directive unless it’s strictly necessary. Once you opt-out a component or hook, it is opted-out forever until the directive is removed. This means that even if you fix the code, the compiler will still skip over compiling it unless you remove the directive.
+[...]
+When you make the error go away, confirm that removing the opt out directive makes the issue come
+[...]
+. Then share a bug report with us (you can try to reduce it to a small repro, or if it’s open source code you can also just paste the entire source) using the React Compiler Playground so we can identify and help fix the issue.

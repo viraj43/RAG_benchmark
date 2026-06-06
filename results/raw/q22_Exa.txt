@@ -1,0 +1,349 @@
+Title: Node Autoscaling | Kubernetes
+Key Highlights:
+Automatically provision and consolidate the Nodes in your cluster to adapt to demand and optimize cost.
+[...]
+In order to run workloads in your cluster, you need Nodes. Nodes in your cluster can be autoscaled - dynamically provisioned, or consolidated to provide needed capacity while optimizing cost. Autoscaling is performed by Node autoscalers.
+[...]
+If there are Pods in a cluster that can't be scheduled on existing Nodes, new Nodes can be automatically added to the cluster—provisioned—to accommodate the Pods. This is especially useful if the number of Pods changes over time, for example as a result of combining horizontal workload with Node autoscaling.
+[...]
+Autoscalers provision the Nodes by creating and deleting cloud provider resources backing them. Most commonly, the resources backing the Nodes are Virtual Machines.
+[...]
+Pods can express scheduling constraints to impose limitations on the kind of Nodes they can be scheduled on. Node autoscalers take these constraints into account to ensure that the pending Pods can be scheduled on the provisioned Nodes.
+[...]
+The most common kind of scheduling constraints are the resource requests specified by Pod containers. Autoscalers will make sure that the provisioned Nodes have enough resources to satisfy the requests. However, they don't directly take into account the real resource usage of the Pods after they start running. In order to autoscale Nodes based on actual workload resource usage, you can combine horizontal workload autoscaling with Node autoscaling.
+[...]
+The specifics of the provisioned Nodes (for example the amount of resources, the presence of a given label) depend on autoscaler configuration. Autoscalers can either choose them from a pre-defined set of Node configurations, or use auto-provisioning.
+[...]
+Node auto-provisioning is a mode of provisioning in which a user doesn't have to fully configure the specifics of the Nodes that can be provisioned. Instead, the autoscaler dynamically chooses the Node configuration based on the pending Pods it's reacting to, as well as pre-configured constraints (for example, the minimum amount of resources or the need for a given label).
+[...]
+The main consideration when running a cluster is ensuring that all schedulable pods are running, whilst keeping the cost of the cluster as low as possible. To achieve this, the Pods' resource requests should utilize as much of the Nodes' resources as possible. From this perspective, the overall Node utilization in a cluster can be used as a proxy for how cost-effective the cluster is.
+[...]
+Nodes in your cluster can be automatically consolidated in order to improve the overall Node utilization, and in turn the cost-effectiveness of the cluster. Consolidation happens through removing a set of underutilized Nodes from the cluster. Optionally, a different set of Nodes can be provisioned to replace them.
+[...]
+Consolidation, like provisioning, only considers Pod resource requests and not real resource usage when making decisions.
+[...]
+Removing non-empty Nodes during consolidation is disruptive—the Pods running on them are terminated, and possibly have to be recreated (for example by a Deployment). However, all such recreated Pods should be able to schedule on existing Nodes in the cluster, or the replacement Nodes provisioned as part of consolidation. No Pods should normally become pending as a result of consolidation.
+[...]
+The functionalities described in previous sections are provided by Node autoscalers. In addition to the Kubernetes API, autoscalers also need to interact with cloud provider APIs to provision and consolidate Nodes. This means that they need to be explicitly integrated with each supported cloud provider. The performance and feature set of a given autoscaler can differ between cloud provider integrations.
+[...]
+From the perspective of a cluster user, both autoscalers should provide a similar Node autoscaling experience. Both will provision new Nodes for unschedulable Pods, and both will consolidate the Nodes that are no longer optimally utilized.
+[...]
+Cluster Autoscaler adds or removes Nodes to pre-configured Node groups. Node groups generally map to some sort of cloud provider resource group (most commonly a Virtual Machine group). A single instance of Cluster Autoscaler can simultaneously manage multiple Node groups. When provisioning, Cluster Autoscaler will add Nodes to the group that best fits the requests of pending Pods. When consolidating, Cluster Autoscaler always selects specific Nodes to remove, as opposed to just resizing the underlying cloud provider resource group.
+[...]
+-provisions Nodes based on Node
+[...]
+. This includes
+[...]
+refreshing Nodes once they reach a certain lifetime, and auto-upgrading Nodes when new worker Node images are released. It works directly with individual cloud provider resources (most commonly individual Virtual Machines), and doesn't rely on cloud provider resource groups
+[...]
+Node autoscaling usually works in response to Pods—it provisions new Nodes to accommodate unschedulable Pods, and then consolidates the Nodes once they're no longer needed.
+[...]
+Horizontal workload autoscaling automatically scales the number of workload replicas to maintain a desired average resource utilization across the replicas. In other words, it automatically creates new Pods in response to application load, and then removes the Pods once the load decreases.
+[...]
+You can use Node autoscaling together with horizontal workload autoscaling to autoscale the Nodes in your cluster based on the average real resource utilization of your Pods.
+[...]
+If the application load increases, the average utilization of its Pods should also increase, prompting workload autoscaling to create new Pods. Node autoscaling should then provision new Nodes to accommodate the new Pods.
+[...]
+Once the application load decreases, workload autoscaling should remove unnecessary Pods. Node autoscaling should, in turn, consolidate the Nodes that are no longer needed.
+[...]
+When using Node autoscaling, it's important to set Pod resource requests correctly. If the requests of a given Pod are too low, provisioning a new Node for it might not help the Pod actually run. If the requests of a given Pod are too high, it might incorrectly prevent consolidating its Node.
+[...]
+Vertical workload autoscaling automatically adjusts the resource requests of your Pods based on their historical resource usage.
+[...]
+You can use Node autoscaling together with vertical workload autoscaling in order to adjust the resource requests of your Pods while preserving Node autoscaling capabilities in your cluster.
+
+---
+
+Title: Vertical Pod Autoscaling | Kubernetes
+Key Highlights:
+In Kubernetes, a VerticalPodAutoscaler automatically updates a workload management resource(such as a Deployment or StatefulSet), with the aim of automatically adjusting infrastructure resource requests and limits to match actual usage.
+[...]
+Vertical scaling means that the response to increased resource demand is to assign more resources (for example: memory or CPU) to the Pods that are already running for the workload. This is also known as rightsizing, or sometimes autopilot. This is different from horizontal scaling, which for Kubernetes would mean deploying more Pods to distribute the load.
+[...]
+If the resource usage decreases, and the Pod resource requests are above optimal levels, the VerticalPodAutoscaler instructs the workload resource (the Deployment, StatefulSet, or other similar resource) to adjust resource requests back down, preventing resource waste.
+[...]
+The VerticalPodAutoscaler is implemented as a Kubernetes API resource and a controller. The resource determines the behavior of the controller. The vertical pod autoscaling controller, running within the Kubernetes data plane, periodically adjusts the resource requests and limits of its target (for example, a Deployment) based on analysis of historical resource utilization, the amount of resources available in the cluster, and real-time events such as out-of-memory (OOM) conditions.
+[...]
+Kubernetes implements vertical pod autoscaling through multiple cooperating components that run intermittently (it is not a continuous process). The VPA consists of three main components:
+[...]
+- The recommender, which analyzes resource usage and provides recommendations.
+- The updater, that Pod resource requests either by evicting Pods or modifying them in place.
+- And the VPA admission controller webhook, which applies resource recommendations to new or recreated Pods.
+[...]
+Once during each period, the Recommender queries the resource utilization for Pods targeted by each VerticalPodAutoscaler definition. The Recommender finds the target resource defined by the`targetRef`, then selects the pods based on the target resource's`.spec.selector` labels, and obtains the metrics from the resource metrics API to analyze actual CPU and memory consumption.
+[...]
+The Recommender analyzes both current and historical resource usage data (CPU and memory) for each Pod targeted by the VerticalPodAutoscaler. It examines:
+[...]
+- Historical consumption patterns over time to identify trends
+- Peak usage and variance to ensure sufficient headroom
+- Out-of-memory (OOM) events and other resource-related incidents
+[...]
+Based on this analysis, the Recommender calculates three types of recommendations:
+[...]
+- Target recommendation (optimal resources for typical usage)
+- Lower bound (minimum viable resources)
+- Upper bound (maximum reasonable resources).
+[...]
+These recommendations are stored in the VerticalPodAutoscaler resource's`.status.recommendation` field.
+[...]
+The updater component monitors the VerticalPodAutoscaler resources and compares current Pod resource requests with the recommendations. When the difference exceeds configured thresholds and the update policy allows it, the updater can either:
+[...]
+- Evict Pods, triggering their recreation with new resource requests (traditional approach)
+- Update Pod resources in place without eviction, when the cluster supports in-place Pod resource updates
+[...]
+The chosen method depends on the configured update mode, cluster capabilities, and the type of resource change needed. In-place updates, when available, avoid Pod disruption but may have limitations on which resources can be modified. The updater respects PodDisruptionBudgets to minimize service impact.
+[...]
+The admission controller operates as a mutating webhook that intercepts Pod creation requests. It checks if the Pod is targeted by a VerticalPodAutoscaler and, if so, applies the recommended resource requests and limits before the Pod is created. More specifically, the admission controller uses the Target recommendation in the VerticalPodAutoscaler resource's`.status.recommendation` stanza as the new resource requests. The admission controller ensures new Pods start with appropriately sized resource allocations, whether they're created during initial deployment, after an eviction by the updater, or due to scaling operations.
+[...]
+In the Off update mode, the VPA recommender still analyzes resource usage and generates recommendations, but these recommendations are not automatically applied to Pods. The recommendations are only stored in the VPA object's`.status` field.
+[...]
+In Initial mode, VPA only sets resource requests when Pods are first created. It does not update resources for already running Pods, even if recommendations change over time. The recommendations apply only during Pod creation.
+[...]
+In Recreate mode, VPA actively manages Pod resources by evicting Pods when their current resource requests differ significantly from recommendations. When a Pod is evicted, the workload controller (managing a Deployment, StatefulSet, etc) creates a replacement Pod, and the VPA admission controller applies the updated resource requests to the new Pod.
+[...]
+In`InPlaceOrRecreate` mode, VPA attempts to update Pod resource requests and limits without restarting the Pod when possible. However, if in-place updates cannot be performed for a particular resource change, VPA falls back to evicting the Pod (similar to`Recreate` mode) and allowing the workload controller to create a replacement Pod with updated resources.
+[...]
+The`Auto` update mode is deprecated since VPA version 1.4.0. Use`Recreate` for eviction-based updates, or`InPlaceOrRecreate` for in-place updates with eviction fallback.
+[...]
+RequestsAndLimitsVPA sets both requests and limits. The limit scales proportionally to the request based on the request-to-limit ratio defined in the Pod spec. This is the default mode.RequestsOnlyVPA only sets requests, leaving limits unchanged. Limits are respected and can still trigger throttling or out-of-memory kills if usage exceeds them.
+[...]
+The admission controller and updater VPA components post-process recommendations to comply with the constraints defined in LimitRanges. The LimitRange resources with`type` Pod and Container are checked in the Kubernetes cluster.
+[...]
+For example, if the`max` field in a Container LimitRange resource is exceeded, both VPA components lower the limit to the value defined in the`max` field, and the request is proportionally decreased to maintain the request-to-limit ratio in the Pod spec.
+
+---
+
+Title: Autoscaling Workloads - Kubernetes
+Key Highlights:
+Autoscaling Workloads | Kubernetes
+
+# Autoscaling Workloads
+
+With autoscaling, you can automatically update your workloads in one way or another. This allows your cluster to react to changes in resource demand more elastically and efficiently.
+
+In Kubernetes, you can scale a workload depending on the current demand of resources. This allows your cluster to react to changes in resource demand more elastically and efficiently.
+
+When you scale a workload, you can either increase or decrease the number of replicas managed by the workload, or adjust the resources available to the replicas in-place.
+
+The first approach is referred to as horizontal scaling, while the second is referred to as vertical scaling.
+
+There are manual and automatic ways to scale your workloads, depending on your use case.
+
+## Scaling workloads manually
+
+Kubernetes supports manual scaling of workloads. Horizontal scaling can be done using the`kubectl` CLI. For vertical scaling, you need to patch the resource definition of your workload.
+
+See below for examples of both strategies.
+
+- Horizontal scaling: Running multiple instances of your app
+- Vertical scaling: Resizing CPU and memory resources assigned to containers
+
+## Scaling workloads automatically
+
+Kubernetes also supports automatic scaling of workloads, which is the focus of this page.
+
+The concept of Autoscaling in Kubernetes refers to the ability to automatically update an object that manages a set of Pods (for example a Deployment).
+
+### Scaling workloads horizontally
+
+In Kubernetes, you can automatically scale a workload horizontally using a HorizontalPodAutoscaler(HPA).
+
+It is implemented as a Kubernetes API resource and a controller and periodically adjusts the number of replicas in a workload to match observed resource utilization such as CPU or memory usage.
+
+There is a walkthrough tutorial of configuring a HorizontalPodAutoscaler for a Deployment.
+
+### Scaling workloads vertically
+
+FEATURE STATE:`Kubernetes v1.25 [stable]`
+
+You can automatically scale a workload vertically using a VerticalPodAutoscaler(VPA). Unlike the HPA, the VPA doesn't come with Kubernetes by default, but is a an add-on that you or a cluster administrator may need to deploy before you can use it.
+
+Once installed, it allows you to create CustomResourceDefinitions(CRDs) for your workloads which define how and when to scale the resources of the managed replicas.
+
+#### Note:
+
+You will need to have the Metrics Server installed to your cluster for the VPA to work.
+
+#### In-place pod vertical scaling
+
+FEATURE STATE:`Kubernetes v1.35 [stable]`(enabled by default)
+
+As of Kubernetes 1.36, VPA does not support resizing pods in-place, but this integration is being worked on. For manually resizing pods in-place, see Resize Container Resources In-Place.
+
+### Autoscaling based on cluster size
+
+For workloads that need to be scaled based on the size of the cluster (for example`cluster-dns` or other system components), you can use the Cluster Proportional Autoscaler. Just like the VPA, it is not part of the Kubernetes core, but hosted as its own project on GitHub.
+
+The Cluster Proportional Autoscaler watches the number of schedulable nodes and cores and scales the number of replicas of the target workload accordingly.
+
+If the number of replicas should stay the same, you can scale your workloads vertically according to the cluster size using the Cluster Proportional Vertical Autoscaler. The project is currently in beta and can be found on GitHub.
+
+While the Cluster Proportional Autoscaler scales the number of replicas of a workload, the Cluster Proportional Vertical Autoscaler adjusts the resource requests for a workload (for example a Deployment or DaemonSet) based on the number of nodes and/or cores in the cluster.
+
+### Event driven Autoscaling
+
+It is also possible to scale workloads based on events, for example using the Kubernetes Event Driven Autoscaler (KEDA).
+
+KEDA is a CNCF-graduated project enabling you to scale your workloads based on the number of events to be processed, for example the amount of messages in a queue. There exists a wide range of adapters for different event sources to choose from.
+
+### Autoscaling based on schedules
+
+Another strategy for scaling your workloads is to schedule the scaling operations, for example in order to reduce resource consumption during off-peak hours.
+
+Similar to event driven autoscaling, such behavior can be achieved using KEDA in conjunction with its Cron scaler. The`Cron` scaler allows you to define schedules (and time zones) for scaling your workloads in or out.
+
+## Scaling cluster infrastructure
+
+If scaling workloads isn't enough to meet your needs, you can also scale your cluster infrastructure itself.
+
+Scaling the cluster infrastructure normally means adding or removing nodes. Read Node autoscaling for more information.
+
+## What's next
+
+Learn more about scaling horizontally
+
+- Scale a StatefulSet
+- HorizontalPodAutoscaler Walkthrough
+
+## Feedback
+
+Was this page helpful?
+
+Yes No
+
+Thanks for the feedback. If you have a specific, answerable question about how to use Kubernetes, ask it on Stack Overflow. Open an issue in the GitHub Repository if you want to report a problem or suggest an improvement.
+
+Last modified November 23, 2025 at 1:47 PM PST: Move HorizontalPodAutoscaler concept page (57e1fdd7f9)
+
+---
+
+Title: HorizontalPodAutoscaler Walkthrough | Kubernetes
+Key Highlights:
+A HorizontalPodAutoscaler(HPA for short) automatically updates a workload resource (such as a Deployment or StatefulSet), with the aim of automatically scaling the workload to match demand.
+[...]
+Horizontal scaling means that the response to increased load is to deploy more Pods. This is different from vertical scaling, which for Kubernetes would mean assigning more resources (for example: memory or CPU) to the Pods that are already running for the workload.
+[...]
+If the load decreases, and the number of Pods is above the configured minimum, the HorizontalPodAutoscaler instructs the workload resource (the Deployment, StatefulSet, or other similar resource) to scale back down.
+[...]
+Now that the server is running, create the autoscaler using`kubectl`. The kubectl autoscale subcommand, part of`kubectl`, helps you do this.
+[...]
+You will shortly run a command that creates a HorizontalPodAutoscaler that maintains between 1 and 10 replicas of the Pods controlled by the php-apache Deployment that you created in the first step of these instructions.
+[...]
+Roughly speaking, the HPA controller will increase and decrease the number of replicas (by updating the Deployment) to maintain an average CPU utilization across all Pods of 50%. The Deployment then updates the ReplicaSet - this is part of how all Deployments work in Kubernetes - and then the ReplicaSet either adds or removes Pods based on the change to its`.spec`.
+[...]
+Since each pod requests 200 milli-cores by`kubectl run`, this means an average CPU usage of 100 milli-cores. See Algorithm details for more details on the algorithm.
+[...]
+```
+kubectl autoscale deployment php-apache --cpu=50% --min=1 --max=10
+[...]
+Please note that the current CPU consumption is 0% as there are no clients sending requests to the server (the`TARGET` column shows the average across all the Pods controlled by the corresponding deployment).
+[...]
+Next, see how the autoscaler reacts to increased load. To do this, you'll start a different Pod to act as a client. The container within the client Pod runs in an infinite loop, sending queries to the php-apache service.
+[...]
+Here, CPU consumption has increased to 305% of the request. As a result, the Deployment was resized to 7 replicas:
+[...]
+replicas will differ from
+[...]
+Once CPU utilization dropped to 0, the HPA automatically scaled the number of replicas back down to 1.
+[...]
+You can introduce additional metrics to use when autoscaling the`php-apache
+[...]
+Deployment by making use of the`autoscaling/v2
+[...]
+API version.
+[...]
+Notice that the`targetCPUUtilizationPercentage` field has been replaced with an array called`metrics`. The CPU utilization metric is a resource metric, since it is represented as a percentage of a resource specified on pod containers. Notice that you can specify other resource metrics besides CPU. By default, the only other supported resource metric is`memory`. These resources do not change names from cluster to cluster, and should always be available, as long as the`metrics.k8s.io` API is available.
+[...]
+custom metrics: pod metrics and object metrics. These
+[...]
+have names which are cluster specific, and require a more
+[...]
+cluster monitoring setup.
+[...]
+The first of these alternative metric types is pod metrics. These metrics describe Pods, and are averaged together across Pods and compared with a target value to determine the replica count. They work much like resource metrics, except that they only support a`target` type of`AverageValue`.
+[...]
+The second alternative metric type is object metrics. These metrics describe a different object in the same namespace, instead of describing Pods. The metrics are not necessarily fetched from the object; they only describe it. Object metrics support`target` types of both`Value` and`AverageValue`. With`Value`, the target is compared directly to the returned metric from the API. With`AverageValue`, the value returned from the custom metrics API is divided by the number of Pods before being compared to the target. The following example is the YAML representation of the`requests-per-second` metric.
+[...]
+If you provide multiple such metric blocks, the HorizontalPodAutoscaler will consider each metric in turn. The HorizontalPodAutoscaler will calculate proposed replica counts for each metric, and then choose the one with the highest replica count.
+[...]
+Then, your HorizontalPodAutoscaler would attempt to ensure that each pod was consuming roughly 50% of its requested CPU, serving 1000 packets per second, and that all pods behind the main-route Ingress were serving a total of 10000 requests per second.
+[...]
+Using external metrics requires knowledge of your monitoring system; the setup is similar to that required when using custom metrics. External metrics allow you to autoscale your cluster based on any metric available in your monitoring system. Provide a`metric` block with a`name` and`selector`, as above, and use the`External` metric type instead of`Object`. If multiple time series are matched by the`metricSelector`, the sum of their values is used by the HorizontalPodAutoscaler. External metrics support both the`Value` and`AverageValue` target types, which function exactly the same as when you use the`Object` type.
+[...]
+When using the
+[...]
+caling/v2
+[...]
+form of the Horizontal
+[...]
+Autoscaler
+[...]
+you will be
+[...]
+conditions set by Kubernetes on the HorizontalPodAutoscaler. These
+[...]
+conditions indicate whether or not the HorizontalPodAutoscaler is
+[...]
+to scale, and whether or not it is currently restricted in any way
+[...]
+For this HorizontalPodAutoscaler, you can see several conditions in a healthy state. The first,`AbleToScale`, indicates whether or not the HPA is able to fetch and update scales, as well as whether or not any backoff-related conditions would prevent scaling. The second,`ScalingActive`, indicates whether or not the HPA is enabled (i.e. the replica count of the target is not zero) and is able to calculate desired scales. When it is`False`, it generally indicates problems with fetching metrics. Finally, the last condition,`ScalingLimited`, indicates that the desired scale was capped by the maximum or minimum of the HorizontalPodAutoscaler. This is an indication that you may wish to raise or lower the minimum or maximum replica count constraints on your HorizontalPodAutoscaler.
+
+---
+
+Title: Horizontal Pod Autoscaling - Kubernetes
+Key Highlights:
+In Kubernetes, a HorizontalPodAutoscaler automatically updates a workload resource (such as a Deployment or StatefulSet), with the aim of automatically scaling capacity to match demand.
+[...]
+Horizontal scaling means that the response to increased load is to deploy more Pods. This is different from vertical scaling, which for Kubernetes would mean assigning more resources (for example: memory or CPU) to the Pods that are already running for the workload.
+[...]
+If the load decreases, and the number of Pods is above the configured minimum, the HorizontalPodAutoscaler instructs the workload resource (the Deployment, StatefulSet, or other similar resource) to scale back down.
+[...]
+The HorizontalPodAutoscaler is implemented as a Kubernetes API resource and a controller. The resource determines the behavior of the controller. The horizontal pod autoscaling controller, running within the Kubernetes control plane, periodically adjusts the desired scale of its target (for example, a Deployment) to match observed metrics such as average CPU utilization, average memory utilization, or any other custom metric you specify.
+[...]
+Kubernetes implements horizontal pod autoscaling as a control loop that runs intermittently (it is not a continuous process). The interval is set by the`--horizontal-pod-autoscaler-sync-period` parameter to the kube-controller-manager(and the default interval is 15 seconds).
+[...]
+Once during each period, the controller manager queries the resource utilization against the metrics specified in each HorizontalPodAutoscaler definition. The controller manager finds the target resource defined by the`scaleTargetRef`, then selects the pods based on the target resource's`.spec.selector` labels, and obtains the metrics from either the resource metrics API (for per-pod resource metrics), or the custom metrics API (for all other metrics).
+[...]
+For per-pod resource metrics (like CPU), the controller fetches the metrics from the resource metrics API for each Pod targeted by the HorizontalPodAutoscaler. Then, if a target utilization value is set, the controller calculates the utilization value as a percentage of the equivalent resource request on the containers in each Pod. If a target raw value is set, the raw metric values are used directly. The controller then takes the mean of the utilization or the raw value (depending on the type of target specified) across all targeted Pods, and produces a ratio used to scale the number of desired replicas.
+[...]
+The HorizontalPodAutoscaler controller accesses corresponding workload resources that support scaling (such as Deployments and StatefulSet). These resources each have a subresource named`scale`, an interface that allows you to dynamically set the number of replicas and examine each of their current states. For general information about subresources in the Kubernetes API, see Kubernetes API Concepts.
+[...]
+From the most basic perspective, the HorizontalPodAutoscaler controller operates on the ratio between desired metric value and current metric value:
+[...]
+rceil \end
+[...]
+For example, if the current metric value is`200m`, and the desired value is`100m`, the number of replicas will be doubled, since \( { 200.0 \div 100.0 } = 2.0 \).If the current value is instead`50m`, you'll halve the number of replicas, since \( { 50.0 \div 100.0 } = 0.5 \). The control plane skips any scaling action if the ratio is sufficiently close to 1.0 (within a configurable tolerance, 0.1 by default).
+[...]
+When a`targetAverageValue` or`targetAverageUtilization` is specified, the`currentMetricValue` is computed by taking the average of the given metric across all Pods in the HorizontalPodAutoscaler's scale target.
+[...]
+Before checking the tolerance and deciding on the final values, the control plane also considers whether any metrics are missing, and how many Pods are Ready. For per-pod resource metrics, all Pods with a deletion timestamp set (objects with a deletion timestamp are in the process of being shut down / removed) are ignored, and all failed Pods are discarded. For external and object metrics, the replica count is based on the number of Running and Ready Pods; terminating Pods that are still Ready continue to count toward that total.
+[...]
+the`--horizontal-pod-autoscaler
+[...]
+-delay`
+[...]
+configurable time since it
+[...]
+-autoscaler-
+[...]
+The \( currentMetricValue \over desiredMetricValue \) base scale ratio is then calculated, using the remaining pods not set aside or discarded from above.
+[...]
+If there were any missing metrics, the control plane recomputes the average more conservatively, assuming those pods were consuming 100% of the desired value in case of a scale down, and 0% in case of a scale up. This dampens the magnitude of any potential scale.
+[...]
+After factoring in the not-yet-ready pods and missing metrics, the controller recalculates the usage ratio. If the new ratio reverses the scale direction, or is within the tolerance, the controller doesn't take any scaling action. In other cases, the new ratio is used to decide any change to the number of Pods.
+[...]
+If multiple metrics are specified in a HorizontalPodAutoscaler, this calculation is done for each metric, and then the largest of the desired replica counts is chosen. If any of these metrics cannot be converted into a desired replica count (e.g. due to an error fetching the metrics from the metrics APIs) and a scale down is suggested by the metrics which can be fetched, scaling is skipped. This means that the HPA is still capable of scaling up if one or more metrics give a`desiredReplicas` greater than the current value.
+[...]
+Finally, right before HPA scales the target, the scale recommendation is recorded. The controller considers all recommendations within a configurable window choosing the highest recommendation from within that window. You can configure this value using the`--horizontal-pod-autoscaler-downscale-stabilization` command line option, which defaults to 5 minutes. This means that scaledowns will occur gradually, smoothing out the impact of rapidly fluctuating metric values.
+[...]
+you perform a rolling update on a Deployment
+[...]
+In that case
+[...]
+the Deployment manages the underlying ReplicaSets for you
+[...]
+When you configure
+[...]
+you bind a HorizontalPodAutoscaler to a single Deployment
+[...]
+The HorizontalPodAutoscaler manages the`replicas` field of the Deployment. The deployment controller is responsible for setting the`replicas` of the underlying ReplicaSets so that they add up to a suitable number during the rollout and also afterwards

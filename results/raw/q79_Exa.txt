@@ -1,0 +1,390 @@
+Title: Troubleshoot slow application performance | New Relic Documentation
+Key Highlights:
+Your app is slow. Perhaps it's so slow it's causing downtime or issues in related services, or perhaps it's simply a slow back-end response that makes your UX just a little bit worse. What do you do about it?
+[...]
+This tutorial walks you through how to use New Relic to triage your application and identify the root cause of your app's degraded performance. You'll start by "instrumenting" your app with an agent, which means installing a piece of code that reports data about your app to New Relic through language and framework specific integrations. Using this data in New Relic, you'll dig into the performance of your application and identify slow transactions, slow database queries, or slow external services as your issue—or possibly all three!
+[...]
+Addressing a slow running application requires a systematic approach to identify the root cause of performance issues. The following steps will provide you the information needed to troubleshoot, diagnose, and resolve issues negatively impacting the speed of your application.
+[...]
+Before you can improve your site's performance, you need the ability to see what's going on. New Relic monitoring always starts with an integration, or a piece of code that collects data from a relevant technology and reports it to New Relic. To monitor your application's performance, you will use an agent created specifically for your app's language.
+[...]
+Look at the Web transactions time chart. This chart displays the average response time of certain metrics within your app. As your chart populates with data, take note of strange spikes in any line or segment. At the same time, take note of any segments or lines that consistantly take a large amount of time.
+[...]
+With the information on the charts provided you can analyze the current speed and efficiency of your application transactions, database queries, and external services. The next step is to prioritize and implemented targeted fixes to improve performance.
+[...]
+### If it's the blue line: slow application traces
+[...]
+The blue line is application code, specifically time spent in your application on code that isn't external or database calls. To troubleshoot this, click here for tutorial step 2.
+[...]
+### If it's the yellow segment: slow database queries
+[...]
+The yellow segment is database queries, specifically time spent calling and waiting on database queries. To troubleshoot this, click here for tutorial step 3.
+[...]
+### If it's the green segment: slow external services
+[...]
+The green segment is external services, specifically time spent calling a HTTP service or endpoint. This could be a HTTP endpoint as part of the same app, another service as part of the same system, or it could be a completely external third party API. To troubleshoot this, click here for tutorial step 4.
+
+---
+
+Title: Why Is My Application Slow? Complete Debugging Guide | Atatus | Atatus
+Key Highlights:
+Application slowness is not a single problem—it is a symptom that can originate from dozens of different root causes spanning frontend rendering, backend processing, database queries, network latency, and infrastructure constraints. The first step in any performance investigation is to define what 'slow' means in concrete terms, such as API responses exceeding 500ms at the 95th percentile or page load times above 3 seconds for 20% of users.
+[...]
+Render-blocking resources are among the most common causes of slow page loads. JavaScript files loaded synchronously in the document head prevent the browser from rendering any HTML until each script has downloaded, parsed, and executed. A single 500KB unminified JavaScript bundle can delay the First Contentful Paint by 2 to 3 seconds on a typical 4G mobile connection, affecting the majority of your global user base.
+[...]
+Third-party scripts from analytics providers, chat widgets, advertising networks, and A/B testing platforms collectively account for a significant fraction of page weight and blocking time. A single poorly optimized chat widget can add 400ms to your total blocking time. Use Real User Monitoring (RUM) to measure the performance contribution of each third-party domain separately, then make data-driven decisions about which scripts to defer, async-load, or remove entirely.
+[...]
+Distributed tracing gives you an end-to-end view of every request as it travels through your system. A single user-facing API call may trigger a cascade of internal service calls, database queries, cache lookups, and external API requests. Without tracing, you see only that the outer request was slow—you cannot tell whether the 800ms was spent in your authentication middleware, a slow database query, or a third-party payment API call that timed out and retried.
+[...]
+Identify your slowest
+[...]
+significant fraction of your
+[...]
+average looks acceptable. Endpoints that process
+[...]
+perform complex aggreg
+[...]
+, or call multiple
+[...]
+most likely culprits and should
+[...]
+Middleware stacks accumulate latency. Every authentication check, request validation, logging call, and rate limit lookup adds processing time. Profile your middleware pipeline to identify components adding more than 10ms per request—these are candidates for optimization through caching, asynchronous processing, or elimination. For example, fetching user permissions from a database on every request instead of caching them in Redis can add 50 to 100ms to every authenticated endpoint.
+[...]
+External API dependencies introduce latency you cannot fully control. When your application calls a third-party payment gateway, weather API, or shipping service, network latency and upstream performance variability become part of your response time. Set explicit timeout values on all external calls—never rely on default or infinite timeouts—and implement circuit breakers to fail fast when upstream services degrade.
+[...]
+Slow database queries can cause application slowness that is disproportionate to their individual cost because they block request threads, exhaust connection pools, and create cascading slowdowns across the entire application. A single query that takes 2 seconds and runs on every page view will make your entire application feel slow even if all other code is optimized. Use query-level APM instrumentation to capture execution plans, parameter values, and timing for every database call.
+[...]
+N+1 query problems are particularly insidious because they are invisible in development environments with small datasets but catastrophic in production. When a loop iterates over 100 records and issues a separate database query for each one, you generate 101 queries instead of 1. With 10,000 records, the problem multiplies to 10,001 queries. Identify N+1 patterns by monitoring the number of queries executed per HTTP request and alerting when a single request issues more than a configurable threshold.
+[...]
+Missing indexes cause full table scans that take seconds instead of milliseconds. Adding an index on the columns used in WHERE clauses, JOIN conditions, and ORDER BY expressions can reduce a 5-second query to under 10ms. Use the database query analyzer in your APM tool to identify queries with high execution counts that lack efficient index usage, and prioritize adding indexes before considering more complex optimizations.
+[...]
+Connection pool exhaustion causes a different class of slowness where queries are not slow themselves but they wait in a queue for an available connection. When your application receives a traffic spike and all database connections are in use, new requests block waiting for a connection to become available. Monitor pool utilization and connection wait times alongside query execution times to distinguish between slow queries and connection contention.
+[...]
+CPU saturation causes request processing to slow down uniformly across all endpoints because the CPU cannot execute work fast enough. When CPU utilization consistently exceeds 70 to 80 percent, response times begin to increase non-linearly due to context switching overhead and scheduling delays. Monitor CPU usage alongside request latency to identify correlations—CPU spikes that align with latency spikes indicate compute-bound bottlenecks that require horizontal scaling or algorithmic optimization.
+[...]
+Memory pressure degrades performance gradually rather than causing immediate failures. When an application approaches its memory limit, the operating system begins swapping memory pages to disk, which is thousands of times slower than RAM access. Garbage collection also becomes more frequent and takes longer as heap memory fills up, causing periodic latency spikes. Set memory usage alerts at 75 percent of your instance memory limit to get early warning before performance degradation becomes user-visible.
+[...]
+Network bandwidth and disk I/O are often overlooked infrastructure bottlenecks. Applications that perform heavy logging, read large files, or receive and process substantial payloads can saturate disk I/O, causing all I/O operations to queue up and slow down. Similarly, instances with 1 Gbps network limits can hit bandwidth ceilings when serving large responses or receiving large file uploads. Monitor bandwidth utilization and disk I/O wait times as part of your infrastructure metrics.
+[...]
+Container resource limits in Kubernetes and Docker can throttle
+[...]
+host resources are available. A pod with a
+[...]
+limit of
+[...]
+application slowness but are
+[...]
+osing infrastructure constraints as application bugs
+
+---
+
+Title: 14 Common Application Performance Issues & How to Fix Them
+Key Highlights:
+From slow API responses during peak traffic, to laggy frontend interactions on older mobile devices, or database queries timing out under load there’s a wide range of reasons why your app might slow down, crash, or frustrate users.
+[...]
+Infrastructure Issues: The third bucket involves issues such as network latency, misconfigured servers, and the classic “it works on my machine” syndrome.
+[...]
+Network latency is the delay that occurs when data travels between a client and a server. It’s a key factor affecting how fast your app feels to users, especially over long distances.
+[...]
+- Serving users from a single server region, which increases data travel time.
+- Poor routing and lack of caching infrastructure.
+- Global users connecting to a far-off server (e.g., users in Australia accessing a server in Virginia can face 200–300ms delays).
+[...]
+There may be times when your application experiences more demand or usage than usual, and that’s a good thing unless your servers are unable to handle it. Slow servers can be a common reason why you may experience application performance issues.
+[...]
+If users are experiencing painfully long response times, frequent timeouts, or even complete downtime, your slow servers may be the culprit. This is especially common for E-commerce websites or marketplaces when they’re expecting traffic beyond their usual numbers.
+[...]
+- Resource exhaustion: CPU, memory, or disk bottlenecks
+- Inefficient backend tasks: Heavy processing, unoptimized code
+- Traffic overload on a single server instance without auto-scaling
+[...]
+### 3. Database Bottlenecks
+[...]
+Slow-running database queries are often a tough nut to track, since databases lie at the bottom-most layer of your backend processing. By the time you figure out a query is taking longer than expected, you may have cost your company a fortune in revenue.
+[...]
+queries or a group of specific queries can take longer to execute, which may cause your application to almost seem like it’s freezing when accessing data.
+[...]
+- Poorly written or unoptimized SQL queries
+- Missing indexes on frequently queried fields
+- Lack of pagination or filtering
+- Expensive joins or full table scans
+[...]
+### 4
+[...]
+Inefficient code refers to poorly optimized logic that consumes excessive CPU or memory, slows down application response times, and degrades user experience.
+[...]
+A high CPU usage, slow application responses, and slow features that aren’t exciting to use anymore are the most common ways to suspect inefficient code as the culprit behind application performance issues.
+[...]
+- Redundant operations or logic
+- Use of high-complexity algorithms (e.g.,`O(n²)` loops)
+- Unnecessary computations or poor coding practices
+[...]
+Memory leaks occur when applications allocate memory that is never released, leading to a gradual increase in memory usage until the app slows down or crashes.
+[...]
+- Unreleased object references in code
+- Event listeners not cleaned up (e.g., in React components)
+- Long-running JavaScript timers or closures
+- Improper use of global variables or circular references
+[...]
+Misconfigurations occur when incorrect environment or system settings break expected application behavior often due to manual errors or missing variables.
+[...]
+- Incorrect API keys or environment variables
+- Wrong database URIs, ports, or credentials
+- Missing or mismatched CORS or domain configurations
+- Version mismatches between staging and production
+[...]
+Modern apps rely heavily on third-party services from payment processors and CRMs to analytics and email APIs. These external tools accelerate development but can become invisible performance bottlenecks or points of failure if not monitored.
+[...]
+Third-party dependencies bring their application performance issues, and the easiest way to spot them is through warning signs in your development environment. They may also surface by breaking a specific feature of your application that you could swear was working fine before you updated a dependency in your application.
+[...]
+- Deprecation or instability in third-party libraries
+- Dependency updates introducing breaking changes
+- Rate-limiting, outages, or performance degradation from external services
+- Over-reliance without fallbacks or graceful degradation mechanisms
+[...]
+Slow rendering pages, especially on mobile devices, can be detrimental to your company and business. The first time your website opens takes way too long to load, and your users constantly complain how hard it is for them to access your application on an older device or slower internet connections.
+[...]
+blocking the main thread
+[...]
+I’ve
+[...]
+still have to
+[...]
+so long to
+[...]
+the data? Despite having a caching system set
+[...]
+you may still encounter
+[...]
+they may not be
+[...]
+apparent and or intense, their still likely to cause
+[...]
+and laggy
+[...]
+your users.
+[...]
+### 1
+[...]
+We’ve already seen how an oversized initial
+[...]
+to large JavaScript bundles. However, JavaScript isn’t just unwrapped on the first go – it loads as and when your application requires it.
+[...]
+, due to
+[...]
+- Processing large datasets directly in the browser.
+- Synchronous or blocking operations that freeze the UI.
+- Lack of virtualization or batching for DOM updates.
+- Inefficient handling of user interactions, updates, or re-renders.
+[...]
+As developers and teams continue to build on top of an outdated or unreliable API design, it starts causing application performance issues. This is because when the requirements of an API change, a lot of earlier assumptions and constraints also change.
+[...]
+- Lack of planning or foresight in API architecture.
+[...]
+- APIs not updated to
+[...]
+new use cases or data models.
+[...]
+- Inadequate use of REST principles (e.g., improper status codes, poor resource structure).
+- Missing
+[...]
+for filtering, pagination, or versioning.
+[...]
+Concurrency issues are another tricky rat to catch. However, they’re easy to spot in action. They often show up
+[...]
+when multiple operations clash at the same time leading to unpredictable
+[...]
+bugs that mysteriously go away on a
+[...]
+- Race conditions due to improper variable access
+- Deadlocks when two processes wait on each other indefinitely
+[...]
+- Shared resources accessed without synchronization
+[...]
+- Thread pool exhaustion in high-concurrency environments
+[...]
+every line of
+[...]
+It’s almost harmless
+[...]
+just the way it should
+[...]
+, but you’re shipping
+[...]
+and it some
+[...]
+These may be
+[...]
+of one of
+[...]
+most overlooked application performance issues
+[...]
+inefficient logging.
+
+---
+
+Title: Why Your Application Is Slow: Identifying Performance Bottlenecks
+Key Highlights:
+Before you open a profiler or tweak a single line of code, you need to understand how “slow” shows up in real use. Often, the same word hides multiple different problems.
+[...]
+- Slow under load: everything feels fine with a few users, but collapses at peak times.
+- Slow reports or exports: long-running queries or heavy processing jobs.
+- Slow interactions: search, filters, or button clicks respond with delay.
+- Slow screen transitions: navigating between views feels laggy.
+- Slow startup: the app takes a long time to launch or initialize.
+[...]
+Each of these symptoms can point to a different bottleneck. Your goal is to map user pain (“the invoice report is slow”) to technical causes (“the database query does a full table scan” or “the API server is CPU-bound”).
+[...]
+- External services – waiting on third-party APIs, authentication, or message queues.
+- Network – sending or receiving data over local or remote connections.
+- Database – executing queries, joining tables, scanning indexes.
+- Storage – reading or writing from disk, SSD, or cloud storage.
+- Memory – allocating, copying, or waiting for garbage collection.
+- CPU time – doing computations, executing instructions.
+[...]
+A bottleneck is the slowest part of this chain – the resource that limits how fast the rest of the system can go. Finding performance bottlenecks means discovering where the time is really going, not just where you suspect it might be.
+[...]
+| Bottleneck Type | Typical Symptoms | Key Metrics | First Tools to Use |
+| --- | --- | --- | --- |
+| CPU-bound | High CPU usage, slow processing, tasks scale poorly with more requests. | CPU utilization, time per function, thread count. | Language/IDE profiler, top/htop, performance traces. |
+[...]
+I/O-bound (disk) | Fast CPU but slow reads/writes, delays when loading big files or logs. | Disk IOPS, latency, queue length. | OS disk monitors, file I/O profilers. |
+[...]
+| Database-bound | Slow queries, timeouts, app waits on DB, high DB CPU or locks. | Query duration, slow query log, lock waits. | DB profiler, EXPLAIN plans, slow query logs. |
+[...]
+Network-bound | Fast locally, slow over network; delays calling remote APIs. | Latency, throughput, error rates. | Ping, traceroute, HTTP tracing, APM tools. |
+[...]
+| External service-bound | App waits on payment, auth, or third-party API responses. | External API latency, timeouts, retries. | APM traces, service logs, circuit breakers metrics. |
+[...]
+Developers often try to optimize based on intuition: “This loop looks expensive” or “That function feels heavy.” Sometimes they’re right. Often they’re not. The fastest way to fix performance is to measure first, then change.
+[...]
+- Does performance degrade gradually with load, or does it collapse at a certain point?
+- Which function or query consumes the biggest share of resources?
+- Where does most of the time go during a slow request or operation?
+[...]
+If your CPU usage is consistently high during slow periods, your application may be CPU-bound. This often happens with heavy calculations, inefficient loops, or algorithms with poor complexity (for example, nested loops over large collections).
+[...]
+- Profilers show a few “hot functions” consuming most of the time.
+- CPU usage is near 100% on one or more cores.
+- Requests or tasks get slower as load increases, even though you have enough memory.
+[...]
+- Unnecessary recalculations or repeated work.
+- Expensive operations inside tight loops.
+- Functions with unusually high cumulative time.
+[...]
+Memory problems often appear as random pauses, slowdowns over time, or crashes under load. Applications that load huge data sets into memory or create many short-lived objects can stress the garbage collector or exhaust RAM.
+[...]
+- Out-of-memory errors or process restarts.
+- Frequent garbage collection pauses in managed languages (Java, C#, etc.).
+- Growing memory usage during long-running workloads.
+[...]
+Many “slow application” issues are actually “slow database” issues. If each request needs several complex queries, or if your indexes are missing or misused, the database quickly becomes your bottleneck.
+[...]
+- CPU or disk usage on the database server spikes at peak times.
+- Reports and list views that touch large tables are especially slow.
+- Requests block while waiting for queries to finish.
+[...]
+- Index usage – are the right columns indexed, or are indexes missing?
+- Query execution plans – are you scanning entire tables?
+- Slow query logs – which queries dominate response time?
+[...]
+Even a well-optimized application can feel slow if it constantly waits on network calls or third-party services. Each extra round-trip or remote dependency adds latency you don’t fully control.
+[...]
+- Performance degrades significantly with higher network latency.
+- APM traces show long segments waiting on HTTP or RPC calls.
+- The app is fast on a local environment but slow for remote or mobile users.
+[...]
+- Whether calls are made serially when they could be parallelized.
+- How often calls are retried or time out.
+[...]
+How long each external call takes.
+[...]
+| User Complaint | Likely Bottleneck Area | What to Check First |
+| --- | --- | --- |
+| “The app is slow to start.” | Disk I/O, initialization logic, external services. | Startup logs, lazy vs eager loading, external calls on startup. |
+| “This page with a big table is very slow.” | Database, rendering, client-side processing. | Query plan, pagination, data size, front-end loops. |
+[...]
+| “It gets worse when many users log in.” | CPU, database locks, connection pools. | Resource usage under load, connection limits, contention. |
+| “Exporting reports takes forever.” | Database, CPU, disk writes. | Query performance, N+1 queries, buffering strategy. |
+[...]
+| “Sometimes the app freezes for a few seconds.” | GC pauses, blocking calls, synchronous I/O. | GC logs, thread dumps, long-running synchronous operations. |
+[...]
+“Why is my application slow?” is a broad question, but the answer is almost always specific. Maybe it’s one database query without an index. Maybe it’s an algorithm that doesn’t scale. Maybe it’s a long chain of network calls that no one realized were serial.
+[...]
+By breaking performance down into CPU, memory, I/O, database, network, and external services, and by using profiling and measurement instead of guesswork, you can turn vague slowness into clear, fixable bottlenecks. Over time, this systematic approach not only speeds up your application—it also makes your architecture cleaner and your users much happier.
+
+---
+
+Title: Top Reasons Why Your Mobile App is Slow and How to Fix it
+Key Highlights:
+Therefore, the first imperative task on hand is to find the actual cause or reason why the app is slow. Once you have identified the main issue, you can then take the necessary actions to fix the problem and offer your users an enhanced experience.
+[...]
+The major issues that make your mobile app slow are:
+[...]
+1. Your app is obsolete and not supportive
+2. Sluggishness of the server speed
+3. Encrypted connections are not optimized
+4. Chatty conversations
+5. Faulty library and software development kit
+6. App is overcrowded with data
+7. Network latency
+[...]
+### 1. Your App is Obsolete and Not Supportive
+[...]
+For instance, currently in case of Android, it has to be Android Oreo or Nougat. For iOS, it needs to be iOS 11 or 10. So, if you are not optimizing your apps to run on those platforms, or if you are using an older framework, the app tends to become slow. Additionally, older platform versions do not receive the required support from the vendor, and after a specific date, the support stops altogether.
+[...]
+### 2. Sluggishness of the Server Speed
+[...]
+You must have come across this message many times - the server is down or not connected. Well, this is one of the common reasons why some websites took a long time to load, and the same issue is getting repeated here with mobile apps. The server is slow or it has become overloaded.
+[...]
+- The server may slow down due to the multi-tiered infrastructure on which most modern-day applications run.
+- You may have problems accessing files from the disk, running the application code, or communicating instantly with users over the chat, and so on.
+[...]
+The root cause to all these issues is the same: an overloaded or overworked server. At times, the issue may be related to the latency of another process that your app heavily relies upon for most of its tasks.
+[...]
+### 3. Encrypted Connections are not Optimized
+[...]
+SSL/TLS connections provide encryption for data in-transit and are crucial from the app development point of view. So don’t overlook them! But they too can create problems if left un-optimized.
+[...]
+Unoptimized encrypted connections result in decreased performance of the app. Some of the key reasons identified by experts are:
+[...]
+1. A handshake is required each time you open a new connection, which affects the speed.
+2. Problems are faced during the encryption of data on the server and decryption on the client-side.
+[...]
+encrypted connections must
+[...]
+HTTP/2
+[...]
+reduce the connection overhead with clients by requiring only a single handshake for each session.
+[...]
+### 4. Chatty Conversations
+[...]
+The problem of chatty conversations with the application server occurs when the client makes several requests to conduct a transaction on behalf of individual operations within the application.
+[...]
+Now that virtualization has been introduced, this allows you to develop a virtual version of the device or resource,
+[...]
+a storage device, the server, the network, or even the operating system.
+[...]
+It may be that the server team has configured the automatically migrated server image to a host that is lightly loaded due to virtualization. It may move the server image to another location so that it gets many milliseconds further away from the servers or disk storage system.
+[...]
+If you want to fix this issue, you have to look into the number of requests between systems where it is linked up with the network. It’s also a good idea to check out delays between the requests.
+[...]
+### 5. Faulty Library and Software Development Kit
+[...]
+An app developer may be very particular about ensuring best in class performance. However, there may be problems with the libraries and Software Development Kit (SDK) provided by the vendor that are out of the control of the developer.
+[...]
+You need to review the code of third-party libraries to see whether it contains errors or bugs. If the libraries are not monitored carefully, the application tends to become tardy.
+[...]
+### 6. App is Overcrowded with Data
+[...]
+Well, this is no rocket science and can be easily identified and resolved. The app becomes overloaded with data and the outcome is that the app slows down. If too many servers are loaded, it consumes a lot of time. However, it is not a good idea to curtail your data and compromise the handy features of your app.
+[...]
+The simplest and undeniably the best solution to the problem is compressing data. Whether you have images, videos, graphics or audio content, if you compress the data it will make your app loading faster and you don’t have to mess with any of its features or functionality.
+[...]
+### 7. Network Latency
+[...]
+The speed of the network can hugely affect the speed of your mobile application. If the network is slow, the app performance will also be slow. If an application is making a query to a non-existent primary DNS server and gets no reply, it will try the second DNS server — but this slows down the application speed.
+[...]
+In order to fix the problem, you have to check the network speed all the time and see when the app slows down.
+[...]
+Mobile apps are a great source with which to reach out to your targeted audience. But if they’re not performing up to the mark or they become slow, it needs to be addressed quickly. There are different reasons why your app loses out in the speed factor, so you have to identify the exact problem and solve it as soon as possible.

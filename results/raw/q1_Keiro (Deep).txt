@@ -1,0 +1,1166 @@
+Title: React Compiler
+[Learn React](/learn)[Installation](/learn/installation)
+
+# React Compiler
+
+This page will give you an introduction to React Compiler and how to try it out successfully. 
+
+### Under Construction
+
+These docs are still a work in progress. More documentation is available in the [React Compiler Working Group repo](https://github.com/reactwg/react-compiler/discussions), and will be upstreamed into these docs when they are more stable. 
+
+### You will learn
+
+### Note
+
+React Compiler is a new compiler currently in Beta, that we’ve open sourced to get early feedback from the community. While it has been used in production at companies like Meta, rolling out the compiler to production for your app will depend on the health of your codebase and how well you’ve followed the [Rules of React](/reference/rules). 
+
+The latest Beta release can be found with the `@beta`tag, and daily experimental releases with `@experimental`. 
+
+React Compiler is a new compiler that we’ve open sourced to get early feedback from the community. It is a build-time only tool that automatically optimizes your React app. It works with plain JavaScript, and understands the [Rules of React](/reference/rules), so you don’t need to rewrite any code to use it. 
+
+The compiler also includes an ESLint pluginthat surfaces the analysis from the compiler right in your editor. **We strongly recommend everyone use the linter today. **The linter does not require that you have the compiler installed, so you can use it even if you are not ready to try out the compiler. 
+
+The compiler is currently released as `beta`, and is available to try out on React 17+ apps and libraries. To install the Beta: 
+
+Terminal npm install -D babel-plugin-react-compiler@beta eslint-plugin-react-compiler@beta 
+
+Or, if you’re using Yarn: 
+
+Terminal yarn add -D babel-plugin-react-compiler@beta eslint-plugin-react-compiler@beta 
+
+If you are not using React 19 yet, please see the section belowfor further instructions. 
+
+### What does the compiler do?
+
+In order to optimize applications, React Compiler automatically memoizes your code. You may be familiar today with memoization through APIs such as `useMemo`, `useCallback`, and `React.memo`. With these APIs you can tell React that certain parts of your application don’t need to recompute if their inputs haven’t changed, reducing work on updates. While powerful, it’s easy to forget to apply memoization or apply them incorrectly. This can lead to inefficient updates as React has to check parts of your UI that don’t have any *meaningful *changes. 
+
+The compiler uses its knowledge of JavaScript and React’s rules to automatically memoize values or groups of values within your components and hooks. If it detects breakages of the rules, it will automatically skip over just those components or hooks, and continue safely compiling other code. 
+
+### Note
+
+React Compiler can statically detect when Rules of React are broken, and safely opt-out of optimizing just the affected components or hooks. It is not necessary for the compiler to optimize 100% of your codebase. 
+
+If your codebase is already very well-memoized, you might not expect to see major performance improvements with the compiler. However, in practice memoizing the correct dependencies that cause performance issues is tricky to get right by hand. 
+
+#### Deep Dive
+
+#### What kind of memoization does React Compiler add?
+
+The initial release of React Compiler is primarily focused on **improving update performance **(re-rendering existing components), so it focuses on these two use cases: 
+
+#### Optimizing Re-renders
+
+React lets you express your UI as a function of their current state (more concretely: their props, state, and context). In its current implementation, when a component’s state changes, React will re-render that component *and all of its children *— unless you have applied some form of manual memoization with `useMemo()`, `useCallback()`, or `React.memo()`. For example, in the following example, `<MessageButton>`will re-render whenever `<FriendList>`’s state changes: 
+
+```grow-[2]
+function FriendList({ friends }) { const onlineCount = useFriendOnlineCount(); if (friends.length === 0) { return <NoFriends />; } return ( <div> <span>{onlineCount} online</span> {friends.map((friend) => ( <FriendListCard key={friend.id} friend={friend} /> ))} <MessageButton /> </div> );}
+```
+
+[See this example in the React Compiler Playground](https://playground.react.dev/#N4Igzg9grgTgxgUxALhAMygOzgFwJYSYAEAYjHgpgCYAyeYOAFMEWuZVWEQL4CURwADrEicQgyKEANnkwIAwtEw4iAXiJQwCMhWoB5TDLmKsTXgG5hRInjRFGbXZwB0UygHMcACzWr1ABn4hEWsYBBxYYgAeADkIHQ4uAHoAPksRbisiMIiYYkYs6yiqPAA3FMLrIiiwAAcAQ0wU4GlZBSUcbklDNqikusaKkKrgR0TnAFt62sYHdmp+VRT7SqrqhOo6Bnl6mCoiAGsEAE9VUfmqZzwqLrHqM7ubolTVol5eTOGigFkEMDB6u4EAAhKA4HCEZ5DNZ9ErlLIWYTcEDcIA)
+
+React Compiler automatically applies the equivalent of manual memoization, ensuring that only the relevant parts of an app re-render as state changes, which is sometimes referred to as “fine-grained reactivity”. In the above example, React Compiler determines that the return value of `<FriendListCard />`can be reused even as `friends`changes, and can avoid recreating this JSX *and *avoid re-rendering `<MessageButton>`as the count changes. 
+
+#### Expensive calculations also get memoized
+
+The compiler can also automatically memoize for expensive calculations used during rendering: 
+
+```grow-[2]
+// **Not** memoized by React Compiler, since this is not a component or hookfunction expensivelyProcessAReallyLargeArrayOfObjects() { /* ... */ }// Memoized by React Compiler since this is a componentfunction TableContainer({ items }) { // This function call would be memoized: const data = expensivelyProcessAReallyLargeArrayOfObjects(items); // ...}
+```
+
+[See this example in the React Compiler Playground](https://playground.react.dev/#N4Igzg9grgTgxgUxALhAejQAgFTYHIQAuumAtgqRAJYBeCAJpgEYCemASggIZyGYDCEUgAcqAGwQwANJjBUAdokyEAFlTCZ1meUUxdMcIcIjyE8vhBiYVECAGsAOvIBmURYSonMCAB7CzcgBuCGIsAAowEIhgYACCnFxioQAyXDAA5gixMDBcLADyzvlMAFYIvGAAFACUmMCYaNiYAHStOFgAvk5OGJgAshTUdIysHNy8AkbikrIKSqpaWvqGIiZmhE6u7p7ymAAqXEwSguZcCpKV9VSEFBodtcBOmAYmYHz0XIT6ALzefgFUYKhCJRBAxeLcJIsVIZLI5PKFYplCqVa63aoAbm6u0wMAQhFguwAPPRAQA+YAfL4dIloUmBMlODogDpAA)
+
+However, if `expensivelyProcessAReallyLargeArrayOfObjects`is truly an expensive function, you may want to consider implementing its own memoization outside of React, because: 
+
+So if `expensivelyProcessAReallyLargeArrayOfObjects`was used in many different components, even if the same exact items were passed down, that expensive calculation would be run repeatedly. We recommend [profiling](https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive)first to see if it really is that expensive before making code more complicated. 
+
+### Should I try out the compiler?
+
+Please note that the compiler is still in Beta and has many rough edges. While it has been used in production at companies like Meta, rolling out the compiler to production for your app will depend on the health of your codebase and how well you’ve followed the [Rules of React](/reference/rules). 
+
+**You don’t have to rush into using the compiler now. It’s okay to wait until it reaches a stable release before adopting it. **However, we do appreciate trying it out in small experiments in your apps so that you can provide feedbackto us to help make the compiler better. 
+
+## Getting Started
+
+In addition to these docs, we recommend checking the [React Compiler Working Group](https://github.com/reactwg/react-compiler)for additional information and discussion about the compiler. 
+
+### Installing eslint-plugin-react-compiler
+
+React Compiler also powers an ESLint plugin. The ESLint plugin can be used **independently **of the compiler, meaning you can use the ESLint plugin even if you don’t use the compiler. 
+
+Terminal npm install -D eslint-plugin-react-compiler@beta 
+
+Then, add it to your ESLint config: 
+
+```grow-[2]
+import reactCompiler from 'eslint-plugin-react-compiler'export default [ { plugins: { 'react-compiler': reactCompiler, }, rules: { 'react-compiler/react-compiler': 'error', }, },]
+```
+
+Or, in the deprecated eslintrc config format: 
+
+```grow-[2]
+module.exports = { plugins: [ 'eslint-plugin-react-compiler', ], rules: { 'react-compiler/react-compiler': 'error', },}
+```
+
+The ESLint plugin will display any violations of the rules of React in your editor. When it does this, it means that the compiler has skipped over optimizing that component or hook. This is perfectly okay, and the compiler can recover and continue optimizing other components in your codebase. 
+
+### Note
+
+**You don’t have to fix all ESLint violations straight away. **You can address them at your own pace to increase the amount of components and hooks being optimized, but it is not required to fix everything before you can use the compiler. 
+
+### Rolling out the compiler to your codebase
+
+#### Existing projects
+
+The compiler is designed to compile functional components and hooks that follow the [Rules of React](/reference/rules). It can also handle code that breaks those rules by bailing out (skipping over) those components or hooks. However, due to the flexible nature of JavaScript, the compiler cannot catch every possible violation and may compile with false negatives: that is, the compiler may accidentally compile a component/hook that breaks the Rules of React which can lead to undefined behavior. 
+
+For this reason, to adopt the compiler successfully on existing projects, we recommend running it on a small directory in your product code first. You can do this by configuring the compiler to only run on a specific set of directories: 
+
+```grow-[2]
+const ReactCompilerConfig = { sources: (filename) => { return filename.indexOf('src/path/to/dir') !== -1; },};
+```
+
+When you have more confidence with rolling out the compiler, you can expand coverage to other directories as well and slowly roll it out to your whole app. 
+
+#### New projects
+
+If you’re starting a new project, you can enable the compiler on your entire codebase, which is the default behavior. 
+
+### Using React Compiler with React 17 or 18
+
+React Compiler works best with React 19 RC. If you are unable to upgrade, you can install the extra `react-compiler-runtime`package which will allow the compiled code to run on versions prior to 19. However, note that the minimum supported version is 17. 
+
+Terminal npm install react-compiler-runtime@beta 
+
+You should also add the correct `target`to your compiler config, where `target`is the major version of React you are targeting: 
+
+```grow-[2]
+// babel.config.jsconst ReactCompilerConfig = { target: '18' // '17' | '18' | '19'};module.exports = function () { return { plugins: [ ['babel-plugin-react-compiler', ReactCompilerConfig], ], };};
+```
+
+### Using the compiler on libraries
+
+React Compiler can also be used to compile libraries. Because React Compiler needs to run on the original source code prior to any code transformations, it is not possible for an application’s build pipeline to compile the libraries they use. Hence, our recommendation is for library maintainers to independently compile and test their libraries with the compiler, and ship compiled code to npm. 
+
+Because your code is pre-compiled, users of your library will not need to have the compiler enabled in order to benefit from the automatic memoization applied to your library. If your library targets apps not yet on React 19, specify a minimum target and add react-compiler-runtime as a direct dependency. The runtime package will use the correct implementation of APIs depending on the application’s version, and polyfill the missing APIs if necessary. 
+
+Library code can often require more complex patterns and usage of escape hatches. For this reason, we recommend ensuring that you have sufficient testing in order to identify any issues that might arise from using the compiler on your library. If you identify any issues, you can always opt-out the specific components or hooks with the 'use no memo' directive. 
+
+Similarly to apps, it is not necessary to fully compile 100% of your components or hooks to see benefits in your library. A good starting point might be to identify the most performance sensitive parts of your library and ensuring that they don’t break the [Rules of React](/reference/rules), which you can use `eslint-plugin-react-compiler`to identify. 
+
+## Usage
+
+### Babel
+
+Terminal npm install babel-plugin-react-compiler@beta 
+
+The compiler includes a Babel plugin which you can use in your build pipeline to run the compiler. 
+
+After installing, add it to your Babel config. Please note that it’s critical that the compiler run **first **in the pipeline: 
+
+```grow-[2]
+// babel.config.jsconst ReactCompilerConfig = { /* ... */ };module.exports = function () { return { plugins: [ ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first! // ... ], };};
+```
+
+`babel-plugin-react-compiler`should run first before other Babel plugins as the compiler requires the input source information for sound analysis. 
+
+### Vite
+
+If you use Vite, you can add the plugin to vite-plugin-react: 
+
+```grow-[2]
+// vite.config.jsconst ReactCompilerConfig = { /* ... */ };export default defineConfig(() => { return { plugins: [ react({ babel: { plugins: [ ["babel-plugin-react-compiler", ReactCompilerConfig], ], }, }), ], // ... };});
+```
+
+### Next.js
+
+Please refer to the [Next.js docs](https://nextjs.org/docs/app/api-reference/next-config-js/reactCompiler)for more information. 
+
+### Remix
+
+Install `vite-plugin-babel`, and add the compiler’s Babel plugin to it: 
+
+Terminal npm install vite-plugin-babel 
+
+```grow-[2]
+// vite.config.jsimport babel from "vite-plugin-babel";const ReactCompilerConfig = { /* ... */ };export default defineConfig({ plugins: [ remix({ /* ... */}), babel({ filter: /\.[jt]sx?$/, babelConfig: { presets: ["@babel/preset-typescript"], // if you use TypeScript plugins: [ ["babel-plugin-react-compiler", ReactCompilerConfig], ], }, }), ],});
+```
+
+### Webpack
+
+A community Webpack loader is [now available here](https://github.com/SukkaW/react-compiler-webpack). 
+
+### Expo
+
+Please refer to [Expo’s docs](https://docs.expo.dev/guides/react-compiler/)to enable and use the React Compiler in Expo apps. 
+
+### Metro (React Native)
+
+React Native uses Babel via Metro, so refer to the Usage with Babelsection for installation instructions. 
+
+### Rspack
+
+Please refer to [Rspack’s docs](https://rspack.dev/guide/tech/react#react-compiler)to enable and use the React Compiler in Rspack apps. 
+
+### Rsbuild
+
+Please refer to [Rsbuild’s docs](https://rsbuild.dev/guide/framework/react#react-compiler)to enable and use the React Compiler in Rsbuild apps. 
+
+## Troubleshooting
+
+To report issues, please first create a minimal repro on the [React Compiler Playground](https://playground.react.dev/)and include it in your bug report. You can open issues in the [facebook/react](https://github.com/facebook/react/issues)repo. 
+
+You can also provide feedback in the React Compiler Working Group by applying to be a member. Please see [the README for more details on joining](https://github.com/reactwg/react-compiler). 
+
+### What does the compiler assume?
+
+React Compiler assumes that your code: 
+
+React Compiler can verify many of the Rules of React statically, and will safely skip compilation when it detects an error. To see the errors we recommend also installing [eslint-plugin-react-compiler](https://www.npmjs.com/package/eslint-plugin-react-compiler). 
+
+### How do I know my components have been optimized?
+
+[React Devtools](/learn/react-developer-tools)(v5.0+) has built-in support for React Compiler and will display a “Memo ✨” badge next to components that have been optimized by the compiler. 
+
+### Something is not working after compilation
+
+If you have eslint-plugin-react-compiler installed, the compiler will display any violations of the rules of React in your editor. When it does this, it means that the compiler has skipped over optimizing that component or hook. This is perfectly okay, and the compiler can recover and continue optimizing other components in your codebase. **You don’t have to fix all ESLint violations straight away. **You can address them at your own pace to increase the amount of components and hooks being optimized. 
+
+Due to the flexible and dynamic nature of JavaScript however, it’s not possible to comprehensively detect all cases. Bugs and undefined behavior such as infinite loops may occur in those cases. 
+
+If your app doesn’t work properly after compilation and you aren’t seeing any ESLint errors, the compiler may be incorrectly compiling your code. To confirm this, try to make the issue go away by aggressively opting out any component or hook you think might be related via the "use no memo" directive. 
+
+```grow-[2]
+function SuspiciousComponent() { "use no memo"; // opts out this component from being compiled by React Compiler // ...}
+```
+
+### Note
+
+#### "use no memo"
+
+`"use no memo"`is a *temporary *escape hatch that lets you opt-out components and hooks from being compiled by the React Compiler. This directive is not meant to be long lived the same way as eg ["use client"](/reference/rsc/use-client)is. 
+
+It is not recommended to reach for this directive unless it’s strictly necessary. Once you opt-out a component or hook, it is opted-out forever until the directive is removed. This means that even if you fix the code, the compiler will still skip over compiling it unless you remove the directive. 
+
+When you make the error go away, confirm that removing the opt out directive makes the issue come back. Then share a bug report with us (you can try to reduce it to a small repro, or if it’s open source code you can also just paste the entire source) using the [React Compiler Playground](https://playground.react.dev)so we can identify and help fix the issue. 
+
+### Other issues
+
+Please see [https://github.com/reactwg/react-compiler/discussions/7](https://github.com/reactwg/react-compiler/discussions/7). 
+
+[PreviousReact Developer Tools](/learn/react-developer-tools)
+
+---
+
+Title: React Compiler & React 19 - forget about memoization soon?
+React 19 and the React Compiler, previously known as React Forget, have been dominating the React discussion over the past month. We're all losing our minds (in a good way) over the possibility of never having to think about memoization in React very, very soon. Is it true, though? Should we start forgetting about `memo`, `useMemo`, and `useCallback`in the coming months? And what actually changes when the React Compiler is released, and what should we learn and teach about React after that? 
+
+Let's take a look. 
+
+## React 19 is NOT the React Compiler
+
+Let's get the most important thing out of the way: memoization is not going anywhere soon, so don't unlearn it just yet. React 19 is not the React Compiler. The React team announced the Compiler in [the same blog post](https://react.dev/blog/2024/02/15/react-labs-what-we-have-been-working-on-february-2024)where they announced the soon release of React 19, and everyone excitedly jumped to conclusions. 
+
+A tweet from a React team member, however, clarifies this confusion: 
+
+In React 19, we'll see a bunch of new features, but we'll have to wait a bit longer for the Compiler. It's not clear right now how long, but according to another tweet from a different React core team member, it might happen by the end of this year. 
+
+Personally, I'm skeptical of this timeline. If we look at the talk by [the React team members](https://www.youtube.com/watch?v=qOQClO3g8-Y)that introduced the Compiler and its timeline, we're in the middle of the Compiler's journey: 
+
+![](/assets/react-compiler-soon/screen.png)
+
+The journed started in 2021, [two years ago](https://www.youtube.com/watch?v=lGEMwh32soc). Rolling out something as fundamental as this on a codebase as large as Meta is probably very complicated. So the jump from the middle of the timeline to the end might take another 2 years. 
+
+But who knows, maybe the React team will actually manage to release it this year. That would be good news. The current promise of the Compiler, [mentioned in the video](https://www.youtube.com/watch?v=qOQClO3g8-Y), is that we won't need to change any code for its adoption. It will Just Work ™️. If it's actually released by the end of the year, it's a very good indication that this is indeed the case, and the rest of us should be able to switch to it quickly and easily. 
+
+However, even if the Compiler is released this year, and it is indeed very easy to adopt with no downsides, it doesn't mean that we'll be able to forget about `useCallback`and `memo`right away. There will always be a "transition" period, where we first talk about the case of "if you already have the Compiler enabled", that slowly transitions to "in the rare case you haven't migrated to the Compiler yet" scenario. 
+
+The mental transition from class components to functional components with hooks took, I think, at least 3 years (starting from 2018) - when all the courses, docs, and blogs caught up, most people migrated to the React version with hooks, and we started talking about functional components and hooks as a default. And even today, 6 years later, there are still plenty of class components lurking around here and there. 
+
+If we apply a similar timeline to the Compiler, that would mean that we'd need to hold onto the knowledge of what `memo`, `useMemo`and `useCallback`are for at least the next three years. Less, if you're lucky enough to work in a modern codebase that can migrate to the Compiler as soon as it's released. More, if you're a React teacher or work in a large codebase that is slower to migrate with plenty of legacy code. 
+
+## What changes with the React Compiler
+
+So what exactly is changing? The simplified answer is - everything will now be memoized. The React Compiler will be a Babel plugin that converts our typical React code into code where every hook dependency, props on components, and components themselves are memoized. Essentially, this code: 
+
+```bg-muted
+const Component = () => {
+ const onSubmit = () => {};
+ const onMount = () => {};
+ 
+ useEffect(() => {
+ onMount();
+ }, [onMount]);
+ 
+ return <Form onSubmit={onSubmit} />;
+};
+```
+
+underneath will behave as if both `onSubmit`and `onMount`are wrapped in `useCallback`and `Form`is wrapped in `React.memo`: 
+
+```bg-muted
+const FormMemo = React.memo(Form);
+ 
+const Component = () => {
+ const onSubmit = useCallback(() => {}, []);
+ const onMount = useCallback(() => {}, []);
+ 
+ useEffect(() => {
+ onMount();
+ }, [onMount]);
+ 
+ return <FormMemo onSubmit={onSubmit} />;
+};
+```
+
+The Compiler doesn't convert them into *exactly *that code, of course, it's much more complicated and advanced than this. But it's a good mental model to wrap our heads around it. If you're curious about the exact details, I recommend [watching this video](https://www.youtube.com/watch?v=qOQClO3g8-Y)from the React core team members who introduced the Compiler. And if you're slightly fuzzy on why we'd use `useCallback`and `memo`here at all, I'd recommend watching the first six videos of [the Advanced React series](https://www.youtube.com/playlist?list=PL6dw1BPCcLC4n-4o-t1kQZH0NJeZtpmGp)on YouTube. They cover everything about re-renders and memoization. Alternatively, if you're more into reading, then read [everything here](https://www.developerway.com/tags/re-renders). 
+
+For the way we're teaching and learning React, this transition means a few things. 
+
+### If parent re-renders, child re-renders
+
+Currently, if a Parent component re-renders, every component rendered inside will re-render as well. 
+
+```bg-muted
+// if Parent re-renders
+const Parent = () => {
+ // Child will also re-render
+ return <Child />;
+};
+```
+
+A lot of people currently believe that the `Child`component re-renders only if its props change. I like to call this [The Big Re-renders myth](https://www.developerway.com/posts/react-re-renders-guide#part2.5). At the moment, this is not true. Props don't matter in the standard React behavior. 
+
+Funnily enough, it becomes true with the Compiler. Since everything is memoized under the hood, the current myth actually becomes the standard React behavior. In a few years, we're going to teach that a React component re-renders only if its state or props change, and whether the Parent re-rendered or not doesn't matter. Life is weird sometimes. 
+
+### No more composition for performance
+
+Currently, we have a few composition techniques like ["moving state down"](https://www.developerway.com/posts/react-re-renders-guide#part3.2)or ["passing components as children"](https://www.developerway.com/posts/react-re-renders-guide#part3.3)that can reduce re-renders. I usually recommend using them before messing around with `useCallback`and `memo`, since [memoizing things in React properly is very, very hard](https://youtu.be/huBxeruVnAM?si=xr2_IB8PErDgFYse). 
+
+For example, in this code: 
+
+```bg-muted
+const Component = () => {
+ const [isOpen, setIsOpen] = useState(false);
+ 
+ return (
+ <>
+ <Button onClick={() => setIsOpen(true)}>
+ open dialog
+ </Button>
+ {isOpen && <ModalDialog />}
+ <VerySlowComponent />
+ </>
+ );
+};
+```
+
+the `VerySlowComponent`re-renders every time the dialog opens, causing the dialog to open with a delay. If we encapsulate the state that opens the dialog in a component like this: 
+
+```bg-muted
+const ButtonWithDialog = () => {
+ const [isOpen, setIsOpen] = useState(false);
+ 
+ return (
+ <>
+ <Button onClick={() => setIsOpen(true)}>
+ open dialog
+ </Button>
+ {isOpen && <ModalDialog />}
+ </>
+ );
+};
+ 
+const Component = () => {
+ return (
+ <>
+ <ButtonWithDialog />
+ <VerySlowComponent />
+ </>
+ );
+};
+```
+
+we essentially got rid of the unnecessary re-renders of the `VerySlowComponent`without memoizing anything. 
+
+When the compiler comes to life, these patterns will become unnecessary for performance. We'll probably still use them for composition and separation of concerns purposes. But there won't be a natural re-renders power anymore that forces us to split components into smaller components. Our components might become larger with no negative consequences. 
+
+### No more useMemo/useCallback everywhere
+
+Naturally, all the `useMemo`and `useCallback`that sometimes plague our code will be gone. That part excites me the most. No more tracking props through multiple levels of components just to memoize one `onSubmit`props callback. No more unreadable and undebuggable chains of `useMemo`and `useCallback`that all depend on each other and are impossible to understand. No more broken memoization just because `children`are not memoized and no one noticed. 
+
+### Diffing & reconciliation
+
+We might need to change how we explain [diffing & reconciliation in React](https://www.developerway.com/posts/reconciliation-in-react). The current simplified explanation is that when we "render" a component like this `<Child />`, we just create an Element of it. This element is an object of that shape: 
+
+```bg-muted
+{
+ "type": ...,
+ "props": ...,
+ // other react stuff
+}
+```
+
+where "type" is either a string or a reference to a Component. 
+
+In this code: 
+
+```bg-muted
+const Parent = () => {
+ return <Child />;
+};
+```
+
+when `Parent`re-renders, its function is triggered, and `<Child />`object is re-created. React performs a shallow comparison of that object before and after re-render, and if its reference changes, then it's an indication for React that it needs to do a full diffing on that sub-tree. 
+
+Currently, this is the reason why the `<Child />`component always re-renders, even if it doesn't have any props. The result of `<Child />`(which is a syntax sugar for `React.createElement`function call) is an object that is always re-created, which means it can't pass the shallow comparison check. 
+
+With the React Compiler, the concepts of Elements, diffing, and reconciliation remain the same, so that's good. But it seems that `<Child />`will now return a *memoized object *if its props haven't changed. So, actually, the end result of the Compiler is more of an equivalent of everything being wrapped in `useMemo`, even the Elements. 
+
+```bg-muted
+const Parent = () => {
+ const child = useMemo(() => <Child />, []);
+ return child;
+};
+```
+
+But this is just me making assumptions from the limited publicly available resources, so I might be slightly wrong here. In any case, it's just an implementation detail that doesn't really matter for our production code. 
+
+Everything else stays pretty much the same as it is right now. Creating components inside other components will still be [a massive anti-pattern](https://www.developerway.com/posts/reconciliation-in-react#part10). We'll still use [the "key" attribute](https://youtu.be/cyAbjx0mfKM?si=cUVQb_aXGHsirMvZ)to identify elements or reset the state. [Context](https://www.developerway.com/posts/how-to-write-performant-react-apps-with-context)is still going to be a pain to deal with. And everything about data fetching or error handling is not even part of the conversation. 
+
+But anyway, I can't wait for the Compiler's release. It seems like a massive improvement to our React life. Even if I have to re-write half of my articles and re-do half of my YouTube videos because of it 😅 
+
+[Debugging with AI: Can It Replace an Experienced Developer?Can AI actually debug complex React/Next.js issues? I tested it on three real bugs, investigated the root cause myself and wrote down the results.](/posts/debugging-with-ai)[AI](/posts?category=ai)· Feb 4, 2026 · 27 min read [Can You Fetch Data with React Server Actions?Can React Server Actions replace fetch for client-side data fetching? Let's investigate and find out.](/posts/server-actions-for-data-fetching)[React](/posts?category=react)· Jan 13, 2026 · 13 min read [Bundle Size Investigation: A Step-by-Step Guide to Shrinking Your JavaScriptA practical guide to analyzing and reducing JavaScript bundle size. Learn bundle analysis, fix tree-shaking issues, remove duplicate libraries, and otherwise optimize your React app's JavaScript size.](/posts/bundle-size-investigation)[React](/posts?category=react)· Dec 4, 2025 · 34 min read 
+
+
+---
+
+Title: React Compiler: No More useMemo and useCallback
+![React Compiler: No More useMemo and useCallback](https://api.certificates.dev/storage/wS7DVvXFZs915ZZf2rS9FUP33VdK6jT02n7iH4mg.png)
+
+## React Compiler: No More useMemo and useCallback
+
+React Compiler automatically optimizes your components at build time. No more useMemo, useCallback, or React.memo. Learn how to set it up and what you need to know. 
+
+![Aurora Scharff](https://avatars.githubusercontent.com/u/66901228?v=4)
+
+Aurora Scharff 
+
+*January 13, 2026 *
+
+React Compiler takes away the mental burden of performance optimization. You no longer need to think about `useMemo`, `useCallback`, or `React.memo`. The compiler handles it for you automatically. 
+
+This article covers what React Compiler does, how to set it up, and what you need to know to use it effectively. 
+
+## The Problem: Manual Memoization
+
+Before React Compiler, optimizing performance meant wrapping values and components in memoization hooks: 
+
+```
+import { useMemo, useCallback, memo } from 'react';
+
+const ProductList = memo(function ProductList({ products, onSelect }) {
+ const sortedProducts = useMemo(() => {
+ return products.slice().sort((a, b) => a.name.localeCompare(b.name));
+ }, [products]);
+
+ const handleSelect = useCallback((id) => {
+ onSelect(id);
+ }, [onSelect]);
+
+ return (
+ <ul>
+ {sortedProducts.map(product => (
+ <ProductItem key={product.id} product={product} onSelect={handleSelect} />
+ ))}
+ </ul>
+ );
+});
+```
+
+This works, but it's tedious. You have to decide where memoization helps, manage dependency arrays correctly, and remember to wrap components in `memo`. It's easy to make mistakes, and the extra code clutters your components. 
+
+## The Solution: Automatic Optimization
+
+With React Compiler, you write the straightforward version: 
+
+```
+function ProductList({ products, onSelect }) {
+ const sortedProducts = products.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+ const handleSelect = (id) => {
+ onSelect(id);
+ };
+
+ return (
+ <ul>
+ {sortedProducts.map(product => (
+ <ProductItem key={product.id} product={product} onSelect={handleSelect} />
+ ))}
+ </ul>
+ );
+}
+```
+
+The compiler analyzes your code at build time and adds the memoization automatically. You get the same performance benefits without the mental overhead. 
+
+## Setting Up React Compiler
+
+React Compiler is a Babel plugin that transforms your code at build time. The setup depends on your build tool. 
+
+### Installation
+
+First, install the compiler as a dev dependency: 
+
+```
+npm install -D babel-plugin-react-compiler@latest
+```
+
+### Vite Setup
+
+If you're using Vite with `@vitejs/plugin-react`, add the compiler to the Babel plugins: 
+
+```
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+ plugins: [
+ react({
+ babel: {
+ plugins: ['babel-plugin-react-compiler'],
+ },
+ }),
+ ],
+});
+```
+
+### Next.js Setup
+
+Next.js 16 has built-in stable support for React Compiler. Just enable it in your config: 
+
+```
+// next.config.ts
+const nextConfig = {
+ reactCompiler: true,
+};
+
+export default nextConfig;
+```
+
+Next.js includes a custom SWC optimization that only applies the compiler to files with JSX or React Hooks, keeping builds fast. 
+
+### React 17 and 18
+
+The compiler works best with React 19, but it also supports React 17 and 18. You'll need to install a runtime package that provides the compiler's internal APIs: 
+
+```
+npm install react-compiler-runtime@latest
+```
+
+Then configure the target version in your Babel or Vite config: 
+
+```
+// In your babel/vite config
+['babel-plugin-react-compiler', { target: '18' }] // or '17'
+```
+
+For other build tools like Webpack, Expo, React Router, Rspack, or Rsbuild, see the [installation docs](https://react.dev/learn/react-compiler/installation). 
+
+## Checking That It Works
+
+Open React DevTools in your browser. Components optimized by the compiler show a "Memo ✨" badge next to their name. If you see the sparkle emoji, the compiler is working. 
+
+## The One Requirement: Follow the Rules of React
+
+React Compiler relies on your code following the [Rules of React](https://react.dev/reference/rules). These aren't new rules. They're the same conventions React has always recommended: 
+
+If you're already writing React the "React way," the compiler should work without issues. If you have code that breaks these rules, the ESLint plugin will help you find it. 
+
+## ESLint Plugin
+
+The familiar `eslint-plugin-react-hooks`has been upgraded with compiler-powered lint rules. In addition to the classic `rules-of-hooks`and `exhaustive-deps`rules, the plugin now surfaces React Compiler diagnostics. These help you catch patterns that break memoization or that the compiler can't optimize, like mutating props, reading refs during render, or calling `setState`in effects. You can use it even if you haven't adopted the compiler yet. 
+
+```
+npm install -D eslint-plugin-react-hooks@latest
+```
+
+Then add it to your ESLint config: 
+
+```
+// eslint.config.js
+import reactHooks from 'eslint-plugin-react-hooks';
+
+export default [
+ reactHooks.configs.flat.recommended,
+];
+```
+
+Here are some examples of what the linter will catch: 
+
+```
+// ❌ Calling setState during render causes infinite loops
+function Counter() {
+ const [count, setCount] = useState(0);
+ setCount(count + 1); // Error: setState in render
+ return <div>{count}</div>;
+}
+
+// ❌ Reading a ref during render is unsafe
+function Input() {
+ const inputRef = useRef(null);
+ const value = inputRef.current?.value; // Error: ref access in render
+ return <input ref={inputRef} />;
+}
+
+// ❌ Mutating props breaks memoization
+function List({ items }) {
+ items.sort(); // Error: mutating props
+ return <ul>{items.map(item => <li key={item}>{item}</li>)}</ul>;
+}
+```
+
+This plugin works independently of the compiler, so you can use it to improve your code and prepare for compiler adoption even before enabling it. 
+
+## Adopting Gradually
+
+You don't have to enable the compiler for your entire codebase at once. Start with a specific folder: 
+
+```
+// babel.config.js
+module.exports = {
+ overrides: [
+ {
+ test: './src/features/**/*.{js,jsx,ts,tsx}',
+ plugins: ['babel-plugin-react-compiler'],
+ },
+ ],
+};
+```
+
+Test that everything works, then expand to more folders over time. 
+
+## Opting Out Specific Components
+
+If a component behaves unexpectedly after compilation, you can exclude it: 
+
+```
+function ProblematicComponent() {
+ "use no memo";
+
+ // Component code here
+}
+```
+
+The `"use no memo"`directive tells the compiler to skip this component. Use this as a temporary fix while you investigate the issue. 
+
+## What About Existing useMemo and useCallback?
+
+You can leave them in place. The compiler works alongside existing memoization, so there's no rush to remove manual optimizations. For new code, just write it without memoization and let the compiler handle it. 
+
+## Common Questions
+
+**Do I need to change how I write code? **No. Write your components normally. The compiler optimizes them automatically. 
+
+**Will it break my app? **The compiler is designed to skip code it can't safely optimize. If something does break, use `"use no memo"`to exclude that component and report the issue. 
+
+**Is it production-ready? **Yes. React Compiler v1.0 is stable and has been running in production at Meta (including Meta Quest Store) with measurable performance improvements. 
+
+**Should new projects use it? **Yes. Expo SDK 54 enables it by default in the project template, and Next.js 16 has stable built-in support (just add `reactCompiler: true`to your config). For new projects, there's no reason not to use it. 
+
+## Conclusion
+
+React Compiler removes the cognitive burden of manual memoization. Instead of deciding where to add `useMemo`, `useCallback`, and `memo`, you write straightforward code and let the compiler optimize it. 
+
+To get started: install the plugin, add it to your build config, check DevTools for the ✨ badge, and use the ESLint plugin to catch any issues. That's it. 
+
+**Sources: **
+
+## More certificates.dev articles
+
+Get the latest news and updates on developer certifications. Content is updated regularly, so please make sure to bookmark this page or sign up to get the latest content directly in your inbox. 
+
+[Plain Vue or going Meta?Using Vue plainly or adding Nuxt to it: side-by-side comparison of building the same features in plain Vue and Nuxt, so you can see exactly what the framework gives you.Abdelrahman AwadApr 29, 2026](/blog/plain-vue-or-going-meta)[The Laravel Request Lifecycle, Step by StepFollow a Laravel HTTP request from start to finish, exploring when the container is built, service providers run, and controllers execute—demystifying the framework step by step.Steve McDougallApr 29, 2026](/blog/the-laravel-request-lifecycle-step-by-step)[Nullish Coalescing OperatorUnderstand the difference between || and ?? in JavaScript, and learn how the nullish coalescing operator avoids common pitfalls with falsy values like 0, empty strings, and false.Martin FerretApr 28, 2026](/blog/nullish-coalescing-operator)
+
+## Looking for Certified Developers?
+
+We can help you recruit Certified Developers for your organization or project. The team has helped many customers employ suitable resources from a pool of 100s of qualified Developers. 
+
+Let us help you get the resources you need. 
+
+
+---
+
+Title: vercel-labs/agent-skills Issue #87: useMemo was suggested in spite of my config that I'm using react-compiler
+# useMemo was suggested in spite of my config that I'm using react-compiler
+
+ Since " The Vercel best practices guide explicitly states:
+
+  "If your project has React Compiler enabled, manual memoization with memo() and useMemo() is not
+  necessary. The compiler automatically optimizes re-renders."
+
+  My useMemo recommendations were incorrect for your project. I'll remove those from the list" what
+  should this skill have done differently to clue you in not to recommend that?
+
+⏺ Great question. Here's what went wrong and how the skill could be improved:
+
+  What Happened
+
+  1. The skill does contain React Compiler caveats, but they're buried in individual rule files (e.g., rules/rerender-memo.md:44)
+  2. My agents searched for optimization patterns without first checking if React Compiler was enabled
+  3. I only discovered the conflict when you challenged me
+
+  How the Skill Should Be Structured
+
+  1. Add a "Pre-flight Checks" section at the top of the skill:
+
+  ## Pre-flight Checks (Run Before Analysis)
+
+  Before recommending optimizations, detect the project's setup:
+
+  1. **React Compiler**: Check for `reactCompiler: true` in next.config.*
+     or `babel-plugin-react-compiler` in package.json
+     → If enabled: SKIP all `rerender-*` rules involving useMemo/useCallback/memo
+
+  2. **Next.js version**: Check package.json for Next.js version
+     → Affects which server component patterns apply
+
+  2. Add rule metadata with conditions:
+
+  ### 5.2 Extract Expensive Work (rerender-memo)
+
+  > **Skip if:** React Compiler enabled
+
+  [rest of rule...]
+
+  3. Group rules by applicability in the quick reference:
+
+  ### Re-render Optimization (MEDIUM)
+  *Skip this section if React Compiler is enabled*
+
+  - `rerender-memo` - Extract expensive work...
+
+  4. Or use machine-readable frontmatter:
+
+  ---
+  id: rerender-memo
+  skip_when:
+    - react-compiler-enabled
+  ---
+
+  The core issue: the skill told me what to look for but not when each rule applies. A good skill should encode preconditions prominently, not bury them in footnotes.
+
+---
+
+Title: useMemo - React
+[API Reference](/reference/react)[Hooks](/reference/react/hooks)
+
+# useMemo
+
+`useMemo`is a React Hook that lets you cache the result of a calculation between re-renders. 
+
+```grow-[2]
+const cachedValue = useMemo(calculateValue, dependencies)
+```
+
+### Note
+
+[React Compiler](/learn/react-compiler)automatically memoizes values and functions, reducing the need for manual `useMemo`calls. You can use the compiler to handle memoization automatically. 
+
+## Reference
+
+### useMemo(calculateValue, dependencies)
+
+Call `useMemo`at the top level of your component to cache a calculation between re-renders: 
+
+```grow-[2]
+import { useMemo } from 'react';function TodoList({ todos, tab }) { const visibleTodos = useMemo( () => filterTodos(todos, tab), [todos, tab] ); // ...}
+```
+
+See more examples below.
+
+#### Parameters
+
+#### Returns
+
+On the initial render, `useMemo`returns the result of calling `calculateValue`with no arguments. 
+
+During next renders, it will either return an already stored value from the last render (if the dependencies haven’t changed), or call `calculateValue`again, and return the result that `calculateValue`has returned. 
+
+#### Caveats
+
+### Note
+
+Caching return values like this is also known as [memoization,](https://en.wikipedia.org/wiki/Memoization)which is why this Hook is called `useMemo`. 
+
+## Usage
+
+### Skipping expensive recalculations
+
+To cache a calculation between re-renders, wrap it in a `useMemo`call at the top level of your component: 
+
+```grow-[2]
+import { useMemo } from 'react';function TodoList({ todos, tab, theme }) { const visibleTodos = useMemo(() => filterTodos(todos, tab), [todos, tab]); // ...}
+```
+
+You need to pass two things to `useMemo`: 
+
+On the initial render, the value you’ll get from `useMemo`will be the result of calling your calculation . 
+
+On every subsequent render, React will compare the dependencies with the dependencies you passed during the last render. If none of the dependencies have changed (compared with [Object.is](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is)), `useMemo`will return the value you already calculated before. Otherwise, React will re-run your calculation and return the new value. 
+
+In other words, `useMemo`caches a calculation result between re-renders until its dependencies change. 
+
+**Let’s walk through an example to see when this is useful. **
+
+By default, React will re-run the entire body of your component every time that it re-renders. For example, if this `TodoList`updates its state or receives new props from its parent, the `filterTodos`function will re-run: 
+
+```grow-[2]
+function TodoList({ todos, tab, theme }) { const visibleTodos = filterTodos(todos, tab); // ...}
+```
+
+Usually, this isn’t a problem because most calculations are very fast. However, if you’re filtering or transforming a large array, or doing some expensive computation, you might want to skip doing it again if data hasn’t changed. If both `todos`and `tab`are the same as they were during the last render, wrapping the calculation in `useMemo`like earlier lets you reuse `visibleTodos`you’ve already calculated before. 
+
+This type of caching is called *[memoization.](https://en.wikipedia.org/wiki/Memoization)*
+
+### Note
+
+**You should only rely on `useMemo`as a performance optimization. **If your code doesn’t work without it, find the underlying problem and fix it first. Then you may add `useMemo`to improve performance. 
+
+#### Deep Dive
+
+#### How to tell if a calculation is expensive?
+
+In general, unless you’re creating or looping over thousands of objects, it’s probably not expensive. If you want to get more confidence, you can add a console log to measure the time spent in a piece of code: 
+
+```grow-[2]
+console.time('filter array');const visibleTodos = filterTodos(todos, tab);console.timeEnd('filter array');
+```
+
+Perform the interaction you’re measuring (for example, typing into the input). You will then see logs like `filter array: 0.15ms`in your console. If the overall logged time adds up to a significant amount (say, `1ms`or more), it might make sense to memoize that calculation. As an experiment, you can then wrap the calculation in `useMemo`to verify whether the total logged time has decreased for that interaction or not: 
+
+```grow-[2]
+console.time('filter array');const visibleTodos = useMemo(() => { return filterTodos(todos, tab); // Skipped if todos and tab haven't changed}, [todos, tab]);console.timeEnd('filter array');
+```
+
+`useMemo`won’t make the *first *render faster. It only helps you skip unnecessary work on updates. 
+
+Keep in mind that your machine is probably faster than your users’ so it’s a good idea to test the performance with an artificial slowdown. For example, Chrome offers a [CPU Throttling](https://developer.chrome.com/blog/new-in-devtools-61/#throttling)option for this. 
+
+Also note that measuring performance in development will not give you the most accurate results. (For example, when [Strict Mode](/reference/react/StrictMode)is on, you will see each component render twice rather than once.) To get the most accurate timings, build your app for production and test it on a device like your users have. 
+
+#### Deep Dive
+
+#### Should you add useMemo everywhere?
+
+If your app is like this site, and most interactions are coarse (like replacing a page or an entire section), memoization is usually unnecessary. On the other hand, if your app is more like a drawing editor, and most interactions are granular (like moving shapes), then you might find memoization very helpful. 
+
+Optimizing with `useMemo`is only valuable in a few cases: 
+
+There is no benefit to wrapping a calculation in `useMemo`in other cases. There is no significant harm to doing that either, so some teams choose to not think about individual cases, and memoize as much as possible. The downside of this approach is that code becomes less readable. Also, not all memoization is effective: a single value that’s “always new” is enough to break memoization for an entire component. 
+
+**In practice, you can make a lot of memoization unnecessary by following a few principles: **
+
+If a specific interaction still feels laggy, [use the React Developer Tools profiler](https://legacy.reactjs.org/blog/2018/09/10/introducing-the-react-profiler.html)to see which components would benefit the most from memoization, and add memoization where needed. These principles make your components easier to debug and understand, so it’s good to follow them in any case. In the long term, we’re researching [doing granular memoization automatically](https://www.youtube.com/watch?v=lGEMwh32soc)to solve this once and for all. 
+
+#### The difference between useMemo and calculating a value directly
+
+#### Example 1 of 2: Skipping recalculation with useMemo
+
+In this example, the `filterTodos`implementation is **artificially slowed down **so that you can see what happens when some JavaScript function you’re calling during rendering is genuinely slow. Try switching the tabs and toggling the theme. 
+
+Switching the tabs feels slow because it forces the slowed down `filterTodos`to re-execute. That’s expected because the `tab`has changed, and so the entire calculation *needs *to re-run. (If you’re curious why it runs twice, it’s explained here.) 
+
+Toggle the theme. **Thanks to `useMemo`, it’s fast despite the artificial slowdown! **The slow `filterTodos`call was skipped because both `todos`and `tab`(which you pass as dependencies to `useMemo`) haven’t changed since the last render. 
+
+[Fork](https://codesandbox.io/api/v1/sandboxes/define?undefined&environment=create-react-app)
+
+```
+import { useMemo } from 'react';
+import { filterTodos } from './utils.js'
+
+export default function TodoList({ todos, theme, tab }) {
+ const visibleTodos = useMemo(
+ () => filterTodos(todos, tab),
+ [todos, tab]
+ );
+ return (
+ <div className={theme}>
+ <p><b>Note: <code>filterTodos</code> is artificially slowed down!</b></p>
+ <ul>
+ {visibleTodos.map(todo => (
+ <li key={todo.id}>
+ {todo.completed ?
+ <s>{todo.text}</s> :
+ todo.text
+ }
+ </li>
+ ))}
+ </ul>
+ </div>
+ );
+}
+```
+
+### Skipping re-rendering of components
+
+In some cases, `useMemo`can also help you optimize performance of re-rendering child components. To illustrate this, let’s say this `TodoList`component passes the `visibleTodos`as a prop to the child `List`component: 
+
+```grow-[2]
+export default function TodoList({ todos, tab, theme }) { // ... return ( <div className={theme}> <List items={visibleTodos} /> </div> );}
+```
+
+You’ve noticed that toggling the `theme`prop freezes the app for a moment, but if you remove `<List />`from your JSX, it feels fast. This tells you that it’s worth trying to optimize the `List`component. 
+
+**By default, when a component re-renders, React re-renders all of its children recursively. **This is why, when `TodoList`re-renders with a different `theme`, the `List`component *also *re-renders. This is fine for components that don’t require much calculation to re-render. But if you’ve verified that a re-render is slow, you can tell `List`to skip re-rendering when its props are the same as on last render by wrapping it in [memo:](/reference/react/memo)
+
+```grow-[2]
+import { memo } from 'react';const List = memo(function List({ items }) { // ...});
+```
+
+**With this change, `List`will skip re-rendering if all of its props are the *same *as on the last render. **This is where caching the calculation becomes important! Imagine that you calculated `visibleTodos`without `useMemo`: 
+
+```grow-[2]
+export default function TodoList({ todos, tab, theme }) { // Every time the theme changes, this will be a different array... const visibleTodos = filterTodos(todos, tab); return ( <div className={theme}> {/* ... so List's props will never be the same, and it will re-render every time */} <List items={visibleTodos} /> </div> );}
+```
+
+**In the above example, the `filterTodos`function always creates a *different *array, **similar to how the `{}`object literal always creates a new object. Normally, this wouldn’t be a problem, but it means that `List`props will never be the same, and your [memo](/reference/react/memo)optimization won’t work. This is where `useMemo`comes in handy: 
+
+```grow-[2]
+export default function TodoList({ todos, tab, theme }) { // Tell React to cache your calculation between re-renders... const visibleTodos = useMemo( () => filterTodos(todos, tab), [todos, tab] // ...so as long as these dependencies don't change... ); return ( <div className={theme}> {/* ...List will receive the same props and can skip re-rendering */} <List items={visibleTodos} /> </div> );}
+```
+
+**By wrapping the `visibleTodos`calculation in `useMemo`, you ensure that it has the *same *value between the re-renders **(until dependencies change). You don’t *have to *wrap a calculation in `useMemo`unless you do it for some specific reason. In this example, the reason is that you pass it to a component wrapped in [memo,](/reference/react/memo)and this lets it skip re-rendering. There are a few other reasons to add `useMemo`which are described further on this page. 
+
+#### Deep Dive
+
+#### Memoizing individual JSX nodes
+
+Instead of wrapping `List`in [memo](/reference/react/memo), you could wrap the `<List />`JSX node itself in `useMemo`: 
+
+```grow-[2]
+export default function TodoList({ todos, tab, theme }) { const visibleTodos = useMemo(() => filterTodos(todos, tab), [todos, tab]); const children = useMemo(() => <List items={visibleTodos} />, [visibleTodos]); return ( <div className={theme}> {children} </div> );}
+```
+
+The behavior would be the same. If the `visibleTodos`haven’t changed, `List`won’t be re-rendered. 
+
+A JSX node like `<List items={visibleTodos} />`is an object like `{ type: List, props: { items: visibleTodos } }`. Creating this object is very cheap, but React doesn’t know whether its contents is the same as last time or not. This is why by default, React will re-render the `List`component. 
+
+However, if React sees the same exact JSX as during the previous render, it won’t try to re-render your component. This is because JSX nodes are [immutable.](https://en.wikipedia.org/wiki/Immutable_object)A JSX node object could not have changed over time, so React knows it’s safe to skip a re-render. However, for this to work, the node has to *actually be the same object *, not merely look the same in code. This is what `useMemo`does in this example. 
+
+Manually wrapping JSX nodes into `useMemo`is not convenient. For example, you can’t do this conditionally. This is usually why you would wrap components with [memo](/reference/react/memo)instead of wrapping JSX nodes. 
+
+#### The difference between skipping re-renders and always re-rendering
+
+#### Example 1 of 2: Skipping re-rendering with useMemo and memo
+
+In this example, the `List`component is **artificially slowed down **so that you can see what happens when a React component you’re rendering is genuinely slow. Try switching the tabs and toggling the theme. 
+
+Switching the tabs feels slow because it forces the slowed down `List`to re-render. That’s expected because the `tab`has changed, and so you need to reflect the user’s new choice on the screen. 
+
+Next, try toggling the theme. **Thanks to `useMemo`together with [memo](/reference/react/memo), it’s fast despite the artificial slowdown! **The `List`skipped re-rendering because the `visibleTodos`array has not changed since the last render. The `visibleTodos`array has not changed because both `todos`and `tab`(which you pass as dependencies to `useMemo`) haven’t changed since the last render. 
+
+[Fork](https://codesandbox.io/api/v1/sandboxes/define?undefined&environment=create-react-app)
+
+```
+import { useMemo } from 'react';
+import List from './List.js';
+import { filterTodos } from './utils.js'
+
+export default function TodoList({ todos, theme, tab }) {
+ const visibleTodos = useMemo(
+ () => filterTodos(todos, tab),
+ [todos, tab]
+ );
+ return (
+ <div className={theme}>
+ <p><b>Note: <code>List</code> is artificially slowed down!</b></p>
+ <List items={visibleTodos} />
+ </div>
+ );
+}
+```
+
+### Preventing an Effect from firing too often
+
+Sometimes, you might want to use a value inside an [Effect:](/learn/synchronizing-with-effects)
+
+```grow-[2]
+function ChatRoom({ roomId }) { const [message, setMessage] = useState(''); const options = { serverUrl: 'https://localhost:1234', roomId: roomId } useEffect(() => { const connection = createConnection(options); connection.connect(); // ...
+```
+
+This creates a problem. [Every reactive value must be declared as a dependency of your Effect.](/learn/lifecycle-of-reactive-effects#react-verifies-that-you-specified-every-reactive-value-as-a-dependency)However, if you declare `options`as a dependency, it will cause your Effect to constantly reconnect to the chat room: 
+
+```grow-[2]
+useEffect(() => { const connection = createConnection(options); connection.connect(); return () => connection.disconnect(); }, [options]); // 🔴 Problem: This dependency changes on every render // ...
+```
+
+To solve this, you can wrap the object you need to call from an Effect in `useMemo`: 
+
+```grow-[2]
+function ChatRoom({ roomId }) { const [message, setMessage] = useState(''); const options = useMemo(() => { return { serverUrl: 'https://localhost:1234', roomId: roomId }; }, [roomId]); // ✅ Only changes when roomId changes useEffect(() => { const connection = createConnection(options); connection.connect(); return () => connection.disconnect(); }, [options]); // ✅ Only changes when options changes // ...
+```
+
+This ensures that the `options`object is the same between re-renders if `useMemo`returns the cached object. 
+
+However, since `useMemo`is performance optimization, not a semantic guarantee, React may throw away the cached value if there is a specific reason to do that. This will also cause the effect to re-fire, **so it’s even better to remove the need for a function dependency **by moving your object *inside *the Effect: 
+
+```grow-[2]
+function ChatRoom({ roomId }) { const [message, setMessage] = useState(''); useEffect(() => { const options = { // ✅ No need for useMemo or object dependencies! serverUrl: 'https://localhost:1234', roomId: roomId } const connection = createConnection(options); connection.connect(); return () => connection.disconnect(); }, [roomId]); // ✅ Only changes when roomId changes // ...
+```
+
+Now your code is simpler and doesn’t need `useMemo`. [Learn more about removing Effect dependencies.](/learn/removing-effect-dependencies#move-dynamic-objects-and-functions-inside-your-effect)
+
+### Memoizing a dependency of another Hook
+
+Suppose you have a calculation that depends on an object created directly in the component body: 
+
+```grow-[2]
+function Dropdown({ allItems, text }) { const searchOptions = { matchMode: 'whole-word', text }; const visibleItems = useMemo(() => { return searchItems(allItems, searchOptions); }, [allItems, searchOptions]); // 🚩 Caution: Dependency on an object created in the component body // ...
+```
+
+Depending on an object like this defeats the point of memoization. When a component re-renders, all of the code directly inside the component body runs again. **The lines of code creating the `searchOptions`object will also run on every re-render. **Since `searchOptions`is a dependency of your `useMemo`call, and it’s different every time, React knows the dependencies are different, and recalculate `searchItems`every time. 
+
+To fix this, you could memoize the `searchOptions`object *itself *before passing it as a dependency: 
+
+```grow-[2]
+function Dropdown({ allItems, text }) { const searchOptions = useMemo(() => { return { matchMode: 'whole-word', text }; }, [text]); // ✅ Only changes when text changes const visibleItems = useMemo(() => { return searchItems(allItems, searchOptions); }, [allItems, searchOptions]); // ✅ Only changes when allItems or searchOptions changes // ...
+```
+
+In the example above, if the `text`did not change, the `searchOptions`object also won’t change. However, an even better fix is to move the `searchOptions`object declaration *inside *of the `useMemo`calculation function: 
+
+```grow-[2]
+function Dropdown({ allItems, text }) { const visibleItems = useMemo(() => { const searchOptions = { matchMode: 'whole-word', text }; return searchItems(allItems, searchOptions); }, [allItems, text]); // ✅ Only changes when allItems or text changes // ...
+```
+
+Now your calculation depends on `text`directly (which is a string and can’t “accidentally” become different). 
+
+### Memoizing a function
+
+Suppose the `Form`component is wrapped in [memo.](/reference/react/memo)You want to pass a function to it as a prop: 
+
+```grow-[2]
+export default function ProductPage({ productId, referrer }) { function handleSubmit(orderDetails) { post('/product/' + productId + '/buy', { referrer, orderDetails }); } return <Form onSubmit={handleSubmit} />;}
+```
+
+Just as `{}`creates a different object, function declarations like `function() {}`and expressions like `() => {}`produce a *different *function on every re-render. By itself, creating a new function is not a problem. This is not something to avoid! However, if the `Form`component is memoized, presumably you want to skip re-rendering it when no props have changed. A prop that is *always *different would defeat the point of memoization. 
+
+To memoize a function with `useMemo`, your calculation function would have to return another function: 
+
+```grow-[2]
+export default function Page({ productId, referrer }) { const handleSubmit = useMemo(() => { return (orderDetails) => { post('/product/' + productId + '/buy', { referrer, orderDetails }); }; }, [productId, referrer]); return <Form onSubmit={handleSubmit} />;}
+```
+
+This looks clunky! **Memoizing functions is common enough that React has a built-in Hook specifically for that. Wrap your functions into [useCallback](/reference/react/useCallback)instead of `useMemo`**to avoid having to write an extra nested function: 
+
+```grow-[2]
+export default function Page({ productId, referrer }) { const handleSubmit = useCallback((orderDetails) => { post('/product/' + productId + '/buy', { referrer, orderDetails }); }, [productId, referrer]); return <Form onSubmit={handleSubmit} />;}
+```
+
+The two examples above are completely equivalent. The only benefit to `useCallback`is that it lets you avoid writing an extra nested function inside. It doesn’t do anything else. [Read more about useCallback.](/reference/react/useCallback)
+
+## Troubleshooting
+
+### My calculation runs twice on every re-render
+
+In [Strict Mode](/reference/react/StrictMode), React will call some of your functions twice instead of once: 
+
+```grow-[2]
+function TodoList({ todos, tab }) { // This component function will run twice for every render. const visibleTodos = useMemo(() => { // This calculation will run twice if any of the dependencies change. return filterTodos(todos, tab); }, [todos, tab]); // ...
+```
+
+This is expected and shouldn’t break your code. 
+
+This **development-only **behavior helps you [keep components pure.](/learn/keeping-components-pure)React uses the result of one of the calls, and ignores the result of the other call. As long as your component and calculation functions are pure, this shouldn’t affect your logic. However, if they are accidentally impure, this helps you notice and fix the mistake. 
+
+For example, this impure calculation function mutates an array you received as a prop: 
+
+```grow-[2]
+const visibleTodos = useMemo(() => { // 🚩 Mistake: mutating a prop todos.push({ id: 'last', text: 'Go for a walk!' }); const filtered = filterTodos(todos, tab); return filtered; }, [todos, tab]);
+```
+
+React calls your function twice, so you’d notice the todo is added twice. Your calculation shouldn’t change any existing objects, but it’s okay to change any *new *objects you created during the calculation. For example, if the `filterTodos`function always returns a *different *array, you can mutate *that *array instead: 
+
+```grow-[2]
+const visibleTodos = useMemo(() => { const filtered = filterTodos(todos, tab); // ✅ Correct: mutating an object you created during the calculation filtered.push({ id: 'last', text: 'Go for a walk!' }); return filtered; }, [todos, tab]);
+```
+
+Read [keeping components pure](/learn/keeping-components-pure)to learn more about purity. 
+
+Also, check out the guides on [updating objects](/learn/updating-objects-in-state)and [updating arrays](/learn/updating-arrays-in-state)without mutation. 
+
+### My useMemo call is supposed to return an object, but returns undefined
+
+This code doesn’t work: 
+
+```grow-[2]
+// 🔴 You can't return an object from an arrow function with () => { const searchOptions = useMemo(() => { matchMode: 'whole-word', text: text }, [text]);
+```
+
+In JavaScript, `() => {`starts the arrow function body, so the `{`brace is not a part of your object. This is why it doesn’t return an object, and leads to mistakes. You could fix it by adding parentheses like `({`and `})`: 
+
+```grow-[2]
+// This works, but is easy for someone to break again const searchOptions = useMemo(() => ({ matchMode: 'whole-word', text: text }), [text]);
+```
+
+However, this is still confusing and too easy for someone to break by removing the parentheses. 
+
+To avoid this mistake, write a `return`statement explicitly: 
+
+```grow-[2]
+// ✅ This works and is explicit const searchOptions = useMemo(() => { return { matchMode: 'whole-word', text: text }; }, [text]);
+```
+
+### Every time my component renders, the calculation in useMemo re-runs
+
+Make sure you’ve specified the dependency array as a second argument! 
+
+If you forget the dependency array, `useMemo`will re-run the calculation every time: 
+
+```grow-[2]
+function TodoList({ todos, tab }) { // 🔴 Recalculates every time: no dependency array const visibleTodos = useMemo(() => filterTodos(todos, tab)); // ...
+```
+
+This is the corrected version passing the dependency array as a second argument: 
+
+```grow-[2]
+function TodoList({ todos, tab }) { // ✅ Does not recalculate unnecessarily const visibleTodos = useMemo(() => filterTodos(todos, tab), [todos, tab]); // ...
+```
+
+If this doesn’t help, then the problem is that at least one of your dependencies is different from the previous render. You can debug this problem by manually logging your dependencies to the console: 
+
+```grow-[2]
+const visibleTodos = useMemo(() => filterTodos(todos, tab), [todos, tab]); console.log([todos, tab]);
+```
+
+You can then right-click on the arrays from different re-renders in the console and select “Store as a global variable” for both of them. Assuming the first one got saved as `temp1`and the second one got saved as `temp2`, you can then use the browser console to check whether each dependency in both arrays is the same: 
+
+```grow-[2]
+Object.is(temp1[0], temp2[0]); // Is the first dependency the same between the arrays?Object.is(temp1[1], temp2[1]); // Is the second dependency the same between the arrays?Object.is(temp1[2], temp2[2]); // ... and so on for every dependency ...
+```
+
+When you find which dependency breaks memoization, either find a way to remove it, or memoize it as well.
+
+### I need to call useMemo for each list item in a loop, but it’s not allowed
+
+Suppose the `Chart`component is wrapped in [memo](/reference/react/memo). You want to skip re-rendering every `Chart`in the list when the `ReportList`component re-renders. However, you can’t call `useMemo`in a loop: 
+
+```grow-[2]
+function ReportList({ items }) { return ( <article> {items.map(item => { // 🔴 You can't call useMemo in a loop like this: const data = useMemo(() => calculateReport(item), [item]); return ( <figure key={item.id}> <Chart data={data} /> </figure> ); })} </article> );}
+```
+
+Instead, extract a component for each item and memoize data for individual items: 
+
+```grow-[2]
+function ReportList({ items }) { return ( <article> {items.map(item => <Report key={item.id} item={item} /> )} </article> );}function Report({ item }) { // ✅ Call useMemo at the top level: const data = useMemo(() => calculateReport(item), [item]); return ( <figure> <Chart data={data} /> </figure> );}
+```
+
+Alternatively, you could remove `useMemo`and instead wrap `Report`itself in [memo.](/reference/react/memo)If the `item`prop does not change, `Report`will skip re-rendering, so `Chart`will skip re-rendering too: 
+
+```grow-[2]
+function ReportList({ items }) { // ...}const Report = memo(function Report({ item }) { const data = calculateReport(item); return ( <figure> <Chart data={data} /> </figure> );});
+```
+
+[PrevioususeLayoutEffect](/reference/react/useLayoutEffect)[NextuseOptimistic](/reference/react/useOptimistic)

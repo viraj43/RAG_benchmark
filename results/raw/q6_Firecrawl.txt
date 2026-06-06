@@ -1,0 +1,1914 @@
+Title: Error handling - Express.js
+# Error Handling
+
+_Error Handling_ refers to how Express catches and processes errors that
+occur both synchronously and asynchronously. Express comes with a default error
+handler so you don’t need to write your own to get started.
+
+## Catching Errors
+
+It’s important to ensure that Express catches all errors that occur while
+running route handlers and middleware.
+
+Errors that occur in synchronous code inside route handlers and middleware
+require no extra work. If synchronous code throws an error, then Express will
+catch and process it. For example:
+
+```
+app.get('/', (req, res) => {
+  throw new Error('BROKEN') // Express will catch this on its own.
+})
+```
+
+For errors returned from asynchronous functions invoked by route handlers
+and middleware, you must pass them to the `next()` function, where Express will
+catch and process them. For example:
+
+```
+app.get('/', (req, res, next) => {
+  fs.readFile('/file-does-not-exist', (err, data) => {
+    if (err) {
+      next(err) // Pass errors to Express.
+    } else {
+      res.send(data)
+    }
+  })
+})
+```
+
+Starting with Express 5, route handlers and middleware that return a Promise
+will call `next(value)` automatically when they reject or throw an error.
+For example:
+
+```
+app.get('/user/:id', async (req, res, next) => {
+  const user = await getUserById(req.params.id)
+  res.send(user)
+})
+```
+
+If `getUserById` throws an error or rejects, `next` will be called with either
+the thrown error or the rejected value. If no rejected value is provided, `next`
+will be called with a default Error object provided by the Express router.
+
+If you pass anything to the `next()` function (except the string `'route'`),
+Express regards the current request as being an error and will skip any
+remaining non-error handling routing and middleware functions.
+
+If the callback in a sequence provides no data, only errors, you can simplify
+this code as follows:
+
+```
+app.get('/', [\
+  function (req, res, next) {\
+    fs.writeFile('/inaccessible-path', 'data', next)\
+  },\
+  function (req, res) {\
+    res.send('OK')\
+  }\
+])
+```
+
+In the above example, `next` is provided as the callback for `fs.writeFile`,
+which is called with or without errors. If there is no error, the second
+handler is executed, otherwise Express catches and processes the error.
+
+You must catch errors that occur in asynchronous code invoked by route handlers or
+middleware and pass them to Express for processing. For example:
+
+```
+app.get('/', (req, res, next) => {
+  setTimeout(() => {
+    try {
+      throw new Error('BROKEN')
+    } catch (err) {
+      next(err)
+    }
+  }, 100)
+})
+```
+
+The above example uses a `try...catch` block to catch errors in the
+asynchronous code and pass them to Express. If the `try...catch`
+block were omitted, Express would not catch the error since it is not part of the synchronous
+handler code.
+
+Use promises to avoid the overhead of the `try...catch` block or when using functions
+that return promises. For example:
+
+```
+app.get('/', (req, res, next) => {
+  Promise.resolve().then(() => {
+    throw new Error('BROKEN')
+  }).catch(next) // Errors will be passed to Express.
+})
+```
+
+Since promises automatically catch both synchronous errors and rejected promises,
+you can simply provide `next` as the final catch handler and Express will catch errors,
+because the catch handler is given the error as the first argument.
+
+You could also use a chain of handlers to rely on synchronous error
+catching, by reducing the asynchronous code to something trivial. For example:
+
+```
+app.get('/', [\
+  function (req, res, next) {\
+    fs.readFile('/maybe-valid-file', 'utf-8', (err, data) => {\
+      res.locals.data = data\
+      next(err)\
+    })\
+  },\
+  function (req, res) {\
+    res.locals.data = res.locals.data.split(',')[1]\
+    res.send(res.locals.data)\
+  }\
+])
+```
+
+The above example has a couple of trivial statements from the `readFile`
+call. If `readFile` causes an error, then it passes the error to Express, otherwise you
+quickly return to the world of synchronous error handling in the next handler
+in the chain. Then, the example above tries to process the data. If this fails, then the
+synchronous error handler will catch it. If you had done this processing inside
+the `readFile` callback, then the application might exit and the Express error
+handlers would not run.
+
+Whichever method you use, if you want Express error handlers to be called in and the
+application to survive, you must ensure that Express receives the error.
+
+## The default error handler
+
+Express comes with a built-in error handler that takes care of any errors that might be encountered in the app. This default error-handling middleware function is added at the end of the middleware function stack.
+
+If you pass an error to `next()` and you do not handle it in a custom error
+handler, it will be handled by the built-in error handler; the error will be
+written to the client with the stack trace. The stack trace is not included
+in the production environment.
+
+Set the environment variable `NODE_ENV` to `production`, to run the app in production mode.
+
+When an error is written, the following information is added to the
+response:
+
+- The `res.statusCode` is set from `err.status` (or `err.statusCode`). If
+this value is outside the 4xx or 5xx range, it will be set to 500.
+- The `res.statusMessage` is set according to the status code.
+- The body will be the HTML of the status code message when in production
+environment, otherwise will be `err.stack`.
+- Any headers specified in an `err.headers` object.
+
+If you call `next()` with an error after you have started writing the
+response (for example, if you encounter an error while streaming the
+response to the client), the Express default error handler closes the
+connection and fails the request.
+
+So when you add a custom error handler, you must delegate to
+the default Express error handler, when the headers
+have already been sent to the client:
+
+```
+function errorHandler (err, req, res, next) {
+  if (res.headersSent) {
+    return next(err)
+  }
+  res.status(500)
+  res.render('error', { error: err })
+}
+```
+
+Note that the default error handler can get triggered if you call `next()` with an error
+in your code more than once, even if custom error handling middleware is in place.
+
+Other error handling middleware can be found at [Express middleware](https://expressjs.com/en/resources/middleware.html).
+
+## Writing error handlers
+
+Define error-handling middleware functions in the same way as other middleware functions,
+except error-handling functions have four arguments instead of three:
+`(err, req, res, next)`. For example:
+
+```
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
+```
+
+You define error-handling middleware last, after other `app.use()` and routes calls; for example:
+
+```
+const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}))
+app.use(bodyParser.json())
+app.use(methodOverride())
+app.use((err, req, res, next) => {
+  // logic
+})
+```
+
+Responses from within a middleware function can be in any format, such as an HTML error page, a simple message, or a JSON string.
+
+For organizational (and higher-level framework) purposes, you can define
+several error-handling middleware functions, much as you would with
+regular middleware functions. For example, to define an error-handler
+for requests made by using `XHR` and those without:
+
+```
+const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}))
+app.use(bodyParser.json())
+app.use(methodOverride())
+app.use(logErrors)
+app.use(clientErrorHandler)
+app.use(errorHandler)
+```
+
+In this example, the generic `logErrors` might write request and
+error information to `stderr`, for example:
+
+```
+function logErrors (err, req, res, next) {
+  console.error(err.stack)
+  next(err)
+}
+```
+
+Also in this example, `clientErrorHandler` is defined as follows; in this case, the error is explicitly passed along to the next one.
+
+Notice that when _not_ calling “next” in an error-handling function, you are responsible for writing (and ending) the response. Otherwise, those requests will “hang” and will not be eligible for garbage collection.
+
+```
+function clientErrorHandler (err, req, res, next) {
+  if (req.xhr) {
+    res.status(500).send({ error: 'Something failed!' })
+  } else {
+    next(err)
+  }
+}
+```
+
+Implement the “catch-all” `errorHandler` function as follows (for example):
+
+```
+function errorHandler (err, req, res, next) {
+  res.status(500)
+  res.render('error', { error: err })
+}
+```
+
+If you have a route handler with multiple callback functions, you can use the `route` parameter to skip to the next route handler. For example:
+
+```
+app.get('/a_route_behind_paywall',
+  (req, res, next) => {
+    if (!req.user.hasPaid) {
+      // continue handling this request
+      next('route')
+    } else {
+      next()
+    }
+  }, (req, res, next) => {
+    PaidContent.find((err, doc) => {
+      if (err) return next(err)
+      res.json(doc)
+    })
+  })
+```
+
+In this example, the `getPaidContent` handler will be skipped but any remaining handlers in `app` for `/a_route_behind_paywall` would continue to be executed.
+
+Calls to `next()` and `next(err)` indicate that the current handler is complete and in what state. `next(err)` will skip all remaining handlers in the chain except for those that are set up to handle errors as described above.
+
+[Edit this page](https://github.com/expressjs/expressjs.com/edit/gh-pages/en/guide/error-handling.md)
+
+[go to top](https://expressjs.com/en/guide/error-handling.html#)
+
+---
+
+Title: Simplified Guide to Setting Up a Global Error Handler in Express.js
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40mohsinansari.dev%2Fsimplified-guide-to-setting-up-a-global-error-handler-in-express-js-daf8dd640b69&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40mohsinansari.dev%2Fsimplified-guide-to-setting-up-a-global-error-handler-in-express-js-daf8dd640b69&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+# Simplified Guide to Setting Up a Global Error Handler in Express.js
+
+[![Mohsin Ansari](https://miro.medium.com/v2/resize:fill:32:32/1*ZkgOCWpesvLGI_VBmz_FLQ.jpeg)](https://medium.com/@mohsinansari.dev?source=post_page---byline--daf8dd640b69---------------------------------------)
+
+[Mohsin Ansari](https://medium.com/@mohsinansari.dev?source=post_page---byline--daf8dd640b69---------------------------------------)
+
+Follow
+
+3 min read
+
+·
+
+Feb 13, 2024
+
+76
+
+3
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3Ddaf8dd640b69&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40mohsinansari.dev%2Fsimplified-guide-to-setting-up-a-global-error-handler-in-express-js-daf8dd640b69&source=---header_actions--daf8dd640b69---------------------post_audio_button------------------)
+
+Share
+
+Press enter or click to view image in full size
+
+![Simplified Guide to Setting Up a Global Error Handler in Express.js](https://miro.medium.com/v2/resize:fit:700/1*k9l9ehPJ4xR0Kp8nmTGQDA.png)
+
+Error handling is a crucial aspect of any web application development. In Express.js, setting up a global error handler ensures that your application can gracefully handle errors that occur during the request-response cycle. In this guide, we’ll walk through the process of setting up a global error handler in Express.js in a simple and effective manner.
+
+### Why Global Error Handling?
+
+Express.js provides middleware to handle errors that occur during the execution of request-response cycles. A global error handler allows you to centralize error handling logic, making it easier to manage and maintain your application code. Instead of scattering error handling logic throughout your routes and controllers, a global error handler consolidates this logic into one central location.
+
+### Setting Up the Global Error Handler
+
+To set up a global error handler in Express.js, follow these simple steps:
+
+Step 1: Create a Middleware Function for Error Handling
+
+First, create a middleware function that will act as your global error handler. This middleware function will receive errors as arguments and handle them appropriately.
+
+create a file named errorMiddleware.js in your project directory and add the below code.
+
+```
+// errorMiddleware.js
+
+function errorHandler(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+}
+
+module.exports = errorHandler;
+```
+
+In this middleware function, we log the error to the console for debugging purposes and then send an HTTP 500 Internal Server Error response to the client.
+
+## Get Mohsin Ansari’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+Step 2: Register the Error Handler Middleware
+
+Next, register the error handler middleware in your Express application. Ensure that you register the error handler middleware after all other middleware and route handlers.
+
+In entry file of your project eg. `app.js` add the below code.
+
+```
+// app.js
+
+const express = require('express');
+const errorHandler = require('./errorMiddleware');
+
+const app = express();
+
+// Your other middleware and route handlers here
+
+// Register the error handler middleware
+app.use(errorHandler);
+
+// Start the Express server
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+```
+
+By registering the error handler middleware with `app.use(errorHandler)`, Express will invoke this middleware whenever an error occurs during the request-response cycle.
+
+### Example Usage
+
+Now that you’ve set up the global error handler, let’s see how it works in practice:
+
+```
+// Example route handler
+app.get('/example', (req, res, next) => {
+  try {
+    // Some code that might throw an error
+    throw new Error('Example error');
+  } catch (error) {
+    // Pass the error to Express error handler middleware
+    next(error);
+  }
+});
+```
+
+In this example, if an error occurs within the `/example` route handler, it will throw an error, which will be caught and passed to the Express error handler middleware using `next(error)`.
+
+### Conclusion
+
+Setting up a global error handler in Express.js is a fundamental aspect of building robust and maintainable web applications. By following the simple steps outlined in this guide, you can effectively manage errors and ensure a smooth user experience for your application’s users.
+
+Express.js provides flexibility in how you handle errors, allowing you to customize error responses and logging based on your application’s requirements. With a global error handler in place, you can confidently handle errors and maintain the stability of your Express.js applications.
+
+[Backend](https://medium.com/tag/backend?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Nodejs](https://medium.com/tag/nodejs?source=post_page-----daf8dd640b69---------------------------------------)
+
+[JavaScript](https://medium.com/tag/javascript?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Expressjs](https://medium.com/tag/expressjs?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Error](https://medium.com/tag/error?source=post_page-----daf8dd640b69---------------------------------------)
+
+[![Mohsin Ansari](https://miro.medium.com/v2/resize:fill:48:48/1*ZkgOCWpesvLGI_VBmz_FLQ.jpeg)](https://medium.com/@mohsinansari.dev?source=post_page---post_author_info--daf8dd640b69---------------------------------------)
+
+[![Mohsin Ansari](https://miro.medium.com/v2/resize:fill:64:64/1*ZkgOCWpesvLGI_VBmz_FLQ.jpeg)](https://medium.com/@mohsinansari.dev?source=post_page---post_author_info--daf8dd640b69---------------------------------------)
+
+Follow
+
+[**Written by Mohsin Ansari**](https://medium.com/@mohsinansari.dev?source=post_page---post_author_info--daf8dd640b69---------------------------------------)
+
+[174 followers](https://medium.com/@mohsinansari.dev/followers?source=post_page---post_author_info--daf8dd640b69---------------------------------------)
+
+· [10 following](https://medium.com/@mohsinansari.dev/following?source=post_page---post_author_info--daf8dd640b69---------------------------------------)
+
+A software developer interested in ReactJs, ExpressJs and Angular
+
+Follow
+
+## Responses (3)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40mohsinansari.dev%2Fsimplified-guide-to-setting-up-a-global-error-handler-in-express-js-daf8dd640b69&source=---post_responses--daf8dd640b69---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----daf8dd640b69---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----daf8dd640b69---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----daf8dd640b69---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----daf8dd640b69---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: How to Implement Error Handling in Express - OneUptime
+[Skip to main content](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view#main-content)
+
+![](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view)
+
+# How to Implement Error Handling in Express
+
+Learn how to build production-ready error handling in Express.js with custom error classes, middleware, async wrappers, and structured responses.
+
+
+[![Nawaz Dhandala](https://avatars.githubusercontent.com/nawazdhandala)@nawazdhandala](https://github.com/nawazdhandala)•Jan 26, 2026•Reading time
+10 min read
+
+[Express](https://oneuptime.com/blog/tag/express) [NodeJS](https://oneuptime.com/blog/tag/nodejs) [Error Handling](https://oneuptime.com/blog/tag/error-handling) [Middleware](https://oneuptime.com/blog/tag/middleware) [Backend](https://oneuptime.com/blog/tag/backend) [JavaScript](https://oneuptime.com/blog/tag/javascript) [REST API](https://oneuptime.com/blog/tag/rest-api)
+
+## On this page
+
+[Share on X](https://twitter.com/intent/tweet?text=%20How%20to%20Implement%20Error%20Handling%20in%20Express&url=https%3A%2F%2Foneuptime.com%2Fblog%2Fpost%2F2026-01-26-express-error-handling%2Fview "Share on X")[Share on LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Foneuptime.com%2Fblog%2Fpost%2F2026-01-26-express-error-handling%2Fview "Share on LinkedIn")[Discuss on Hacker News](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Foneuptime.com%2Fblog%2Fpost%2F2026-01-26-express-error-handling%2Fview&t=%20How%20to%20Implement%20Error%20Handling%20in%20Express "Discuss on Hacker News")
+
+* * *
+
+Error handling is one of the most overlooked aspects of Express.js development. A well-designed error handling system makes debugging easier, provides consistent API responses, and keeps your application running smoothly even when things go wrong. This guide walks through building a complete error handling solution from scratch.
+
+## How Express Handles Errors [Link to How Express Handles Errors](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#how-express-handles-errors)
+
+Express has a built-in error handling mechanism, but it only kicks in under specific conditions. Understanding this flow is the first step toward better error management.
+
+Sync Error
+
+Async Error
+
+No
+
+Yes
+
+Request
+
+Route Handler
+
+Error Thrown?
+
+Express Catches It
+
+Called next error?
+
+Unhandled Promise Rejection
+
+Error Middleware
+
+Response Sent
+
+Server Crash or Hang
+
+Express catches synchronous errors automatically, but async errors require explicit handling. This is why many Express applications have silent failures - async errors simply disappear unless you forward them properly.
+
+## Creating Custom Error Classes [Link to Creating Custom Error Classes](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#creating-custom-error-classes)
+
+Standard JavaScript errors lack context for API responses. Custom error classes let you attach HTTP status codes, error codes, and additional metadata that your error middleware can use.
+
+```javascript
+JavaScriptCopy
+// errors/AppError.js
+
+/**
+ * Base class for all application errors.
+ * Extends the native Error class with HTTP-specific properties.
+ */
+class AppError extends Error {
+  constructor(message, statusCode, errorCode = null) {
+    super(message);
+
+    // HTTP status code for the response
+    this.statusCode = statusCode;
+
+    // Machine-readable error code for client-side handling
+    this.errorCode = errorCode || this.constructor.name;
+
+    // Distinguishes operational errors from programming errors
+    this.isOperational = true;
+
+    // Captures stack trace, excluding constructor call from it
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+/**
+ * Use when a requested resource does not exist.
+ * Returns 404 Not Found.
+ */
+class NotFoundError extends AppError {
+  constructor(resource = 'Resource') {
+    super(`${resource} not found`, 404, 'NOT_FOUND');
+  }
+}
+
+/**
+ * Use for validation failures in request data.
+ * Returns 400 Bad Request with field-level error details.
+ */
+class ValidationError extends AppError {
+  constructor(errors) {
+    super('Validation failed', 400, 'VALIDATION_ERROR');
+    // Array of { field, message } objects
+    this.errors = errors;
+  }
+}
+
+/**
+ * Use when authentication is missing or invalid.
+ * Returns 401 Unauthorized.
+ */
+class UnauthorizedError extends AppError {
+  constructor(message = 'Authentication required') {
+    super(message, 401, 'UNAUTHORIZED');
+  }
+}
+
+/**
+ * Use when user lacks permission for the requested action.
+ * Returns 403 Forbidden.
+ */
+class ForbiddenError extends AppError {
+  constructor(message = 'Access denied') {
+    super(message, 403, 'FORBIDDEN');
+  }
+}
+
+/**
+ * Use for duplicate entries or constraint violations.
+ * Returns 409 Conflict.
+ */
+class ConflictError extends AppError {
+  constructor(message = 'Resource already exists') {
+    super(message, 409, 'CONFLICT');
+  }
+}
+
+/**
+ * Use when rate limits are exceeded.
+ * Returns 429 Too Many Requests.
+ */
+class RateLimitError extends AppError {
+  constructor(retryAfter = 60) {
+    super('Too many requests', 429, 'RATE_LIMIT_EXCEEDED');
+    this.retryAfter = retryAfter;
+  }
+}
+
+module.exports = {
+  AppError,
+  NotFoundError,
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  RateLimitError
+};
+```
+
+These error classes provide structure that your error handling middleware can interpret. The `isOperational` flag distinguishes expected errors (like validation failures) from unexpected programming bugs.
+
+## The Async Wrapper Pattern [Link to The Async Wrapper Pattern](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#the-async-wrapper-pattern)
+
+Express does not catch errors from async functions automatically. Every async route handler needs a try-catch block, or you need a wrapper function that handles this for you.
+
+```javascript
+JavaScriptCopy
+// middleware/asyncHandler.js
+
+/**
+ * Wraps async route handlers to catch rejected promises
+ * and forward them to Express error middleware.
+ *
+ * Without this wrapper:
+ *   app.get('/users', async (req, res) => {
+ *     const users = await User.find(); // If this throws, Express never sees it
+ *   });
+ *
+ * With this wrapper:
+ *   app.get('/users', asyncHandler(async (req, res) => {
+ *     const users = await User.find(); // Errors are caught and forwarded
+ *   }));
+ */
+const asyncHandler = (fn) => {
+  return (req, res, next) => {
+    // Execute the async function and catch any errors
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+module.exports = asyncHandler;
+```
+
+The wrapper ensures every promise rejection reaches your error middleware. Here is how request flow changes with the async handler:
+
+Yes
+
+No - Rejected
+
+Incoming Request
+
+asyncHandler Wrapper
+
+Route Handler Executes
+
+Promise Resolves?
+
+Response Sent
+
+catch block triggers
+
+next error called
+
+Error Middleware
+
+Error Response Sent
+
+## Building the Error Middleware [Link to Building the Error Middleware](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#building-the-error-middleware)
+
+The error middleware is where all errors converge. It formats the response, logs the error, and ensures sensitive information stays out of production responses.
+
+```javascript
+JavaScriptCopy
+// middleware/errorHandler.js
+
+const { AppError } = require('../errors/AppError');
+
+/**
+ * Formats error details for development responses.
+ * Includes full stack trace and internal details.
+ */
+const formatDevError = (err, req) => {
+  return {
+    success: false,
+    error: {
+      code: err.errorCode || 'INTERNAL_ERROR',
+      message: err.message,
+      stack: err.stack,
+      path: req.originalUrl,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Formats error details for production responses.
+ * Hides internal details and stack traces.
+ */
+const formatProdError = (err, req) => {
+  // Only expose details for operational errors
+  if (err.isOperational) {
+    const response = {
+      success: false,
+      error: {
+        code: err.errorCode,
+        message: err.message
+      }
+    };
+
+    // Include validation errors if present
+    if (err.errors) {
+      response.error.details = err.errors;
+    }
+
+    // Include retry header for rate limit errors
+    if (err.retryAfter) {
+      response.error.retryAfter = err.retryAfter;
+    }
+
+    return response;
+  }
+
+  // Generic message for programming errors
+  return {
+    success: false,
+    error: {
+      code: 'INTERNAL_ERROR',
+      message: 'Something went wrong'
+    }
+  };
+};
+
+/**
+ * Central error handling middleware.
+ * Must have exactly 4 parameters for Express to recognize it as error middleware.
+ */
+const errorHandler = (err, req, res, next) => {
+  // Default to 500 if no status code is set
+  err.statusCode = err.statusCode || 500;
+
+  // Log all errors for debugging
+  console.error(`[${new Date().toISOString()}] ${err.statusCode} - ${err.message}`);
+  console.error(`Path: ${req.method} ${req.originalUrl}`);
+
+  // Log stack trace for non-operational errors
+  if (!err.isOperational) {
+    console.error('Stack:', err.stack);
+  }
+
+  // Format response based on environment
+  const response = process.env.NODE_ENV === 'production'
+    ? formatProdError(err, req)
+    : formatDevError(err, req);
+
+  // Set retry-after header for rate limit errors
+  if (err.retryAfter) {
+    res.set('Retry-After', err.retryAfter);
+  }
+
+  res.status(err.statusCode).json(response);
+};
+
+module.exports = errorHandler;
+```
+
+## Handling Specific Error Types [Link to Handling Specific Error Types](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#handling-specific-error-types)
+
+Some errors come from libraries or the database and need conversion to your custom error format. This keeps your API responses consistent regardless of where the error originated.
+
+```javascript
+JavaScriptCopy
+// middleware/errorConverter.js
+
+const { AppError, ValidationError, ConflictError } = require('../errors/AppError');
+
+/**
+ * Converts known error types to AppError instances.
+ * Place this middleware before the main error handler.
+ */
+const errorConverter = (err, req, res, next) => {
+  let convertedError = err;
+
+  // Handle Mongoose validation errors
+  if (err.name === 'ValidationError' && err.errors) {
+    const errors = Object.keys(err.errors).map(field => ({
+      field,
+      message: err.errors[field].message
+    }));
+    convertedError = new ValidationError(errors);
+  }
+
+  // Handle Mongoose duplicate key errors
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    convertedError = new ConflictError(`${field} already exists`);
+  }
+
+  // Handle Mongoose cast errors (invalid ObjectId, etc.)
+  if (err.name === 'CastError') {
+    convertedError = new AppError(`Invalid ${err.path}: ${err.value}`, 400, 'INVALID_ID');
+  }
+
+  // Handle JSON parse errors
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    convertedError = new AppError('Invalid JSON in request body', 400, 'INVALID_JSON');
+  }
+
+  // Handle JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    convertedError = new AppError('Invalid token', 401, 'INVALID_TOKEN');
+  }
+
+  if (err.name === 'TokenExpiredError') {
+    convertedError = new AppError('Token expired', 401, 'TOKEN_EXPIRED');
+  }
+
+  next(convertedError);
+};
+
+module.exports = errorConverter;
+```
+
+## Putting It All Together [Link to Putting It All Together](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#putting-it-all-together)
+
+Here is how to wire everything into your Express application:
+
+```javascript
+JavaScriptCopy
+// app.js
+
+const express = require('express');
+const asyncHandler = require('./middleware/asyncHandler');
+const errorConverter = require('./middleware/errorConverter');
+const errorHandler = require('./middleware/errorHandler');
+const {
+  NotFoundError,
+  ValidationError,
+  UnauthorizedError
+} = require('./errors/AppError');
+
+const app = express();
+
+// Body parsing middleware
+app.use(express.json());
+
+// Example route using async handler and custom errors
+app.get('/users/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Simulate database lookup
+  const user = await findUserById(id);
+
+  if (!user) {
+    // Throws NotFoundError which gets caught by asyncHandler
+    throw new NotFoundError('User');
+  }
+
+  res.json({ success: true, data: user });
+}));
+
+// Example route with validation
+app.post('/users', asyncHandler(async (req, res) => {
+  const { email, password, name } = req.body;
+  const errors = [];
+
+  // Manual validation (or use a library like Joi or Zod)
+  if (!email) {
+    errors.push({ field: 'email', message: 'Email is required' });
+  } else if (!isValidEmail(email)) {
+    errors.push({ field: 'email', message: 'Invalid email format' });
+  }
+
+  if (!password) {
+    errors.push({ field: 'password', message: 'Password is required' });
+  } else if (password.length < 8) {
+    errors.push({ field: 'password', message: 'Password must be at least 8 characters' });
+  }
+
+  if (errors.length > 0) {
+    throw new ValidationError(errors);
+  }
+
+  const user = await createUser({ email, password, name });
+  res.status(201).json({ success: true, data: user });
+}));
+
+// Protected route example
+app.delete('/users/:id', asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new UnauthorizedError();
+  }
+
+  if (req.user.role !== 'admin') {
+    throw new ForbiddenError('Only admins can delete users');
+  }
+
+  await deleteUser(req.params.id);
+  res.status(204).send();
+}));
+
+// 404 handler for unknown routes - must be after all other routes
+app.use((req, res, next) => {
+  next(new NotFoundError('Route'));
+});
+
+// Error handling pipeline - order matters here
+app.use(errorConverter);  // Convert library errors to AppError
+app.use(errorHandler);    // Format and send error response
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+## Handling Uncaught Exceptions [Link to Handling Uncaught Exceptions](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#handling-uncaught-exceptions)
+
+Some errors escape Express entirely. These need process-level handlers to prevent silent crashes.
+
+```javascript
+JavaScriptCopy
+// server.js
+
+const app = require('./app');
+
+// Handle uncaught exceptions (synchronous errors outside Express)
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION - Shutting down...');
+  console.error(err.name, err.message);
+  console.error(err.stack);
+
+  // Exit immediately - the process is in an undefined state
+  process.exit(1);
+});
+
+const server = app.listen(process.env.PORT || 3000);
+
+// Handle unhandled promise rejections (async errors outside Express)
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION - Shutting down...');
+  console.error(err.name, err.message);
+  console.error(err.stack);
+
+  // Close server gracefully before exiting
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+// Handle SIGTERM for graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Process terminated');
+  });
+});
+```
+
+## Error Response Examples [Link to Error Response Examples](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#error-response-examples)
+
+Here is what your API responses look like with this error handling system:
+
+**Validation Error (400)**
+
+```json
+JSONCopy
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": [\
+      { "field": "email", "message": "Invalid email format" },\
+      { "field": "password", "message": "Password must be at least 8 characters" }\
+    ]
+  }
+}
+```
+
+**Not Found Error (404)**
+
+```json
+JSONCopy
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "User not found"
+  }
+}
+```
+
+**Development Error (500)**
+
+```json
+JSONCopy
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "Cannot read property 'id' of undefined",
+    "stack": "TypeError: Cannot read property 'id' of undefined\n    at /app/routes/users.js:45:23\n    ...",
+    "path": "/api/users/123",
+    "method": "GET",
+    "timestamp": "2026-01-26T10:30:00.000Z"
+  }
+}
+```
+
+## Adding Request Context to Errors [Link to Adding Request Context to Errors](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#adding-request-context-to-errors)
+
+For debugging, it helps to attach request context to errors:
+
+```javascript
+JavaScriptCopy
+// middleware/requestContext.js
+
+const crypto = require('crypto');
+
+/**
+ * Attaches a unique request ID and captures request context.
+ * Place this early in your middleware chain.
+ */
+const requestContext = (req, res, next) => {
+  // Generate or use existing request ID
+  req.requestId = req.headers['x-request-id'] || crypto.randomUUID();
+
+  // Add request ID to response headers
+  res.set('X-Request-ID', req.requestId);
+
+  // Store start time for duration calculation
+  req.startTime = Date.now();
+
+  next();
+};
+
+module.exports = requestContext;
+```
+
+Then update your error handler to include this context:
+
+```javascript
+JavaScriptCopy
+// In errorHandler.js
+
+const errorHandler = (err, req, res, next) => {
+  err.statusCode = err.statusCode || 500;
+
+  // Enhanced logging with request context
+  console.error(JSON.stringify({
+    level: 'error',
+    requestId: req.requestId,
+    method: req.method,
+    path: req.originalUrl,
+    statusCode: err.statusCode,
+    errorCode: err.errorCode,
+    message: err.message,
+    duration: req.startTime ? Date.now() - req.startTime : null,
+    stack: err.isOperational ? undefined : err.stack,
+    timestamp: new Date().toISOString()
+  }));
+
+  // Include request ID in response for support tickets
+  const response = process.env.NODE_ENV === 'production'
+    ? formatProdError(err, req)
+    : formatDevError(err, req);
+
+  response.requestId = req.requestId;
+
+  res.status(err.statusCode).json(response);
+};
+```
+
+## Error Handling Flow Summary [Link to Error Handling Flow Summary](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#error-handling-flow-summary)
+
+No
+
+Yes
+
+Yes
+
+No
+
+Request Arrives
+
+requestContext Middleware
+
+Route Handler
+
+Error Occurs?
+
+Send Response
+
+Async Error?
+
+asyncHandler catches
+
+Express catches
+
+next error
+
+errorConverter
+
+errorHandler
+
+Log Error
+
+Format Response
+
+Send Error Response
+
+## Summary [Link to Summary](https://oneuptime.com/blog/post/2026-01-26-express-error-handling/view\#summary)
+
+| Component | Purpose |
+| --- | --- |
+| Custom Error Classes | Attach status codes and error codes to errors |
+| asyncHandler | Catch promise rejections in route handlers |
+| errorConverter | Convert library-specific errors to your format |
+| errorHandler | Format responses and log errors |
+| Process Handlers | Catch errors that escape Express |
+| Request Context | Add debugging info to error logs |
+
+Building proper error handling takes effort upfront but pays off immediately. Your API becomes predictable, your logs become useful, and debugging production issues becomes manageable. Start with the custom error classes and async wrapper, then add the more advanced features as your application grows.
+
+Share this article
+
+[Share on X](https://twitter.com/intent/tweet?text=%20How%20to%20Implement%20Error%20Handling%20in%20Express&url=https%3A%2F%2Foneuptime.com%2Fblog%2Fpost%2F2026-01-26-express-error-handling%2Fview "Share on X")[Share on LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Foneuptime.com%2Fblog%2Fpost%2F2026-01-26-express-error-handling%2Fview "Share on LinkedIn")[Discuss on Hacker News](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Foneuptime.com%2Fblog%2Fpost%2F2026-01-26-express-error-handling%2Fview&t=%20How%20to%20Implement%20Error%20Handling%20in%20Express "Discuss on Hacker News")
+
+![Nawaz Dhandala](https://avatars.githubusercontent.com/nawazdhandala)
+
+### Nawaz Dhandala
+
+Author
+
+@nawazdhandala • Jan 26, 2026 • 10 min read
+
+Nawaz is building OneUptime with a passion for engineering reliable systems and improving observability.
+
+[GitHub](https://github.com/nawazdhandala)
+
+### Improve this Blog Post
+
+All our blog posts are open source. Found a typo, want to add more detail, or have a better explanation? Anyone can contribute and make this post better for everyone.
+
+[Edit this Post on GitHub](https://github.com/oneuptime/blog/tree/master/posts/2026-01-26-express-error-handling) [Contributing Guidelines](https://github.com/oneuptime/blog)
+
+[Open source](https://github.com/oneuptime/oneuptime)
+
+## OneUptime is the Open-Source   Observability Platform
+
+Your complete reliability stack unified: infrastructure monitoring, incident management, status pages, and APM. Open-source and self-hostable.
+
+
+[Get started for free](https://oneuptime.com/accounts/register) [Request a demo](https://oneuptime.com/enterprise/demo)
+
+[Status Page\\
+\\
+Real-time status updates](https://oneuptime.com/product/status-page) [Incidents\\
+\\
+Detect and resolve fast](https://oneuptime.com/product/incident-management) [Monitoring\\
+\\
+Monitor any resource](https://oneuptime.com/product/monitoring) [On-Call\\
+\\
+Smart alert routing](https://oneuptime.com/product/on-call) [Maintenance\\
+\\
+Plan & communicate downtime](https://oneuptime.com/product/scheduled-maintenance) [Logs\\
+\\
+Fastest log ingest and search](https://oneuptime.com/product/logs-management) [Metrics\\
+\\
+Performance insights](https://oneuptime.com/product/metrics) [Traces\\
+\\
+End-to-end distributed tracing](https://oneuptime.com/product/traces) [Exceptions\\
+\\
+Catch and fix bugs early](https://oneuptime.com/product/exceptions) [Workflows\\
+\\
+Automate any process](https://oneuptime.com/product/workflows) [Dashboards\\
+\\
+Visualize all your data](https://oneuptime.com/product/dashboards) [Kubernetes\\
+\\
+Monitor K8s clusters](https://oneuptime.com/product/kubernetes) [Profiles\\
+\\
+CPU & memory profiling](https://oneuptime.com/product/profiles)
+
+[AI Agent\\
+\\
+Automatically detect, diagnose, and resolve incidents with AI-powered root cause analysis and code fixes.](https://oneuptime.com/product/ai-agent)
+
+---
+
+Title: Global Error Handling in Express.js: Best Practices - DEV Community
+Error handling is a crucial part of any backend application. In **Express.js**, an error can occur due to various reasons such as invalid user input, database failures, or unexpected issues in the application logic. To ensure a smooth user experience and maintainability, implementing a **global error handler** is essential.
+
+In this blog, we will explore **what a global error handler is, how to implement it in Express.js, and best practices to follow**.
+
+* * *
+
+## 📌 What is Global Error Handling in Express.js?
+
+In Express.js, middleware functions are executed in a sequence, and errors can propagate through them. A **global error handler** is a special middleware function that:
+
+✅ Catches errors from any part of the application.
+
+✅ Prevents the app from crashing due to unhandled errors.
+
+✅ Provides consistent error responses.
+
+✅ Helps in debugging and logging.
+
+By defining a **centralized error handler**, we can manage all application errors in one place.
+
+* * *
+
+## 🛠 How to Implement a Global Error Handler in Express.js
+
+### Step 1: **Basic Express App Setup**
+
+First, create a basic Express server.
+
+```
+const express = require("express");
+const app = express();
+
+// Middleware to parse JSON
+app.use(express.json());
+
+// Sample Route
+app.get("/", (req, res) => {
+  throw new Error("Something went wrong!");
+});
+
+// Start the server
+app.listen(3000, () => console.log("Server running on port 3000"));
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+At this stage, if an error occurs in a route, Express will return a default **HTML error response**. We need a **custom global error handler** to return structured JSON responses.
+
+* * *
+
+### Step 2: **Define a Global Error Handler Middleware**
+
+An error-handling middleware **must have four parameters**: `(err, req, res, next)`.
+
+```
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Log the error
+
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+🔹 **Important:** The global error handler **must be defined after all routes**; otherwise, it won’t work.
+
+* * *
+
+## 🔄 Throwing and Handling Errors in Express.js
+
+### 1️⃣ **Synchronous Errors**
+
+Simply throwing an error inside a route will be caught by the error handler:
+
+```
+app.get("/sync-error", (req, res) => {
+  throw new Error("Synchronous error occurred!");
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+### 2️⃣ **Asynchronous Errors**
+
+For async functions, always pass the error to `next(err)`:
+
+```
+app.get("/async-error", async (req, res, next) => {
+  try {
+    await someAsyncOperation();
+  } catch (err) {
+    next(err); // Pass the error to the global handler
+  }
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+* * *
+
+## 🚀 Enhancing the Global Error Handler
+
+### Handling Different Error Types
+
+You can customize responses based on error types:
+
+```
+app.use((err, req, res, next) => {
+  let statusCode = err.status || 500;
+  let message = err.message || "Internal Server Error";
+
+  if (err.name === "ValidationError") {
+    statusCode = 400;
+    message = "Invalid data provided";
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    error: message,
+  });
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+### Creating a Custom Error Class
+
+To make error handling even cleaner, define a **custom error class**:
+
+```
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+Now, you can throw errors like this:
+
+```
+app.get("/custom-error", (req, res, next) => {
+  return next(new AppError("Resource not found", 404));
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+Modify the error handler to handle this class:
+
+```
+app.use((err, req, res, next) => {
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message,
+  });
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+* * *
+
+## ⚡ Using `express-async-errors` for Cleaner Async Error Handling
+
+Instead of manually wrapping async functions in try-catch, install `express-async-errors`:
+
+```
+npm install express-async-errors
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+Then import it in your `server.js`:
+
+```
+require("express-async-errors");
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+Now, async errors will automatically be passed to the global handler:
+
+```
+app.get("/async-error", async (req, res) => {
+  const data = await someAsyncOperation(); // No try-catch needed
+  res.json(data);
+});
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+* * *
+
+## 🚨 Common Mistakes to Avoid
+
+### ❌ **Defining the Error Handler Before Routes**
+
+Error handlers **must** be defined **after** all routes.
+
+❌ **Wrong Order:**
+
+```
+app.use((err, req, res, next) => { /* Error Handler */ }); // ❌
+app.get("/", (req, res) => { throw new Error("Test Error"); });
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+✅ **Correct Order:**
+
+```
+app.get("/", (req, res) => { throw new Error("Test Error"); });
+app.use((err, req, res, next) => { /* Error Handler */ }); // ✅
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+### ❌ **Not Logging Errors for Debugging**
+
+Always log errors for debugging:
+
+```
+console.error(err.stack);
+```
+
+Enter fullscreen modeExit fullscreen mode
+
+### ❌ **Not Handling Different Error Types**
+
+Handle validation errors separately for better responses.
+
+* * *
+
+## 🎯 Best Practices for Global Error Handling
+
+✅ Keep the error handler **at the bottom** of the middleware stack.
+
+✅ Use a **custom error class** for cleaner error handling.
+
+✅ Log errors to a file or a monitoring service (e.g., **Winston, Sentry**).
+
+✅ Handle **validation errors** differently from server errors.
+
+✅ Use `express-async-errors` to **avoid repetitive try-catch blocks**.
+
+* * *
+
+## 🎉 Conclusion
+
+A well-implemented **global error handler** in Express.js ensures that your application is robust, maintains a good user experience, and makes debugging easier. By following best practices, handling different error types, and using custom error classes, you can create a **clean and maintainable** error-handling mechanism.
+
+🔹 **Now you’re ready to handle errors like a pro in your Express.js apps! 🚀**
+
+[![profile](https://media2.dev.to/dynamic/image/width=64,height=64,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Forganization%2Fprofile_image%2F140%2F9639a040-3c27-4b99-b65a-85e100016d3c.png)\\
+MongoDB](https://dev.to/mongodb) Promoted
+
+Dropdown menu
+
+- [What's a billboard?](https://dev.to/billboards)
+- [Manage preferences](https://dev.to/settings/customization#sponsors)
+
+* * *
+
+- [Report billboard](https://dev.to/report-abuse?billboard=263195)
+
+[![MongoDB Atlas image](https://media2.dev.to/dynamic/image/width=775%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fi.imgur.com%2FIf0YWd6.jpeg)](https://www.mongodb.com/cloud/atlas/lp/try3?utm_campaign=display_dev.to-programmaing_pl_flighted_atlas_tryatlaslp_prosp_gic-null_ww-all_dev_dv-all_eng_leadgen&utm_source=dev.to&utm_medium=display&utm_content=fastcode&bb=263195)
+
+## [3 reasons why developers scale faster on MongoDB Atlas.](https://www.mongodb.com/cloud/atlas/lp/try3?utm_campaign=display_dev.to-programmaing_pl_flighted_atlas_tryatlaslp_prosp_gic-null_ww-all_dev_dv-all_eng_leadgen&utm_source=dev.to&utm_medium=display&utm_content=fastcode&bb=263195)
+
+A flexible schema, integrated search, and automated global distribution so you can innovate and innovate with speed and agility. Build gen AI apps that run anywhere and scale everywhere.
+
+[Start Free](https://www.mongodb.com/cloud/atlas/lp/try3?utm_campaign=display_dev.to-programmaing_pl_flighted_atlas_tryatlaslp_prosp_gic-null_ww-all_dev_dv-all_eng_leadgen&utm_source=dev.to&utm_medium=display&utm_content=fastcode&bb=263195)
+
+Read More
+
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+[Create template](https://dev.to/settings/response-templates)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+SubmitPreview [Dismiss](https://dev.to/404.html)
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](https://dev.to/shyamtala/global-error-handling-in-expressjs-best-practices-4957#).
+
+
+Hide child comments as well
+
+Confirm
+
+
+For further actions, you may consider blocking this person and/or [reporting abuse](https://dev.to/report-abuse)
+
+[![profile](https://media2.dev.to/dynamic/image/width=64,height=64,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Forganization%2Fprofile_image%2F140%2F9639a040-3c27-4b99-b65a-85e100016d3c.png)\\
+MongoDB](https://dev.to/mongodb) Promoted
+
+Dropdown menu
+
+- [What's a billboard?](https://dev.to/billboards)
+- [Manage preferences](https://dev.to/settings/customization#sponsors)
+
+* * *
+
+- [Report billboard](https://dev.to/report-abuse?billboard=263198)
+
+[![MongoDB Atlas image](https://media2.dev.to/dynamic/image/width=775%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fi.imgur.com%2FOMczbBJ.jpeg)](https://www.mongodb.com/cloud/atlas/lp/try3?utm_campaign=display_dev.to-programmaing_pl_flighted_atlas_tryatlaslp_prosp_gic-null_ww-all_dev_dv-all_eng_leadgen&utm_source=dev.to&utm_medium=display&utm_content=prototype&bb=263198)
+
+## [Build fast on MongoDB Atlas without the fear of outgrowing.](https://www.mongodb.com/cloud/atlas/lp/try3?utm_campaign=display_dev.to-programmaing_pl_flighted_atlas_tryatlaslp_prosp_gic-null_ww-all_dev_dv-all_eng_leadgen&utm_source=dev.to&utm_medium=display&utm_content=prototype&bb=263198)
+
+Don't let your database dictate your speed. With MongoDB Atlas, the same document model you use for your MVP handles global scale across AWS, Azure, and Google Cloud. Start free and stay fast as you grow.
+
+[Start Free](https://www.mongodb.com/cloud/atlas/lp/try3?utm_campaign=display_dev.to-programmaing_pl_flighted_atlas_tryatlaslp_prosp_gic-null_ww-all_dev_dv-all_eng_leadgen&utm_source=dev.to&utm_medium=display&utm_content=prototype&bb=263198)
+
+👋 Kindness is contagious
+
+Dropdown menu
+
+- [What's a billboard?](https://dev.to/billboards)
+- [Manage preferences](https://dev.to/settings/customization#sponsors)
+
+* * *
+
+- [Report billboard](https://dev.to/report-abuse?billboard=236587)
+
+x
+
+Explore this insightful write-up embraced by the inclusive DEV Community. **Tech enthusiasts of all skill levels** can contribute insights and expand our shared knowledge.
+
+Spreading a simple "thank you" uplifts creators—let them know your thoughts in the discussion below!
+
+At DEV, **collaborative learning fuels growth** and forges stronger connections. If this piece resonated with you, a brief note of thanks goes a long way.
+
+## [Okay](https://dev.to/enter?state=new-user&bb=236587)
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+
+[Log in](https://dev.to/enter?signup_subforem=1) [Create account](https://dev.to/enter?signup_subforem=1&state=new-user)
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+---
+
+Title: global error handling middleware in expressJS - Stack Overflow
+How are we doing? Please help us improve Stack Overflow. [Take our short survey](https://stackoverflow.com/survey/site-satisfaction/redirect)
+
+[dismiss](https://stackoverflow.com/questions/76770420/global-error-handling-middleware-in-expressjs# "dismiss")
+
+##### Collectives™ on Stack Overflow
+
+Find centralized, trusted content and collaborate around the technologies you use most.
+
+[Learn more about Collectives](https://stackoverflow.com/collectives)
+
+**Stack Internal**
+
+Knowledge at work
+
+Bring the best of human thought and AI automation together at your work.
+
+[Explore Stack Internal](https://stackoverflow.co/internal/?utm_medium=referral&utm_source=stackoverflow-community&utm_campaign=side-bar&utm_content=explore-teams-compact-popover)
+
+[![](https://stackoverflow.com/Content/Img/survey-cta.svg?v=171e02557b0d)\\
+\\
+How are we doing?\\
+\\
+Take our short survey](https://stackoverflow.com/survey/site-satisfaction/redirect?source=sidebar "Take our short survey")
+
+# [global error handling middleware in expressJS](https://stackoverflow.com/questions/76770420/global-error-handling-middleware-in-expressjs)
+
+[Ask Question](https://stackoverflow.com/questions/ask)
+
+Asked2 years, 9 months ago
+
+Modified [2 years, 9 months ago](https://stackoverflow.com/questions/76770420/global-error-handling-middleware-in-expressjs?lastactivity "2023-07-26 10:55:56Z")
+
+Viewed
+444 times
+
+
+This question shows research effort; it is useful and clear
+
+1
+
+This question does not show any research effort; it is unclear or not useful
+
+Save this question.
+
+[Timeline](https://stackoverflow.com/posts/76770420/timeline)
+
+Show activity on this post.
+
+What exactly am i doing wrong here. I am trying to create a global error handling middleware which shows **error message** and **error status** in a specific json format but instead it is showing error in some weird way.
+
+- DIR: node/app.js
+
+```js
+const express = require('express');
+const app = express();
+
+//gloabl error handling middlware
+const globalError = require('./middleware/globalErrorHandlingMiddleware')
+
+//middlewares
+app.use(express.json())
+app.use(globalError)
+
+//homepage
+app.get('/',(req,res)=>{
+    res.send("homepage")
+})
+
+//page not found
+app.all('*',(req,res,next)=>{
+    const err = new Error('route does not exist')
+    err.statusCode = 404;
+
+    next(err)
+})
+
+//port
+app.listen(3000,()=>{
+    console.log('server started at port 3000')
+})
+```
+
+- DIR: node/middleware/globalErrorHandlingMiddleware.js
+
+```js
+function globalErrorHandler(err, req, res, next){
+
+    const errorMessage = err.message || 'Something went wrong.';
+    const statusCode = err.statusCode || 500;
+
+    res.status(statusCode).json({
+        error: errorMessage,
+    });
+};
+
+module.exports = globalErrorHandler
+```
+
+![output i am getting](https://i.sstatic.net/OcRf3.png)
+
+![output expected](https://i.sstatic.net/AaobP.png)
+
+- [javascript](https://stackoverflow.com/questions/tagged/javascript "show questions tagged 'javascript'")
+- [node.js](https://stackoverflow.com/questions/tagged/node.js "show questions tagged 'node.js'")
+- [express](https://stackoverflow.com/questions/tagged/express "show questions tagged 'express'")
+
+[Share](https://stackoverflow.com/q/76770420)
+
+Short permalink to this question
+
+[Improve this question](https://stackoverflow.com/posts/76770420/edit "")
+
+Follow
+
+
+
+Follow this question to receive notifications
+
+[edited Jul 26, 2023 at 10:44](https://stackoverflow.com/posts/76770420/revisions "show all edits to this post")
+
+[![Not A Robot's user avatar](https://i.sstatic.net/xFRkjMqi.jpg?s=64)](https://stackoverflow.com/users/11926970/not-a-robot)
+
+[Not A Robot](https://stackoverflow.com/users/11926970/not-a-robot)
+
+2,70022 gold badges2020 silver badges3737 bronze badges
+
+asked Jul 26, 2023 at 10:41
+
+[![nikhil's user avatar](https://www.gravatar.com/avatar/ffde13f06bca5186f0d08f2282498a09?s=64&d=identicon&r=PG&f=y&so-version=2)](https://stackoverflow.com/users/22287630/nikhil)
+
+[nikhil](https://stackoverflow.com/users/22287630/nikhil)
+
+30333 silver badges77 bronze badges
+
+1
+
+- Please add the error messages as text and not images.
+
+
+
+Kins
+
+
+–
+[Kins](https://stackoverflow.com/users/12967353/kins "819 reputation")
+
+
+
+2023-07-26 12:55:26 +00:00
+
+CommentedJul 26, 2023 at 12:55
+
+
+[Add a comment](https://stackoverflow.com/questions/76770420/global-error-handling-middleware-in-expressjs# "Use comments to ask for more information or suggest improvements. Avoid answering questions in comments.") \| [Expand to show all comments on this post](https://stackoverflow.com/questions/76770420/global-error-handling-middleware-in-expressjs# "Expand to show all comments on this post")
+
+## 1 Answer 1
+
+Sorted by:
+[Reset to default](https://stackoverflow.com/questions/76770420/global-error-handling-middleware-in-expressjs?answertab=scoredesc#tab-top)
+
+Highest score (default)
+
+Trending (recent votes count more)
+
+Date modified (newest first)
+
+Date created (oldest first)
+
+
+This answer is useful
+
+0
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/76770516/timeline)
+
+Show activity on this post.
+
+you just need to change the placement of your global error catcher, as the [documentation mentions](https://expressjs.com/en/guide/error-handling.html), it has to be at the end of your routes, in your example
+
+```
+const express = require('express');
+const app = express();
+
+//gloabl error handling middlware
+const globalError = require('./middleware/globalErrorHandlingMiddleware')
+
+//middlewares
+app.use(express.json())
+
+//homepage
+app.get('/',(req,res)=>{
+    res.send("homepage")
+})
+
+//page not found
+app.all('*',(req,res,next)=>{
+    const err = new Error('route does not exist')
+    err.statusCode = 404;
+
+    next(err)
+})
+
+app.use(globalError) // moving to the end of your route calling
+
+//port
+app.listen(3000,()=>{
+    console.log('server started at port 3000')
+})
+```
+
+you will find that
+
+```http
+@HOST = http://localhost:3000
+
+GET {{HOST}}/2
+Content-Type: application/json
+```
+
+will output
+
+```http
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 32
+ETag: W/"20-fEiG2Eve04KkBKDozkc9tU0brWo"
+Date: Wed, 26 Jul 2023 10:53:14 GMT
+Connection: close
+
+{
+  "error": "route does not exist"
+}
+```
+
+[Share](https://stackoverflow.com/a/76770516)
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/76770516/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+answered Jul 26, 2023 at 10:55
+
+[![balexandre's user avatar](https://www.gravatar.com/avatar/24523bd2464ad941089147b6ab6056ea?s=64&d=identicon&r=PG)](https://stackoverflow.com/users/28004/balexandre)
+
+[balexandre](https://stackoverflow.com/users/28004/balexandre)
+
+75.5k4747 gold badges240240 silver badges353353 bronze badges
+
+Sign up to request clarification or add additional context in comments.
+
+
+## Comments
+
+Add a comment
+
+## Your Answer
+
+Draft saved
+
+Draft discarded
+
+### Sign up or [log in](https://stackoverflow.com/users/login?ssrc=question_page&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f76770420%2fglobal-error-handling-middleware-in-expressjs%23new-answer)
+
+Sign up using Google
+
+
+Sign up using Email and Password
+
+
+Submit
+
+### Post as a guest
+
+Name
+
+Email
+
+Required, but never shown
+
+Post Your Answer
+
+Discard
+
+
+By clicking “Post Your Answer”, you agree to our [terms of service](https://stackoverflow.com/legal/terms-of-service/public) and acknowledge you have read our [privacy policy](https://stackoverflow.com/legal/privacy-policy).
+
+
+Start asking to get answers
+
+Find the answer to your question by asking.
+
+[Ask question](https://stackoverflow.com/questions/ask)
+
+Explore related questions
+
+- [javascript](https://stackoverflow.com/questions/tagged/javascript "show questions tagged 'javascript'")
+- [node.js](https://stackoverflow.com/questions/tagged/node.js "show questions tagged 'node.js'")
+- [express](https://stackoverflow.com/questions/tagged/express "show questions tagged 'express'")
+
+See similar questions with these tags.
+
+lang-js

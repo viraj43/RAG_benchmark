@@ -1,0 +1,343 @@
+Title: useSyncExternalStore – React
+Key Highlights:
+- It's not recommended to suspend a render based on a store value returned by `useSyncExternalStore`.
+[...]
+reason is that mutations to the external store cannot be marked as non-blocking Transition updates, so they will trigger the nearest `Suspense` fallback, replacing already-rendered content on screen with a loading spinner, which typically makes a poor UX.
+[...]
+Most of your React components will only read data from their props, state, and context. However, sometimes a component needs to read some data from some store outside of React that changes over time. This includes:
+[...]
+- Third-party state management libraries that hold state outside of React.
+- Browser APIs that expose a mutable value and events to subscribe to its changes.
+[...]
+Call `use
+[...]
+at the top
+[...]
+of your component to read a value from an external data store.
+[...]
+React will use these functions to keep your component subscribed to the store and re-render it on changes.
+[...]
+```js
+// This is an example of a third-party store
+// that you might need to integrate with React.
+
+// If your app is fully built with React,
+// we recommend using React state instead.
+[...]
+When possible, we recommend using built-in React state with `useState` and `useReducer` instead. The `useSyncExternalStore` API is mostly useful if you need to integrate with existing non-React code.
+[...]
+to add `use
+[...]
+to some value exposed by
+[...]
+navigator.onLine
+[...]
+Usually you won't write `useSyncExternalStore` directly in your components. Instead, you'll typically call it from your own custom Hook. This lets you use the same external store from different components.
+[...]
+To solve these
+[...]
+React will resubscribe to your store if you pass a different `subscribe` function between re-renders. If this causes performance issues and you'd like to avoid resubscribing, move the `subscribe` function outside:
+[...]
+resubscribe when
+
+---
+
+Title: You Might Not Need an Effect – React
+Key Highlights:
+Although it's common to use Effects for this, React has a purpose-built Hook for subscribing to an external store that is preferred instead. Delete the Effect and replace it with a call to `useSyncExternalStore`:
+[...]
+```js
+function subscribe(callback) {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
+
+function useOnlineStatus() {
+  // ✅ Good: Subscribing to an external store with a built-in Hook
+  return useSyncExternalStore(
+    subscribe, // React won't resubscribe for as long as you pass the same function
+    () => navigator.onLine, // How to get the value on the client
+    () => true // How to get the value on the server
+  );
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+[...]
+This approach is less error-prone than manually syncing mutable data to React state with an Effect. Typically, you'll write a custom Hook like `useOnlineStatus()` above so that you don't need to repeat this code in the individual components. Read more about subscribing to external stores from React components.
+[...]
+Effects, keep an eye
+[...]
+extract a piece of functionality into a custom Hook with a more declarative and purpose-built API like `useData` above. The fewer raw `useEffect` calls you have in your components, the easier you will find to maintain your application.
+[...]
+- If you can calculate something during render, you don't need an Effect.
+- To cache expensive calculations, add `useMemo` instead of `useEffect`.
+- To reset the state of an entire component tree, pass a different `key` to it.
+- To reset a particular bit of state in response to a prop change, set it during rendering.
+- Code that runs because a component was displayed should be in Effects, the rest should be in events.
+- If you need to update the state of several components, it's better to do it during a single event.
+- Whenever you try to synchronize state variables in different components, consider lifting state up.
+- You can fetch data with Effects, but you need to implement cleanup to avoid race conditions.
+
+---
+
+Title: What is useSyncExternalStore and When Should I Use It in React? | BSWEN
+Key Highlights:
+useSyncExternalStore is a React hook introduced in React 18. It lets you subscribe to external data stores - state managed outside React - while ensuring compatibility with concurrent rendering.
+[...]
+This is cleaner than my useEffect version. The subscription logic is separate from the component, and React handles the cleanup automatically.
+[...]
+## When to Use It
+[...]
+I use useSyncExternalStore when connecting React to:
+[...]
+Browser APIs:
+[...]
+- Online/offline status
+- Window dimensions
+- localStorage changes
+- Page visibility
+[...]
+External state stores:
+[...]
+- Third-party state managers (Redux, Zustand)
+- Custom stores outside React
+[...]
+- Data fetching libraries
+- WebSocket connections
+[...]
+## When NOT to Use It
+[...]
+I still use useEffect for:
+[...]
+- Synchronizing with React state (not external stores)
+- Running side effects that don’t produce render values
+- Component lifecycle events
+[...]
+useSyncExternalStore is specifically for external stores that need to trigger re-renders.
+[...]
+causes unnecessary resubscriptions.
+[...]
+The new version is more declarative. React handles the subscription lifecycle, and the server snapshot prevents hydration mismatches.
+[...]
+The key difference between useEffect and useSyncExternalStore:
+[...]
+useEffect problems:
+[...]
+- Not designed for external store synchronization
+- Can cause tearing with concurrent rendering
+- Manual cleanup is error-prone
+- SSR requires extra handling
+[...]
+useSyncExternalStore benefits:
+[...]
+- Built for external stores
+- Concurrent-safe by design
+- Automatic subscription management
+- SSR support built-in
+[...]
+React team recommends useSyncExternalStore for any library integrating with external state. Modern data fetching libraries like React Query and SWR already use it internally.
+[...]
+In this post, I showed what useSyncExternalStore is and when to use it. The key point is: use it when connecting React to external data sources like browser APIs or third-party state stores. It replaces error-prone useEffect patterns with a declarative API that handles subscriptions, cleanup, and SSR automatically.
+[...]
+If you’re using React Query or similar libraries, you’re already benefiting from useSyncExternalStore without knowing it.
+
+---
+
+Title: text/0214-use-sync-external-store.md at main · reactjs/rfcs
+Key Highlights:
+Introduce a new built-in hook API, useSyncExternalStore, for reading and
+subscribing from external data sources in a way that's compatible with
+concurrent rendering features like selective hydration and time slicing.
+[...]
+first-class API
+[...]
+subscribe to external data sources.
+ Subscriptions are an extremely common pattern in React applications, and many
+ third-party library bundle their own implementation.
+[...]
+-in API
+ will shift the implementation burden into React, reducing implementation
+ complexity for developers.
+[...]
+- Ensure compatibility with concurrent rendering features, like Suspense and
+ time slicing. Reading external state is tricky to get right in a concurrent
+ environment. Mistakes can lead to data races and inconsistencies, which can
+ lead to logical errors or visual tearing in the UI. Instead of leaving
+ developers to deal with this complexity on their own, React will provide an
+ official solution that's easy to use and is guaranteed to prevent concurrent
+ data races.
+[...]
+- Prevent mismatches when hydrating server-rendered content. The initial render
+ on the client needs to match exactly what was rendered on the server, even if
+ the underlying data has changed in the meantime. useSyncExternalStore will
+ read the correct version of data during hydration, then apply additional
+ changes in a subsequent update.
+[...]
+As we were brainstorming alternative strategies, a key revelation was that if
+you can’t rely on startTransition to always avoid bad fallbacks caused by a
+store update, then you shouldn’t ever rely on it — you should avoid the
+fallbacks in some other way. For example, you could do it the same way you would
+today without Suspense: by waiting for new data to load before triggering the
+update.
+[...]
+The next key revelation was that we can avoid deopts during updates triggered by
+React state transitions if updates triggered by external stores are always
+synchronous. That’s because if updates to stores are synchronous, they are
+guaranteed to be consistent.
+[...]
+- Updates triggered by a store change will always be synchronous, even when
+ wrapped in startTransition
+[...]
+- In exchange, updates triggered by built-in React state will never deopt by
+ showing a bad fallback, even if it reads from a store during the same render
+[...]
+- As discussed above, to prevent data races, you can't trigger a transition using
+ a store update — updates to the store always render synchronously. This isn't
+ the same as saying all data access must be synchronous — you can still read from
+ the store during a concurrent transition if the transition was triggered by a
+ React state update, like useState or useReducer. But this does mean that
+ useSyncExternalStore is not the ideal API for implementing things like route
+ transitions, though we're exploring additional APIs that will enable this use
+ case. (See "Unresolved questions" for more.)
+[...]
+- getSnapshot must return a cached value. That is, if getSnapshot is called
+ multiple times in a row, it must return the same exact value unless there was
+ a store update in between. Some existing store implementations don't follow
+ this pattern because they create new objects on demand every time the store is
+ read. To make the API easier to adopt, we provide a
+ useSyncExternalStoreWithSelector API that automatically caches the
+ last result.
+[...]
+- Leave the problem to be solved in userspace. While it’s possible to implement
+ a concurrent-compatible subscription in userspace, it’s very tricky to get
+ right in all the edge cases. It's also impractical to expect userspace
+ implementations to anticipate future React features that we may add later on.
+[...]
+useMutableSource instead.
+[...]
+Our goal is for all subscription-based libraries to migrate their
+implementations to useSyncExternalStore.
+[...]
+We are also considering a heuristic to detect when a userspace store update is
+wrapped with startTransition, so we can print advice to the console (in
+development mode) to use useSyncExternalStore instead. The heuristic is to count
+how many separate components are updated within a single startTransition call.
+If it’s greater than some arbitrary threshold, say 20, we can infer that it
+likely contains a subscription.
+[...]
+Although updates triggered through useSyncExternalStore are always synchronous,
+we intend to add another API to support concurrent data access, too. It will
+almost certainly have a different design and set of trade offs from
+useSyncExternalStore, so it won't replace the need for this API.
+[...]
+In the meantime, useSyncExternalStore is the recommended solution for all
+external data subscriptions. Use built-in React state (useState, useReducer) for
+concurrent transitions, like navigating between pages.
+
+---
+
+Title: Your useEffect Event Listeners Are Lying to Your Users | Frontend Master
+Key Highlights:
+React 18 introduced`useSyncExternalStore` to fix this entire class of bugs. And the best part? It actually makes your code shorter.
+[...]
+Tearing in concurrent mode —
+[...]
+React pauses this render and the
+[...]
+resizes mid-pause, some components show the old width and others show the new one
+[...]
+Same render, different data
+[...]
+3. SSR
+[...]
+` in the initial state throws on the server.
+[...]
+need a conditional check
+[...]
+hydration mismatches
+[...]
+The React team recognized this is such a common footgun that they built a hook specifically for it. Their own docs now say: “Prefer`useSyncExternalStore` over`useEffect` for subscribing to external data sources.”
+[...]
+`useSyncExternalStore` is a React hook designed for one specific job: safely reading from a data source that lives outside React’s state tree. That includes browser APIs, third-party stores, WebSocket feeds, or anything that changes independently of React’s rendering cycle.
+[...]
+| Parameter | Required | What It Does |
+| --- | --- | --- |
+| `subscribe` | Yes | Takes a`callback`, subscribes it to the store. Must return an unsubscribe function. |
+| `getSnapshot` | Yes | Returns the current value from the store. Must return the same reference (via`Object.is`) if nothing changed. |
+| `getServerSnapshot` | No* | Returns the initial value during SSR and hydration. Required if your component renders on the server. |
+[...]
+That’s it. Three functions. No`useState`, no`useEffect`, no cleanup juggling. React handles the subscription lifecycle internally and guarantees consistency across concurrent renders.
+[...]
+Backward compatibility Need to support React 16 or 17? Install the official shim:`npm install use-
+[...]
+-external-
+[...]
+` Then import from`use-
+[...]
+Notice how the`useSyncExternalStore` version defines`subscribe` and`getSnapshot` outside the component. This is critical — if you define them inline, React creates new function references every render and re-subscribes each time.
+[...]
+Why useCallback for subscribe?
+[...]
+a parameter, the`subscribe` function
+[...]
+Wrapping it in
+[...]
+-subscrib
+[...]
+the query string
+[...]
+Scroll-linked animations, sticky headers, progress bars — they all need scroll position. With`useEffect`, you get jank because the listener fires after paint. With`useSyncExternalStore`, React reads the position during render, so your UI is never out of sync.
+[...]
+This one is a real production lifesaver. If you’re syncing state with`localStorage`, you need to listen for the`storage` event (which fires when another tab changes the value). Most`useEffect` implementations miss this entirely.
+[...]
+Cross-tab sync for free The`storage` event only fires in other tabs/windows. If you also need same-tab reactivity when calling`localStorage.setItem`, you’ll need to wrap the setter and manually call the subscriber callback. But for cross-tab sync — which most`useEffect` implementations completely ignore — this works out of the box.
+[...]
+`useSyncExternalStore` integrates directly with React’s scheduler:
+[...]
+- It guarantees all components reading the same store see the exact same snapshot within a single render pass
+- If the store mutates during a concurrent render, React falls back to synchronous rendering and restarts the entire pass
+- It calls`getSnapshot` at the start of the render and verifies the value hasn’t changed before committing
+[...]
+This is impossible to achieve with`useEffect`+`useState`. By the time`useEffect` fires, the render is already committed to the DOM — the torn UI has already been painted.
+[...]
+On the server, there’s no`window`, no`navigator`, no`localStorage`. If`getSnapshot` touches any browser API, your server render will crash.
+[...]
+1. Required for SSR components. If you skip it and your component renders on the server, React throws: “Missing getServerSnapshot, which is required for server-rendered content.”
+2. Must match hydration output. The value on the server must be identical to what the client returns during hydration, or you’ll get hydration mismatch warnings.
+3. Return sensible defaults. For network status, return`true`. For scroll position, return`0`. For localStorage, return the initial value.
+[...]
+- Define`subscribe` and`getSnapshot` outside the component or memoize them
+- Return immutable snapshots from`getSnapshot`
+- Always return a cleanup function from`subscribe`
+- Wrap the hook in a custom hook (e.g.,`useOnlineStatus`)
+- Provide`getServerSnapshot` for any SSR-rendered component
+[...]
+#### Don’t Do This
+[...]
+- Define`subscribe` inline — causes re-subscribe every render
+- Return new objects/arrays from`getSnapshot`— causes infinite re-renders
+- Forget the cleanup function — causes memory leaks
+- Use for React-internal state — use`useState`/`useReducer` instead
+- Suspend based on store values — triggers nearest Suspense fallback
+[...]
+### When to keep useEffect
+[...]
+`useSyncExternalStore` is NOT a replacement for all`useEffect` usage. Keep`useEffect` for:
+[...]
+- Side effects that don’t produce state — logging, analytics, DOM mutations
+- Data fetching — use`useEffect` or a data-fetching library (React Query, SWR)
+- One-time setup — initializing a third-party library on mount
+- Synchronizing with React state — if the source is already React state, you don’t need this hook
+[...]
+The rule is simple: if you’re subscribing to something external and reading its value into React state, reach for`useSyncExternalStore`. For everything else,`useEffect` is still the right tool.
+[...]
+TL;DR
+
+If your`useEffect` has`addEventListener`+`removeEventListener`+`useState`, replace it with`useSyncExternalStore`. Your concurrent renders will thank you.

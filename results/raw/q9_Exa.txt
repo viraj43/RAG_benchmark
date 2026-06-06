@@ -1,0 +1,327 @@
+Title: Securing pages and API routes | NextAuth.js
+Key Highlights:
+You can easily protect client and server side rendered pages and API routes with NextAuth.js.
+[...]
+The methods`getSession()` and`getToken()` both return an`object` if a session is valid and`null` if a session is invalid or has expired.
+[...]
+If data on a page is fetched using calls to secure API routes - i.e. routes which use`getSession()` or`getToken()` to access the session - you can use the`useSession` React Hook to secure pages.
+[...]
+With NextAuth.js 4.2.0 and Next.js 12, you can now protect your pages via the middleware pattern more easily. If you would like to protect all pages, you can create a`middleware.js` file at the root or in the src directory (same level as your`pages`) which looks like this:
+[...]
+If you only want to secure certain pages, export a`config` object with a`matcher`:
+[...]
+```js
+export { default } from "next-auth/middleware"export const config = { matcher: ["/dashboard(.*)"] }
+[...]
+For the time being, the`withAuth` middleware only supports`"jwt"` as session strategy.
+[...]
+To include all`dashboard` nested routes (sub pages like`/dashboard/settings`,`/dashboard/profile`) you can pass`matcher: "/dashboard/:path*"` to`config`.
+[...]
+You can protect server side rendered pages using the`getServerSession` method. This is different from the old`getSession()` method, in that it does not do an extra fetch out over the internet to confirm data from itself, increasing performance significantly.
+[...]
+You need to add this to every server rendered page you want to protect. Be aware,`getServerSession` takes slightly different arguments than the method it is replacing,`getSession`.
+[...]
+```js
+import { getServerSession } from "next-auth/next"import { authOptions } from "./api/auth/[...nextauth]"import { useSession } from "next-auth/react"export default function Page() {  const { data: session } = useSession()  if (typeof window === "undefined") return null  if (session) {    return (      <>        <h1>Protected Page</h1>        <p>You can view this page because you are signed in.</p>      </>    )  }  return <p>Access Denied</p>}export async function getServerSideProps(context) {  return {    props: {      session: await getServerSession(        context.req,        context.res,        authOptions      ),    },  }}
+[...]
+When you supply a`session` prop in`_app.js`,`useSession` won't show a loading state, as it'll already have the session available. In this way, you can provide a more seamless user experience.
+[...]
+## Securing API Routes​
+[...]
+You can protect API routes using the`getServerSession()` method.
+[...]
+```js
+import { getServerSession } from "next-auth/next"import { authOptions } from "./auth/[...nextauth]"export default async (req, res) => {  const session = await getServerSession(req, res, authOptions)  if (session) {    // Signed in    console.log("Session", JSON.stringify(session, null, 2))  } else {    // Not Signed in    res.status(401)  }  res.end()}
+```
+[...]
+### Using getToken()​
+[...]
+If you are using JSON Web Tokens you can use the`getToken()` helper to access the contents of the JWT without having to handle JWT decryption / verification yourself. This method can only be used server side.
+[...]
+```js
+// This is an example of how to read a JSON Web Token from an API routeimport { getToken } from "next-auth/jwt"export default async (req, res) => {  // If you don't have NEXTAUTH_SECRET set, you will have to pass your secret as `secret` to `getToken`  const token = await getToken({ req })  if (token) {    // Signed in    console.log("JSON Web Token", JSON.stringify(token, null, 2))  } else {    // Not Signed in    res.status(401)  }  res.end()}
+```
+[...]
+You can use the`getToken()` helper function in any application as long as you set the`NEXTAUTH_URL` environment variable and the application is able to read the JWT cookie (e.g. is on the same domain).
+[...]
+Pass`getToken` the same value for`secret` as specified in`pages/api/auth/[...nextauth].js`.
+
+---
+
+Title: Client API | NextAuth.js
+Key Highlights:
+The`useSession()` React Hook in the NextAuth.js client is the easiest way to check if someone is signed in.
+[...]
+### Require session​
+[...]
+Due to the way Next.js handles`getServerSideProps` and`getInitialProps`, every protected page load has to make a server-side request to check if the session is valid and then generate the requested page (SSR). This increases server load, and if you are good with making the requests from the client, there is an alternative. You can use`useSession` in a way that makes sure you always have a valid session. If after the initial loading state there was no session found, you can define the appropriate action to respond.
+[...]
+The default behavior is to redirect the user to the sign-in page, from where - after a successful login - they will be sent back to the page they started on. You can also define an`onUnauthenticated()` callback, if you would like to do something else:
+[...]
+```jsx
+import { useSession } from "next-auth/react"export default function Admin() {  const { status } = useSession({    required: true,    onUnauthenticated() {      // The user is not authenticated, handle it here.    },  })  if (status === "loading") {    return "Loading or not authenticated..."  }  return "User is logged in"}
+[...]
+Due to the way Next.js handles`getServerSideProps`/`getInitialProps`, every protected page load has to make a server-side request to check if the session is valid and then generate the requested page. This alternative solution allows for showing a loading state on the initial check and every page transition afterward will be client-side, without having to check with the server and regenerate pages.
+[...]
+```jsx
+export default function App({  Component,  pageProps: { session, ...pageProps },}) {  return (    <SessionProvider session={session}>      {Component.auth ? (        <Auth>          <Component {...pageProps} />        </Auth>      ) : (        <Component {...pageProps} />      )}    </SessionProvider>  )}function Auth({ children }) {  // if `{ required: true }` is supplied, `status` can only be "loading" or "authenticated"  const { status } = useSession({ required: true })  if (status === "loading") {    return <div>Loading...</div>  }  return children}
+[...]
+The`useSession()` hook exposes a`update(data?: any): Promise ` method that can be used to update the session, without reloading the page.
+[...]
+a`strategy
+[...]
+update()` method
+[...]
+## getSession()​
+[...]
+NextAuth.js provides a`getSession()` helper which should be called client side only to return the current active session.
+[...]
+On the server side, this is still available to use, however, we recommend using`getServerSession` going forward. The idea behind this is to avoid an additional unnecessary`fetch` call on the server side. For more information, please check out this issue.
+[...]
+When called,`getSession()` will send a request to`/api/auth/session` and returns a promise with a session object, or`null` if no session exists.
+[...]
+The`getCsrfToken()` method returns the current Cross Site Request Forgery Token (CSRF Token) required to make POST requests (e.g. for signing in and signing out).
+[...]
+## signIn()​
+[...]
+Using the`signIn()` method ensures the user ends back on the page they started on after completing a sign in flow. It will also handle CSRF Tokens for you automatically when signing in with email.
+[...]
+By default, when calling the`signIn()` method with no arguments, you will be redirected to the NextAuth.js sign-in page. If you want to skip that and get redirected to your provider's page immediately, call the`signIn()` method with the provider's`id`.
+[...]
+### Specifying a callbackUrl​
+[...]
+The`callbackUrl` specifies to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
+[...]
+You can specify a different`callbackUrl` by specifying it as the second argument of`signIn()`. This works for all providers.
+[...]
+The URL must be considered valid by the redirect callback handler. By default it requires the URL to be an absolute URL at the same host name, or a relative url starting with a slash. If it does not match it will redirect to the homepage. You can define your own redirect callback to allow other URLs.
+[...]
+In some cases, you might want to deal with the sign in response on the same page and disable the default redirection. For example, if an error occurs (like wrong credentials given by the user), you might want to handle the error on the same page. For that, you can pass`redirect: false` in the second parameter object.
+[...]
+### Additional parameters​
+[...]
+It is also possible to pass additional parameters to the`/authorize` endpoint through the third argument of`signIn()`.
+[...]
+## signOut()​
+[...]
+In order to logout, use the`signOut()` method to ensure the user ends back on the page they started on after completing the sign out flow. It also handles CSRF tokens for you automatically.
+[...]
+As with the`signIn()` function, you can specify a`callbackUrl` parameter by passing it as an option.
+[...]
+The URL must be considered valid by the redirect callback handler. By default, it requires the URL to be an absolute URL at the same host name, or you can also supply a relative URL starting with a slash. If it does not match it will redirect to the homepage. You can define your own redirect callback to allow other URLs.
+[...]
+### Using the redirect: false option​
+[...]
+If you pass`redirect: false` to`signOut`, the page will not reload. The session will be deleted, and the`useSession` hook is notified, so any indication about the user will be shown as logged out automatically. It can give a very nice experience for the user.
+[...]
+## SessionProvider​
+[...]
+the App Router, which might be the easier choice if you are
+[...]
+from pages.)
+[...]
+If every one of your pages needs to be protected, you can do this in`getInitialProps` in`_app`, otherwise you can do it on a page-by-page basis. Alternatively, you can do per page authentication checks client side, instead of having each authentication check be blocking (SSR) by using the method described below in alternative client session handling.
+[...]
+The`refetchInterval` option can be used to contact the server to avoid a session expiring.
+[...]
+The`refetchOnWindowFocus` option can be used to control whether it automatically updates the session state when you switch a focus on tabs/windows.
+[...]
+### Custom base path​
+[...]
+When your Next.js application uses a custom base path, set the`NEXTAUTH_URL` environment variable to the route to the API endpoint in full - as in the example below and as explained here.
+
+---
+
+Title: Callbacks | NextAuth.js
+Key Highlights:
+Callbacks are asynchronous functions you can use to control what happens when an action is performed.
+[...]
+Callbacks are extremely powerful, especially in scenarios involving JSON Web Tokens as they allow you to implement access controls without a database and to integrate with external databases or APIs.
+[...]
+You can specify a handler for any of the callbacks below.
+[...]
+```js
+...  callbacks: {    async signIn({ user, account, profile, email, credentials }) {      return true    },    async redirect({ url, baseUrl }) {      return baseUrl    },    async session({ session, user, token }) {      return session    },    async jwt({ token, user, account, profile, isNewUser }) {      return token    }...}
+```
+[...]
+The documentation below shows how to implement each callback, their default behaviour and an example of what the response for each callback should be. Note that configuration options and authentication providers you are using can impact the values passed to the callbacks.
+[...]
+## Sign in callback​
+[...]
+Use the`signIn()` callback to control if a user is allowed to sign in.
+[...]
+```js
+...callbacks: {  async signIn({ user, account, profile, email, credentials }) {    const isAllowedToSignIn = true    if (isAllowedToSignIn) {      return true    } else {      // Return false to display a default error message      return false      // Or you can return a URL to redirect to:      // return '/unauthorized'    }  }}...
+```
+[...]
+using the Email Provider the`signIn()` callback is triggered both when the user makes a Verification Request (before they are sent an email with a link that will allow them to sign in) and again after they activate the link in the sign
+[...]
+in email.
+[...]
+not have profiles
+[...]
+the first call
+[...]
+- When using the Credentials Provider the`user` object is the response returned from the`authorize` callback and the`profile` object is the raw body of the`HTTP POST` submission.
+[...]
+Redirects returned by this callback cancel the authentication flow. Only redirect to error pages that, for example, tell the user why they're not allowed to sign in.
+[...]
+To redirect to a page after a successful sign in, please use the callbackUrl option or the redirect callback.
+[...]
+## Redirect callback​
+[...]
+The redirect callback is called anytime the user is redirected to a callback URL (e.g. on signin or signout).
+[...]
+By default only URLs on the same URL as the site are allowed, you can use the redirect callback to customise that behaviour.
+[...]
+```js
+...callbacks: {  async redirect({ url, baseUrl }) {    // Allows relative callback URLs    if (url.startsWith("/")) return `${baseUrl}${url}`    // Allows callback URLs on the same origin    else if (new URL(url).origin === baseUrl) return url    return baseUrl  }}...
+[...]
+## JWT callback​
+[...]
+This callback is called whenever a JSON Web Token is created (i.e. at sign in) or updated (i.e whenever a session is accessed in the client). The returned value will be encrypted, and it is stored in a cookie.
+[...]
+Requests to`/api/auth/signin`,`/api/auth/session` and calls to`getSession()`,`getServerSession()`,`useSession()` will invoke this function, but only if you are using a JWT session. This method is not invoked when you persist sessions in a database.
+[...]
+- As with database persisted session expiry times, token expiry time is extended whenever a session is active.
+- The arguments user, account, profile and isNewUser are only passed the first time this callback is called on a new session, after the user signs in. In subsequent calls, only`token` will be available.
+[...]
+The contents user, account, profile and isNewUser will vary depending on the provider and if you are using a database. You can persist data such as User ID, OAuth Access Token in this token, see the example below for`access_token` and`user.id`. To expose it on the client side, check out the`session()` callback as well.
+[...]
+```js
+...callbacks: {  async jwt({ token, account, profile }) {    // Persist the OAuth access_token and or the user id to the token right after signin    if (account) {      token.accessToken = account.access_token      token.id = profile.id    }    return token  }}...
+```
+[...]
+Use an if branch to check for the existence of parameters (apart from`token`). If they exist, this means that the callback is being invoked for the first time (i.e. the user is being signed in). This is a good place to persist additional data like an`access_token` in the JWT. Subsequent invocations will only contain the`token` parameter.
+[...]
+## Session callback​
+[...]
+The session callback is called whenever a session is checked. By default, only a subset of the token is returned for increased security. If you want to make something available you added to the token (like`access_token` and`user.id` from above) via the`jwt()` callback, you have to explicitly forward it here to make it available to the client.
+[...]
+- When using database sessions, the User (`user`) object is passed as an argument.
+- When using JSON Web Tokens for sessions, the JWT payload (`token`) is provided instead.
+[...]
+```js
+...callbacks: {  async session({ session, token, user }) {    // Send properties to the client, like an access_token and user id from a provider.    session.accessToken = token.accessToken    session.user.id = token.id        return session  }}...
+```
+[...]
+When using JSON Web Tokens the`jwt()` callback is invoked before the`session()` callback, so anything you add to the JSON Web Token will be immediately available in the session callback, like for example an`access_token` or`id` from a provider.
+[...]
+The session object is not persisted server side, even when using database sessions - only data such as the session token, the user, and the expiry time is stored in the session table.
+[...]
+If you need to persist session data server side, you can use the`accessToken` returned for the session as a key - and connect to the database in the`session()` callback to access it. Session`accessToken` values do not rotate and are valid as long as the session is valid.
+[...]
+If using JSON Web Tokens instead of database sessions, you should use the User ID or a unique key stored in the token (you will need to generate a key for this yourself on sign in, as access tokens for sessions are not generated when using JSON Web Tokens).
+
+---
+
+Title: Introduction | NextAuth.js
+Key Highlights:
+NextAuth.js is a complete open-source authentication solution for Next.js applications.
+[...]
+It is designed from the ground up to support Next.js and Serverless.
+[...]
+Check out the
+[...]
+code to see
+[...]
+- Designed to work with any OAuth service, it supports OAuth 1.0, 1.0A, 2.0 and OpenID Connect
+- Built-in support for many popular sign-in services
+- Supports email / passwordless authentication
+- Supports stateless authentication with any backend(Active Directory, LDAP, etc)
+- Supports both JSON Web Tokens and database sessions
+- Designed for Serverless but runs anywhere (AWS Lambda, Docker, Heroku, etc…)
+[...]
+js can be used with
+[...]
+without a database.
+[...]
+- An open-source solution that allows you to keep control of your data
+- Supports Bring Your Own Database (BYOD) and can be used with any database
+- Built-in support for MySQL, MariaDB, Postgres, SQL Server, MongoDB and SQLite
+- Works great with databases from popular hosting providers
+- Can also be used without a database (e.g. OAuth + JWT)
+[...]
+- Promotes the use of passwordless sign-in mechanisms
+- Designed to be secure by default and encourage best practices for safeguarding user data
+- Uses Cross-Site Request Forgery Tokens on POST routes (sign in, sign out)
+- Default cookie policy aims for the most restrictive policy appropriate for each cookie
+- When JSON Web Tokens are enabled, they are encrypted by default (JWE) with A256GCM
+- Auto-generates symmetric signing and encryption keys for developer convenience
+- Features tab/window syncing and keepalive messages to support short-lived sessions
+- Attempts to implement the latest guidance published by Open Web Application Security Project
+[...]
+Advanced options allow you to define your own routines to handle controlling what accounts are allowed to sign in, for encoding and decoding JSON Web Tokens and to set custom cookie security policies and session properties, so you can control who can sign in and how often sessions have to be re-validated.
+[...]
+Check out the example code to see how easy it is to use NextAuth.js for authentication.
+
+---
+
+Title: Initialization | NextAuth.js
+Key Highlights:
+The main entry point of NextAuth.js is the`NextAuth` method that you import from`next-auth`. It handles different types of requests, as defined in the REST API section.
+[...]
+NextAuth.js cannot use the run Edge Runtime for initialization. The upcoming @auth/nextjs library(which will replace`next-auth`) on the other hand will be fully compatible.
+[...]
+In Next.js, you can define an API route that will catch all requests that begin with a certain path. Conveniently, this is called Catch all API routes.
+[...]
+When you define a`/pages/api/auth/[...nextauth]` JS/TS file, you instruct NextAuth.js that every API request beginning with`/api/auth/*` should be handled by the code written in the`[...nextauth]` file.
+[...]
+```ts
+import NextAuth from "next-auth"export default NextAuth({  ...})
+[...]
+Here, you only need to pass your options to`NextAuth`, and`NextAuth` does the rest.
+[...]
+This is the preferred initialization in tutorials/other parts of the documentation, as it simplifies the code and reduces potential errors in
+[...]
+authentication flow.
+[...]
+Next.js 13.2 introduced Route Handlers, the preferred way to handle REST-like requests in App Router (`app/`).
+[...]
+You can initialize NextAuth.js with a Route Handler too, very similar to API Routes.
+[...]
+```ts
+import NextAuth from "next-auth"const handler = NextAuth({  ...})export { handler as GET, handler as POST }
+```
+[...]
+Internally, NextAuth.js detects that it is being initialized in a Route Handler (by understanding that it is passed a Web Request instance), and will return a handler that returns a Response instance. A Route Handler file expects you to export some named handler functions that handle a request and return a response. NextAuth.js needs the`GET` and`POST` handlers to function properly, so we export those two.
+[...]
+The following describes the advanced initialization with API Routes, but everything will apply similarily when using Route Handlers too. Instead,`NextAuth` will receive the first two arguments of a Route Handler, and the third argument will be the auth options
+[...]
+If you have a specific use case and need to make NextAuth.js do something slightly different than what it is designed for, keep in mind, the`[...nextauth].ts` config file is just a regular API Route.
+[...]
+That said, you can initialize NextAuth.js like this:
+[...]
+```ts
+import type { NextApiRequest, NextApiResponse } from "next"import NextAuth from "next-auth"export default async function auth(req: NextApiRequest, res: NextApiResponse) {  // Do whatever you want here, before the request is passed down to `NextAuth`  return await NextAuth(req, res, {    ...  })}
+```
+[...]
+The`...` section will still be your options, but you now have the possibility to execute/modify certain things on the request.
+[...]
+You could for example log the request, add headers, read`query` or`body` parameters, whatever you would do in an API route.
+[...]
+Since this is a catch-all route, remember to check what kind of NextAuth.js "action" is running. Compare the REST API with the`req.query.nextauth` parameter.
+[...]
+For example to execute something on the "callback" action when the request is a POST method, you can check for`req.query.nextauth.includes("callback") && req.method === "POST"`
+[...]
+`NextAuth` will implicitly close the response (by calling`res.end`,`res.send` or similar), so you should not run code after`NextAuth` in the function body. Using`return NextAuth` makes sure you don't forget that.
+[...]
+Any variable you create this way will be available in the`NextAuth` options as well, since they are in the same scope.
+[...]
+auth/[...nextauth].ts
+[...]
+```ts
+import type { NextApiRequest, NextApiResponse } from "next"import NextAuth from "next-auth"export default async function auth(req: NextApiRequest, res: NextApiResponse) {  if(req.query.nextauth.includes("callback") && req.method === "POST") {    console.log(      "Handling callback request from my Identity Provider",      req.body    )  }  // Get a custom cookie value from the request  const someCookie = req.cookies["some-custom-cookie"]  return await NextAuth(req, res, {    ...    callbacks: {      session({ session, token }) {        // Return a cookie value as part of the session        // This is read when `req.query.nextauth.includes("session") && req.method === "GET"`        session.someCookie = someCookie        return session      }    }  })}
+```
+[...]
+A practical example could be to not show a certain provider on the default sign-in page, but still be able to sign in with it. (The idea is taken from this discussion):
+[...]
+/pages/api/auth/[...nextauth].ts
+[...]
+```js
+import NextAuth from "next-auth"import CredentialsProvider from "next-auth/providers/credentials"import GoogleProvider from "next-auth/providers/google"export default async function auth(req, res) {  const providers = [    CredentialsProvider(...),    GoogleProvider(...),  ]  const isDefaultSigninPage = req.method === "GET" && req.query.nextauth.includes("signin")  // Will hide the `GoogleProvider` when you visit `/api/auth/signin`  if (isDefaultSigninPage) providers.pop()  return await NextAuth(req, res, {    providers,    ...  })}
+```
+[...]
+This way of initializing`NextAuth` is very powerful, but should be used sparingly.
+[...]
+Changing parts of the request that is essential to`NextAuth` to do its job - like messing with the default cookies- can have unforeseen consequences, and have the potential to introduce security holes if done incorrectly. Only change those if you understand consequences.

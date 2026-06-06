@@ -1,0 +1,585 @@
+Title: Quickstart for GitHub Actions
+**Definition:** Copy as MarkdownIn this articleIntroduction
+GitHub Actions is a continuous integration and continuous delivery (CI/CD) platform that allows you to automate your build, test, and deployment pipeline.
+
+**Key Points:** Skip to main contentQuickstart for GitHub ActionsTry out the core features of GitHub Actions in minutes. Note
+
+For GitHub to discover any GitHub Actions workflows in your repository, you must save the workflow files in a directory called . Here are some helpful resources for taking your next steps with GitHub Actions:
+
+To create a GitHub Actions workflow, see Using workflow templates.
+
+```text
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+```
+
+Skip to main contentQuickstart for GitHub ActionsTry out the core features of GitHub Actions in minutes.Copy as MarkdownIn this articleIntroduction
+GitHub Actions is a continuous integration and continuous delivery (CI/CD) platform that allows you to automate your build, test, and deployment pipeline. You can create workflows that run tests whenever you push a change to your repository, or that deploy merged pull requests to production.
+This quickstart guide shows you how to use the user interface of GitHub to add a workflow that demonstrates some of the essential features of GitHub Actions.
+To get started with preconfigured workflows, browse through the list of templates in the actions/starter-workflows repository. For more information, see Using workflow templates.
+For an overview of GitHub Actions workflows, see Workflows. If you want to learn about the various components that make up GitHub Actions, see Understanding GitHub Actions.
+Using workflow templates
+GitHub provides preconfigured workflow templates that you can use as-is or customize to create your own workflow. GitHub analyzes your code and shows you workflow templates that might be useful for your repository. For example, if your repository contains Node.js code, you'll see suggestions for Node.js projects.
+These workflow templates are designed to help you get up and running quickly, offering a range of configurations such as:
+
+CI: Continuous Integration workflows
+Deployments: Deployment workflows
+Automation: Automating workflows
+Code Scanning: Code Scanning workflows
+Pages: Pages workflows
+
+Use these workflows as a starting place to build your custom workflow or use them as-is. You can browse the full list of workflow templates in the actions/starter-workflows repository.
+Prerequisites
+This guide assumes that:
+
+You have at least a basic knowledge of how to use GitHub. If you don't, you'll find it helpful to read some of the articles in the documentation for repositories and pull requests first. For example, see Quickstart for repositories, About branches, and About pull requests.
+
+You have a repository on GitHub where you can add files.
+
+You have access to GitHub Actions.
+Note
+ If the Actions tab is not displayed under the name of your repository on GitHub, it may be because Actions is disabled for the repository. For more information, see Managing GitHub Actions settings for a repository.
+
+Creating your first workflow
+
+In your repository on GitHub, create a workflow file called github-actions-demo.yml in the .github/workflows directory. To do this:
+
+If the .github/workflows directory already exists, navigate to that directory on GitHub, click Add file, then click Create new file, and name the file github-actions-demo.yml.
+
+If your repository doesn't have a .github/workflows directory, go to the main page of the repository on GitHub, click Add file, then click Create new file, and name the file .github/workflows/github-actions-demo.yml. This creates the .github and workflows directories and the github-actions-demo.yml file in a single step.
+
+Note
+
+For GitHub to discover any GitHub Actions workflows in your repository, you must save the workflow files in a directory called .github/workflows.
+You can give the workflow file any name you like, but you must use .yml or .yaml as the file name extension. YAML is a markup language that's commonly used for configuration files.
+
+Copy the following YAML contents into the github-actions-demo.yml file:
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+ Explore-GitHub-Actions:
+ runs-on: ubuntu-latest
+ steps:
+ - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+ - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+ - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+ - name: Check out repository code
+ uses: actions/checkout@v6
+ - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+ - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+ - name: List files in the repository
+ run: |
+ ls ${{ github.workspace }}
+ - run: echo "🍏 This job's status is ${{ job.status }}."
+
+At this stage you don't need to understand the details of this workflow. For now, you can just copy and paste the contents into the file. After completing this quickstart guide, you can learn about the syntax of workflow files in Workflows, and for an explanation of GitHub Actions contexts, such as ${{ github.actor }} and ${{ github.event_name }}, see Contexts reference.
+
+Click Commit changes.
+
+In the "Propose changes" dialog, select either the option to commit to the default branch or the option to create a new branch and start a pull request. Then click Commit changes or Propose changes.
+
+Committing the workflow file to a branch in your repository triggers the push event and runs your workflow.
+If you chose to start a pull request, you can continue and create the pull request, but this is not necessary for the purposes of this quickstart because the commit has still been made to a branch and will trigger the new workflow.
+Viewing your workflow results
+
+On GitHub, navigate to the main page of the repository.
+
+Under your repository name, click Actions.
+
+In the left sidebar, click the workflow you want to display, in this example "GitHub Actions Demo."
+
+From the list of workflow runs, click the name of the run you want to see, in this example "USERNAME is testing out GitHub Actions."
+
+In the left sidebar of the workflow run page, under Jobs, click the Explore-GitHub-Actions job.
+
+The log shows you how each of the steps was processed. Expand any of the steps to view its details.
+
+For example, you can see the list of files in your repository:
+
+The example workflow you just added is triggered each time code is pushed to the branch, and shows you how GitHub Actions can work with the contents of your repository. For an in-depth tutorial, see Understanding GitHub Actions.
+Next steps
+GitHub Actions can help you automate nearly every aspect of your application development processes. Ready to get started? Here are some helpful resources for taking your next steps with GitHub Actions:
+
+To create a GitHub Actions workflow, see Using workflow templates.
+For continuous integration (CI) workflows, see Building and testing your code.
+For building and publishing packages, see Publishing packages.
+For deploying projects, see Deploying to third-party platforms.
+For automating tasks and processes on GitHub, see Managing your work with GitHub Actions.
+For examples that demonstrate more complex features of GitHub Actions, see Managing your work with GitHub Actions. These detailed examples explain how to test your code on a runner, access the GitHub CLI, and use advanced features such as concurrency and test matrices.
+To certify your proficiency in automating workflows and accelerating development with GitHub Actions, earn a GitHub Actions certificate with GitHub Certifications. For more information, see About GitHub Certifications.
+
+---
+
+Title: How to build a CI/CD pipeline with GitHub Actions in four ...
+**Definition:** nefits to using GitHub Actions—because let’s be honest, there are a lot of other tools out there.
+
+**Key Points:** Let me unpack the four big benefits that I’ve come across:
+
+CI/CD pipeline set-up is simple: GitHub Actions is made by and for developers, so you don’t need dedicated resources to set up and maintain your pipeline. Respond to any webhook on GitHub: Since GitHub Actions is fully integrated with GitHub, you can set any webhook as an event trigger for an automation or CI/CD pipeline. Step 2: Open GitHub Actions in your repository to start building your CI/CD workflow
+To begin building your CI/CD pipeline, open the GitHub Actions tab in your repository’s top navigation bar.
+
+```html
+<div>
+<h1>The path to your next</h1>
+<h2>Open Source</h2>
+<h1>contribution.</h1>
+</div>
+```
+
+```text
+<h1>The path to your next</h1>
+<h2>Open Source</h2>
+<h1>contribution and more pizza.</h1>
+```
+
+## How to build a CI/CD pipeline with GitHub Actions in four simple steps
+A quick guide on the advantages of using GitHub Actions as your preferred CI/CD tool—and how to build a CI/CD pipeline with it.
+
+
+## Key advantages of using GitHub Actions for CI/CD pipelines
+But first, let’s talk through some of the benefits to using GitHub Actions—because let’s be honest, there are a lot of other tools out there. Let me unpack the four big benefits that I’ve come across:
+CI/CD pipeline set-up is simple: GitHub Actions is made by and for developers, so you don’t need dedicated resources to set up and maintain your pipeline. There’s no need to manually configure and set up CI/CD. You don’t have to set up webhooks, you don’t have to buy hardware, reserve some instances out there, keep them up to date, do security patches, or spool down idle machines. You just drop one file in your repo, and it works.
+
+
+Respond to any webhook on GitHub: Since GitHub Actions is fully integrated with GitHub, you can set any webhook as an event trigger for an automation or CI/CD pipeline. This includes things like pull requests, issues, and comments, but it also includes webhooks from any app you have integrated into your GitHub repository. Let’s say you’re going to use any one of the many tools that are out there to run part of your development pipeline. With GitHub Actions, you can trigger CI/CD workflows and pipelines of webhooks from these apps (even something simple, like a chat app message, if you’ve integrated your chat app into your GitHub repository, of course).
+
+
+Community-powered, reusable workflows: You can share your workflows publicly with the wider GitHub community or access pre-built CI/CD workflows in the GitHub Marketplace (there are more than 11,000 available actions!). Did I mention every action is reusable just by referencing its name? Yes, that too.
+
+
+Support for any platform, any language, and any cloud: GitHub Actions is platform agnostic, language agnostic, and cloud agnostic. That means you can use it with whatever technology you choose.
+
+
+## How to build a CI/CD pipeline with GitHub Actions
+Before we dive in, here are a few quick notes:
+Be clear about what a CI/CD pipeline is and should do. This is a simple note, but important. A CI pipeline runs when code changes and should make sure all of your changes work with the rest of the code when it’s integrated. It should also compile your code, run tests, and check that it’s functional. A CD pipeline goes one step further and deploys the built code into production.
+
+
+GitHub Actions takes a “choose-your-own adventure” type of approach to CI/CD. You’ll see it the first time you open GitHub Actions in a repository. There are plenty of guided options with pre-built CI workflows you can leverage, per your technology requirements. But you can also build your own CI workflow from scratch if you want to.
+
+
+Our example features a website built on Astro and deployed via GitHub Pages. For both the CI and CD portion of this guide, we’ll be using a website I built and developed called www.opensauced.pizza. This website is intended to make it easier for first-time open source contributors to find open source projects to work on and prioritizes projects with clear onboarding flows.
+
+
+If you’re a visual learner, we have you covered. While I’ll walk you through building a simple CI/CD pipeline with my GitHub project www.opensauced.pizza, I also have a video you can watch where I put these steps into practice and build a quick CI flow for another project of mine: hot.opensauced.pizza. This video shows you exactly where to go to start building a streamlined CI pipeline. Give it a watch if you’re a visual learner.
+Okay, let’s do this.
+
+
+## Step 2: Open GitHub Actions in your repository to start building your CI/CD workflow
+To begin building your CI/CD pipeline, open the GitHub Actions tab in your repository’s top navigation bar.
+You should see a list of CI/CD and workflow automation templates that match the technology your project uses (side note: We just improved this entire user flow. Check out the details later, if you’re interested).
+For this project, we’ll leverage a few different CI/CD workflows to test, build, stage, and deploy our code. These include:
+A development workflow: This workflow runs through a few different jobs whenever a pull request is opened, edited, synchronized, or reopened. These jobs include setting up Node, installing npm packages and dependencies, running npm test, and cycling through a number of lint jobs too (setup node, install npm@latest, install dependencies, lint code… you get the idea).
+A note on YAMLYAML is a markup language that has become a mainstay in declarative automation due to its human-friendly nature as a JSON superset (it uses a lot less brackets, braces, and quotes than other JSON markup language variants). Want to learn more? Check out this guide.
+A CodeQL Analysis workflow: This workflow runs a series of CodeQL security tests on our code after we merge it to the main branch to ensure there are no known vulnerabilities. Check out the YAML file for yourself. It’s super simple, but effective and something I’d highly recommend.
+
+
+A release and build workflow: This workflow runs tests and enforces lint after releasing code changes to Docker and building the application. It also deploys the final code to our production environment, cuts a release using a similar structure to the automated release notes, bundles the site into a container and publishes to ghcr. From there, it bumps the version number and tag in the repository. This is one of the more complex workflows we’re running, and I’m oversimplifying it somewhat, but you can see which jobs and steps happen in the workflow for yourself.
+
+
+A storybook deployment workflow: This workflow deploys any UI component changes to our production website through our frontend UI tech Storybook.
+And those are our workflows. The point here is that if you’re working on a solo project or something small, building a CI pipeline doesn’t have to be an intimidating process. You can start with a few simple things (like what’s highlighted above) to make your workflow a little easier.
+A CI/CD pipeline can and should be more complex than this if you’re building enterprise software, maintaining a big open source project, or working with a big team on any array of things. But if you’re just getting started, don’t worry about making your CI/CD pipeline meet every single need of a big team or ambitious project—just make it work for you.
+You can see that I’ve built in a few workflow automations to simplify the process of maintaining the Open Sauced repository. Case in point: Compliance workflow (from GitHub user @mtfoley), which is triggered whenever someone makes their first pull request (in accordance with our contributor guidelines) on Open Sauced and sends them a message to join our Discord server.
+
+
+## GitHub Actions
+Native CI/CD alongside code hosted in GitHub.
+Learn more
+
+
+## Step 3: Make changes to your code to trigger your CI/CD pipeline
+For the sake of this exercise, we’re going to make a small change to the website headline (“The path to your next open source contribution”) by adding in the “and more pizza” at the end. The final result will look like this: “The path to your next open source contribution and more pizza.”
+Let’s get to work.
+Open the src folder, and go to the components subfolder. From there, you’ll want to open the hero.js file. In that file, go to this code:
+<div>
+<h1>The path to your next</h1>
+<h2>Open Source</h2>
+<h1>contribution.</h1>
+</div>
+Make the change to the copy by adding in “and more pizza.” It should look like this:
+<h1>The path to your next</h1>
+<h2>Open Source</h2>
+<h1>contribution and more pizza.</h1>
+
+
+## Automate repository tasks with GitHub Agentic Workflows
+Discover GitHub Agentic Workflows, now in technical preview. Build automations using coding agents in GitHub Actions to handle triage, documentation, code quality, and more.
+Don Syme & Peli de Halleux
+
+
+## Explore more from GitHub
+Docs		
+		
+			Everything you need to master GitHub, all in one place.
+		
+					
+				
+					Go to Docs											
+									
+			
+			
+
+
+	
+				
+			The ReadME Project		
+		
+			Stories and voices from the developer community.
+		
+					
+				
+					Learn more											
+									
+			
+			
+
+
+	
+				
+			GitHub Actions		
+		
+			Native CI/CD alongside code hosted in GitHub.
+		
+					
+				
+					Learn more											
+									
+			
+			
+
+
+	
+				
+			Enterprise content		
+		
+			Executive insights, curated just for you
+		
+					
+				
+					Get started
+
+
+## How to use the GitHub and JFrog integration for secure, traceable builds from commit to production
+Connect commits to artifacts without switching tools.
+
+
+## Level up design-to-code collaboration with GitHub’s open source Annotation Toolkit
+Prevent accessibility issues before they reach production. The Annotation Toolkit brings clarity, compliance, and collaboration directly into your Figma workflow.
+
+
+## Automate repository tasks with GitHub Agentic Workflows
+Discover GitHub Agentic Workflows, now in technical preview. Build automations using coding agents in GitHub Actions to handle triage, documentation, code quality, and more.
+
+
+## How to streamline GitHub API calls in Azure Pipelines
+Build a custom Azure DevOps extension that eliminates the complexity of JWT generation and token management, enabling powerful automation and enhanced security controls.
+Tiago Pascoal
+
+
+
+
+---
+
+Title: Could you please tell me how to set up CI/CD on GitHub?
+**Key Points:** Dismiss alert
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ {{ message }}
+
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ GitHub Community
+ 
+ 
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ Could you please tell me how to set up CI/CD on GitHub? On GitHub, the most common way to set up CI/CD is by using GitHub Actions. Manage Secrets
+
+If deployment requires secrets (like API keys), store them in your repo’s Settings → Secrets and variables → Actions.
+
+```text
+name: Secure CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run security audit
+        run: npm audit --audit-level=high
+      
+      - name: SAST with CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript
+```
+
+```text
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+```
+
+## Could you please tell me how to set up CI/CD on GitHub?
+              
+              #172466
+Answered
+                  
+                  by
+                    a-ariff
+                  
+              
+                  
+                    
+                      masterAI359
+                    
+                  
+                
+                  asked this question in
+                Actions
+
+
+## 🔒 Security-First CI/CD (Critical for Production)
+Building on the basic examples, add security scanning:
+name: Secure CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run security audit
+        run: npm audit --audit-level=high
+      
+      - name: SAST with CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript
+
+
+## 🔒 Security-First CI/CD (Critical for Production)
+Building on the basic examples, add security scanning:
+name: Secure CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run security audit
+        run: npm audit --audit-level=high
+      
+      - name: SAST with CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript
+
+
+## .github/workflows/ci.yml
+name: CI Pipeline
+on:
+push:
+branches: [ main ]
+pull_request:
+branches: [ main ]
+jobs:
+build:
+runs-on: ubuntu-latest
+steps:
+  # Get your code
+  - uses: actions/checkout@v3
+
+  # Set up Python
+  - name: Set up Python
+    uses: actions/setup-python@v4
+    with:
+      python-version: "3.11"
+
+  # Install dependencies
+  - name: Install dependencies
+    run: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+
+  # Run tests
+  - name: Run tests
+    run: |
+      pytest
+This example assumes you’re working with Python, but the structure is similar for other languages.
+Add Deployment (CD)
+If you want continuous deployment, add another job (or step) that runs only after tests pass. For example, to deploy a static site to GitHub Pages:
+deploy:
+needs: build
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v3
+- name: Deploy to GitHub Pages
+uses: peaceiris/actions-gh-pages@v3
+with:
+github_token: ${{ secrets.GITHUB_TOKEN }}
+publish_dir: ./public
+For cloud platforms (Heroku, AWS, Azure, etc.), you’d replace this with their official or community deployment action.
+Manage Secrets
+If deployment requires secrets (like API keys), store them in your repo’s Settings → Secrets and variables → Actions. Then use them in your workflow as secrets.MY_KEY.
+Observe and Debug
+Whenever you push, go to the Actions tab in your repo. You’ll see the pipeline running live. If it fails, logs are available for each step.
+👉 So, in short:
+Put a YAML workflow file in .github/workflows/.
+Define when it runs (on:).
+Add jobs (build, test, deploy).
+Use official actions for setup and deployment.
+
+
+## 3. (Optional) Add Deployment (CD)
+If you want CD (deploy automatically), you can add another job after tests, for example:
+Deploy to GitHub Pages (for static sites).
+Push to Docker Hub.
+Deploy to cloud providers (Vercel, AWS, Azure, etc.).
+Most providers already have ready-made Actions you can reuse.
+
+
+## 2. add a basic CI Workflow
+Paste in something like this (for a Node.js project as an example):
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+This will:
+Run on every push and pull request to main.
+Install dependencies.
+Run your tests.
+
+

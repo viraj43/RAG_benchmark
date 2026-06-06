@@ -1,0 +1,369 @@
+Title: Pods | Kubernetes
+Key Highlights:
+Pods are the smallest deployable units of computing that you can create and manage in Kubernetes.
+[...]
+A Pod (as in a pod of whales or pea pod) is a group of one or more containers, with shared storage and network resources, and a specification for how to run the containers. A Pod's contents are always co-located and co-scheduled, and run in a shared context. A Pod models an application-specific "logical host": it contains one or more application containers which are relatively tightly coupled. In non-cloud contexts, applications executed on the same physical or virtual machine are analogous to cloud applications executed on the same logical host.
+[...]
+As well as application containers, a Pod can contain init containers that run during Pod startup. You can also inject ephemeral containers for debugging a running Pod.
+[...]
+Pods in a Kubernetes cluster are used in two main ways:
+[...]
+Pods that run a single container. The "one-container-per-Pod" model is the most common Kubernetes use case; in this case, you can think of a Pod as a wrapper around a single container; Kubernetes manages Pods rather than managing the containers directly.
+[...]
+Pods that run multiple containers that need to work together. A Pod can encapsulate an application composed of multiple co-located containers that are tightly coupled and need to share resources. These co-located containers form a single cohesive unit.
+[...]
+Pods are generally not created directly and are created using workload resources. See Working with Pods for more information on how Pods are used with workload resources.
+[...]
+Usually you don't need to create Pods directly, even singleton Pods. Instead, create them using workload resources such as Deployment or Job. If your Pods need to track state, consider the StatefulSet resource.
+[...]
+Each Pod is meant to run a single instance of a given application. If you want to scale your application horizontally (to provide more overall resources by running more instances), you should use multiple Pods, one for each instance. In Kubernetes, this is typically referred to as replication. Replicated Pods are usually created and managed as a group by a workload resource and its controller.
+[...]
+Pods natively provide two kinds of shared resources for their constituent containers: networking and storage.
+[...]
+You'll rarely create individual Pods directly in Kubernetes—even singleton Pods. This is because Pods are designed as relatively ephemeral, disposable entities. When a Pod gets created (directly by you, or indirectly by a controller), the new Pod is scheduled to run on a Node in your cluster. The Pod remains on that node until the Pod finishes execution, the Pod object is deleted, the Pod is evicted for lack of resources, or the node fails.
+[...]
+You can use workload resources to create and manage multiple Pods for you. A controller for the resource handles replication and rollout and automatic healing in case of Pod failure. For example, if a Node fails, a controller notices that Pods on that Node have stopped working and creates a replacement Pod. The scheduler places the replacement Pod onto a healthy Node.
+[...]
+Pod to a Workload
+[...]
+using a Workload
+[...]
+. This tells the`kube-scheduler` that the Pod is part of a specific group, enabling it to make coordinated placement decisions
+[...]
+entire group at once
+[...]
+Controllers for workload resources create Pods from a pod template and manage those Pods on your behalf.
+[...]
+workload resources such
+[...]
+Pods enable data sharing and communication among their constituent containers.
+[...]
+A Pod can specify a set of shared storage volumes. All containers in the Pod can access the shared volumes, allowing those containers to share data. Volumes also allow persistent data in a Pod to survive in case one of the containers within needs to be restarted. See Storage for more information on how Kubernetes implements shared storage and makes it available to Pods.
+[...]
+Each Pod is assigned a unique IP address for each address family. Every container in a Pod shares the network namespace, including the IP address and network ports. Inside a Pod (and only then), the containers that belong to the Pod can communicate with one another using`localhost`. When containers in a Pod communicate with entities outside the Pod, they must coordinate how they use the shared network resources (such as ports). Within a Pod, containers share an IP address and port space, and can find each other via`localhost`. The containers in a Pod can also communicate with each other using standard inter-process communications like SystemV semaphores or POSIX shared memory. Containers in different Pods have distinct IP addresses and can not communicate by OS-level IPC without special configuration. Containers that want to interact with a container running in a different Pod can use IP networking to communicate.
+[...]
+Pods are designed to support multiple cooperating processes (as containers) that form a cohesive unit of service. The containers in a Pod are automatically co-located and co-scheduled on the same physical or virtual machine in the cluster. The containers can share resources and dependencies, communicate with one another, and coordinate when and how they are terminated.
+[...]
+- Pods that run a single container. The "one-container-per-Pod" model is the most common Kubernetes use case; in this case, you can think of a Pod as a wrapper around a single container; Kubernetes manages Pods rather than managing the containers directly.
+[...]
+- Pods that run multiple containers that need to work together. A Pod can encapsulate an application composed of multiple co-located containers that are tightly coupled and need to share resources. These co-located containers form a single cohesive unit of service—for example, one container serving data stored in a shared volume to the public, while a separate sidecar container refreshes or updates those files. The Pod wraps these containers, storage resources, and an ephemeral network identity together as a single unit.
+[...]
+Some Pods have init containers as well as app containers. By default, init containers run and complete before the app containers are started.
+[...]
+Enabled by default, the`SidecarContainers` feature gate allows you to specify`restartPolicy: Always` for init
+[...]
+. Setting the`Always` restart policy ensures that the containers where you set it are treated as sidecars that are kept running during the entire lifetime of the Pod. Containers that you explicitly define as sidecar containers start up before the main application Pod and remain running until the Pod is shut down.
+
+---
+
+Title: Pods - Kubernetes
+Key Highlights:
+Pods are the smallest deployable units of computing that you can create and manage in Kubernetes.
+[...]
+A Pod (as in a pod of whales or pea pod) is a group of one or more containers, with shared storage and network resources, and a specification for how to run the containers. A Pod's contents are always co-located and co-scheduled, and run in a shared context. A Pod models an application-specific "logical host": it contains one or more application containers which are relatively tightly coupled. In non-cloud contexts, applications executed on the same physical or virtual machine are analogous to cloud applications executed on the same logical host.
+[...]
+As well as application containers, a Pod can contain init containers that run during Pod startup. You can also inject ephemeral containers for debugging a running Pod.
+[...]
+Pods in a Kubernetes cluster are used in two main ways:
+[...]
+Pods that run a single container. The "one-container-per-Pod" model is the most common Kubernetes use case; in this case, you can think of a Pod as a wrapper around a single container; Kubernetes manages Pods rather than managing the containers directly.
+[...]
+Pods that run multiple containers that need to work together. A Pod can encapsulate an application composed of multiple co-located containers that are tightly coupled and need to share resources. These co-located containers form a single cohesive unit.
+[...]
+Pods are generally not created directly and are created using workload resources. See Working with Pods for more information on how Pods are used with workload resources.
+[...]
+them using workload resources such as Deployment or Job.
+[...]
+your Pods
+[...]
+to track state, consider the StatefulSet resource
+[...]
+Each Pod is meant to run a single instance of a given application. If you want to scale your application horizontally (to provide more overall resources by running more instances), you should use multiple Pods, one for each instance. In Kubernetes, this is typically referred to as replication. Replicated Pods are usually created and managed as a group by a workload resource and its controller.
+[...]
+Pods natively provide two kinds of shared resources for their constituent containers: networking and storage.
+[...]
+You'll rarely create individual Pods directly in Kubernetes—even singleton Pods. This is because Pods are designed as relatively ephemeral, disposable entities. When a Pod gets created (directly by you, or indirectly by a controller), the new Pod is scheduled to run on a Node in your cluster. The Pod remains on that node until the Pod finishes execution, the Pod object is deleted, the Pod is evicted for lack of resources, or the node fails.
+[...]
+You can use workload resources to create and manage multiple Pods for you. A controller for the resource handles replication and rollout and automatic healing in case of Pod failure. For example, if a Node fails, a controller notices that Pods on that Node have stopped working and creates a replacement Pod. The scheduler places the replacement Pod onto a healthy Node.
+[...]
+individually. However, some tightly-coupled
+[...]
+You can link a Pod to a PodGroup using the scheduling group field (`spec.schedulingGroup`). This tells the`kube-scheduler` that the`Pod` belongs to a specific group, enabling it to apply group-level coordinated placement decisions for
+[...]
+entire group at once.
+[...]
+Controllers for workload resources create Pods from a pod template and manage those Pods on your behalf.
+[...]
+Pods enable data sharing and communication among their constituent containers.
+[...]
+A Pod can specify a set of shared storage volumes. All containers in the Pod can access the shared volumes, allowing those containers to share data. Volumes also allow persistent data in a Pod to survive in case one of the containers within needs to be restarted. See Storage for more information on how Kubernetes implements shared storage and makes it available to Pods.
+[...]
+Each Pod is assigned a unique IP address for each address family. Every container in a Pod shares the network namespace, including the IP address and network ports. Inside a Pod (and only then), the containers that belong to the Pod can communicate with one another using`localhost`. When containers in a Pod communicate with entities outside the Pod, they must coordinate how they use the shared network resources (such as ports). Within a Pod, containers share an IP address and port space, and can find each other via`localhost`. The containers in a Pod can also communicate with each other using standard inter-process communications like SystemV semaphores or POSIX shared memory. Containers in different Pods have distinct IP addresses and can not communicate by OS-level IPC without special configuration. Containers that want to interact with a container running in a different Pod can use IP networking to communicate.
+[...]
+Pods are designed to support multiple cooperating processes (as containers) that form a cohesive unit of service. The containers in a Pod are automatically co-located and co-scheduled on the same physical or virtual machine in the cluster. The containers can share resources and dependencies, communicate with one another, and coordinate when and how they are terminated.
+[...]
+- Pods that run a single container. The "one-container-per-Pod" model is the most common Kubernetes use case; in this case, you can think of a Pod as a wrapper around a single container; Kubernetes manages Pods rather than managing the containers directly.
+[...]
+- Pods that run multiple containers that need to work together. A Pod can encapsulate an application composed of multiple co-located containers that are tightly coupled and need to share resources. These co-located containers form a single cohesive unit of service—for example, one container serving data stored in a shared volume to the public, while a separate sidecar container refreshes or updates those files. The Pod wraps these containers, storage resources, and an ephemeral network identity together as a single unit.
+[...]
+Some Pods have init containers as well as app containers. By default, init containers run and complete before the app containers are started.
+[...]
+, the`SidecarContainers` feature gate allows you to specify`restartPolicy: Always` for init
+[...]
+. Setting the`Always` restart policy ensures that the containers where you set it are treated as sidecars that are kept running during the entire lifetime of the Pod. Containers that you explicitly define as sidecar containers start up before the main application Pod and remain running until the Pod is shut down.
+
+---
+
+Title: Workloads | Kubernetes
+Key Highlights:
+Understand Pods, the smallest deployable compute object in Kubernetes, and the higher-level abstractions that help you to run them.
+[...]
+A workload is an application running on Kubernetes. Whether your workload is a single component or several that work together, on Kubernetes you run it inside a set of pods. In Kubernetes, a Pod represents a set of running containers on your cluster.
+[...]
+Kubernetes pods have a defined lifecycle. For example, once a pod is running in your cluster then a critical fault on the node where that pod is running means that all the pods on that node fail. Kubernetes treats that level of failure as final: you would need to create a new Pod to recover, even if the node later becomes healthy.
+[...]
+However, to make life considerably easier, you don't need to manage each Pod directly. Instead, you can use workload resources that manage a set of pods on your behalf. These resources configure controllers that make sure the right number of the right kind of pod are running, to match the state you specified.
+[...]
+Kubernetes provides several built-in workload resources:
+[...]
+- Deployment and ReplicaSet(replacing the legacy resource ReplicationController). Deployment is a good fit for managing a stateless application workload on your cluster, where any Pod in the Deployment is interchangeable and can be replaced if needed.
+[...]
+- StatefulSet lets you run one or more related Pods that do track state somehow. For example, if your workload records data persistently, you can run a StatefulSet that matches each Pod with a PersistentVolume. Your code, running in the Pods for that StatefulSet, can replicate data to other Pods in the same StatefulSet to improve overall resilience.
+[...]
+- DaemonSet defines Pods that provide facilities that are local to nodes. Every time you add a node to your cluster that matches the specification in a DaemonSet, the control plane schedules a Pod for that DaemonSet onto the new node. Each pod in a DaemonSet performs a job similar to a system daemon on a classic Unix / POSIX server. A DaemonSet might be fundamental to the operation of your cluster, such as a plugin to run cluster networking, it might help you to manage the node, or it could provide optional behavior that enhances the container platform you are running.
+[...]
+- Job and CronJob provide different ways to define tasks that run to completion and then stop. You can use a Job to define a task that runs to completion, just once. You can use a CronJob to run the same Job multiple times according a schedule.
+[...]
+Kubernetes ecosystem, you can
+[...]
+third-party
+[...]
+the Pods are available (perhaps for some
+[...]
+While standard workload resources (like Deployments and Jobs) manage the lifecycle of Pods, you may have complex scheduling requirements where groups of Pods must be treated as a single unit.
+[...]
+The Workload API allows you to define a group of Pods and apply advanced scheduling policies to them, such as gang scheduling. This is particularly useful for batch processing and machine learning workloads where "all-or-nothing" placement is required.
+[...]
+- Run a stateless application using a Deployment
+- Run a stateful application either as a single instance or as a replicated set
+- Run automated tasks with a CronJob
+[...]
+There are two supporting concepts that provide backgrounds about how Kubernetes manages pods for applications:
+[...]
+- Garbage collection tidies up objects from your cluster after their owning resource has been removed.
+- The time-to-live after finished controller removes Jobs once a defined time has passed since they completed.
+
+---
+
+Title: Pod Lifecycle | Kubernetes
+Key Highlights:
+This page describes the lifecycle of a Pod. Pods follow a defined lifecycle, starting in the`Pending` phase, moving through`Running` if at least one of its primary containers starts OK, and then through either the`Succeeded` or`Failed` phases depending on whether any container in the Pod terminated in failure.
+[...]
+Like individual application containers, Pods are considered to be relatively ephemeral (rather than durable) entities. Pods are created, assigned a unique ID (UID), and scheduled to run on nodes where they remain until termination (according to restart policy) or deletion. If a Node dies, the Pods running on (or scheduled to run on) that node are marked for deletion. The control plane marks the Pods for removal after a timeout period.
+[...]
+Whilst a Pod is running, the kubelet is able to restart containers to handle some kind of faults. Within a Pod, Kubernetes tracks different container states and determines what action to take to make the Pod healthy again.
+[...]
+Pods are only scheduled once in their lifetime; assigning a Pod to a specific node is called binding, and the process of selecting which node to use is called scheduling. Once a Pod has been scheduled and is bound to a node, Kubernetes tries to run that Pod on the node. The Pod runs on that node until it stops, or until the Pod is terminated; if Kubernetes isn't able to start the Pod on the selected node (for example, if the node crashes before the Pod starts), then that particular Pod never starts.
+[...]
+does not attempt
+[...]
+the Pod and
+[...]
+on other components
+[...]
+If a Pod is scheduled to a node and that node then fails
+[...]
+the Pod is treated as unhealthy and Kubernetes eventually deletes the Pod. A Pod won't survive an eviction due to a lack
+[...]
+Node maintenance.
+[...]
+Kubernetes uses a higher-level abstraction, called a controller, that handles the work of managing the relatively disposable Pod instances.
+[...]
+A Pod's`status` field is a PodStatus object, which has a`phase` field.
+[...]
+The phase of a Pod is
+[...]
+simple, high
+[...]
+level summary of where the Pod is in its lifecycle. The phase is not intended to
+[...]
+a comprehensive rollup of observations of container
+[...]
+Pod state, nor is it intended to be a comprehensive state
+[...]
+| Value | Description |
+| --- | --- |
+| `Pending` | The Pod has been accepted by the Kubernetes cluster, but one or more of the containers has not been set up and made ready to run. This includes time a Pod spends waiting to be scheduled as well as the time spent downloading container images over the network. |
+| `Running` | The Pod has been bound to a node, and all of the containers have been created. At least one container is still running, or is in the process of starting or restarting. |
+| `Succeeded` | All containers in the Pod have terminated in success, and will not be restarted. |
+| `Failed` | All containers in the Pod have terminated, and at least one container has terminated in failure. That is, the container either exited with non-zero status or was terminated by the system, and is not set for automatic restarting. |
+| `Unknown` | For some reason the state of the Pod could not be obtained. This phase typically occurs due to an error in communicating with the node where the Pod should be running. |
+[...]
+A Pod is granted a term to terminate gracefully, which defaults to
+[...]
+30 seconds
+[...]
+a Pod by
+[...]
+As well as the phase of the Pod overall, Kubernetes tracks the state of each container inside a Pod. You can use container lifecycle hooks to trigger events to run at certain points in a container's lifecycle.
+[...]
+Once the scheduler assigns a Pod to a Node, the kubelet starts creating containers for that Pod using a container runtime. There are three possible container states:`Waiting`,`Running`, and`Terminated`.
+[...]
+without issues. If
+[...]
+Kubernetes manages container failures within Pods using a`restartPolicy` defined in the Pod`spec`. This policy determines how Kubernetes reacts to containers exiting due to errors or other reasons, which falls in the following sequence:
+[...]
+1. Initial crash: Kubernetes attempts an immediate restart based on the Pod`restartPolicy`.
+2. Repeated crashes: After the initial crash Kubernetes applies an exponential backoff delay for subsequent restarts, described in`restartPolicy`. This prevents rapid, repeated restart attempts from overloading the system.
+3. CrashLoopBackOff state: This indicates that the backoff delay mechanism is currently in effect for a given container that is in a crash loop, failing and restarting repeatedly.
+4. Backoff reset: If a container runs successfully for a certain duration (e.g., 10 minutes), Kubernetes resets the backoff delay, treating any new crash as the first one.
+[...]
+When a container in your Pod stops, or experiences failure, Kubernetes can restart it. A restart isn't always appropriate; for example, init containers run only once (if successful), during Pod startup. You can configure restarts as a policy that applies to all Pods, or using container-level configuration (for example: when you define a sidecar container) or define container-level override.
+[...]
+The`spec` of a Pod has a`restartPolicy` field with possible values Always, OnFailure, and Never. The default value is Always.
+[...]
+The`restartPolicy` for a Pod applies to app containers in the Pod and to regular init containers. Sidecar containers ignore the Pod-level`restartPolicy` field: in Kubernetes, a sidecar is defined as an entry inside`initContainers` that has its container-level`restartPolicy` set to`Always`. For init containers that exit with an error, the kubelet restarts the init container if the Pod level`restartPolicy` is either`OnFailure` or`Always`:
+[...]
+- `Always`: Automatically restarts the container after any termination.
+- `OnFailure`: Only restarts the container if it exits with an error (non-zero exit status).
+- `Never`: Does not automatically restart the terminated container.
+[...]
+A Pod has a PodStatus, which has an array of PodConditions through which the Pod has or has not passed. The kubelet manages the following PodConditions:
+[...]
+After a Pod gets scheduled on a node, it
+[...]
+the kubelet and to have any
+[...]
+storage volumes mounted. Once these
+[...]
+complete, the kubelet works with
+[...]
+container runtime (using Container
+[...]
+)) to set up a
+[...]
+Pod. If the
+[...]
+ToStartContainersCondition` feature gate is
+[...]
+(it is
+[...]
+1.
+[...]
+), the`PodReadyToStartContainers` condition will be added to the`status.conditions`
+[...]
+of a Pod.
+[...]
+` to any processes
+[...]
+depending on the
+
+---
+
+Title: Glossary | Kubernetes
+Key Highlights:
+In Kubernetes, affinity is a set of rules that give hints to the scheduler about where to place pods.
+[...]
+The rules are defined using the Kubernetes labels, and
+[...]
+in pods, and
+[...]
+A set of worker machines, called nodes, that run containerized applications. Every cluster has at least one worker node.
+[...]
+The worker node(s) host the Pods that are the components of the application workload. The control plane manages the worker nodes and the Pods in the cluster. In production environments, the control plane usually runs across multiple computers and a cluster usually runs multiple nodes, providing fault-tolerance and high availability.
+[...]
+The container orchestration layer that exposes the API and interfaces to define, deploy, and manage the lifecycle of containers.
+[...]
+An API object that manages a replicated application, typically by running Pods with no local state.
+[...]
+Each replica is represented by a Pod, and the Pods are distributed among the nodes of a cluster. For workloads that do require local state, consider using a StatefulSet.
+[...]
+A Kubernetes feature that lets you request and share resources among Pods. These resources are often attached devices like hardware accelerators.
+[...]
+With DRA, device
+[...]
+admins define device classes that are available to claim
+[...]
+Eviction is the process of
+[...]
+s on Nodes.
+[...]
+kube-scheduler
+[...]
+Control plane component that watches for newly created Pods with no assigned node, and selects a node for them to run on.
+[...]
+Kubelet
+[...]
+An agent that runs on each node in the cluster. It makes sure that containers are running in a Pod.
+[...]
+The smallest and simplest Kubernetes object. A Pod represents a set of running containers on your cluster.
+[...]
+A Pod is typically set up to run a single primary container. It can also run optional sidecar containers that add supplementary features like logging. Pods are commonly managed by a Deployment.
+[...]
+The Pod Lifecycle is defined by the states or phases of a Pod. There are five possible Pod phases: Pending, Running, Succeeded, Failed, and Unknown. A high-level description of the Pod state is summarized in the PodStatus`phase` field.
+[...]
+Pod templates allow you to define common metadata (such as labels, or a template for
+[...]
+name of a new Pod) as well as to specify a pod's desired state. Workload management controllers use Pod templates (embedded into another object, such as a Deployment or StatefulSet) to define and manage one or more Pods. When there can be multiple Pods based on the same template, these are called replicas. Although you can create a PodTemplate object directly, you rarely need to do so.
+[...]
+Preemption logic in Kubernetes
+[...]
+Pod to find a suitable Node by
+[...]
+Pods to
+[...]
+scheduling of the pending Pod possible.
+[...]
+kube-proxy is a network proxy that runs on each node in your cluster, implementing part of the Kubernetes Service concept.
+[...]
+Class of a
+[...]
+at creation time based on its
+[...]
+classes are used to make
+[...]
+. Kubernetes can assign one of
+[...]
+following QoS classes to a
+[...]
+`,`Burstable`
+[...]
+A copy or duplicate of a
+[...]
+. Replicas ensure
+[...]
+Capabilities provided to one or more nodes(CPU
+[...]
+memory, GPUs, etc),
+[...]
+made available for consumption by
+[...]
+s running on those nodes.
+[...]
+Describes the resources that a workload needs, such as devices. ResourceClaims are used in dynamic resource allocation (DRA) to provide Pods with access to a specific resource.
+[...]
+When a ResourceClaim is created, Kubernetes uses ResourceSlices to find nodes that have access to resources that can satisfy the claim. Kubernetes allocates resources to the ResourceClaim
+[...]
+onto a node that can access the resources.
+[...]
+A method for
+[...]
+The set of Pods targeted by a
+[...]
+is (usually) determined by a selector. If more Pods are added or removed, the set of Pods matching the selector will change. The
+[...]
+makes sure that network traffic can be directed to the current set of Pods for the workload.
+[...]
+StatefulSet
+[...]
+Manages the deployment and scaling of a set of Pods, and provides guarantees about the ordering and uniqueness of these Pods.
+[...]
+Like a Deployment, a StatefulSet manages Pods that are based on an identical container spec. Unlike a Deployment, a StatefulSet maintains a sticky identity for each of its Pods. These pods are created from the same spec, but are not interchangeable: each has a persistent identifier that it maintains across any rescheduling.
+[...]
+A pod managed directly by the kubelet daemon on a specific node,
+[...]
+Tolerations and taints work together to ensure that pods are not scheduled onto inappropriate nodes. One or more tolerations are applied to a pod. A toleration indicates that the pod is allowed (but not required) to be scheduled on nodes or node groups with matching taints.
+[...]
+A workload is an application running on Kubernetes.
+[...]
+Various core objects that represent different types or parts of a workload include the DaemonSet, Deployment, Job, ReplicaSet, and StatefulSet objects.

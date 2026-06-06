@@ -1,0 +1,2025 @@
+Title: Best practices for REST API design - The Stack Overflow Blog
+[Stack Overflow Business](https://stackoverflow.co/)[Stack Internal: the knowledge intelligence layer that powers enterprise AI.](https://stackoverflow.co/internal/?utm_source=so-owned&utm_medium=blog&utm_campaign=nav-side-bar)[Stack Data Licensing: decades of verified, technical knowledge to boost AI performance and trust.](https://stackoverflow.co/data-licensing/?utm_source=so-owned&utm_medium=blog&utm_campaign=nav-side-bar)[Stack Ads: engage developers where it matters — in their daily workflow.](https://stackoverflow.co/advertising/employer-branding/?utm_source=so-owned&utm_medium=blog&utm_campaign=nav-side-bar)
+
+REST APIs are one of the most common kinds of web interfaces available today. They allow various clients including browser apps to communicate with services via the REST API. Therefore, it's very important to design REST APIs properly so that we won't run into problems down the road. We have to take into account [security](https://stackoverflow.blog/2021/10/06/best-practices-for-authentication-and-authorization-for-rest-apis/), performance, and ease of use for API consumers. 
+
+Otherwise, we create problems for clients that use our APIs, which isn’t pleasant and detracts people from using our API. If we don’t follow commonly accepted conventions, then we confuse the maintainers of the API and the clients that use them since it’s different from what everyone expects. 
+
+In this article, we'll look at how to design REST APIs to be easy to understand for anyone consuming them, [future-proof](https://stackoverflow.blog/2022/05/19/crystal-balls-and-clairvoyance-future-proofing-in-a-world-of-inevitable-change/), and secure and fast since they serve data to clients that may be confidential. 
+
+A REST API is an application programming interface architecture style that conforms to specific architectural constraints, like stateless communication and cacheable data. It is not a protocol or standard. While REST APIs can be accessed through a number of communication protocols, most commonly, they are called over HTTPS, so the guidelines below apply to REST API endpoints that will be called over the internet. 
+
+Note: For REST APIs called over the internet, you'll like want to follow the [best practices for REST API authentication](https://stackoverflow.blog/2021/10/06/best-practices-for-authentication-and-authorization-for-rest-apis/). 
+
+Even though [some people think REST should only return hypertext](https://htmx.org/essays/how-did-rest-come-to-mean-the-opposite-of-rest/)(including [Roy Fielding](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven)who created the term) REST APIs should accept JSON for request payload and also send responses to JSON. JSON is the standard for transferring data. Almost every networked technology can use it: JavaScript has built-in methods to encode and decode JSON either through the Fetch API or another HTTP client. Server-side technologies have libraries that can decode JSON without doing much work. 
+
+There are other ways to transfer data. XML isn’t widely supported by frameworks without transforming the data ourselves to something that can be used, and that’s usually JSON. We can’t manipulate this data as easily on the client-side, especially in browsers. It ends up being a lot of extra work just to do normal data transfer. 
+
+Form data is good for sending data, especially if we want to send files. But for text and numbers, we don’t need form data to transfer those since—with most frameworks—we can transfer JSON by just getting the data from it directly on the client side. It’s by far the most straightforward to do so. 
+
+To make sure that when our REST API app responds with JSON that clients interpret it as such, we should set `Content-Type`in the response header to `application/json`after the request is made. Many server-side app frameworks set the response header automatically. Some HTTP clients look at the `Content-Type`response header and parse the data according to that format. 
+
+The only exception is if we’re trying to send and receive files between client and server. Then we need to handle file responses and send form data from client to server. But that is a topic for another time. 
+
+We should also make sure that our endpoints return JSON as a response. Many server-side frameworks have this as a built-in feature. 
+
+Let’s take a look at an example API that accepts JSON payloads. This example will use the [Express](https://expressjs.com/)back end framework for Node.js. We can use the [body-parser middleware](https://www.npmjs.com/package/body-parser)to parse the JSON request body, and then we can call the `res.json`method with the object that we want to return as the JSON response as follows: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.json());
+
+app.post('/', (req, res) => {
+  res.json(req.body);
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+`bodyParser.json()`parses the JSON request body string into a JavaScript object and then assigns it to the `req.body`object. 
+
+Set the `Content-Type`header in the response to `application/json; charset=utf-8`without any changes. The method above applies to most other back end frameworks. 
+
+We shouldn't use verbs in our endpoint paths. Instead, we should use the nouns which represent the entity that the endpoint that we're retrieving or manipulating as the pathname. 
+
+This is because our HTTP request method already has the verb. Having verbs in our API endpoint paths isn’t useful and it makes it unnecessarily long since it doesn’t convey any new information. The chosen verbs could vary by the developer’s whim. For instance, some like ‘get’ and some like ‘retrieve’, so it’s just better to let the HTTP GET verb tell us what and endpoint does. 
+
+The action should be indicated by the HTTP request method that we're making. The most common methods include GET, POST, PUT, and DELETE. 
+
+The verbs map to [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete)operations. 
+
+With the two principles we discussed above in mind, we should create routes like GET `/articles/`for getting news articles. Likewise, POST `/articles/`is for adding a new article , PUT `/articles/:id`is for updating the article with the given `id`. DELETE `/articles/:id`is for deleting an existing article with the given ID. 
+
+`/articles`represents a REST API resource. For instance, we can use Express to add the following endpoints for manipulate articles as follows: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.json());
+
+app.get('/articles', (req, res) => {
+  const articles = [];
+  // code to retrieve an article...
+  res.json(articles);
+});
+
+app.post('/articles', (req, res) => {
+  // code to add a new article...
+  res.json(req.body);
+});
+
+app.put('/articles/:id', (req, res) => {
+  const { id } = req.params;
+  // code to update an article...
+  res.json(req.body);
+});
+
+app.delete('/articles/:id', (req, res) => {
+  const { id } = req.params;
+  // code to delete an article...
+  res.json({ deleted: id });
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we defined the endpoints to manipulate articles. As we can see, the path names do not have any verbs in them. All we have are nouns. The verbs are in the HTTP verbs. 
+
+The POST, PUT, and DELETE endpoints all take JSON as the request body, and they all return JSON as the response, including the GET endpoint. 
+
+When designing endpoints, it makes sense to group those that contain associated information. That is, if one object can contain another object, you should design the endpoint to reflect that. This is good practice regardless of whether your data is structured like this in your database. In fact, it may be advisable to avoid mirroring your database structure in your endpoints to avoid giving attackers unnecessary information. 
+
+For example, if we want an endpoint to get the comments for a news article, we should append the `/comments`path to the end of the `/articles`path. We can do that with the following code in Express: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.json());
+
+app.get('/articles/:articleId/comments', (req, res) => {
+  const { articleId } = req.params;
+  const comments = [];
+  // code to get comments by articleId
+  res.json(comments);
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we can use the GET method on the path `'/articles/:articleId/comments'`. We get `comments`on the article identified by `articleId`and then return it in the response. We add `'comments'`after the `'/articles/:articleId'`path segment to indicate that it's a child resource of `/articles`. 
+
+This makes sense since `comments`are the children objects of the `articles`, assuming each article has its own comments. Otherwise, it’s confusing to the user since this structure is generally accepted to be for accessing child objects. The same principle also applies to the POST, PUT, and DELETE endpoints. They can all use the same kind of nesting structure for the path names. 
+
+However, nesting can go too far. After about the second or third level, nested endpoints can get unwieldy. Consider, instead, returning the URL to those resources instead, especially if that data is not necessarily contained within the top level object. 
+
+For example, suppose you wanted to return the author of particular comments. You could use `/articles/:articleId/comments/:commentId/author`. But that's getting out of hand. Instead, return the URI for that particular user within the JSON response instead: 
+
+`"author": "/users/:userId"`
+
+To eliminate confusion for API users when an error occurs, we should handle errors gracefully and return HTTP response codes that indicate what kind of error occurred. This gives maintainers of the API enough information to understand the problem that’s occurred. We don’t want errors to bring down our system, so we can leave them unhandled, which means that the API consumer has to handle them. 
+
+Common error HTTP status codes include: 
+
+We should be throwing errors that correspond to the problem that our app has encountered. For example, if we want to reject the data from the request payload, then we should return a 400 response as follows in an Express API: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+// existing users
+const users = [
+  { email: 'abc@foo.com' }
+]
+
+app.use(bodyParser.json());
+
+app.post('/users', (req, res) => {
+  const { email } = req.body;
+  const userExists = users.find(u => u.email === email);
+  if (userExists) {
+    return res.status(400).json({ error: 'User already exists' })
+  }
+  res.json(req.body);
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we have a list of existing users in the `users`array with the given email. 
+
+Then if we try to submit the payload with the `email`value that already exists in `users`, we'll get a 400 response status code with a `'User already exists'`message to let users know that the user already exists. With that information, the user can correct the action by changing the email to something that doesn't exist. 
+
+Error codes need to have messages accompanied with them so that the maintainers have enough information to troubleshoot the issue, but attackers can’t use the error content to carry our attacks like stealing information or bringing down the system. 
+
+Whenever our API does not successfully complete, we should fail gracefully by sending an error with information to help users make corrective action. 
+
+The databases behind a REST API can get very large. Sometimes, there's so much data that it shouldn’t be returned all at once because it’s way too slow or will bring down our systems. Therefore, we need ways to filter items. 
+
+We also need ways to paginate data so that we only return a few results at a time. We don't want to tie up resources for too long by trying to get all the requested data at once. 
+
+Filtering and pagination both increase performance by reducing the usage of server resources. As more data accumulates in the database, the more important these features become. 
+
+Here’s a small example where an API can accept a query string with various query parameters to let us filter out items by their fields: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+// employees data in a database
+const employees = [
+  { firstName: 'Jane', lastName: 'Smith', age: 20 },
+  //...
+  { firstName: 'John', lastName: 'Smith', age: 30 },
+  { firstName: 'Mary', lastName: 'Green', age: 50 },
+]
+
+app.use(bodyParser.json());
+
+app.get('/employees', (req, res) => {
+  const { firstName, lastName, age } = req.query;
+  let results = [...employees];
+  if (firstName) {
+    results = results.filter(r => r.firstName === firstName);
+  }
+
+  if (lastName) {
+    results = results.filter(r => r.lastName === lastName);
+  }
+
+  if (age) {
+    results = results.filter(r => +r.age === +age);
+  }
+  res.json(results);
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we have the `req.query`variable to get the query parameters. We then extract the property values by destructuring the individual query parameters into variables using the JavaScript destructuring syntax. Finally, we run `filter`on with each query parameter value to locate the items that we want to return. 
+
+Once we have done that, we return the `results`as the response. Therefore, when we make a GET request to the following path with the query string: 
+
+`/employees?lastName=Smith&age=30`
+
+We get: 
+
+```
+[
+    {
+        "firstName": "John",
+        "lastName": "Smith",
+        "age": 30
+    }
+]
+```
+
+as the returned response since we filtered by `lastName`and `age`. 
+
+Likewise, we can accept the `page`query parameter and return a group of entries in the position from `(page - 1) * 20`to `page * 20`. 
+
+We can also specify the fields to sort by in the query string. For instance, we can get the parameter from a query string with the fields we want to sort the data for. Then we can sort them by those individual fields. 
+
+For instance, we may want to extract the query string from a URL like: 
+
+`http://example.com/articles?sort=+author,-datepublished`
+
+Where `+`means ascending and `-`means descending. So we sort by author’s name in alphabetical order and `datepublished`from most recent to least recent. 
+
+Most communication between client and server should be private since we often send and receive private information. Therefore, using SSL/TLS for security is a must. 
+
+A SSL certificate isn't too difficult to load onto a server and the cost is free or very low. There's no reason not to make our REST APIs communicate over secure channels instead of in the open. 
+
+People shouldn't be able to access more information that they requested. For example, a normal user shouldn't be able to access information of another user. They also shouldn't be able to access data of admins. 
+
+To enforce the principle of least privilege, we need to add role checks either for a single role, or have more granular roles for each user. 
+
+If we choose to group users into a few roles, then the roles should have the permissions that cover all they need and no more. If we have more granular permissions for each feature that users have access to, then we have to make sure that admins can add and remove those features from each user accordingly. Also, we need to add some preset roles that can be applied to a group users so that we don’t have to do that for every user manually. 
+
+We can add caching to return data from the local memory cache instead of querying the database to get the data every time we want to retrieve some data that users request. The good thing about caching is that users can get data faster. However, the data that users get may be outdated. This may also lead to issues when debugging in production environments when something goes wrong as we keep seeing old data. 
+
+There are many kinds of caching solutions like [Redis](https://redis.io/), in-memory caching, and more. We can change the way data is cached as our needs change. 
+
+For instance, Express has the [apicache](https://www.npmjs.com/package/apicache)middleware to add caching to our app without much configuration. We can add a simple in-memory cache into our server like so: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+const apicache = require('apicache');
+const app = express();
+let cache = apicache.middleware;
+app.use(cache('5 minutes'));
+
+// employees data in a database
+const employees = [
+  { firstName: 'Jane', lastName: 'Smith', age: 20 },
+  //...
+  { firstName: 'John', lastName: 'Smith', age: 30 },
+  { firstName: 'Mary', lastName: 'Green', age: 50 },
+]
+
+app.use(bodyParser.json());
+
+app.get('/employees', (req, res) => {
+  res.json(employees);
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+The code above just references the `apicache`middleware with `apicache.middleware`and then we have: 
+
+`app.use(cache('5 minutes'))`
+
+to apply the caching to the whole app. We cache the results for five minutes, for example. We can adjust this for our needs. 
+
+If you are using caching, you should also include [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)information in your headers. This will help users effectively use your caching system. 
+
+We should have different versions of API if we're making any changes to them that may break clients. The versioning can be done according to semantic version (for example, 2.0.6 to indicate major version 2 and the sixth patch) like most apps do nowadays. 
+
+This way, we can gradually phase out old endpoints instead of forcing everyone to move to the new API at the same time. The v1 endpoint can stay active for people who don’t want to change, while the v2, with its shiny new features, can serve those who are ready to upgrade. This is especially important if our API is public. We should version them so that we won't break third party apps that use our APIs. 
+
+Versioning is usually done with `/v1/`, `/v2/`, etc. added at the start of the API path. 
+
+For example, we can do that with Express as follows: 
+
+```
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+app.use(bodyParser.json());
+
+app.get('/v1/employees', (req, res) => {
+  const employees = [];
+  // code to get employees
+  res.json(employees);
+});
+
+app.get('/v2/employees', (req, res) => {
+  const employees = [];
+  // different code to get employees
+  res.json(employees);
+});
+
+app.listen(3000, () => console.log('server started'));
+```
+
+We just add the version number to the start of the endpoint URL path to version them. 
+
+The most important takeaways for designing high-quality REST APIs is to have consistency by following web standards and conventions. JSON, SSL/TLS, and HTTP status codes are all standard building blocks of the modern web. 
+
+Performance is also an important consideration. We can increase it by not returning too much data at once. Also, we can use caching so that we don't have to query for data all the time. 
+
+Paths of endpoints should be consistent, we use nouns only since the HTTP methods indicate the action we want to take. Paths of nested resources should come after the path of the parent resource. They should tell us what we’re getting or manipulating without the need to read extra documentation to understand what it’s doing. 
+
+## Add to the discussion
+
+Login with your **stackoverflow.com **account to take part in the discussion.
+
+---
+
+Title: Best Practices in API Design - Swagger
+ 
+ 
+ 
+ 
+ Good API design is a topic that comes up a lot for teams that are trying to perfect their API strategy. In a previous blog post, I briefly discussed the importance of API design. The benefits of a well-designed API include: improved developer experience, faster documentation, and higher adoption for your API . But what exactly goes into good API design? In this blog post, I will detail a few best practices for designing RESTful APIs.  
+
+Characteristics of a well-designed API
+
+In general, an effective API design will have the following characteristics:
+
+ Easy to read and work with: A well designed API will be easy to work with, and its resources and associated operations can quickly be memorized by developers who work with it constantly.
+ Hard to misuse: Implementing and integrating with an API with good design will be a straightforward process, and writing incorrect code will be a less likely outcome. It has informative feedback, and doesn’t enforce strict guidelines on the API’s end consumer. 
+ Complete and concise: Finally, a complete API will make it possible for developers to make full- fledged applications against the data you expose. Completeness happens over time usually, and most API designers and developers incrementally build on top of existing APIs. It is an ideal which every engineer or company with an API must strive towards.
+
+For the purpose of illustrating the concepts listed below, I’ll be taking the example of a photosharing app. The app allows users to upload photos, characterizing them with the location where these photos were taken and hashtags that describe the emotions associated with them. 
+
+Collections, Resources, and their URLs
+
+Understanding resources and collections
+
+Resources are fundamental to the concept of REST. A resource is an object that’s important enough to be referenced in itself. A resource has data, relationships to other resources, and methods that operate against it to allow for accessing and manipulating the associated information. A group of resources is called a collection. The contents of collections and resources depend on your organizational and consumer requirements. If, for example, you believe the market will benefit from obtaining basic information about your product’s user base, then you could expose this as a collection or resource. A Uniform Resource Locator (URL) identifies the online location of a resource. This URL points to the location where your API’s resources exist. The base URL is the consistent part of this location. In the case of the photosharing app, we could expose data about the users who use the app through collections and resources, accessed by the appropriate URL. 
+
+ /users: a collection of users 
+ /users/username1: a resource with information about a specific user   
+
+Nouns describe URLs better
+
+The base URL should be neat, elegant, and simple so that developers using your product can easily use them in their web applications. A long and difficult-to-read base URL is not just bad to look at, but can also be prone to mistakes when trying to recode it. Nouns should always be trusted. There’s no rule on keeping the resource nouns singular or plural, though it is advisable to keep collections plural. Having the same plurality across all resources and collections respectively for consistency is good practice. Keeping these nouns self explanatory helps developers understand the kind of resource described from the URL, which can eventually enable them to become self sufficient while working with your API .   Coming back to the photosharing app, say it has a public API with /users and  /photos as collections. Notice how they’re all plural nouns?They’re also self explanatory and we can infer that /users and /photos gives information about the product’s registered userbase, and shared photos respectively. 
+
+Describe resource functionality with HTTP methods
+
+All resources have a set of methods that can be operated against them to work with the data being exposed by the API. REStful APIs comprise majorly of HTTP methods which have well defined and unique actions against any resource. Here’s a list of commonly used HTTP methods that define the CRUD operations for any resource or collection in a  RESTful API.
+
+ 
+ 
+ Method
+ Description
+ 
+ 
+ GET
+ Used to retrieve a representation of a resource. 
+ 
+ 
+ POST
+ Used to create new new resources and sub-resources
+ 
+ 
+ PUT
+ Used to update existing resources 
+ 
+ 
+ PATCH
+ Used to update existing resources 
+ 
+ 
+ DELETE
+ Used to delete existing resources
+ 
+ 
+
+(If you want to know the difference between PUT and PATCH, check out this feed on StackOverflow.)   Keeping verbs out of your URLs is also a good idea. The operations GET, PUT, POST and DELETE  are already used to operate on your resource described by the URL, so having verbs instead of nouns in the URL can make working with your resources confusing. In the photosharing app, with /users and /photos as end points, an end consumer of your API can easily work with them intuitively using the RESTful CRUD operations described above. 
+
+Responses
+
+Give feedback to help developers succeed
+
+Providing good feedback to developers on how well they are using your product goes a long way in improving adoption and retention.   Every client request and server side response is a message and, in an ideal RESTful ecosystem, these messages must be self descriptive. Good feedback involves positive validation on correct implementation, and an informative error on incorrect implementation that can help users debug and correct the way they use the product. For an API, errors are a great way to provide context to using an API. Align your errors around the standard HTTP codes. Incorrect, client side calls should have 400-type errors associated with them. If there are any server side errors, then a suitable 500 response must be associated with them. A successful method used against your resource should return a 200-type response. There are a lot of response codes. For additional information, check out this REST API tutorial. In general, there are three possible outcomes when using your API: - 
+
+ The client application behaved erroneously (client error - 4xx response code)
+ The API behaved erroneously (server error - 5xx response code)
+ The client and API worked (success - 2xx response code)     
+
+Hand holding your end consumer to success whenever they hit a road block working with your API will go a long way in improving developer experience and preventing API misuse. Describe these error responses well, but keep them concise and neat. Provide enough information in the error codes for an end user to start work on fixing the cause, and, if you feel there’s more information needed, provide links to additional documentation.   
+
+Give examples for all your GET responses
+
+A well- designed API also has an example of the kind of response one can expect on successful call against a URL. This example response should be simple, plain, and quick to comprehend. A good rule of thumb is to help developers understand exactly what a successful response would give them in under five seconds. Coming back to our photosharing app, we’ve defined a /users and a /photos URL. The /users collection would give the username and date of joining of all the users who have registered with the app in an array. You can use an API design tool to define your API in the Swagger (OpenAPI) specification as follows:
+
+ responses:
+ 200:
+ description: Successfully returned information about users 
+ schema:
+ type: array
+ items:
+ type: object
+ properties:
+ username:
+ type: "string"
+ example: "kesh92"
+ created_time:
+ type: "dateTime"
+ example: "2010-01-12T05:23:19+0000"
+
+Notice the data types and an example described in each response item an end user can expect from a successful GET call. The successful response an end user would receive in JSON would look as follows.   
+
+ {
+ “data”:[
+ {
+ “Username”:“example_user1”,
+ “created_time":“2013-12-23T05:51:14+0000 ”
+ },
+ {
+ “username”:“example_user2”,
+ “created_time":“2015-3-19T17:51:15+0000 ”
+ }
+ ….
+ ]
+ }
+
+If the end user successfully calls the end point with a GET method, the user should obtain the above data along with a 200 response code to validate the correct usage. Likewise, an incorrect call should produce an appropriate 400 or 500 response code with relevant information to help user better operate against the collection. 
+
+Requests
+
+Handle complexity elegantly 
+
+The data you’re trying to expose can be characterized by a lot of properties which could be beneficial for the end consumer working with your API. These properties describe the base resource and isolate specific assets of information that can be manipulated with the appropriate method. An API should strive towards completion, and provide all the required information, data and resources to help developers integrate with them in a seamless manner. But completion means taking into account common use cases for your API. There could be numerous such relationships and properties, and it’s not good practice to define resources for each of them. The amount of data the resource exposes should also be taken into account. If you’re trying to expose a lot, there can be negative implications on the server, especially with regards to load and performance. The above cases and relationships are important considerations in the design of the API, and can be handled using the appropriate parameters. You can sweep properties and  limit responses behind the ‘?’ in a query parameter, or isolate specific component of the data the client is working with using a path parameter. Let's take the example of our photosharing app. It could be of use to developers to get information on all the photos shared in a particular location and a specific hashtag. You also want to limit the number of results to 10 per API call to prevent server load. If the end user wants to find all photos in Boston with a hashtag #winter, the call would be:  
+
+ GET /photos?location=boston&hashtag=winter&limit=10
+
+Notice how the complexities have now been reduced to a simple association with a query parameter. If you want to provide information about a specific user depending on the client’s request, the call would be:  
+
+ GET /users/kesh92
+
+Where kesh92 is the username of a specific user in the users collection, and will return the location and date of joining for kesh92. These are just some of the ways you could design parameters that strive towards API completion and help your end developers use your API intuitively.      Finally, when in doubt, leave it out. If you’re having second thoughts about a specific resource or collection’s functionality, then leave it for the next iteration. Developing and maintaining APIs is a continuous process, and waiting for the feedback from the right users can go a long way in building a robust API that enables users to integrate and develop applications in creative ways. 
+
+Get started with API design
+
+There isn’t a single approach to API design that will work for every organization. The above suggestions are just that — advice and recommendations which can be used or discarded depending on your user case and requirement. One of the main reasons why API design is crucial is to help the end consumer use your API. Their needs should be the guiding light towards designing and building a great API.
+
+Interested in getting started with API design for REST APIs? Find out how Swagger API design tools can help. 
+
+ 
+ 
+ 
+ 
+ 
+ Table of Contents
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ Related Resources
+ 
+ 
+ 
+ 
+
+ 
+ Swagger Resource
+ 
+ 
+ 
+ API Developer Experience: Why it Matters, and How Documenting Your APIs with Swagger...
+ 
+ 
+ 
+ Developer experience is an extension of general User Experience, which emphasizes the...
+ 
+ 
+ 
+ 
+ 
+ 1 hour
+ 
+ 
+ 
+
+ 
+ Swagger Resource
+ 
+ 
+ 
+ How to Build an API From The Ground Up
+ 
+ 
+ 
+ When you ask a contractor to build a house from the ground up, you expected them to...
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ Swagger Resource
+ 
+ 
+ 
+ Definition Driven API Development: How OAS & Swagger Help Teams Streamline Their API...
+ 
+ 
+ 
+ We cover trends in the API landscape that have led to the adoption of API definitions...
+ 
+ 
+ 
+ 
+ 
+
+---
+
+Title: Best practices for RESTful web API design - Azure
+Read in English[Edit](https://github.com/microsoftdocs/architecture-center/blob/main/docs/best-practices/api-design.md)
+
+Note 
+
+Access to this page requires authorization. You can try signing inor changing directories. 
+
+Access to this page requires authorization. You can try changing directories. 
+
+# Best practices for RESTful web API design
+
+A RESTful web API implementation is a web API that employs Representational State Transfer (REST) architectural principles to achieve a stateless, loosely coupled interface between a client and service. A web API that is RESTful supports the standard HTTP protocol to perform operations on resources and return representations of resources that contain hypermedia links and HTTP operation status codes. 
+
+A RESTful web API should align with the following principles: 
+
+This article describes best practices for designing RESTful web APIs. It also covers common design patterns and considerations for building web APIs that are easy to understand, flexible, and maintainable. 
+
+## RESTful web API design concepts
+
+To implement a RESTful web API, you need to understand the following concepts. 
+
+## Define RESTful web API resource URIs
+
+A RESTful web API is organized around resources. To organize your API design around resources, define resource URIs that map to the business entities. When possible, base resource URIs on nouns (the resource) and not verbs (the operations on the resource). 
+
+For example, in an e-commerce system, the primary business entities might be customers and orders. To create an order, a client sends the order information in an HTTP POST request to the resource URI. The HTTP response to the request indicates whether the order creation is successful. 
+
+The URI for creating the order resource might be something like: 
+
+```lang-http
+https://api.contoso.com/orders // Good
+```
+
+Avoid using verbs in URIs to represent operations. For example, the following URI isn't recommended: 
+
+```lang-http
+https://api.contoso.com/create-order // Avoid
+```
+
+Entities are often grouped together into collections like customers or orders. A collection is a separate resource from the items inside the collection, so it should have its own URI. For example, the following URI might represent the collection of orders: 
+
+```
+https://api.contoso.com/orders
+```
+
+After the client retrieves the collection, it can make a GET request to the URI of each item. For example, to receive information on a specific order, the client performs an HTTP GET request on the URI `https://api.contoso.com/orders/1`to receive the following JSON body as a resource representation of the internal order data: 
+
+```lang-json
+{"orderId":1,"orderValue":99.9,"productId":1,"quantity":1}
+```
+
+### Resource URI naming conventions
+
+When you design a RESTful web API, it's important that you use the correct naming and relationship conventions for resources: 
+
+Tip 
+
+It might not be possible to map every operation implemented by a web API to a specific resource. You can handle these *nonresource *scenarios through HTTP requests that invoke a function and return the results as an HTTP response message. 
+
+For example, a web API that implements simple calculator operations such as add and subtract can provide URIs that expose these operations as pseudo resources and use the query string to specify the required parameters. A GET request to the URI */add?operand1=99&operand2=1 *returns a response message with the body containing the value 100. 
+
+However, you should use these forms of URIs sparingly. 
+
+## Define RESTful web API methods
+
+RESTful web API methods align with the request methods and media types defined by the HTTP protocol. This section describes the most common request methods and the media types used in RESTful web APIs. 
+
+### HTTP request methods
+
+The HTTP protocol defines many request methods that indicate the action that you want to perform on a resource. The most common methods used in RESTful web APIs are GET, POST, PUT, PATCH, and DELETE. Each method corresponds to a specific operation. When you design a RESTful web API, use these methods in a way that is consistent with the protocol definition, the resource that's being accessed, and the action that's being performed. 
+
+It's important to remember that the effect of a specific request method should depend on whether the resource is a collection or an individual item. The following table includes some conventions that most RESTful implementations use. 
+
+Important 
+
+The following table uses an example e-commerce `customer`entity. A web API doesn't need to implement all of the request methods. The methods that it implements depend on the specific scenario. 
+
+| Resource | POST | GET | PUT | DELETE | 
+|---|---|---|---|---|---|---|---|---|---|
+| /customers | Create a new customer | Retrieve all customers | Bulk update of customers | Remove all customers | 
+| /customers/1 | Error | Retrieve the details for customer 1 | Update the details of customer 1 if it exists | Remove customer 1 | 
+| /customers/1/orders | Create a new order for customer 1 | Retrieve all orders for customer 1 | Bulk update of orders for customer 1 | Remove all orders for customer 1 | 
+
+#### GET requests
+
+A GET request retrieves a representation of the resource at the specified URI. The body of the response message contains the details of the requested resource. 
+
+A GET request should return one of the following HTTP status codes: 
+
+| HTTP status code | Reason | 
+|---|---|---|---|
+| 200 (OK) | The method has successfully returned the resource. | 
+| 204 (No Content) | The response body doesn't contain any content, suc | 
+| 404 (Not Found) | The requested resource can't be found. | 
+
+#### POST requests
+
+A POST request should create a resource. The server assigns a URI for the new resource and returns that URI to the client. 
+
+Important 
+
+For POST requests, a client shouldn't attempt to create its own URI. The client should submit the request to the URI of the collection, and the server should assign a URI to the new resource. If a client attempts to create its own URI and issues a POST request to a specific URI, the server returns HTTP status code 400 (BAD REQUEST) to indicate that the method isn't supported. 
+
+In a RESTful model, POST requests are used to add a new resource to the collection that the URI identifies. However, a POST request can also be used to submit data for processing to an existing resource, without the creation of any new resource. 
+
+A POST request should return one of the following HTTP status codes: 
+
+| HTTP status code | Reason | 
+|---|---|---|---|
+| 200 (OK) | The method has done some processing but doesn't cr | 
+| 201 (Created) | The resource was created successfully. The URI of | 
+| 204 (No Content) | The response body contains no content. | 
+| 400 (Bad Request) | The client has placed invalid data in the request. | 
+| 405 (Method Not Allowed) | The client has attempted to make a POST request to | 
+
+#### PUT request
+
+A PUT request should update an existing resource if it exists or, in some cases, create a new resource if it doesn't exist. To make a PUT request: 
+
+PUT methods are applied to resources that are individual items, such as a specific customer, instead of collections. A server might support updates but not creation via PUT. Whether to support creation via PUT depends on whether the client can meaningfully and reliably assign a URI to a resource before it exists. If it can't, then use POST to create resources and have the server assign the URI. Then use PUT or PATCH to update the URI. 
+
+Important 
+
+PUT requests must be *idempotent *, which means that submitting the same request multiple times always results in the same resource being modified with the same values. If a client resends a PUT request, the results should remain unchanged. In contrast, POST and PATCH requests aren't guaranteed to be idempotent. 
+
+A PUT request should return one of the following HTTP status codes: 
+
+| HTTP status code | Reason | 
+|---|---|---|---|
+| 200 (OK) | The resource was updated successfully. | 
+| 201 (Created) | The resource was created successfully. The respons | 
+| 204 (No Content) | The resource was updated successfully, but the res | 
+| 409 (Conflict) | The request couldn't be completed because of a con | 
+
+Tip 
+
+Consider implementing bulk HTTP PUT operations that can batch updates to multiple resources in a collection. The PUT request should specify the URI of the collection. The request body should specify the details of the resources to be modified. This approach can help reduce chattiness and improve performance. 
+
+#### PATCH requests
+
+A PATCH request performs a partial update to an existing resource. The client specifies the URI for the resource. The request body specifies a set of changes to apply to the resource. This method can be more efficient than using PUT requests because the client only sends the changes and not the entire representation of the resource. PATCH can also create a new resource by specifying a set of updates to an empty or *null *resource if the server supports this action. 
+
+With a PATCH request, the client sends a set of updates to an existing resource in the form of a patch document. The server processes the patch document to perform the update. The patch document specifies only a set of changes to apply instead of describing the entire resource. The specification for the PATCH method, [RFC 5789](https://tools.ietf.org/html/rfc5789), doesn't define a specific format for patch documents. The format must be inferred from the media type in the request. 
+
+JSON is one of the most common data formats for web APIs. The two main JSON-based patch formats are JSON patch and JSON merge patch. 
+
+JSON merge patch is simpler than JSON patch. The patch document has the same structure as the original JSON resource, but it only includes the subset of fields that should be changed or added. In addition, a field can be deleted by specifying `null`for the field value in the patch document. This specification means that merge patch isn't suitable if the original resource can have explicit null values. 
+
+For example, suppose the original resource has the following JSON representation: 
+
+```lang-json
+{
+ "name":"gizmo",
+ "category":"widgets",
+ "color":"blue",
+ "price":10
+}
+```
+
+Here's a possible JSON merge patch for this resource: 
+
+```lang-json
+{
+ "price":12,
+ "color":null,
+ "size":"small"
+}
+```
+
+This merge patch tells the server to update `price`, delete `color`, and add `size`. The values for `name`and `category`aren't modified. For more information about JSON merge patch, see [RFC 7396](https://tools.ietf.org/html/rfc7396). The media type for JSON merge patch is `application/merge-patch+json`. 
+
+Merge patch isn't suitable if the original resource can contain explicit null values because of the special meaning of `null`in the patch document. The patch document also doesn't specify the order that the server should apply the updates. Whether this order matters depends on the data and the domain. JSON patch, defined in [RFC 6902](https://tools.ietf.org/html/rfc6902), is more flexible because it specifies the changes as a sequence of operations to apply, including add, remove, replace, copy, and test to validate values. The media type for JSON patch is `application/json-patch+json`. 
+
+A PATCH request should return one of the following HTTP status codes: 
+
+| HTTP status code | Reason | 
+|---|---|---|---|
+| 200 (OK) | The resource was updated successfully. | 
+| 400 (Bad Request) | Malformed patch document. | 
+| 409 (Conflict) | The patch document is valid, but the changes can't | 
+| 415 (Unsupported Media Type) | The patch document format isn't supported. | 
+
+#### DELETE requests
+
+A DELETE request removes the resource at the specified URI. A DELETE request should return one of the following HTTP status codes: 
+
+| HTTP status code | Reason | 
+|---|---|---|---|
+| 204 (NO CONTENT) | The resource was deleted successfully. The process | 
+| 404 (NOT FOUND) | The resource doesn't exist. | 
+
+### Resource MIME types
+
+Resource representation is how a resource that's identified by URI is encoded and transported over the HTTP protocol in a specific format, such as XML or JSON. Clients that want to retrieve a specific resource must use the URI in the request to the API. The API responds by returning a resource representation of the data indicated by the URI. 
+
+In the HTTP protocol, resource representation formats are specified by using media types, also called MIME types. For nonbinary data, most web APIs support JSON (media type = `application/json`) and possibly XML (media type = `application/xml`). 
+
+The Content-Type header in a request or response specifies the resource representation format. The following example demonstrates a POST request that includes JSON data: 
+
+```lang-http
+POST https://api.contoso.com/orders
+Content-Type: application/json; charset=utf-8
+Content-Length: 57
+
+{"Id":1,"Name":"Gizmo","Category":"Widgets","Price":1.99}
+```
+
+If the server doesn't support the media type, it should return HTTP status code 415 (Unsupported Media Type). 
+
+A client request can include an Accept header that contains a list of media types that the client accepts from the server in the response message. For example: 
+
+```lang-http
+GET https://api.contoso.com/orders/2
+Accept: application/json, application/xml
+```
+
+If the server can't match any of the listed media types, it should return HTTP status code 406 (Not Acceptable). 
+
+## Implement asynchronous methods
+
+Sometimes a POST, PUT, PATCH, or DELETE method might require processing that takes time to complete. If you wait for completion before you send a response to the client, it might cause unacceptable latency. In this scenario, consider making the method asynchronous. An asynchronous method should return HTTP status code 202 (Accepted) to indicate that the request was accepted for processing but is incomplete. 
+
+Expose an endpoint that returns the status of an asynchronous request so that the client can monitor the status by polling the status endpoint. Include the URI of the status endpoint in the Location header of the 202 response. For example: 
+
+```lang-http
+HTTP/1.1 202 Accepted
+Location: /api/status/12345
+```
+
+If the client sends a GET request to this endpoint, the response should contain the current status of the request. Optionally, it can include an estimated time to completion or a link to cancel the operation. 
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+ "status":"In progress",
+ "link": { "rel":"cancel", "method":"delete", "href":"/api/status/12345" }
+}
+```
+
+If the asynchronous operation creates a new resource, the status endpoint should return status code 303 (See Other) after the operation completes. In the 303 response, include a Location header that gives the URI of the new resource: 
+
+```lang-http
+HTTP/1.1 303 See Other
+Location: /api/orders/12345
+```
+
+For more information, see [Provide asynchronous support for long-running requests](/en-us/azure/architecture/best-practices/api-implementation#provide-asynchronous-support-for-long-running-requests)and [Asynchronous Request-Reply pattern](../patterns/asynchronous-request-reply). 
+
+## Implement data pagination and filtering
+
+To optimize data retrieval and reduce payload size, implement data pagination and query-based filtering in your API design. These techniques allow clients to request only the subset of data that they need, which can improve performance and reduce bandwidth usage. 
+
+Consider the following best practices: 
+
+Your API must validate the requested fields to ensure that the client is allowed to access them and won't expose fields that aren't normally available through the API. 
+
+## Support partial responses
+
+Some resources contain large binary fields, such as files or images. To overcome problems caused by unreliable and intermittent connections and to improve response times, consider supporting the partial retrieval of large binary resources. 
+
+To support partial responses, the web API should support the Accept-Ranges header for GET requests for large resources. This header indicates that the GET operation supports partial requests. The client application can submit GET requests that return a subset of a resource, specified as a range of bytes. 
+
+Also, consider implementing HTTP HEAD requests for these resources. A HEAD request is similar to a GET request, except that it only returns the HTTP headers that describe the resource, with an empty message body. A client application can issue a HEAD request to determine whether to fetch a resource by using partial GET requests. For example: 
+
+```lang-http
+HEAD https://api.contoso.com/products/10?fields=productImage
+```
+
+Here's an example response message: 
+
+```lang-http
+HTTP/1.1 200 OK
+
+Accept-Ranges: bytes
+Content-Type: image/jpeg
+Content-Length: 4580
+```
+
+The Content-Length header gives the total size of the resource, and the Accept-Ranges header indicates that the corresponding GET operation supports partial results. The client application can use this information to retrieve the image in smaller chunks. The first request fetches the first 2,500 bytes by using the Range header: 
+
+```lang-http
+GET https://api.contoso.com/products/10?fields=productImage
+Range: bytes=0-2499
+```
+
+The response message indicates that this response is partial by returning HTTP status code 206. The Content-Length header specifies the actual number of bytes returned in the message body and not the size of the resource. The Content-Range header indicates which part of the resource is returned (bytes 0-2499 out of 4580): 
+
+```lang-http
+HTTP/1.1 206 Partial Content
+
+Accept-Ranges: bytes
+Content-Type: image/jpeg
+Content-Length: 2500
+Content-Range: bytes 0-2499/4580
+
+[...]
+```
+
+A subsequent request from the client application can retrieve the remainder of the resource. 
+
+## Implement HATEOAS
+
+One of the primary reasons to use REST is the ability to navigate the entire set of resources without prior knowledge of the URI schema. Each HTTP GET request should return the information necessary to find the resources related directly to the requested object through hyperlinks included in the response. The request should also be given information that describes the operations available on each of these resources. This principle is known as HATEOAS, or Hypertext as the Engine of Application State. The system is effectively a finite state machine, and the response to each request contains the information necessary to move from one state to another. No other information should be necessary. 
+
+Note 
+
+There are no general-purpose standards that define how to model the HATEOAS principle. The examples in this section illustrate one possible, proprietary solution. 
+
+For example, to handle the relationship between an order and a customer, the representation of an order might include links that identify the available operations for the customer of the order. The following code block is a possible representation: 
+
+```lang-json
+{
+ "orderID":3,
+ "productID":2,
+ "quantity":4,
+ "orderValue":16.60,
+ "links":[
+ {
+ "rel":"customer",
+ "href":"https://api.contoso.com/customers/3",
+ "action":"GET",
+ "types":["text/xml","application/json"]
+ },
+ {
+ "rel":"customer",
+ "href":"https://api.contoso.com/customers/3",
+ "action":"PUT",
+ "types":["application/x-www-form-urlencoded"]
+ },
+ {
+ "rel":"customer",
+ "href":"https://api.contoso.com/customers/3",
+ "action":"DELETE",
+ "types":[]
+ },
+ {
+ "rel":"self",
+ "href":"https://api.contoso.com/orders/3",
+ "action":"GET",
+ "types":["text/xml","application/json"]
+ },
+ {
+ "rel":"self",
+ "href":"https://api.contoso.com/orders/3",
+ "action":"PUT",
+ "types":["application/x-www-form-urlencoded"]
+ },
+ {
+ "rel":"self",
+ "href":"https://api.contoso.com/orders/3",
+ "action":"DELETE",
+ "types":[]
+ }]
+}
+```
+
+In this example, the `links`array has a set of links. Each link represents an operation on a related entity. The data for each link includes the relationship ("customer"), the URI ( `https://api.contoso.com/customers/3`), the HTTP method, and the supported MIME types. The client application needs this information to invoke the operation. 
+
+The `links`array also includes self-referencing information about the retrieved resource. These links have the relationship *self *. 
+
+The set of links that are returned can change depending on the state of the resource. The idea that hypertext is the *engine of application state *describes this scenario. 
+
+## Implement versioning
+
+A web API doesn't remain static. As business requirements change, new collections of resources are added. As new resources are added, the relationships between resources might change, and the structure of the data in resources might be amended. Updating a web API to handle new or different requirements is a straightforward process, but you must consider the effects that such changes have on client applications that consume the web API. The developer who designs and implements a web API has full control over that API, but they don't have the same degree of control over client applications built by partner organizations. It's important to continue to support existing client applications while allowing new client applications to use new features and resources. 
+
+A web API that implements versioning can indicate the features and resources that it exposes, and a client application can submit requests that are directed to a specific version of a feature or resource. The following sections describe several different approaches, each of which has its own benefits and trade-offs. 
+
+### No versioning
+
+This approach is the simplest and can work for some internal APIs. Significant changes can be represented as new resources or new links. Adding content to existing resources might not present a breaking change because client applications that aren't expecting to see this content ignore it. 
+
+For example, a request to the URI `https://api.contoso.com/customers/3`should return the details of a single customer that contains the `id`, `name`, and `address`fields that the client application expects: 
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":3,"name":"Fabrikam, Inc.","address":"1 Microsoft Way Redmond WA 98053"}
+```
+
+Note 
+
+For simplicity, the example responses shown in this section don't include HATEOAS links. 
+
+If the `DateCreated`field is added to the schema of the customer resource, then the response looks like: 
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":3,"name":"Fabrikam, Inc.","dateCreated":"2025-03-22T12:11:38.0376089Z","address":"1 Microsoft Way Redmond WA 98053"}
+```
+
+Existing client applications might continue to function correctly if they can ignore unrecognized fields. Meanwhile, new client applications can be designed to handle this new field. However, more drastic modifications to the schema of resources, including field removals or renaming, could occur. Or the relationships between resources might change. These updates can constitute breaking changes that prevent existing client applications from functioning correctly. In these scenarios, consider one of the following approaches: 
+
+### URI versioning
+
+Each time you modify the web API or change the schema of resources, you add a version number to the URI for each resource. The previously existing URIs should continue to operate normally by returning resources that conform to their original schema. 
+
+For example, the `address`field in the previous example is restructured into subfields that contain each constituent part of the address, such as `streetAddress`, `city`, `state`, and `zipCode`. This version of the resource can be exposed through a URI that contains a version number, such as `https://api.contoso.com/v2/customers/3`: 
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":3,"name":"Fabrikam, Inc.","dateCreated":"2025-03-22T12:11:38.0376089Z","address":{"streetAddress":"1 Microsoft Way","city":"Redmond","state":"WA","zipCode":98053}}
+```
+
+This versioning mechanism is simple but depends on the server to route the request to the appropriate endpoint. However, it can become unwieldy as the web API matures through several iterations and the server has to support many different versions. From a purist's point of view, in all cases, the client applications fetch the same data (customer 3), so the URI shouldn't differ according to the version. This schema also complicates the implementation of HATEOAS because all links need to include the version number in their URIs. 
+
+### Query string versioning
+
+Instead of providing multiple URIs, you can specify the version of the resource by using a parameter within the query string appended to the HTTP request, such as `https://api.contoso.com/customers/3?version=2`. The version parameter should default to a meaningful value, like 1, if older client applications omit it. 
+
+This approach has the semantic advantage that the same resource is always retrieved from the same URI. However, this method depends on the code that handles the request to parse the query string and send back the appropriate HTTP response. This approach also complicates the implementation of HATEOAS in the same way as the URI versioning mechanism. 
+
+Note 
+
+Some older web browsers and web proxies don't cache responses for requests that include a query string in the URI. Uncached responses can degrade performance for web applications that use a web API and run from within an older web browser. 
+
+### Header versioning
+
+Instead of appending the version number as a query string parameter, you can implement a custom header that indicates the version of the resource. This approach requires that the client application adds the appropriate header to any requests. However, the code that handles the client request can use a default value, like version 1, if the version header is omitted. 
+
+The following examples use a custom header named *Custom-Header *. The value of this header indicates the version of web API. 
+
+Version 1: 
+
+```lang-http
+GET https://api.contoso.com/customers/3
+Custom-Header: api-version=1
+```
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":3,"name":"Fabrikam, Inc.","address":"1 Microsoft Way Redmond WA 98053"}
+```
+
+Version 2: 
+
+```lang-http
+GET https://api.contoso.com/customers/3
+Custom-Header: api-version=2
+```
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":3,"name":"Fabrikam, Inc.","dateCreated":"2025-03-22T12:11:38.0376089Z","address":{"streetAddress":"1 Microsoft Way","city":"Redmond","state":"WA","zipCode":98053}}
+```
+
+Similar to URI versioningand query string versioning, you must include the appropriate custom header in any links to implement HATEOAS. 
+
+### Media type versioning
+
+When a client application sends an HTTP GET request to a web server, it should use an Accept header to specify the format of the content that it can handle. Usually, the purpose of the Accept header is to allow the client application to specify whether the body of the response should be XML, JSON, or some other common format that the client can parse. However, it's possible to define custom media types that include information that lets the client application indicate which version of a resource it expects. 
+
+The following example shows a request that specifies an Accept header with the value `application/vnd.contoso.v1+json`. The `vnd.contoso.v1`element indicates to the web server that it should return version 1 of the resource. The `json`element specifies that the format of the response body should be JSON: 
+
+```lang-http
+GET https://api.contoso.com/customers/3
+Accept: application/vnd.contoso.v1+json
+```
+
+The code that handles the request is responsible for processing the Accept header and honoring it as much as possible. The client application can specify multiple formats in the Accept header, which allows the web server to choose the most appropriate format for the response body. The web server confirms the format of the data in the response body by using the Content-Type header: 
+
+```lang-http
+HTTP/1.1 200 OK
+Content-Type: application/vnd.contoso.v1+json; charset=utf-8
+
+{"id":3,"name":"Fabrikam, Inc.","address":"1 Microsoft Way Redmond WA 98053"}
+```
+
+If the Accept header doesn't specify any known media types, the web server can generate an HTTP 406 (Not Acceptable) response message or return a message with a default media type. 
+
+This versioning mechanism is straightforward and well-suited for HATEOAS, which can include the MIME type of related data in resource links. 
+
+Note 
+
+When you select a versioning strategy, implications, especially in relation to web server caching. The URI versioning and query string versioning schemas are cache-friendly because the same URI or query string combination refers to the same data each time. 
+
+The header versioning and media type versioning mechanisms typically require more logic to examine the values in the custom header or the Accept header. In a large-scale environment, many clients using different versions of a web API can result in a significant amount of duplicated data in a server-side cache. This problem can become acute if a client application communicates with a web server through a proxy that implements caching and only forwards a request to the web server if it doesn't currently contain a copy of the requested data in its cache. 
+
+## Multitenant web APIs
+
+A *multitenant *web API solution is shared by multiple tenants, such as distinct organizations that have their own groups of users. 
+
+Multitenancy significantly affects web API design because it dictates how resources are accessed and discovered across multiple tenants within a single web API. Design an API with multitenancy in mind to help avoid the need for future refactoring to implement isolation, scalability, or tenant-specific customizations. 
+
+A well-architected API should clearly define how tenants are identified in requests, whether through subdomains, paths, headers, or tokens. This structure ensures a consistent yet flexible experience for all users within the system. For more information, see [Map requests to tenants in a multitenant solution](/en-us/azure/architecture/guide/multitenant/considerations/map-requests). 
+
+Multitenancy affects endpoint structure, request handling, authentication, and authorization. This approach also influences how API gateways, load balancers, and back-end services route and process requests. The following strategies are common ways to achieve multitenancy in a web API. 
+
+### Use subdomain or domain-based isolation (DNS-level tenancy)
+
+This approach routes requests by using [tenant-specific domains](/en-us/azure/architecture/guide/multitenant/considerations/domain-names). Wildcard domains use subdomains for flexibility and simplicity. Custom domains, which allow tenants to use their own domains, provide greater control and can be tailored to meet specific needs. Both methods rely on proper DNS configuration, including `A`and `CNAME`records, to direct traffic to the appropriate infrastructure. Wildcard domains simplify configuration, but custom domains provide a more branded experience. 
+
+[Preserve the hostname](/en-us/azure/architecture/best-practices/host-name-preservation)between the reverse proxy and back-end services to help avoid problems like URL redirection and prevent exposing internal URLs. This method ensures correct routing of tenant-specific traffic and helps protect internal infrastructure. DNS resolution is crucial for achieving data residency and ensuring regulatory compliance. 
+
+```lang-http
+GET https://adventureworks.api.contoso.com/orders/3
+```
+
+### Pass tenant-specific HTTP headers
+
+Tenant information can be passed through custom HTTP headers like `X-Tenant-ID`or `X-Organization-ID`or through host-based headers like `Host`or `X-Forwarded-Host`, or it can be extracted from JSON Web Token (JWT) claims. The choice depends on the routing capabilities of your API gateway or reverse proxy, with header-based solutions requiring a Layer 7 (L7) gateway to inspect each request. This requirement adds processing overhead, which increases compute costs when traffic scales. However, header-based isolation provides key benefits. It enables centralized authentication, which simplifies security management across multitenant APIs. By using SDKs or API clients, tenant context is dynamically managed at runtime, which reduces client-side configuration complexity. Also, keeping tenant context in headers results in a cleaner, more RESTful API design by avoiding tenant-specific data in the URI. 
+
+An important consideration for header-based routing is that it complicates caching, particularly when cache layers rely solely on URI-based keys and don't account for headers. Because most caching mechanisms optimize for URI lookups, relying on headers can lead to fragmented cache entries. Fragmented entries reduce cache hits and increase back-end load. More critically, if a caching layer doesn't differentiate responses by headers, it can serve cached data that's intended for one tenant to another and create a risk of data leakage. 
+
+```lang-http
+GET https://api.contoso.com/orders/3
+X-Tenant-ID: adventureworks
+```
+
+or 
+
+```lang-http
+GET https://api.contoso.com/orders/3
+Host: adventureworks
+```
+
+or 
+
+```lang-http
+GET https://api.contoso.com/orders/3
+Authorization: Bearer <JWT-token including a tenant-id: adventureworks claim>
+```
+
+### Pass tenant-specific information through the URI path
+
+This approach appends tenant identifiers within the resource hierarchy and relies on the API gateway or reverse proxy to determine the appropriate tenant based on the path segment. Path-based isolation is effective, but it compromises the web API's RESTful design and introduces more complex routing logic. It often requires pattern matching or regular expressions to parse and canonicalize the URI path. 
+
+In contrast, header-based isolation conveys tenant information through HTTP headers as key-value pairs. Both approaches enable efficient infrastructure sharing to lower operational costs and enhance performance in large-scale, multitenant web APIs. 
+
+```lang-http
+GET https://api.contoso.com/tenants/adventureworks/orders/3
+```
+
+## Enable distributed tracing and trace context in APIs
+
+As distributed systems and microservice architectures become the standard, [the complexity of modern architectures increases](/en-us/azure/architecture/best-practices/monitoring). Using headers, such as `Correlation-ID`, `X-Request-ID`, or `X-Trace-ID`, to propagate trace context in API requests is a best practice to achieve end-to-end visibility. This approach enables tracking of requests as they flow from the client to back-end services. It facilitates rapid identification of failures, monitors latency, and maps API dependencies across services. 
+
+APIs that support the inclusion of trace and context information enhance their observability level and debugging capabilities. By enabling distributed tracing, these APIs allow for a more granular understanding of system behavior and make it easier to track, diagnose, and resolve problems across complex, multiple-service environments. 
+
+```lang-http
+GET https://api.contoso.com/orders/3
+Correlation-ID: aaaa0000-bb11-2222-33cc-444444dddddd
+```
+
+```lang-http
+HTTP/1.1 200 OK
+...
+Correlation-ID: aaaa0000-bb11-2222-33cc-444444dddddd
+
+{...}
+```
+
+## Web API maturity model
+
+In 2008, Leonard Richardson proposed what is now known as the Richardson Maturity Model (RMM) for web APIs. The RMM defines four levels of maturity for web APIs and is based on the principles of REST as an architectural approach to designing web services. In the RMM, as the level of maturity increases, the API becomes more RESTful and more closely follows the principles of REST. 
+
+The levels are: 
+
+## OpenAPI Initiative
+
+The [OpenAPI Initiative](https://www.openapis.org)was created by an industry consortium to standardize REST API descriptions across vendors. The standardizing specification was called Swagger before it was brought under the OpenAPI Initiative and renamed to the OpenAPI Specification (OAS). 
+
+You might want to adopt OpenAPI for your RESTful web APIs. Consider the following points: 
+
+## Next steps
+
+## Feedback
+
+Was this page helpful? 
+
+No 
+
+Need help with this topic? 
+
+Want to try using Ask Learn to clarify or guide you through this topic? 
+
+
+---
+
+Title: REST API Best Practices: A Developer's Guide to Building ...
+# REST API Best Practices: A Developer’s Guide to Building Reliable APIs
+
+![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-08.png)[The Postman Team](https://blog.postman.com/author/thepostmanteam/)December 22, 2025 
+
+### Quick reference
+
+[Try Postman today →](https://identity.getpostman.com/signup )
+
+A well-designed REST API is intuitive, secure, scalable, and easy to maintain. In production, reliability starts with consistency. Whether you’re designing your first REST API or refining an existing one, following proven best practices helps teams avoid breaking clients, reduce support overhead, and make APIs easier to adopt. 
+
+This guide covers essential REST API design principles, along with practical examples that you can apply immediately. 
+
+## Use consistent and meaningful resource naming
+
+Resource naming sets expectations for how your API behaves. Clear, consistent names make endpoints easier to understand and less likely to be misused. 
+
+### Use nouns, not verbs
+
+REST endpoints should represent resources (things) rather than actions. HTTP methods already describe the action, so your URLs should focus on what you’re working with. 
+
+**Good practice **
+
+```
+GET /users
+POST /orders
+DELETE /products/123
+```
+
+**Bad practice **
+
+```
+GET /getUsers
+POST /createOrder
+DELETE /deleteProduct/123
+```
+
+### Keep URLs predictable
+
+Use plural nouns for collections and follow consistent patterns throughout your API. Developers should be able to predict endpoint names based on patterns they’ve already seen. 
+
+```
+GET /users → List all users
+GET /users/123 → Get specific user
+POST /users → Create new user
+PUT /users/123 → Update user
+DELETE /users/123 → Delete user
+```
+
+For nested resources, reflect relationships in the URL structure, but avoid going too deep. 
+
+```
+GET /users/123/orders → Get orders for a specific user
+GET /orders/456/items → Get items in a specific order>/code>
+```
+
+**In production: **More than two levels of nesting often signals a resource modeling problem. Consider flattening or introducing a dedicated endpoint. 
+
+## Use proper HTTP methods
+
+HTTP methods define the action being performed. Using them correctly makes your API predictable and allows clients to understand what each request will do. 
+
+### GET retrieves data
+
+Use GET for read-only operations that don’t modify server state. GET requests should be safe to call repeatedly without side effects. 
+
+```
+GET /products?category=electronics&limit=20
+```
+
+GET requests are cacheable and can include query parameters for filtering, sorting, and pagination. Never use GET for operations that change data. 
+
+### POST creates new resources
+
+Use POST when creating new resources or triggering actions that change server state. The server typically assigns the new resource’s identifier. 
+
+```
+POST /users
+Content-Type: application/json
+{
+"name": "Phil Ostman",
+"email": "[email protected]"
+}
+```
+
+Return 201 Created and include a `Location`header pointing to the new resource. 
+
+### PUT updates or replaces resources
+
+Use PUT for full updates of existing resources. PUT is idempotent, meaning multiple identical requests produce the same result. 
+
+```
+PUT /users/123
+Content-Type: application/json
+{
+"name": "Phil Ostman",
+"email": "[email protected]",
+"role": "Developer"
+}
+```
+
+### PATCH makes partial updates
+
+Use PATCH when you only need to modify specific fields without sending the entire resource. 
+
+```
+PATCH /users/123
+Content-Type: application/json
+{
+"email": "[email protected]"
+}
+```
+
+PATCH is particularly useful for large resources where sending the complete object would be inefficient. 
+
+### DELETE removes resources
+
+Use DELETE to remove resources from the server. Like PUT, DELETE should be idempotent. 
+
+```
+DELETE /users/123
+```
+
+After a successful deletion, return 204 No Content or 200 OK with details about what was deleted. 
+
+## Implement proper HTTP status codes
+
+HTTP status codes communicate the result of each request. Using them correctly helps clients handle responses appropriately without parsing response bodies. 
+
+### Success codes (2xx)
+
+### Client error codes (4xx)
+
+### Server error codes (5xx)
+
+**In production: **Inconsistent status codes are one of the most common causes of client-side bugs. 
+
+## Provide meaningful, consistent error responses
+
+Status codes tell clients what went wrong, but error response bodies explain why and how to fix it. Good error responses include enough detail for developers to troubleshoot issues without exposing sensitive information. 
+
+### Standardize error structure
+
+Use a standard format for all error responses across your API. 
+
+```
+{
+"error": {
+"code": "INVALID_EMAIL",
+"message": "The email address format is invalid",
+"details": "Email must contain an @ symbol and valid domain",
+"field": "email"
+}
+}
+```
+
+Use stable, machine-readable error codes along with human-readable messages. 
+
+### Return all validation errors at once
+
+When validation fails, tell users exactly what’s wrong and how to fix it. 
+
+```
+{
+"error": {
+"code": "VALIDATION_ERROR",
+"message": "Request validation failed",
+"details": [
+{
+"field": "email",
+"message": "Email address is required"
+},
+{
+"field": "password",
+"message": "Password must be at least 8 characters"
+}
+]
+}
+}
+```
+
+This saves clients from slow, iterative fixes. 
+
+## Version your API deliberately
+
+APIs evolve over time, and versioning allows you to make improvements without breaking existing clients. Plan your versioning strategy from the start, even if you only have one version initially. 
+
+### URI versioning
+
+Include the version number in the URL path. This approach is explicit and easy to understand. 
+
+```
+GET /v1/users
+GET /v2/users
+```
+
+URI versioning makes it immediately clear which version a client is using and allows different versions to coexist on the same server. 
+
+### Header versioning
+
+Pass the version in a custom header. This keeps URLs clean but requires clients to set headers correctly. 
+
+```
+GET /users
+Accept: application/vnd.api.v1+json
+```
+
+Header versioning works well when you want cleaner URLs and have clients sophisticated enough to manage headers. 
+
+### When to create a new version
+
+Introduce a new version for breaking changes: removed fields, type changes, or auth changes. Non-breaking additions usually don’t require a new version. 
+
+## Paginate large collections
+
+Returning large datasets in a single response can create performance problems and a negative user experience. Pagination breaks large result sets into manageable chunks. 
+
+### Page number pagination
+
+Use page numbers for a more traditional pagination experience. 
+
+```
+GET /products?page=3&per_page=20
+```
+
+Include pagination metadata in responses to help clients navigate result sets. 
+
+```
+{
+"data": [...],
+"pagination": {
+"current_page": 3,
+"total_pages": 15,
+"total_items": 287,
+"per_page": 20
+}
+}
+```
+
+### Limit and offset pagination
+
+Allow clients to specify how many results they want and where to start. 
+
+```
+GET /products?limit=20&offset=40
+```
+
+This approach is straightforward but can miss items if the collection changes between requests. 
+
+### Cursor-based pagination
+
+Use cursor tokens that point to specific positions in result sets. 
+
+```
+GET /products?limit=20&cursor=eyJpZCI6MTIzfQ
+```
+
+Return a next cursor in the response that clients can use to fetch the next page. 
+
+```
+{
+"data": [...],
+"pagination": {
+"next_cursor": "eyJpZCI6MTQzfQ",
+"has_more": true
+}
+}
+```
+
+**In production: **Cursor-based pagination is more reliable for feeds and high-write datasets. 
+
+## Support filtering, sorting, and searching
+
+Beyond pagination, give clients control over what data they receive and how it’s organized. 
+
+### Filtering
+
+Allow clients to filter results using query parameters. 
+
+```
+GET /products?category=electronics&price_min=100&price_max=500
+```
+
+Use clear parameter names that make the filtering criteria obvious. 
+
+### Sorting
+
+Enable sorting with parameters that specify the field and direction. 
+
+```
+GET /products?sort=price:asc
+GET /users?sort=created_at:desc
+```
+
+Support multiple sort criteria when appropriate. 
+
+```
+GET /products?sort=category:asc,price:desc
+```
+
+### Searching
+
+Provide search functionality for text-based queries. 
+
+```
+GET /products?search=wireless keyboard
+GET /articles?q=api+design
+```
+
+Consider implementing more sophisticated search features like fuzzy matching or field-specific searches for complex use cases. 
+
+## Secure your API with proper authentication
+
+Security is non-negotiable for APIs. Choose authentication methods appropriate for your use case and implement them consistently. 
+
+### API keys
+
+Simple authentication using unique keys passed in headers. 
+
+```
+GET /api/users
+X-API-Key: sk_live_abc123xyz789
+```
+
+API keys are well-suited for server-to-server communication, but they shouldn’t be the only security layer for sensitive operations. 
+
+### Bearer tokens (OAuth 2.0)
+
+Use OAuth 2.0 for applications requiring user-specific authentication and authorization. 
+
+```
+GET /api/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Bearer tokens support time-limited access and can include scope restrictions to limit the actions that authenticated clients can perform. 
+
+### Always use HTTPS
+
+Encrypt all API traffic with HTTPS to protect authentication credentials and sensitive data in transit. HTTP transmits data in plain text, exposing it to interception. 
+
+### Rate limiting
+
+Implement rate limiting to prevent abuse and ensure fair resource allocation. Return appropriate headers to inform clients about their usage. 
+
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 847
+X-RateLimit-Reset: 1640995200
+```
+
+When rate limits are exceeded, return a 429 Too Many Requests status with information about when the client can retry. 
+
+## Provide comprehensive documentation
+
+Documentation transforms your API from a black box into a tool that developers can use with confidence. Good documentation includes examples, explains edge cases, and stays current with API changes. 
+
+### Document all endpoints
+
+For each endpoint, document the HTTP method, URL, required parameters, request body format, response format, status codes, and authentication requirements. 
+
+### Include working examples
+
+Show actual requests and responses that developers can copy and test. 
+
+```
+Request:
+POST /api/users
+Content-Type: application/json
+Authorization: Bearer token123
+
+{
+"name": "Phil Ostman",
+"email": "[email protected]"
+}
+
+Response:
+HTTP/1.1 201 Created
+Location: /api/users/12345
+
+{
+"id": "12345",
+"name": "Phil Ostman",
+"email": "[email protected]",
+"created_at": "2024-01-15T10:30:00Z"
+}
+```
+
+### Explain error cases
+
+Document common error scenarios and how clients should handle them. Include examples of error responses and their meanings. 
+
+Tools like Postman make it easy to create interactive documentation that developers can use to explore your API without needing to write code. 
+
+## Design for idempotency
+
+Idempotent operations produce the same result regardless of the number of times they’re executed. Network issues and retries are inevitable, and idempotency prevents duplicate actions. 
+
+Safe methods (GET, HEAD) are naturally idempotent because they don’t modify state. PUT and DELETE should also be idempotent by design. 
+
+```
+"PUT /users/123 → Updates user 123, same result if called multiple times
+DELETE /users/123 → Deletes user 123, subsequent calls return 404
+```
+
+POST is typically not idempotent because each request might create a new resource. To make POST operations safer, implement idempotency keys. 
+
+```
+POST /payments
+Idempotency-Key: unique-key-abc123
+Content-Type: application/json { "amount": 100.00, "currency": "USD" } >
+```
+
+The server stores the idempotency key and returns the same response if the request is repeated with the same key, preventing duplicate payments. 
+
+## Handle CORS properly
+
+Cross-Origin Resource Sharing (CORS) allows web applications from different domains to access your API. Configure CORS headers to specify which origins can access your API. 
+
+```
+Access-Control-Allow-Origin: https://example.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization
+```
+
+For public APIs, you might use a wildcard to allow all origins, but this reduces security. For private APIs, explicitly list allowed origins. 
+
+## Use appropriate content types
+
+Specify content types clearly so clients know how to parse responses and servers know how to interpret requests. 
+
+### JSON is the standard
+
+JSON has become the standard for REST APIs. Use application/json as your primary content type. 
+
+```
+Content-Type: application/json
+Accept: application/json
+```
+
+### Support content negotiation
+
+Allow clients to request different formats when appropriate. 
+
+```
+GET /api/report
+Accept: application/pdf
+```
+
+The server can return different representations based on the Accept header, though JSON should remain your primary format. 
+
+## Keep responses focused and efficient
+
+Design response bodies to include what clients need without excess data. Large responses slow down transfers and force clients to parse unnecessary information. 
+
+### Use field selection
+
+Allow clients to specify which fields to include. 
+
+```
+GET /users/123?fields=name,email
+```
+
+This reduces payload size and improves performance, particularly for mobile clients or those with slow connections. 
+
+Avoid deeply nested structures 
+
+Keep response structures relatively flat. Deep nesting makes responses harder to parse and navigate. 
+
+**Good practice **
+
+```
+{
+"user": {
+"id": "123",
+"name": "Phil Ostman"
+},
+"organization_id": "org-456",
+"organization_name": "Tech Corp"
+}
+```
+
+**Bad practice **
+
+```
+{
+"user": {
+"id": "123",
+"name": "Phil Ostman",
+"organization": {
+"id": "org-456",
+"name": "Tech Corp",
+"details": {
+"industry": "Technology",
+"settings": {
+"timezone": "UTC"
+ }
+ }
+ }
+ }
+}
+```
+
+**In production: **Deep nesting often leaks internal data models into public APIs. 
+
+## Observe, log, and monitor API usage
+
+Reliable APIs are observable APIs. Comprehensive logging helps you understand how your API is being used, diagnose problems, and identify performance bottlenecks: 
+
+### Use request IDs
+
+Include unique identifiers in responses that clients can reference when reporting issues. 
+
+```
+X-Request-ID: f47ac10b-58cc-4372-a567-0e02b2c3d479
+```
+
+This makes it easy to correlate client reports with server logs and trace requests through your systems. 
+
+## Plan for backward compatibility
+
+Once clients depend on your API, changes become risky. Design with future evolution in mind. 
+
+### Add, don’t remove
+
+When possible, add new fields or endpoints rather than removing or changing existing ones. Clients that ignore new fields won’t break, but removing fields will. 
+
+### Deprecation process
+
+When you must remove or change functionality, follow a clear deprecation process: 
+
+Include deprecation warnings in responses to notify clients they’re using outdated endpoints. 
+
+```
+Deprecated: true
+X-API-Warn: This endpoint is deprecated and will be removed on 2025-06-01. Use /v2/users instead.
+```
+
+## Test APIs continuously
+
+Rigorous testing catches issues before they affect clients. Test APIs across multiple dimensions to ensure reliability, beyond the happy paths: 
+
+Unit tests verify that individual components work correctly. Integration tests confirm components work together properly. End-to-end tests validate complete workflows from the client’s perspective. 
+
+## Common mistakes to avoid
+
+Understanding pitfalls helps you avoid them in your designs. 
+
+### Using GET for state changes
+
+Never use GET for operations that modify data. GET requests should be safe and idempotent. 
+
+**Bad practice **
+
+```
+GET /users/123/delete
+GET /cart/add?product_id=789
+```
+
+**Good practice **
+
+```
+DELETE /users/123
+POST /cart/items
+```
+
+### Exposing implementation details
+
+Keep internal system details out of your API design. URLs and field names should reflect domain concepts, not database tables or internal architecture. 
+
+**Bad practice **
+
+```
+GET /user_table_v2/query?db_id=123
+```
+
+**Good practice **
+
+```
+GET /users/123
+```
+
+### Inconsistent naming and conventions
+
+Use consistent patterns throughout your API. If you use snake_case for field names in one endpoint, use it everywhere. If you pluralize collection names, do it consistently. 
+
+## Final thoughts
+
+APIs can fail for many reasons, but one common culprit is drift. URLs, examples, error shapes, and documentation slowly fall out of sync with the published version. 
+
+Treat all of your artifacts, including examples, tests, documentation, and monitoring, as part of the API contract. When they stay connected and executable, teams can catch breaking changes earlier and ship more reliable APIs. 
+
+In this post 
+
+Tags: [REST API](https://blog.postman.com/tag/rest-api/)![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-06.png)
+
+The Postman Team 
+
+Postman is the single platform for designing, building, and scaling APIs—together. Join over 40 million users who have consolidated their workflows and leveled up their API game—all in one powerful platform. 
+
+[View all posts by The Postman Team →](https://blog.postman.com/author/thepostmanteam/)
+
+What do you think about this topic? Tell us in a comment below. 
+
+### Comment Cancel reply
+
+Δ 
+
+This site uses Akismet to reduce spam. [Learn how your comment data is processed.](https://akismet.com/privacy/)
+
+## You might also like
+
+### What Is a REST API? Examples, Uses, and Challenges
+
+![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-04.png)[The Postman Team](https://blog.postman.com/author/thepostmanteam/)
+
+Quick answer: API vs Web Service Question Answer What is a REST API? An architectural style for building APIs that uses HTTP… 
+
+[Read more →](https://blog.postman.com/rest-api-examples/)
+
+### What is HTTP Error 405 (Method Not Allowed) and How to Fix
+
+![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-06.png)[The Postman Team](https://blog.postman.com/author/thepostmanteam/)
+
+Understand the HTTP 405 Method Not Allowed Error: An HTTP 405 Method Not Allowed error can bring your API workflow to a… 
+
+[Read more →](https://blog.postman.com/http-error-405/)
+
+### Types of APIs: A Complete Guide to API Architectures
+
+![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-01.png)[The Postman Team](https://blog.postman.com/author/thepostmanteam/)
+
+Quick answer: What are the main types of APIs? The five foundational types of APIs define how systems communicate and exchange data… 
+
+[Read more →](https://blog.postman.com/different-types-of-apis/)
+
+## The world's APIs are built and shipped on Postman.
+
+[Sign Up for Free →](https://identity.getpostman.com/signup)![API Design Example in Postman.](https://voyager.postman.com/graphics/home/postman-v12-world.svg)
+
+---
+
+Title: RESTful API Design Guide: Principles & Best Practices - Strapi
+Higher Quality, Stronger Performance, Increased Stability, Better Developer Experience, [discover everything we've shipped recently](https://strapi.io/blog/strapi-release-roundup-everything-that-changed-between-january-and-february-2026)! 
+
+# What is a RESTful API and How to Build One
+
+[JavaScript](/blog/tag/javascript)[Beginner](/blog/tag/beginner)[API](/blog/tag/api)[Software Architecture](/blog/tag/post-tag)[Paul Bratslavsky](/user/paul-bratslavsky)
+
+August 21, 2025 
+
+You've just inherited an API where `/getUsers`, `/user-list`, and `/fetch_all_users`all exist, each returning slightly different data in completely different formats. The previous developer insists it's "RESTful" because it returns JSON. Sound familiar? 
+
+Despite REST being around since 2000, most APIs claiming to be RESTful are actually a collection of HTTP endpoints held together by hope and extensive documentation. 
+
+The problem isn't that REST is complicated—it's that without clear principles, APIs inevitably decay into an inconsistent mess that frustrates both developers and consumers. 
+
+This guide establishes the principles and patterns you need to build REST APIs that remain consistent and maintainable as they grow, whether you're starting fresh or trying to bring order to existing chaos. 
+
+**In Brief: **
+
+## What Is A RESTful API?
+
+A RESTful API is a web service that follows REST (Representational State Transfer) principles—an architectural style where resources are accessed through standard HTTP methods like GET, POST, PUT, and DELETE. 
+
+Instead of custom endpoints for every action, RESTful APIs treat everything as resources with unique URIs that respond predictably to these HTTP verbs 
+
+Serving JSON over HTTP doesn't automatically make an API RESTful. The difference is clear when comparing `/deleteUser?id=123`with `DELETE /users/123`. The latter leverages HTTP semantics, remains stateless, and clearly communicates intent to any developer. 
+
+### Resources Over Actions
+
+At the core of REST is a mental shift: model nouns, not verbs. A collection of users lives at `/users`, a single user at `/users/123`. Actions are implied by the HTTP method you choose, not baked into the path. 
+
+This naming discipline pays off when you need multiple representations of the same resource. With HTTP content negotiation, the client can ask for JSON, XML, or even CSV without changing the endpoint: 
+
+```
+# JSON by default
+curl https://api.example.com/users/123
+
+# XML representation
+curl -H "Accept: application/xml" https://api.example.com/users/123
+```
+
+Clients hold the *application state *(pagination position, filters, UI selections). The server only stores the *resource state *—the canonical data—and never tracks who asked for it. That separation lets you evolve front-end experiences without rewriting backend logic. 
+
+### The Stateless Principle
+
+Statelessness means each request contains everything the server needs to fulfill it; no hidden session context lives on the backend. 
+
+If you store a user object in memory after login, you've broken the contract and made horizontal scaling harder. A cleaner approach is to pass a JWT or OAuth 2.0 bearer token with every call: 
+
+```
+curl -H "Authorization: Bearer <jwt-token>" https://api.example.com/users/me
+```
+
+Because any node can serve any request, you can add or remove servers behind a load balancer without user-visible downtime. 
+
+Statelessness also simplifies failure handling—clients can safely retry idempotent operations, and servers never scramble to rebuild lost session data. The principle is non-negotiable in cloud-native architectures and is a foundational practice in REST design. 
+
+### HTTP Methods as Uniform Interface
+
+The uniform interface constraint tells you to lean on the semantics HTTP already provides: 
+
+Idempotency matters for reliability: if a network timeout forces a retry, `PUT`and `DELETE`won't create duplicates or cascade unintended side effects, while a duplicate `POST`very well might. 
+
+Strictly following verb semantics eliminates guesswork for client developers and aligns your API with tooling, proxies, and caching layers that already understand HTTP. This approach is key for predictable debugging and monitoring. 
+
+Real systems occasionally need bulk operations or complex searches. When a single HTTP verb can't express the intent cleanly, you can expose purpose-built endpoints like `/users/search`or accept a `POST /users/bulk-delete`that takes an array of IDs. The trick is to treat these as exceptions, not a license to scatter verbs across your URI space. 
+
+### Caching and Layered Architecture
+
+REST assumes intermediaries—reverse proxies, CDNs, gateways—can sit between client and server without changing application behavior. Proper cache headers are the glue: 
+
+```
+ETag: "9f62089e"
+Cache-Control: public, max-age=3600
+Last-Modified: Wed, 24 Apr 2024 10:12:00 GMT
+```
+
+If the client sends `If-None-Match: "9f62089e"`, the server can reply `304 Not Modified`, cutting bandwidth and compute costs. [AWS API Gateway response caching](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-optimize.html)delivers substantial latency drops and lower backend load. Well-tuned caches are one of the quickest wins for API performance. 
+
+Layering also means you can introduce a CDN, [security scanner](https://strapi.io/blog/best-practices-for-software-development-security), or throttling proxy later without rewriting clients or services. Be cautious with user-specific or real-time data—by marking such responses `Cache-Control: private, no-store`, you prevent stale or confidential content from leaking. Apply caching strategically and you'll see throughput soar without compromising correctness. 
+
+By sticking to these constraints—resource orientation, statelessness, a uniform HTTP interface, and cache-friendly layering—you create APIs that are both developer-friendly and operationally resilient. 
+
+## How to Design Scalable REST APIs
+
+Scalability starts with predictability. When every endpoint follows the same grammar, you spend time on product logic, not guessing whether the next call is `/user-list`or `/getUsers`. Three patterns make this work: URL design, payload consistency, and [stateless authentication](https://strapi.io/blog/guide-on-authenticating-requests-with-the-rest-api). 
+
+### Name Resources and Structure URLs Correctly
+
+A well-named URL is the API equivalent of clean code—you understand its intent before opening the docs. Stick to plural, lowercase nouns— `/users`, not `/getUser`—and keep the hierarchy shallow. 
+
+```
+GET /users # list
+POST /users # create
+GET /users/123 # retrieve
+PUT /users/123 # replace
+PATCH /users/123 # partial update
+DELETE /users/123 # remove
+```
+
+Avoid deep nesting that mirrors database joins. A path like `/users/123/orders`is readable, while `/users/123/orders/456/items/789/reviews`becomes fragile. 
+
+When relationships grow complex, expose them as top-level resources and link with query parameters or IDs. `GET /orders?userId=123`scales better than embedding five levels of parents in the path. 
+
+Filters, sorting, and pagination belong in the query string: 
+
+```
+/users?role=admin
+/orders?sort=-created_at
+/posts?page=2&limit=20
+```
+
+This pattern keeps URLs stable as you add query capabilities—no breaking changes, no version bump. 
+
+### Structure Consistent Requests and Responses
+
+Once your URLs are predictable, make the payloads just as boring—in the best possible way. A simple response envelope with `data`, `meta`, and `error`fields is commonly used in API design, but there is no direct evidence recommending it or stating that it covers 99% of use cases. 
+
+```
+{
+ "data": {
+ "id": 123,
+ "name": "Ada Lovelace",
+ "email": "ada@example.com"
+ },
+ "meta": {
+ "traceId": "d4e5f6"
+ },
+ "error": null
+}
+```
+
+Successful creations return HTTP 201 with a `Location`header pointing to the new resource; partial updates send 200 or 204 depending on whether you return a body. For large datasets, cursor-based pagination ( `after`/ `before`tokens) avoids the accuracy issues of offset-based paging. 
+
+Selective field requests keep payloads lean: 
+
+```
+GET /users/123?fields=name,email
+```
+
+If a client needs related data, decide between embedding or linking. A lightweight [HATEOAS style](https://restfulapi.net/hateoas/)—adding a `_links`object with URLs—strikes the balance between discoverability and payload size advocated in RESTfulAPI.net. 
+
+Batch operations are fine as long as the request still represents a resource. Instead of `/bulkDeleteUsers`, consider a custom endpoint such as `POST /users/batchDelete`with a JSON body listing IDs. This approach is more aligned with HTTP semantics and best REST API practices, while sparing the client dozens of calls. 
+
+Consistency here prevents accidental breaking changes. Front-end teams can scaffold stubs before your backend is finished, and automated tests don't need custom assertions per endpoint. 
+
+### Implement Stateless Authentication
+
+Statelessness is the bedrock of horizontal scaling, so avoid server sessions. Use bearer tokens in the `Authorization`header; JWTs are compact and self-contained, making them a popular choice in [modern guides](https://strapi.io/blog/evolution-of-apis-from-pre-rest-era-to-modern-restful-and-beyond)and security best practices. 
+
+```
+Authorization: Bearer eyJhbGciOiJI...
+```
+
+For third-party access, layer OAuth 2.0 on top of JWT. The flow stays stateless—each request carries its own credentials—and you gain fine-grained scopes without custom middleware. [Service-to-service calls](https://strapi.io/blog/api-vs-web-service-differences-explained)can fall back to simple [API keys](https://strapi.io/blog/how-to-store-API-keys-securely), still passed in headers so any instance of your API can verify them. 
+
+Scalability is also about fairness. Expose rate-limit headers ( `X-RateLimit-Limit`, `X-RateLimit-Remaining`) so clients back off gracefully, a pattern highlighted in 2024 best-practice roundups. When limits are hit, return 429 with a `Retry-After`header; you protect your cluster without silent failures. 
+
+Don't forget the security headers that browsers expect: enforce HTTPS, configure CORS explicitly, and set Content-Security-Policy if your API serves JSONP or other executable responses. 
+
+Role-based access control rounds out the model—embed roles in your JWT claims, then gate routes in middleware. Strapi's REST layer does this out of the box, so you can define roles in the Admin Panel and let the framework handle the checks. 
+
+Predictable URLs, disciplined payloads, and stateless security form the trifecta of a scalable REST API. Nail these early and you'll spend future sprints adding features, not firefighting contract drift. 
+
+## Best Practices for Production-Ready APIs
+
+Prototype APIs break the moment real traffic, third-party integrations, or new business requirements appear. 
+
+To avoid frantic retrofits later, you need a few practices baked in from day one. Let's explore how you can implement each of these without adding dead weight to your codebase. 
+
+### Version Your API from Day One
+
+Rolling out a breaking change without versioning is the fastest way to enrage every consumer you have. A clear URL version such as `/v1/users`is the least ambiguous path because the version is visible in every request and easy to match in routing logic. 
+
+Industry guides emphasize URL or semantic versioning to make compatibility contracts explicit and discoverable for humans and machines alike. 
+
+Create a dedicated folder—or route module—for each major version so you can share business logic but isolate transport concerns: 
+
+```
+src/
+├─ api/
+│ ├─ v1/
+│ │ └─ users.js
+│ └─ v2/
+│ └─ users.js
+```
+
+Version only for breaking changes; new fields or optional parameters belong in the same version. When a new major release is unavoidable, publish a deprecation sunset: 
+
+```
+Sunset: Tue, 31 Dec 2024 23:59:59 GMT
+Link: </v2/users>; rel="successor-version"
+```
+
+Pair the header with migration docs and a grace window. Retrofitting versions later means duplicated endpoints, chaotic client updates, and fragile routing—avoid that pain entirely by versioning from the start. 
+
+### Return Errors That Actually Help
+
+A 200 response carrying `"success":false`forces clients to parse bodies just to detect failure and clouds monitoring dashboards. Stick to proper status codes—4xx for client problems, 5xx for server faults—and wrap details in a predictable envelope, as recommended by modern best-practice guides. 
+
+```
+{
+ "error": {
+ "code": "VALIDATION_FAILED",
+ "message": "email is required",
+ "details": [
+ { "field": "email", "issue": "missing" }
+ ],
+ "traceId": "abc123-def456"
+ }
+}
+```
+
+The `code`lets you document reusable error classes, `details`highlight exact issues, and `traceId`ties logs to client reports. Consistency is critical: if one endpoint returns this envelope, every endpoint should. Your support team will thank you, and consumers can build reliable retry or UI logic without special cases. 
+
+### Optimize for Performance Early
+
+[Performance tuning](https://strapi.io/blog/how-to-optimize-strapi-performance)after launch usually means rewriting code under pressure. Instead, layer a few lightweight optimizations into your design now. 
+
+Large collections should never dump full datasets. Offer `?limit=50&cursor=eyJpZCI6...`so clients pull data incrementally. This pagination approach scales better than offset-based methods because cursor position remains stable even when new records are added. 
+
+Let callers specify only what they need with field filtering like `/users?fields=name,email`to shrink payloads and rendering time. This simple parameter can reduce response sizes by 70% or more when dealing with rich user profiles or product catalogs. 
+
+Smart caching prevents redundant work. Use `ETag`and `Cache-Control`headers so gateways or CDNs can serve unchanged resources, a built-in feature of many platforms. Even a basic cache hit rate of 40% can provide moderate relief to server load during traffic spikes, with higher rates yielding more dramatic reductions. 
+
+Eager loading fetches related data in a single query server-side to prevent N+1 patterns that spike latency. Instead of making separate calls for each user's orders, pull everything in one optimized query and structure the response appropriately. 
+
+Strapi's generated REST endpoints already expose pagination, filtering, and conditional GET headers, so you get most of these wins for free. Even if you're building from scratch, adopting them early means your API stays fast when the user count jumps instead of after. 
+
+## Start Building REST APIs Worth Inheriting
+
+REST shines when every request looks familiar: nouns for resources, standard HTTP verbs for intent, no hidden server state, and URLs you can guess without documentation. Designing around the principles we covered gives you an API that consumers trust. 
+
+Your next move is practical: audit one legacy endpoint, spot the rule it breaks, and fix it. Then codify those rules in a team style guide. 
+
+If you're starting fresh, Strapi bakes in useful conventions and auto-generates APIs for each Collection Type, so you focus on product logic instead of plumbing. Versioning and token-based authentication require additional configuration. Craft it well today and future you—and every developer who integrates tomorrow—will thank you. 
+
+# Download: Community Edition
+
+Begin our journey with our Quick Start Guide. Click below to get started! 
+
+![](/_next/static/images/b42e1a02e95e33dfff2fe95775daab6d.svg)![](/_next/static/images/028c9ab392bdbb8f9ee1c72ed662a51f.svg)![](/_next/static/images/6eb6f7fd77b60f259c55f28ff9a2e867.svg)![](/_next/static/images/42eb02ade045a98e305294d2c742bbcd.svg)
+
+[Paul Bratslavsky](/user/paul-bratslavsky)Developer Advocate

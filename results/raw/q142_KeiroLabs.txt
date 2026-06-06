@@ -1,0 +1,875 @@
+Title: What Is a Neural Network? | IBM
+**Definition:** Neural networks are among the most influential algorithms in modern machine learning and artificial intelligence (AI).
+
+**Key Points:** Types of neural networks
+ 
+ 
+
+ 
+
+ While multilayer perceptrons are the foundation, neural networks have evolved into specialized architectures suited for different domains:
+Convolutional neural networks (CNNs or convnets): Designed for grid-like data such as images. Watch all episodes of Mixture of Experts
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ Neural network applications
+ 
+ 
+
+ 
+
+ Neural networks underpin many of today’s AI systems. Why neural networks matter 
+ 
+ 
+
+ 
+
+ Neural networks learn useful internal representations directly from data, capturing nonlinear structure that classical models miss.
+
+What is a neural network?
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ Author
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Fangfang Lee
+ 
+ 
+ Developer Advocate
+ IBM
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ What is a neural network?
+ 
+ 
+
+ 
+
+ A neural network is a machine learning model that stacks simple "neurons" in layers and learns pattern-recognizing weights and biases from data to map inputs to outputs.
+
+ 
+ 
+ 
+ 
+
+ Neural networks are among the most influential algorithms in modern machine learning and artificial intelligence (AI). They underpin breakthroughs in computer vision, natural language processing (NLP), speech recognition and countless real-world applications ranging from forecasting to facial recognition. While today’s deep neural networks (DNNs) power systems as complex as transformers and convolutional neural networks (CNNs), the origins of neural networks trace back to simple models such as linear regression and how the human brain digests, processes and decides on the information presented to it.
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ Join over 100,000 subscribers who read the latest news in tech
+ Stay up to date on the most important—and intriguing—industry trends on AI, automation, data and beyond with the Think Newsletter, delivered twice weekly. See the IBM Privacy Statement.
+
+ Thank you! 
+ You are subscribed.
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ How do neural networks work?
+ 
+ 
+
+ 
+
+ On a high level, the inspiration for neural networks comes from the biological neurons in the human brain, which communicate through electrical signals. In 1943, Warren McCulloch and Walter Pitts proposed the first mathematical model of a neuron, showing that simple units could perform computation of a function. Later, in 1958, Frank Rosenblatt introduced the perceptron, an algorithm designed to perform pattern recognition. The perceptron is the historical ancestor of today’s networks: essentially a linear model with a constrained output. In the following section, we will dive into how neural networks borrow inspiration from the human brains to make decisions and recognize patterns.  
+
+ 
+ 
+ 
+ 
+
+ A neural network can be understood through a simple example: spam detection. An email is fed into the network, and features such as words or phrases like “prize,” “money,” “dear” or “win” are used as inputs. The early neurons in the network process the importance of each signal, while later layers combine this information into higher-level cues that capture context and tone. The final layer then computes a probability of whether the email is spam, and if that probability is high enough, the email is flagged. In essence, the network learns how to transform raw features into meaningful patterns and use them to make predictions.
+This process is powered by two fundamental concepts: weights and biases. Weights act like dials that control how strongly each input feature influences the decision—a word like “prize” may be given more weight than a common word like “hello.” Biases are built-in values that shift the decision threshold, allowing a neuron to activate even if the inputs themselves are weak. Together, these model parameters determine how each neuron contributes to the overall computation. By adjusting these values during training, the network gradually learns to make accurate predictions—in this case, whether an email is spam or not.
+Mathematically, a neural network learns a function  f(X)  by mapping an input vector  X=(x1,x2,x3...)  to a predict a response  Y.  What distinguishes neural networks from other traditional machine learning algorithms is their layered structure and their ability to perform nonlinear transformation.  
+
+ 
+ 
+ 
+ 
+
+ A neural network is comprised of:
+Input layer: holds the raw features  (X1,X2,X3,..) .
+
+Hidden layers: consist of artificial neurons (or nodes) that transform inputs into new representations. Mathematically, hidden layers are expressed as the input features, multiplied by their associated weights and added bias to pass from one layer to the next layer, eventually arriving at the final output layer. This is where the linear transformation between input and output happens. 
+
+Output layer: After performing the linear transformation in the hidden layer, a nonlinear activation function (tanh, sigmoid, ReLU ) is added to produce the final prediction (such as a number for regression, or a probability distribution for classification).  
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ A standard feedforward neural network with 3 hidden layers.
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ Neural network training
+ 
+ 
+
+ 
+
+ Just like other machine learning algorithms, a neural net requires rigorous training to perform well on testing. To train a network, a single neuron computes: 
+ z=∑i=1nwixi+b
+ a=σ(z)
+Where:
+ xi = input feature, wi = weight, b  = bias, z  = weighted sum (linear transformation), σ  = activation function (nonlinear transformation), a  = output,
+
+ 
+ 
+ 
+ 
+
+  σ  represents an activation function at the output layer that transforms the linear combination to fit the decision of the function. Using this architecture, the input features X are transformed into an output Y, serving as a predictive machine learning model.  
+The power of a neural network comes from its ability to learn the right weights and biases from data. This is done by comparing the network’s prediction  Y^ to the true label  Y  and measuring the error using a loss function. For example, in classification tasks, the loss might measure how far the predicted probability is from the correct answer.
+
+ 
+ 
+ 
+ 
+
+ To minimize this loss, the network uses an algorithm called backpropagation. The neural net trains in four steps:
+Forward pass: Inputs flow through the network, computing linear combinations, passing through the nonlinear activation function and producing an output prediction.
+
+Error calculation: The loss function measures the difference between prediction and truth.
+
+Backward pass (backpropagation): The error is propagated backward through the network. At each neuron, the algorithm calculates how much each weight and bias contributed to the error using the chain rule of calculus.
+
+Weight update: The weights and biases are adjusted slightly in the direction that reduces the error, using an optimization method like gradient descent.
+
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ This process is repeated many times over the training dataset. Each pass helps the network “tune” its internal parameters so that its predictions get incrementally closer to the correct answers. Over time, the network converges to a set of weights and biases that minimize error and generalize well to unseen data. Backpropagation, coupled with gradient descent, is the engine that makes neural networks work. It enables networks with millions (or even billions) of parameters to learn meaningful patterns from massive datasets.  
+However, despite practitioners’ effort to train high performing models, neural networks still face challenges similar to other machine learning models—most significantly, overfitting. When a neural network becomes overly complex with too many parameters, the model will overfit to the training data and predict poorly. Overfitting is a common problem in all kinds of neural networks, and paying close attention to bias-variance tradeoff is paramount to creating high-performing neural network models.  
+
+ 
+ 
+ 
+ 
+
+ Modern neural network architectures—such as transformers and encoder-decoder models—follow the same core principles (learned weights and biases, stacked layers, nonlinear activations, end-to-end training by backpropagation). They differ mainly in how inputs are mixed across layers. Instead of fully connected mix
+
+---
+
+Title: Neural network (machine learning) - Wikipedia
+**Definition:** neural net, also known as an artificial neural network (ANN), is a computational model inspired by the structure and functions of biological neural networks.
+
+**Key Points:** In machine learning, a neural network (NN) or neural net, also known as an artificial neural network (ANN), is a computational model inspired by the structure and functions of biological neural networks. These developments enabled the training of deep neural networks capable of learning hierarchical representations from complex data. More recently, transformer architectures introduced attention mechanisms that allow neural networks to model long-range dependencies in data and have become foundational for modern large language models.
+
+In machine learning, a neural network (NN) or neural net, also known as an artificial neural network (ANN), is a computational model inspired by the structure and functions of biological neural networks.
+A neural network consists of connected units or nodes called artificial neurons, which loosely model the neurons in the brain. Artificial neuron models that mimic biological neurons more closely have also been recently investigated and shown to significantly improve performance. These are connected by edges, which model the synapses in the brain. Each artificial neuron receives signals from connected neurons, then processes them and sends a signal to other connected neurons. The "signal" is a real number, and the output of each neuron is computed by some non-linear function of the totality of its inputs, called the activation function. The strength of the signal at each connection is determined by a weight, which adjusts during the learning process.
+Typically, neurons are aggregated into layers. Different layers may perform different transformations on their inputs. Signals travel from the first layer (the input layer) to the last layer (the output layer), possibly passing through multiple intermediate layers (hidden layers). A network is typically called a deep neural network if it has at least two hidden layers.
+Advances in computing power, particularly the use of graphics processing units (GPUs), and the availability of large datasets further accelerated neural network research in the early 21st century. These developments enabled the training of deep neural networks capable of learning hierarchical representations from complex data.
+Architectural innovations such as convolutional neural networks (CNNs) significantly improved performance in computer vision tasks, while recurrent neural networks (RNNs) enabled modeling of sequential data such as speech and time-series information. More recently, transformer architectures introduced attention mechanisms that allow neural networks to model long-range dependencies in data and have become foundational for modern large language models.
+Today, artificial neural networks are used for various tasks, including predictive modeling, adaptive control, and solving problems in artificial intelligence.
+
+
+
+---
+
+Title: Explained: Neural networks | MIT News
+**Definition:** volutional” neural networks, in which the nodes of each layer are clustered, the clusters overlap, and each cluster feeds data to multiple nodes (orange and green) of the next layer.
+
+**Key Points:** Neural networks were first proposed in 1944 by Warren McCullough and Walter Pitts, two University of Chicago researchers who moved to MIT in 1952 as founding members of what’s sometimes called the first cognitive science department. Most of today’s neural nets are organized into layers of nodes, and they’re “feed-forward,” meaning that data moves through them in only one direction. If the number exceeds the threshold value, the node “fires,” which in today’s neural nets generally means sending the number — the sum of the weighted inputs — along all its outgoing connections.
+
+Skip to content ↓
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+Massachusetts Institute of Technology
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Search websites, locations, and people
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ See More Results
+ 
+ 
+ Suggestions or feedback?
+ 
+ 
+
+ 
+ 
+ 
+ Enter keywords to search for news articles:
+ 
+ Submit 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ Browse By
+ 
+ 
+ 
+
+ Topics
+ View All →
+ 
+ Explore:
+ 
+ Machine learning
+ Sustainability
+ Startups
+ Black holes
+ Classes and programs
+ 
+ 
+
+ 
+ 
+ 
+
+ Departments
+ View All →
+ 
+ Explore:
+ 
+ Aeronautics and Astronautics
+ Brain and Cognitive Sciences
+ Architecture
+ Political Science
+ Mechanical Engineering
+ 
+ 
+
+ 
+ 
+ 
+
+ Centers, Labs, & Programs
+ View All →
+ 
+ Explore:
+ 
+ Abdul Latif Jameel Poverty Action Lab (J-PAL)
+ Picower Institute for Learning and Memory
+ Media Lab
+ Lincoln Laboratory
+ 
+ 
+
+ 
+ 
+ 
+
+ Schools
+ 
+ 
+ School of Architecture + Planning
+ School of Engineering
+ School of Humanities, Arts, and Social Sciences
+ Sloan School of Management
+ School of Science
+ MIT Schwarzman College of Computing
+ 
+ 
+
+ 
+ 
+ View all news coverage of MIT in the media →
+ 
+ 
+ Listen to audio content from MIT News →
+ 
+ 
+ Subscribe to MIT newsletter →
+ 
+ 
+ 
+ Close
+ 
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ Breadcrumb
+ 
+ 
+ MIT News
+ 
+ 
+ Explained: Neural networks
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ Explained: Neural networks 
+
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+
+ Ballyhooed artificial-intelligence technique known as “deep learning” revives 70-year-old idea. 
+ 
+
+ 
+ 
+
+ Larry Hardesty
+ |
+ MIT News Office
+ 
+ 
+
+ 
+
+ Publication Date:
+ 
+ April 14, 2017
+ 
+ 
+
+ 
+Press Inquiries
+ 
+ 
+
+ Press Contact:
+ 
+ 
+ 
+ 
+ 
+
+ 
+ Abby 
+
+ Abazorius 
+
+ 
+
+ 
+ Email:
+ abbya@mit.edu 
+ 
+
+ 
+ Phone:
+ 617-253-2709 
+ 
+
+ 
+ MIT News Office 
+
+ 
+
+ 
+ Media Download
+ 
+ 
+
+ 
+
+ 
+ 
+
+ 
+ ↓ Download Image
+ 
+ 
+ 
+
+ 
+
+ Caption:
+ 
+ Most applications of deep learning use “convolutional” neural networks, in which the nodes of each layer are clustered, the clusters overlap, and each cluster feeds data to multiple nodes (orange and green) of the next layer.
+ 
+
+ Credits:
+ 
+ Image: Jose-Luis Olivares/MIT 
+ 
+
+ 
+
+ 
+ 
+
+ *Terms of Use:
+ 
+ Images for download on the MIT News office website are made available to non-commercial entities, press and the general public under a 
+ Creative Commons Attribution Non-Commercial No Derivatives license.
+ You may not alter the images provided, other than to crop them to size. A credit line must be used when reproducing images; if one is not provided 
+ below, credit the images to "MIT." 
+ 
+
+ 
+ 
+ Close
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+
+ Caption:
+ 
+ Most applications of deep learning use “convolutional” neural networks, in which the nodes of each layer are clustered, the clusters overlap, and each cluster feeds data to multiple nodes (orange and green) of the next layer.
+ 
+ 
+ 
+ 
+
+ Credits:
+ 
+ Image: Jose-Luis Olivares/MIT 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+Previous image
+ Next image
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ In the past 10 years, the best-performing artificial-intelligence systems — such as the speech recognizers on smartphones or Google’s latest automatic translator — have resulted from a technique called “deep learning.”Deep learning is in fact a new name for an approach to artificial intelligence called neural networks, which have been going in and out of fashion for more than 70 years. Neural networks were first proposed in 1944 by Warren McCullough and Walter Pitts, two University of Chicago researchers who moved to MIT in 1952 as founding members of what’s sometimes called the first cognitive science department.Neural nets were a major area of research in both neuroscience and computer science until 1969, when, according to computer science lore, they were killed off by the MIT mathematicians Marvin Minsky and Seymour Papert, who a year later would become co-directors of the new MIT Artificial Intelligence Laboratory.The technique then enjoyed a resurgence in the 1980s, fell into eclipse again in the first decade of the new century, and has returned like gangbusters in the second, fueled largely by the increased processing power of graphics chips.“There’s this idea that ideas in science are a bit like epidemics of viruses,” says Tomaso Poggio, the Eugene McDermott Professor of Brain and Cognitive Sciences at MIT, an investigator at MIT’s McGovern Institute for Brain Research, and director of MIT’s Center for Brains, Minds, and Machines. “There are apparently five or six basic strains of flu viruses, and apparently each one comes back with a period of around 25 years. People get infected, and they develop an immune response, and so they don’t get infected for the next 25 years. And then there is a new generation that is ready to be infected by the same strain of virus. In science, people fall in love with an idea, get excited about it, hammer it to death, and then get immunized — they get tired of it. So ideas should have the same kind of periodicity!”Weighty mattersNeural nets are a means of doing machine learning, in which a computer learns to perform some task by analyzing training examples. Usually, the examples have been hand-labeled in advance. An object recognition system, for instance, might be fed thousands of labeled images of cars, houses, coffee cups, and so on, and it would find visual patterns in the images that consistently correlate with particular labels.Modeled loosely on the human brain, a neural net consists of thousands or even millions of simple processing nodes that are densely interconnected. Most of today’s neural nets are organized into layers of nodes, and they’re “feed-forward,” meaning that data moves through them in only one direction. An individual node might be connected to several nodes in the layer beneath it, from which it receives data, and several nodes in the layer above it, to which it sends data.To each of its incoming connections, a node will assign a number known as a “weight.” When the network is active, the node receives a different data item — a different number — over each of its connections and multiplies it by the associated weight. It then adds the resulting products together, yielding a single number. If that number is below a threshold value, the node passes no data to the next layer. If the number exceeds the threshold value, the node “fires,” which in today’s neural nets generally means sending the number — the sum of the weighted inputs — along all its outgoing connections.When a neural net is being trained, all of its weights and thresholds are initially set to random values. Training data is fed to the bottom layer — the input layer — and it passes through the succeeding layers, getting multiplied and added together in complex ways, until it finally arrives, radically transformed, at the output layer. During training, the weights and thresholds are continually adjusted until training data with the same labels consistently yield similar outputs.Minds and machinesThe neural nets described by McCullough and Pitts in 1944 had thresholds and weights, but they weren’t arranged into layers, and the researchers didn’t specify any training mechanism. What McCullough and Pitts showed was that a neural net could, in principle, compute any function that a digital computer could. The result was more neuroscience than computer science: The point was to suggest that the human brain could be thought of as a computing device.Neural nets continue to be a valuable tool for neuroscientific research. For instance, particular network layouts or rules for adjusting weights and thresholds have reproduced observed features of human neuroanatomy and cognition, an indication that they capture something about how the brain processes information.The first trainable neural network, the Perceptron, was demonstrated by the Cornell University psychologist Frank Rosenblatt in 1957. The Perceptron’s design was much like that of the modern neural net, except that it had only one layer with adjustable weights and thresholds, sandwiched between inpu
+
+---
+
+Title: Neural Networks - MLU-Explain
+**Definition:** What Is A Network  Neural networks are networks - that much is clear.
+
+**Key Points:** In this visual introduction, we'll journey through the fundamentals of feed-forward neural networks, starting from their essential components, understanding their learning mechanisms, and even getting hands-on experience by interacting with one ourselves. These are often referred to as feed forward neural networks, or artificial neural networks (ANN's [ℹ] ). Convolutional Neural Networks (CNNs): Convolutional Neural Networks (CNNs) are specifically designed for processing spatial data, such as images.
+
+  MLU-EXPLAIN Neural Networks Jared Wilber, May 2023
+ A Visual Introduction  Neural networks have revolutionized the field of artificial intelligence and are the backbone of popular algorithms today, such as ChatGPT, Stable-Diffusion, and many others. In this visual introduction, we'll journey through the fundamentals of feed-forward neural networks, starting from their essential components, understanding their learning mechanisms, and even getting hands-on experience by interacting with one ourselves.
+ What Is A Network  Neural networks are networks - that much is clear. But what is a "network"? A network is a structure consisting of interconnected computational nodes, or 'neurons', arranged in layers. These nodes perform mathematical operations on input data, learning some underlying patterns in the data, before producing some output based on those patterns. If this sounds confusing, don't worry, we'll make it clear soon enough.
+
+To build up our intuition, we'll walk through constructing a basic computational graph into a Neural Network:
+
+  Building Blocks: Computational Graphs 
+ A computational graph has an input node where data is fed into the graph, a function node where the input data is processed, and an output node where the result of the computation is produced.
+
+As we can see, data flows in one direction, from inputs to output, through the graph. Linear Regression 
+ We can represent all sorts of algorithms with as computational graphs. For example, we can easily represent Linear Regression as a computational graph: y=w0+w1X1y=w_0+ w_1X_1 y=w0​+w1​X1​ To do so, we need only change two things:
+
+1. Add weights to each edge connecting the input nodes to the function nodes.[ℹ]
+
+2. Update our function to represent a linear function of a weighted sum: linear=∑i=1nwiXi\begin{aligned} \text{linear} = \sum^{n}_{i=1}w_iX_i \end{aligned}linear=i=1∑n​wi​Xi​​ And just like that, we have a computational graph for linear regression! Model Outputs 
+ To make the process extra clear, let's visualize the outputs of our linear regression model.
+
+Just as we'd expect, this model is outputting some predictions (the yellow diagonal line) based on the input data.
+
+As we build up a more complex model for different applications, we will see this output change to reflect the state of the corresponding model. Logistic Regression 
+ What if our problem changes, and want to switch our model from linear regression to logistic regression?
+
+We can just add another input,and update the function in our computational graph, changing the linear function to a sigmoid function: sigmoid=11+e−wiXi\begin{aligned} \text{sigmoid} = \frac{1}{1+e^{-w_iX_i}} \end{aligned}sigmoid=1+e−wi​Xi​1​​ Now, we can see the model output (the decision region background) reflect our new classification problem and dataset. Perceptrons 
+ Our computational graph setup makes it trivial to model different algorithms. For example, if we want to model a Perceptron instead of logistic regression, we need only switch our logistic function to a step function: step={+1,if wiXi≥0−1,if wiXi<0\begin{aligned} \text{step} = \begin{cases} +1, \text{if } w_iX_i \geq 0 \\ -1, \text{if } w_iX_i < 0 \end{cases} \end{aligned}step={+1,if wi​Xi​≥0−1,if wi​Xi​<0​​ Note that the classification region in our model output changed as well, to reflect the new model being represented. Activation Functions & Artificial Neurons 
+ In a neural network, this function node we're changing is very special - we call it an artificial neuron.
+
+An artificial neuron is a fundamental computational element that receives inputs, performs a weighted operation on these inputs, and passes the result through a function.
+
+In neural networks, these functions must be non-linear, and are referred to as activation functions. Neural Networks 
+ Nothing is stopping us from chaining multiple artificial neurons together, feeding one to another. This is all a neural network is!
+
+In fact, the original neural networks were called multilayer perceptrons because they were composed of layers of perceptrons (artificial neurons with step functions) feeding one into another! Architecture 
+ In general, a neural network architecture consists of three layer types:
+
+input layer: A layer with a node for each network input.
+
+hidden layer(s): A layer full of artificial neurons.
+
+output layer: A layer representing the network's output.
+
+There should only be one input and one output layer, but there may be an arbitrary number of hidden layers. No Limits 
+ Designing a neural network architecture is more of an art than a science. The input and output layer will be selected for the specific problem, but the hidden layer is fairly arbitrary.
+
+Neural networks can be wide: having many neurons in a given hidden layer, or deep: having many hidden layers in the network. Balancing neuron count optimizes performance; more neurons enable complex learning, at the cost of the risk of overfitting and more computational cost.
+ As you can see, neural networks are not so complicated! They are just computational graphs, channeling inputs through successive layers of computation to generate outputs. This process of inference, whereby inputs are fed through the network to produce output predictions, is called the forward pass. Let's talk more about those layers of computation, the activation functions.
+
+ Activation Functions  Activation functions are at the heart of artificial neurons in a neural network. These crucial components introduce non-linearity into the model, transforming the weighted inputs to generate an output. Simply put, an activation function decides how much signal to pass onto the next layer based on the input it receives. This idea of chaining many weighted signals together is what allows neural networks to learn very complex relationships. [ℹ]
+
+The non-linear nature of these functions is essential for neural networks to learn from complex data. If we only used linear activation functions, no matter how many layers we stacked, the network would behave just like a single-layer perceptron because the composition of linear functions is still a linear function. This limits the complexity of tasks the network can learn. Non-linear activation functions, on the other hand, enable the network to learn complex patterns and solve intricate problems by adding layers of abstraction.
+
+There's a diverse range of activation functions utilized in neural networks, each with its unique benefits and applications. Here are four popular activation functions:
+
+ Name Plot Function Description Sigmoid (logistic)  f(x)=11+e−x\begin{aligned} f(x) = \frac{1}{1 + e^{-x}} \end{aligned}f(x)=1+e−x1​​ Squashes input to (0, 1). Hyperbolic Tangent (tanh)  f(x)=ex−e−xex+e−x\begin{aligned} f(x) = \frac{e^{x} - e^{-x}}{e^{x} + e^{-x}} \end{aligned}f(x)=ex+e−xex−e−x​​ Squashes input to (-1, 1). Rectified Linear Unit (ReLu)  f(x)={0,if x<0x,if x≥0f(x) = \begin{cases} 0, \text{if } x < 0 \\ x, \text{if } x \geq 0 \end{cases}f(x)={0,if x<0x,if x≥0​ Only keep positive values. Step Function (Perceptron) [ℹ]  f(x)={+1,if x≥0−1,if x<0f(x) = \begin{cases} +1, \text{if } x \geq 0 \\ -1, \text{if } x < 0 \end{cases}f(x)={+1,if x≥0−1,if x<0​ Returns only -1 or 1 (neuron fires or doesn't fire). 
+
+ The sigmoid (or logistic) function, which ranges from 0 to 1, is particularly useful in the output layer of binary classification models, representing the probability of a binary event. However, it can suffer from the vanishing gradients problem during backpropagation.
+
+ The hyperbolic tangent (or 'tanh') function, which ranges from -1 to 1, provides a zero-centered output designed to make learning for the next layer easier. Yet, like sigmoid, it also faces the vanishing gradients issue.
+
+ The Rectified Linear Unit (or 'ReLU') function is a popular choice in hidden layers due to its efficiency. It activates a node if its input is 

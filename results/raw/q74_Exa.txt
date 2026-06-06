@@ -1,0 +1,428 @@
+Title: What went wrong? Troubleshooting JavaScript - Learn web development | MDN
+Key Highlights:
+- Syntax errors: These are spelling errors in your code that actually cause the program not to run at all, or stop working part way through — you will usually be provided with some error messages too. These are usually not too hard to fix, as long as you are familiar with the right tools and know what the error messages mean!
+- Logic errors: These are errors where the syntax is actually correct but the code is not what you intended it to be, meaning that program runs successfully but gives incorrect results. These are often harder to fix than syntax errors, as there usually isn't an error message to direct you to the source of the error.
+[...]
+Earlier on in the course we got you to type some simple JavaScript commands into the developer tools JavaScript console(if you can't remember how to open this in your browser, follow the previous link to find out how). What's even more useful is that the console gives you error messages whenever a syntax error exists inside the JavaScript being fed into the browser's JavaScript engine. Now let's go hunting.
+[...]
+```
+Uncaught TypeError: guessSubmit.addeventListener is not a function
+number-game-errors.html:87:19
+[...]
+- The first part,`Uncaught TypeError: guessSubmit.addeventListener is not a function`, is telling us something about what went wrong.
+- The second part,`number-game-errors.html:87:19`, is telling us where in the code the error came from: line 87, character 19 of the file "number-game-errors.html".
+[...]
+The error message says "guessSubmit.addeventListener is not a function", which means that the function we're calling is not recognized by the JavaScript interpreter. Often, this error message actually means that we've spelled something wrong. If you are not sure of the correct spelling of a piece of syntax, it is often good to look up the feature on MDN. The best way to do this currently is to search for "mdn name-of-feature" with your favorite search engine. Here's a shortcut to save you some time in this instance: addEventListener().
+[...]
+So, looking at this page, the error appears to be that we've spelled the function name wrong! Remember that JavaScript is case-sensitive, so any slight difference in spelling or casing will cause an error. Changing`addeventListener` to`addEventListener` should fix this. Do this now.
+[...]
+```
+Uncaught TypeError: can't access property "textContent", lowOrHi is null
+[...]
+Note: This error didn't come up as soon as the page was loaded because this error occurred inside a function (inside the`checkGuess() { }` block). As you'll learn in more detail in our later functions article, code inside functions runs in a separate scope than code outside functions. In this case, the code was not run and the error was not thrown until the`checkGuess()` function was run by line 87.
+[...]
+This line is trying to set the`textContent` property of the`lowOrHi` variable to a text string, but it's not working because`lowOrHi` does not contain what it's supposed to. Let's see why this is — try searching for other instances of`lowOrHi` in the code. The earliest instance you'll find is on line 51:
+[...]
+= document.querySelector("
+[...]
+Save and refresh, and you should now see the`console.log()` result in your console. Sure enough,`lowOrHi`'s value is`null` at this point, and this matches up with the Firefox error message`lowOrHi is null`. So there is definitely a problem with line 51. The null value means "nothing", or "no value". So our code to set`lowOrHi` to an element is going wrong.
+[...]
+Let's think about what the problem could be. Line 51 is using a document.querySelector() method to get a reference to an element by selecting it with a CSS selector. Looking further up our file, we can find the paragraph in question:
+[...]
+<p class="lowOrHi"></
+[...]
+So we need a class selector here, which begins with a dot (`.`), but the selector being passed into the`querySelector()` method in line 51 has no dot. This could be the problem! Try changing`lowOrHi` to`.lowOrHi` in line 51.
+[...]
+1. Now if you try playing the game through again, you should get more success — the game should play through absolutely fine, until you end the game, either by guessing the right number, or by running out of guesses.
+2. At that point, the game fails again, and the same error is spat out that we got at the beginning — "TypeError: resetButton.addeventListener is not a function"! However, this time it's listed as coming from line 95.
+3. Looking at line number 95, it is easy to see that we've made the same mistake here. We again just need to change`addeventListener` to`addEventListener`. Do this now.
+[...]
+There's definitely a problem in the game logic somewhere — the game is not returning an error; it just isn't playing right.
+[...]
+Search for the`randomNumber` variable, and the lines where the random number is first set. The instance that stores the random number that we want to guess at the start of the game should be around line number 47:
+[...]
+And the one that generates
+[...]
+game is around
+[...]
+114:
+[...]
+```
+randomNumber = Math.floor(Math.random()) + 1;
+[...]
+To fix this, let's consider how this line is working. First, we invoke Math.random(), which generates a random decimal number between 0 and 1, e.g., 0.5675493843.
+[...]
+(), which rounds the
+[...]
+down to the nearest whole number. We then add 1 to that result:
+[...]
+Rounding a random decimal number between 0 and 1 down will always return 0, so adding 1 to it will always return 1. We need to multiply the random number by 100 before we round it down. The following would give us a random number between 0 and 99:
+[...]
+.floor(
+[...]
+This could be
+[...]
+For example, if
+[...]
+were to change this line
+[...]
+This one is pretty simple — it
+[...]
+means that you've missed the closing parenthesis at the end of a function/method call.
+[...]
+This has caused the browser to think that we are trying to pass the contents of the function into the function as an argument. Be careful with those parentheses!
+[...]
+This is easy — it generally means that you've missed one of your curly braces from a function or conditional structure. We got this error by deleting one of the closing curly braces near the bottom of the`checkGuess()` function.
+[...]
+These errors generally mean that you've left off a string value's opening or closing quote mark. In the first error above, string would be replaced with the unexpected character(s) that the browser found instead of a quote mark at the start of a string. The second error means that the string has not been ended with a quote mark.
+
+---
+
+Title: Why Is My JavaScript Not Working? (With Examples)
+Key Highlights:
+We round up the most common causes for your JavaScript code not working.
+[...]
+you just added to your website isn’t
+[...]
+, and you want to get to the meat of the problem so you can
+[...]
+As any experienced developer will tell you, there’s more than one reason why this can happen. And, depending on how complex your code, finding that reason out can take you anywhere from a couple of minutes to hours of googling and debugging.
+[...]
+Hoping to help save you some time, in this post I’ve compiled a list of the most common mistakes that can make your JavaScript code “not work.”
+[...]
+If your JavaScript code is not working, the first thing you should do is check the`<script>`tag.
+[...]
+When you include JavaScript in your HTML document with the`<script>`tag, many things can (and often do) go wrong. And, to avoid chasing a red herring, it’s best to rule them out before looking for other possible causes.
+[...]
+### Misspelled Tag
+[...]
+Carefully inspect the`<script>`tag and the`type="text/javascript"`attribute.
+[...]
+Have you misspelled anything? Have you omitted a forward slash (/), quotation mark (‘), less-than (<) or greater-than (>) sign?
+[...]
+These mistakes happen more often than we think, especially when we work late into the night, with a reduced attention span, to meet tight deadlines.
+[...]
+### Wrong Relative Path or URI
+[...]
+If you’re loading your script from another location, such as your server or a CDN, make sure you’re using the right URI. In case you are, check if the file is still there.
+[...]
+Suppose you’re loading the script from your own server, and you’re doing it with a relative path. Check that relative path and make sure it’s correct.
+[...]
+If you’re loading the script from a CDN, try to open the URI in your browser and see if the file is still there. Scripts, especially libraries, are often updated—and legacy versions get deprecated.
+[...]
+### Wrong Tag Placement
+[...]
+If your`<script>`tag contains code that needs to parse and manipulate the DOM elements in the HTML markup, you probably want to include it at the bottom of the`<body>`tag instead of the top of the`<head>`tag.
+[...]
+Not all scripts that should have a listener forthe DOMContentLoaded eventhave it, and loading scripts that need to read the DOM before the DOM has been fully loaded is a very, very common issue.
+[...]
+For example, the following JavaScript code snippet won’t work because the tag is implemented in the HTML document’s`<head>`and, when it tries to select`div#say-hello`, it won’t be loaded and parsed by the browser window yet:
+[...]
+There are two solutions to this.
+[...]
+One is to add an event listener for the DOMContentLoaded event:
+[...]
+The other is to place the tag immediately before the closing of the`<body>`tag:
+[...]
+`<!-- Works thanks to tag placement
+[...]
+head></head><body>
+[...]
+say-hello').
+[...]
+script></body></html>
+[...]
+Both of these solutions will fire the JavaScript code after the DOM element it needs to query for has been fully loaded and parsed by the browser.
+[...]
+## Issues With the Code
+[...]
+Equally common are issues with the code itself, more often than not due to fatigue or haste. Chief among them are (1) mistyped function or variable names and (2) misused declarations.
+[...]
+The good news is that, by inspecting the error messages in the browser’s console, you can catch these quickly and easily because they tend to throw:
+[...]
+* **ReferenceError**when you’re using the wrong name to reference a function or variable.
+* **SyntaxError**when you’ve mistyped something or omitted a character inside your function’s statement.
+[...]
+Try to rule these out before you continue debugging your code.
+[...]
+### Mistyped Names
+[...]
+If you mistype your function’s name:
+[...]
+### Wrong Syntax
+[...]
+If you’re a Full-Stack Developer and you keep switching back and forth between HTML/CSS and JavaScript on the frontend and whatever language you’re using on the backend, it’s only a matter of time until you make a mistake and mix up the syntax between languages.
+[...]
+When in doubt, check the syntax of:
+[...]
+* Parenthesis () after`if`,`elseif`,`for`,`while`statements.
+* Curly brackets {} for individual statement blocks (pay extra attention to statements within statements, a.k.a. nested statements).
+* Square brackets [] and`new Array()`method for arrays.
+[...]
+* Quotation marks for strings (pay extra attention to quotes within quotation marks, a.k.a. nested quotes).
+[...]
+* Uses of JavaScript methods and operators to store, manipulate, and compare data in objects (Are you using the right ones?).
+* Semicolons ; between statements in a loop.
+[...]
+### Const, Let, and Var Declarations
+[...]
+In JavaScript, you can declare values using`const`,`let`, and`var`.
+[...]
+The declaration you opt for has important implications for your code because it determines what you can—and cannot—do to the data item/s you just stored in the memory.
+[...]
+* Use`const`to declare a read-only constant.
+[...]
+* Use`let`to declare a local variable limited to the scope of the block statement it’s declared in (as well as any sub-blocks).
+[...]
+* Use`var`to declare a global variable or local variable limited to the function it’s declared in.
+[...]
+**Trying to redeclare a constant:**
+[...]
+You can’t redeclare a`const`. If you try to do it, as shown in the example below, the browser will throw an Uncaught SyntaxError back at you:
+[...]
+Expectedly, if you’re trying to redeclare a constant with updated values, it won’t work and it may break the flow of data within your application.
+[...]
+**Trying to redeclare a`let`variable in the same statement:**
+[...]
+A`let`variable can only be declared once within a single statement. (But it can be reassigned as many times as you need it to.)
+[...]
+This means that you can reuse variable
+[...]
+, like`x`,`y`, and`z`across functions and statements—as long as you don’t try to do so within the same bracket or sub-bracket.
+[...]
+mind, especially if you’re new
+[...]
+you’ve
+[...]
+is a subtle constraint, and it can cause just as subtle
+
+---
+
+Title: Why isn't your code working? - Research Survival Skills - LibGuides at The University of Oklahoma Libraries
+Key Highlights:
+Why isn't your code working? - Research Survival Skills - LibGuides at The University of Oklahoma Libraries Skip to Main Content
+[...]
+# Research Survival Skills
+[...]
+## Move beyond "guess and check"
+[...]
+### The general approach to debugging
+[...]
+- Learn More and Ask Us
+- Develop a testable hypothesis
+- Test it in the simplest possible case
+[...]
+### Questions to ask when developing your hypothesis
+[...]
+- What type of problem do you have?
+- What is your goal for the code?
+- Does the code have all the necessary steps?
+- Does the code need updated since previous uses?
+[...]
+### Strategies for your testing
+[...]
+- Keep your goal or goals in mind
+- Go line-by-line
+- Add comments as you go
+- Read the documentation for the functions you are using
+
+---
+
+Title: 6 ways to fix your code when you don’t know why it doesn’t work - Codemzy's Blog
+Key Highlights:
+One of the hardest parts of coding is when something just doesn’t work. And you don’t know why. In this blog post, I'll show you 6 ways to figure out why your code isn't working.
+[...]
+Sometimes you'll get errors. Sometimes a test will fail. Sometimes nothing at all will happen. And you won't know why.
+[...]
+1. 😴 Take a break
+2. 🔎 Use a search engine
+3. 📖 Check the docs
+4. 👩‍💻`console.log()` it
+5. 👀 Go through the code line-by-line
+6. 🤷‍♀️ Check if your code is actually broken
+[...]
+## 1. Check if your code is actually broken
+[...]
+This might sound like a weird one, but I have lost count of the number of times I thought my code was broken, but I just wasn't seeing the latest changes.
+[...]
+I'm refreshing my page, and changing my code, and it just isn't working.
+[...]
+And then I get a rush of relief when I realise my code is fine - it just isn't running!
+[...]
+Maybe I hadn't`npm run dev`, or I forgot to put the script tag in my HTML. Doh! 🍩
+[...]
+If you are forgetful like me, then before you start making changes to your code or getting in a blind panic, check the servers are on, and you are running the latest build.
+[...]
+## 2. Go through the code line-by-line
+[...]
+Once you are sure there's a problem with your code, and you haven't just forgotten to build/run it, it's time to go through it.
+[...]
+I often have to remind myself of this, because it's easy to assume you know where the problem might be, but if I'm stuck and an error message isn't telling me exactly what the problem is, then going through line-by-line brings me the best results.
+[...]
+Unless you know the exact problem, it's a good idea to take the whole code block and check every line.
+[...]
+First, you can go through and try to spot any obvious problems, or improvements you could make. For example, I can see`this.perrson` should be`this.person` in the`Activity` constructor function. I can fix that.
+[...]
+Once I've looked for anything obvious, if it's still not fixed, I'll get busy with`console.log()`.
+[...]
+## 3. console.log() it
+[...]
+`console.log()` is my bug-fixing weapon of choice, and I don't care who knows it!
+[...]
+When I'm going through a problem block of code, line-by-line, if I can't find any obvious problems, I'll often use`console.log()` to help me figure out where the problem is.
+[...]
+Once I have sprinkled some`console.log()`'s about, I'll run the code to see:
+[...]
+- if any`console.log()` responses are missing
+- if any new errors get thrown that give me more information
+- if what I expected to get logged gets logged
+[...]
+I'll use code like`console.log(1)`,`console.log(2)` etc, to figure out where the code stops running or if the right if statements are triggering.
+[...]
+I used to use things like`console.log("wtf")`,`console.log("nooooo")`,`console.log("😭")`, but the numbering system works much better for figuring out where the code stops running.
+[...]
+It's also effective to try and log the variables or results you expect to get, so you can compare the actual results.
+[...]
+```
+try {
+  function Person(name) { 
+    this.name = name; 
+  };
+[...]
+.task} started by ${activity.person}`);
+} catch(error) {
+[...]
+console.error("Sorry, there's a problem");
+}
+[...]
+// me undefined
+// Sorry, there's a problem
+[...]
+Ok, so we can see that`me` is`undefined`, looks like I didn't put`new` when calling my constructor function.
+[...]
+`let me = Person("codemzy");` should be`let me = new Person("codemzy");`
+[...]
+I can fix that, and I can see I've also done it when calling`Activity` so I'll fix that too.
+[...]
+So`me` is no longer`undefined`, which is great, but I'm still not getting the`console.log()` for activity. There must be an error there - let's log it.
+[...]
+```
+} catch(error) {
+    console.error(error); // <-- log the error
+    console.error("Sorry, there's a problem");
+}
+[...]
+// ReferenceError: activity is not defined
+// Sorry, there's a problem
+```
+[...]
+`activity` is not defined?! Yes it is?! Here:
+[...]
+```
+let actvity = Activity(me, "bug fixing");
+```
+[...]
+```
+try {
+  function Person(name) { 
+    this.name = name; 
+  };
+  function Activity(person, task) {
+    this.person = person;
+    this.task = task ;
+  };
+  let me = new Person("codemzy");
+  console.log("me", me);
+  let activity = new Activity(me, "bug fixing");
+  console.log("activity", activity);
+  console.log(`${activity.task} started by ${activity.person}`);
+} catch(error) {
+    console.error(error);
+    console.error("Sorry, there's a problem");
+}
+[...]
+No errors now, which is great! But "bug fixing started by [object Object]" isn't what we want! We can see from our logs that the`Person` object is assigned to`person` in activity - what we want is`activity.person.name`.
+[...]
+Remember to remove all the extra`console.log()`'s then you get things working!
+[...]
+```
+try {
+  function Person(name) { 
+    this.name = name; 
+  };
+  function Activity(person, task) {
+    this.person = person;
+    this.task = task ;
+  };
+  let me = new Person("codemzy");
+  let activity = new Activity(me, "bug fixing");
+  console.log(`${activity.task} started by ${activity.person.name}`);
+} catch(error) {
+    console.error("Sorry, there's a problem");
+}
+[...]
+## 4. Check the docs
+[...]
+Always check the docs! If you are using a language, library, or framework, there are some great documentation sources that can answer most questions, tell you where you are going wrong, or even show you a better way.
+[...]
+## 5. Use a search engine
+[...]
+If you've tried to fix it yourself, and can't, and you've tried to find the answer in the docs - maybe it's time to take things to the internet.
+[...]
+A good Google search can often lead you to someone with a similar problem on Stack Overflow or another forum.
+[...]
+If you are using an npm package, the git repository issues are often a goldmine of information. Search both open and closed issues to see if someone else has had the same problem (and how they fixed it!). Maintainers will often leave code snippets and workarounds in the comments.
+[...]
+## 6. Take a break
+[...]
+Sometimes, the bug isn't your code - it's your brain.
+[...]
+I didn't realise when I started coding how much problem-solving was involved. It's often a challenge, trying to come up with solutions to complex problems.
+[...]
+"How should I store this data?" "Should I use a framework/library?" "How should I call this function?" "What's the best way to structure my files/folders?" "How can I add a new version to my API?"
+[...]
+If you hit a roadblock in your code, or whatever you are building, taking a break is often the quickest way to come up with a solution (as counter-intuitive as that might sound!).
+
+---
+
+Title: Why doesn't my code work?
+Key Highlights:
+If you have any hope of getting your code to
+[...]
+, you'd better know what you expect it to do in order to get the right results.
+[...]
+what you want
+[...]
+to do,
+[...]
+There's no hope
+[...]
+t have a plan for how to get your
+[...]
+Ask yourself how the computer can get to the result you want: what steps need to be taken? What needs to happen? What do you need to do with the results?
+[...]
+Once you have that clear for yourself, you can start to figure out why the code you have written isn't doing that.
+[...]
+Assuming you know what you want your code to do, you can start asking where things diverge. In order to do that, you need to be able to look at see what's happening in your code.
+[...]
+First, if your code doesn't seem to be doing anything, then you may have an error in your code that's preventing the browser from running it. The “Console” tab of your browser's developer tools will show you any errors with your code. (See Browser Developer Tools for more info on the developer tools.). You'll see a description of the error, and the line number in the console.
+[...]
+The easiest way to start diagnosing problems with your logic is the`alert()` function, which we have already seen. You can insert an`alert()` to confirm that a particular function is running when you expect. Since you can see the alert window and message, you know that line of code ran.
+[...]
+Having a lot of alerts popping up can make it difficult to work with your page, even for debugging. A cleaner alternative is the`console.log()` function. This takes whatever you give it as an argument and displays it in the “Console” tab.
+[...]
+For example, if you are trying to connect a click event but can't tell if your code is running, you can add a couple of`console.log()` calls like this.
+[...]
+By adding these log outputs, you have learned something: maybe the`setup` function never ran and you need to figure out why; maybe`something_click` didn't run because the event wasn't connected property; maybe it ran but didn't have the desired outcome. In any case, you have narrowed down where to look for the problem.
+[...]
+If you're unsure on the value of a variable at a certain point, you can log their values as well to see if they are what you expect:
+[...]
+y are...')
+console.
+[...]
+(x)
+console
+[...]
+(y)
+[...]
+You can use these tools (like these examples or other ways) to figure out where the difference is between your expectations and what's actually happening in your code.

@@ -1,0 +1,288 @@
+Title: Creating an example workflow - GitHub Docs
+Key Highlights:
+In this tutorial, you'll learn how to create a basic workflow that is triggered by a push event.
+[...]
+This guide shows you how to create a basic workflow that is triggered when code is pushed to your repository.
+[...]
+GitHub Actions uses YAML syntax to define the workflow. Each workflow is stored as a separate YAML file in your code repository, in a directory named `.github/workflows`.
+[...]
+You can create an example workflow in your repository that automatically triggers a series of commands whenever code is pushed. In this workflow, GitHub Actions checks out the pushed code, installs the bats testing framework, and runs a basic command to output the bats version: `bats -v`.
+[...]
+1. In your repository, create the `.github/workflows/` directory to store your workflow files.
+2. In the `.github/workflows/` directory, create a new file called `learn-github-actions.yml` and add the following code.
+[...]
+```yaml
+name: learn-github-actions
+run-name: ${{ github.actor }} is learning GitHub Actions
+on: [push]
+jobs:
+  check-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g bats
+      - run: bats -v
+
+```
+[...]
+1. Commit these changes and push them to your GitHub repository.
+[...]
+Your new GitHub Actions workflow file is now installed in your repository and will run automatically each time someone pushes a change to the repository. To see the details about a workflow's execution history, see Viewing the activity for a workflow run.
+[...]
+# Specifies the trigger for this workflow. This example uses the `push` event, so a workflow run is triggered every time someone pushes a change to the repository or merges a pull request. This is triggered by a push to every branch; for examples of syntax that runs only on pushes to specific branches, paths, or tags, see AUTOTITLE.
+on: [push]
+[...]
+# Groups together all the jobs that run in the `learn-github-actions` workflow.
+jobs:
+[...]
+# Defines a job named `check-bats-version`. The child keys will define properties of the job.
+  check-bats-version:
+[...]
+# Configures the job to run on the latest version of an Ubuntu Linux runner. This means that the job will execute on a fresh virtual machine hosted by GitHub. For syntax examples using other runners, see AUTOTITLE
+    runs-on: ubuntu-latest
+[...]
+# Groups together all the steps that run in the `check-bats-version` job. Each item nested under this section is a separate action or shell script.
+    steps:
+[...]
+# The `uses` keyword specifies that this step will run the `actions/checkout@v5` action. This is an action that checks out your repository onto the runner, allowing you to run scripts or other actions against your code (such as build and test tools). You should use the checkout action any time your workflow will use the repository's code.
+      - uses: actions/checkout@v5
+[...]
+# This step uses the `actions/setup-node@v4` action to install the specified version of the Node.js. (This example uses version 20.) This puts both the `node` and `npm` commands in your `PATH`.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+[...]
+# The `run` keyword tells the job to execute a command on the runner. In this case, you are using `npm` to install the `bats` software testing package.
+      - run: npm install -g bats
+[...]
+# Finally, you'll run the `bats` command with a parameter that outputs the software version.
+      - run: bats -v
+[...]
+. To find more
+[...]
+, see Using
+[...]
+When your workflow is triggered, a workflow run is created that executes the workflow. After a workflow run has started, you can see a visualization graph of the run's progress and view each step's
+[...]
+on GitHub.
+
+---
+
+Title: Quickstart for GitHub Actions
+Key Highlights:
+GitHub Actions is a continuous integration and continuous delivery (CI/CD) platform that allows you to automate your build, test, and deployment pipeline. You can create workflows that run tests whenever you push a change to your repository, or that deploy merged pull requests to production.
+[...]
+This quickstart guide shows you how to use the user interface of GitHub to add a workflow that demonstrates some of the essential features of GitHub Actions.
+[...]
+To get started with preconfigured workflows, browse through the list of templates in the actions/starter-workflows repository. For more information, see Using workflow templates.
+[...]
+GitHub provides preconfigured workflow templates that you can use as-is or customize to create your own workflow. GitHub analyzes your code and shows you workflow templates that might be useful for your repository. For example, if your repository contains Node.js code, you'll see suggestions for Node.js projects.
+[...]
+These workflow templates are designed to help you get up and running quickly, offering a range of configurations such as:
+[...]
+- CI: Continuous Integration workflows
+- Deployments: Deployment workflows
+- Automation: Automating workflows
+- Code Scanning: Code Scanning workflows
+- Pages: Pages workflows
+[...]
+Use these workflows as a starting place to build your custom workflow or use them as-is. You can browse the full list of workflow templates in the actions/starter-workflows repository.
+[...]
+- You have at least a basic knowledge of how to use GitHub. If you don't, you'll find it helpful to read some of the articles in the documentation for repositories and pull requests first. For example, see Quickstart for repositories, About branches, and About pull requests.
+- You have a repository on GitHub where you can add files.
+- You have access to GitHub Actions. [!NOTE] If the ** Actions** tab is not displayed under the name of your repository on GitHub, it may be because Actions is disabled for the repository. For more information, see Managing GitHub Actions settings for a repository.
+[...]
+## Creating your first workflow
+[...]
+1. In your repository on GitHub, create a workflow file called `github-actions-demo.yml` in the `.github/workflows` directory. To do this: If the `.github/workflows` directory already exists, navigate to that directory on GitHub, click Add file, then click Create new file, and name the file `github-actions-demo.yml`. If your repository doesn't have a `.github/workflows` directory, go to the main page of the repository on GitHub, click Add file, then click Create new file, and name the file `.github/workflows/github-actions-demo.yml`. This creates the `.github` and `workflows` directories and the `github-actions-demo.yml` file in a single step. [!NOTE]
+[...]
+For GitHub to discover any GitHub Actions workflows in your repository, you must save the workflow files in a directory called `.github/workflows`. You can give the workflow file any name you like, but you must use `.yml` or `.yaml` as the file name extension. YAML is a markup language that's commonly used for configuration files.
+[...]
+2. Copy the following YAML contents into the `github-actions-demo.yml` file:
+[...]
+```yaml
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+
+```
+[...]
+At this stage you don't need to understand the details of this workflow. For now, you can just copy and paste the contents into the file. After completing this quickstart guide, you can learn about the syntax of workflow files in Workflows, and for an explanation of GitHub Actions contexts, such as `${{ github.actor }}` and `${{ github.event_name }}`, see Contexts reference.
+[...]
+1. Click Commit changes.
+2. In the "Propose changes" dialog, select either the option to commit to the default branch or the option to create a new branch and start a pull request. Then click Commit changes or Propose changes.
+[...]
+Committing the workflow file to a branch in your repository triggers the `push` event and runs your workflow.
+[...]
+If you chose to start a pull request, you can continue and create the pull request, but this is not necessary for the purposes of this quickstart because the commit has still been made to a branch and will trigger the new workflow.
+[...]
+1. On GitHub, navigate to the main page of the repository.
+2. Under your repository name, click ** Actions**.
+3. In the left sidebar, click the workflow you want to display, in this example "GitHub Actions Demo."
+4. From the list of workflow runs, click the name of the run you want to see, in this example "USERNAME is testing out GitHub Actions."
+5. In the left sidebar of the workflow run page, under Jobs, click the Explore-GitHub-Actions job.
+6. The log shows you how each of the steps was processed. Expand any of the steps to view its details. For example, you can see the list of files in your repository:
+[...]
+The example workflow you just added is triggered each time code is pushed to the branch, and shows you how GitHub Actions can work with the contents of your repository. For an in-depth tutorial, see Understanding GitHub Actions.
+[...]
+- To create a GitHub Actions workflow, see Using workflow templates.
+- For continuous integration (CI) workflows, see Building and testing your code.
+- For building and publishing packages, see Publishing packages.
+- For deploying projects, see Deploying to third-party platforms.
+- For automating tasks and processes on GitHub, see Managing your work with GitHub Actions.
+- For examples that demonstrate more complex features of GitHub Actions, see Managing your work with GitHub Actions. These detailed examples explain how to test your code on a runner, access the GitHub CLI, and use advanced features such as concurrency and test matrices.
+
+---
+
+Title: Workflows - GitHub Docs
+Key Highlights:
+A workflow is a configurable automated process that will run one or more jobs. Workflows are defined by a YAML file checked in to your repository and will run when triggered by an event in your repository, or they can be triggered manually, or at a defined schedule.
+[...]
+Workflows are defined in the `.github/workflows` directory in a repository. A repository can have multiple workflows, each of which can perform a different set of tasks such as:
+[...]
+A workflow must contain the following basic components:
+[...]
+1. One or more events that will trigger the workflow.
+2. One or more jobs, each of which will execute on a runner machine and run a series of one or more steps.
+3. Each step can either run a script that you define or run an action, which is a reusable extension that can simplify your workflow.
+[...]
+## Workflow triggers
+[...]
+Workflow triggers are events that cause a workflow to run. These events can be:
+[...]
+- Events that occur in your workflow's repository
+- Events that occur outside of GitHub and trigger a `repository_dispatch` event on GitHub
+- Scheduled times
+- Manual
+[...]
+For example, you can configure your workflow to run when a push is made to the default branch of your repository, when a release is created, or when an issue is opened.
+[...]
+Workflow triggers are defined with the `on` key. For more information, see Workflow syntax for GitHub Actions.
+[...]
+The following steps occur to trigger a workflow run:
+[...]
+1. An event occurs on your repository. The event has an associated commit SHA and Git ref.
+2. GitHub searches the `.github/workflows` directory in the root of your repository for workflow files that are present in the associated commit SHA or Git ref of the event.
+3. A workflow run is triggered for any workflows that have `on:` values that match the triggering event. Some events also require the workflow file to be present on the default branch of the repository in order to run.
+[...]
+Each workflow run will use the version of the workflow that is present in the associated commit SHA or Git ref of the event. When a workflow runs, GitHub sets the `GITHUB_SHA` (commit SHA) and `GITHUB_REF` (Git ref) environment variables in the runner environment. For more information, see Store information in variables.
+[...]
+To build your first workflow, see Creating an example workflow.
+
+---
+
+Title: GitHub Actions documentation - GitHub Docs
+Key Highlights:
+Automate, customize, and execute your software development workflows right in your repository with GitHub Actions. You can discover, create, and share actions to perform any job you'd like, including CI/CD, and combine actions in a completely customized workflow.
+[...]
+- Quickstart for GitHub Actions Try out the core features of GitHub Actions in minutes.
+[...]
+- Workflow syntax for GitHub Actions A workflow is a configurable automated process made up of one or more jobs. You must create a YAML file to define your workflow configuration.
+[...]
+- Migrating to GitHub Actions Learn how to migrate your existing CI/CD workflows to GitHub Actions.
+[...]
+- Continuous integration You can create custom continuous integration (CI) workflows directly in your GitHub repository with GitHub Actions.
+[...]
+- Continuous deployment You can create custom continuous deployment (CD) workflows directly in your GitHub repository with GitHub Actions.
+[...]
+- About custom
+[...]
+. You can create your own actions, or use and customize actions shared by the GitHub community.
+[...]
+- GitHub-hosted runners GitHub offers hosted virtual machines to run workflows. The virtual machine contains an environment of tools, packages, and settings available for GitHub Actions to use.
+[...]
+- Actions Runner Controller You can host your own runners and customize the environment used to run jobs in your GitHub Actions workflows.
+[...]
+- Triggering a workflow How to automatically trigger GitHub Actions workflows
+[...]
+- Deploying with GitHub Actions GitHub Actions gives you fine-grained control over deployments with environments, concurrency groups, and protection rules.
+[...]
+- Creating a third party CLI action Learn how to develop an action to set up
+[...]
+CLI on GitHub
+[...]
+- Manually running a workflow When a workflow is configured to run on the workflow_dispatch event, you can run the workflow using the Actions tab on GitHub, GitHub CLI, or the REST API.
+[...]
+- Using GitHub-hosted runners You can assign a job to run on a virtual machine hosted by GitHub.
+[...]
+- Workflow syntax for GitHub Actions A workflow is a configurable automated process made up of one or more jobs. You must create a YAML file to define your workflow configuration.
+[...]
+- Metadata syntax reference You can create actions to perform tasks in your repository. If you're making a custom action, it will require a metadata file that uses YAML syntax.
+[...]
+- Creating an example workflow In this tutorial, you'll learn how to create a basic workflow that is triggered by a push event.
+[...]
+- Building and testing Go Learn how to create a continuous integration (CI) workflow to build and test your Go project.
+[...]
+- Building and testing Java with Ant Learn how to create a continuous integration (CI) workflow in GitHub Actions to build and test your Java project with Ant.
+[...]
+- Building and testing Java with Gradle Learn how to create a continuous integration (CI) workflow in GitHub Actions to build and test your Java project with Gradle.
+[...]
+- Building and testing Java with Maven Learn how to create a continuous integration (CI) workflow in GitHub Actions to build and test your Java project with Maven.
+[...]
+- Building and
+[...]
+.NET Learn how to create
+[...]
+workflow to build and
+[...]
+your .NET
+[...]
+- Building and testing Node.js Learn how to create a continuous integration (CI) workflow to build and test your Node.js project.
+[...]
+PowerShell Learn how
+[...]
+- Building and testing Python Learn how to create a
+[...]
+integration (CI) workflow to build and test your Python project.
+[...]
+- Building and testing Ruby You can create a continuous integration (CI) workflow to build and test your Ruby project.
+[...]
+- Building and testing Rust Learn how to create a
+[...]
+(CI) workflow to build and
+[...]
+your Rust project.
+[...]
+- Building and testing Swift Learn how to create a
+[...]
+(CI) workflow to build and test your Swift project.
+[...]
+- Building and testing Xamarin applications Learn how to create a continuous integration (CI) workflow in GitHub Actions to build and test your Xamarin application.
+
+---
+
+Title: Continuous integration - GitHub Docs
+Key Highlights:
+You can create custom continuous integration (CI) workflows directly in your GitHub repository with GitHub Actions.
+[...]
+## About continuous integration using GitHub Actions
+[...]
+CI using GitHub Actions offers workflows that can build the code in your repository and run your tests. Workflows can run on GitHub-hosted virtual machines, or on machines that you host yourself. For more information, see GitHub-hosted runners and Self-hosted runners.
+[...]
+You can configure your CI workflow to run when a GitHub event occurs (for example, when new code is pushed to your repository), on a set schedule, or when an external event occurs using the repository dispatch webhook.
+[...]
+GitHub runs your CI tests and provides the results of each test in the pull request, so you can see whether the change in your branch introduces an error. When all CI tests in a workflow pass, the changes you pushed are ready to be reviewed by a team member or merged. When a test fails, one of your changes may have caused the failure.
+[...]
+When you set up CI in your repository, GitHub analyzes the code in your repository and recommends CI workflows based on the language and framework in your repository. For example, if you use Node.js, GitHub will suggest a workflow template that installs your Node.js packages and runs your tests. You can use the CI workflow template suggested by GitHub, customize the suggested workflow template, or create your own custom workflow file to run your CI tests.
+[...]
+In addition to helping you set up CI workflows for your project, you can use GitHub Actions to create workflows across the full software development life cycle. For example, you can use actions to deploy, package, or release your project. For more information, see Writing workflows.
+[...]
+GitHub offers CI workflow templates for a variety of languages and frameworks. For tutorials on setting up continuous integration with these templates, see Building and testing your code.

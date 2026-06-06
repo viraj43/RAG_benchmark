@@ -1,0 +1,334 @@
+Title: TypeError: "x" is not a function - JavaScript | MDN
+Key Highlights:
+The JavaScript exception "is not a function" occurs when there was an attempt to call a value from a function, but the value is not actually a function.
+[...]
+```
+TypeError: "x" is not a function. (V8-based & Firefox & Safari)
+[...]
+It attempted to call a value from a function, but the value is not actually a function. Some code expects you to provide a function, but that didn't happen.
+[...]
+Maybe there is a typo in the function name? Maybe the object you are calling the method on does not have this function? For example, JavaScript`Objects` have no`map` function, but the JavaScript`Array` object does.
+[...]
+There are many built-in functions in need of a (callback) function. You will have to provide a function in order to have these methods working properly:
+[...]
+When working with Array or TypedArray objects:
+[...]
+- Array.prototype.every(), Array.prototype.some(), Array.prototype.forEach(), Array.prototype.map(), Array.prototype.filter(), Array.prototype.reduce(), Array.prototype.reduceRight(), Array.prototype.find()
+[...]
+When working with Map and Set objects:
+[...]
+- Map.prototype.forEach() and Set.prototype.forEach()
+[...]
+In this case, which
+[...]
+often, there is a typo in the method name:
+[...]
+```
+const
+[...]
+getElementByID("foo");
+[...]
+// TypeError: document.getElementByID is not a function
+[...]
+The correct function name is`getElementById`:
+[...]
+```
+const x = document.getElementById("foo");
+[...]
+### Function called on
+[...]
+For certain methods, you have to provide a (callback) function and it will work on specific objects only. In this example, Array.prototype.map() is used, which will work with Array objects only.
+[...]
+obj.map is not
+[...]
+Use an array instead:
+[...]
+```
+const numbers = [1, 4, 9];
+
+numbers.map((num) => num *
+[...]
+2); // [2, 8, 18]
+[...]
+Sometimes when making a class, you may have a property and a function with the same name. Upon calling the function, the compiler thinks that the function ceases to exist.
+[...]
+In math, you can write
+[...]
+as 2
+[...]
+5) or just 2(3 + 5
+[...]
+You can correct the code by adding a`*` operator:
+[...]
+usage (`App
+
+---
+
+Title: TypeScript: Documentation - Understanding Errors
+Key Highlights:
+Whenever TypeScript finds an error, it tries to explain what went wrong in as much detail as possible. Because its type system is structural, this often means providing somewhat lengthy descriptions of where it found a problem.
+[...]
+TypeScript considers a type assignable to another type if one is an acceptable substitute for the other. In other words, a`Cat` is assignable to an`Animal` because a`Cat` is an acceptable substitute for an`Animal`.
+[...]
+As its name implies, this relationship is used to check the validity of an assignment`t = s;` by examining the types of`t` and`s`. It’s also used to check most other places where two types interact. For example, when calling a function, each argument’s type must be assignable to parameter’s declared type.
+[...]
+Informally, if you see`T is not assignable to S`, you can think of that as TypeScript saying ”`T` and`S` are not compatible”. However, note that this is a directional relationship:`S` being assignable to`T` does not imply that`T` is assignable to`S`.
+[...]
+Let’s
+[...]
+what’s going on.
+[...]
+Each error starts with a leading message, sometimes followed by more sub-messages. You can think of each sub-message as answering a “why?” question about the message above it. Let’s work through some examples to see how they work in practice.
+[...]
+Here’s
+[...]
+error message longer
+[...]
+the example itself
+[...]
+```
+tslet a: { m: number[] };let b = { m: [""] };a = b;Type '{ m: string[]; }' is not assignable to type '{ m: number[]; }'.
+  Types of property 'm' are incompatible.
+    Type 'string[]' is not assignable to type 'number[]'.
+      Type 'string' is not assignable to type 'number'.2322Type '{ m: string[]; }' is not assignable to type '{ m: number[]; }'.
+  Types of property 'm' are incompatible.
+    Type 'string[]' is not assignable to type 'number[]'.
+      Type 'string' is not assignable to type 'number'.Try
+```
+[...]
+TypeScript found an error when checking the last line. Its logic for issuing an error follows from its logic for determining if the assignment is OK:
+[...]
+1. Is`b`’s type assignable to`a`’s? No. Why?
+2. Because the type of the`m` property is incompatible. Why?
+3. Because`b`’s`m` property (`string[]`) is not assignable to`a`’s`m` property (`number[]`). Why?
+4. Because one array’s element type (`string`) is not assignable to the other (`number`)
+[...]
+```
+tstype A = { m: number };const a: A = { m: 10, n: "" };Object literal may only specify known properties, and 'n' does not exist in type 'A'.2353Object literal may only specify known properties, and 'n' does not exist in type 'A'.Try
+```
+[...]
+```
+tstype Thing = "none" | { name: string };const a: Thing = { name: 0 };Type 'number' is not assignable to type 'string'.2322Type 'number' is not assignable to type 'string'.Try
+```
+
+---
+
+Title: TypeError: Is Not a Function Fix Guide
+Key Highlights:
+Seeing a TypeError: is not a function message can stop your code cold. This error is common in both Python and JavaScript. It means you tried to call something as a function, but it isn't one.
+[...]
+Don't worry. This guide explains why it happens. You'll learn clear, practical fixes. We'll use short examples and simple explanations.
+[...]
+In programming, a function is a block of code that performs a specific task. To run it, you use parentheses`()`. When you use parentheses on a variable that is not a function, the interpreter throws this error.
+[...]
+The error tells you: "You tried to execute this thing, but it's not callable." It's a type mismatch. The variable holds a number, string, object, or undefined value, not a function.
+[...]
+Understanding this is the first step to fixing it. Always check what type your variable is before calling it.
+[...]
+JavaScript is dynamically typed. This flexibility can lead to this
+[...]
+. Here are
+[...]
+most frequent causes.
+[...]
+A simple typo can cause this. You might write`myFuncton()` instead of`myFunction()`. JavaScript looks for the misspelled name. It finds nothing or a different variable.
+[...]
+Fix: Double-check your spelling. Use an editor with autocomplete. This prevents simple typos.
+[...]
+Methods are functions attached to objects. If you call a method that doesn't exist on that object, you get this error. For example, arrays have`.map()`, but numbers do not.
+[...]
+Fix: Ensure the object has the method you want. Check the documentation. Use`console.log(typeof myNumber)` to see the type.
+[...]
+### 3. Function Not Yet Defined
+[...]
+JavaScript hoists function declarations, but not function expressions. If you use a function expression before defining it, you get this error.
+[...]
+Fix: Use function declarations (which are hoisted) or move your function expression before the call.
+[...]
+Python also throws a similar error:`TypeError: 'int' object is not callable`. The logic is the same. You tried to call something that isn't a function.
+[...]
+You might accidentally assign a value to a name that is a built-in function. For example,`print` or`str`. After that, you can't use the original function.
+[...]
+Fix: Avoid using built-in names for your variables. Use descriptive names like`my_print` or`output_value`.
+[...]
+Sometimes you add extra parentheses by accident. This is common when chaining operations. Python tries to call the result as a function.
+[...]
+Fix: Review your code for stray parentheses. Use a linter to catch these errors.
+[...]
+In Python, a tuple is defined with commas, not just parentheses. A single value in parentheses is just a value. Adding a comma after it creates a tuple. This can cause confusion.
+[...]
+Fix: Remember that parentheses alone don't create a tuple. You need a comma. Use`type()` to check your variable.
+[...]
+Debugging is a systematic process
+[...]
+Step 1: Read the error message carefully. It often tells you the variable name. Look at the line number.
+[...]
+Step 2: Check the variable type. Use`typeof` in JavaScript or`type()` in Python. Print it to the console.
+[...]
+Step 3: Verify the variable is defined. Ensure you haven't misspelled it. Check if it's in scope.
+[...]
+Step 4: Look for overwritten names. Search your code for assignments to built-in function names.
+[...]
+5: Use a debugger. Set a breakpoint. Step through your code. Watch the variables change.
+[...]
+The TypeError: is not a function error is frustrating but fixable. It always means you tried to call a non-function. The causes are simple: misspellings, wrong objects, or overwritten names.
+[...]
+Now you know how to debug it. Check the variable type. Verify the name. Use the right object. With practice, you'll spot these errors instantly.
+
+---
+
+Title: TypeError: 'str' object is not callable Explained - Python Pro Hub
+Key Highlights:
+TypeError: ‘str’ object This is one of the most common—and most confusing—errors for new Python developers. You see it, and you think, “What’s a ‘callable’?” The error TypeError: ‘str’ object is not callable suggests an attempt to call a string as if it were a function.
+[...]
+Let’s break it down in plain English, examining what a TypeError: ‘str’ object is not callable really means, especially when encountering this ‘str’ object issue.
+[...]
+- `TypeError`: The operation you tried is not valid for this type of data.
+- `'str' object`: The data you’re using is a string (text).
+- `is not callable`: You are trying to use it like a function, but it’s not a function, hence the error TypeError: ‘str’ object is not callable.
+[...]
+A “callable” is anything in Python you can call using parentheses`()`. Functions are callable, but encountering a TypeError: ‘str’ object indicates misuse.
+[...]
+This error means you are trying to use parentheses`()` on a variable that is just a string.
+[...]
+There are two main reasons this happens, leading to the common TypeError: ‘str’ object is not callable.
+[...]
+## Cause 1 (Most Common): You Overwrote a Built-in Function
+[...]
+This is the #1 mistake. You accidentally used a built-in Python function name as a variable name, which often results in a TypeError: ‘str’ object is not callable. This mistake of using a string like a function commonly triggers the TypeError.
+[...]
+"I am
+[...]
+# You try to use the *real* str() function to convert a number
+my_number = 123
+my_string = str(my_number)  # This is where it breaks!
+
+# TypeError: 'str' object is not callable
+[...]
+Why it fails: Python thinks you are trying to call your`"I am a string"` variable like a function. It’s confused.
+[...]
+The Fix: NEVER use built-in function names as your variable names. Rename your variable to something else, like`my_string`.
+[...]
+```
+# Use a different variable name
+my_string = "I am a string"
+
+# Now, the 'str()' function is safe and works!
+my_number = 123
+my_string_version = str(my_number)
+
+print(my_string_version)
+```
+[...]
+## Cause 2: You Forgot a Math Operator
+[...]
+This often happens when you’re writing a formula and forget a`*` for multiplication, leading to the infamous TypeError: ‘str’ object. Ensure you avoid a TypeError: ‘str’ object is not callable by correctly using operators in expressions to prevent accidental function-like treatment of strings.
+[...]
+```
+x = 10
+[...]
+y = 5
+[...]
+# Python thinks 10(5 + 2) means "call the function 10"
+result = x(y + 2) 
+
+# TypeError: 'int' object is not callable
+# (This is the same error, but with an 'int' instead of 'str')
+[...]
+The Fix: Add the`*` operator for multiplication.
+[...]
+```
+x = 10
+y = 5
+
+result = x * (y + 2)
+print(result)  # Output: 70
+```
+[...]
+1. Read the error line. It will tell you which variable is the problem.
+2. Look at your code and find where you defined that variable.
+3. 99% of the time, you just need to rename it to something that isn’t a Python function.
+
+---
+
+Title: Python TypeError: Causes and Fixes
+Key Highlights:
+A TypeError in Python occurs when you perform an operation on an incompatible data type. It is one of the most common errors you will encounter as a beginner. Understanding it helps you write cleaner code and debug faster.
+[...]
+This error happens when Python cannot apply a function or operator to an object of a certain type. For example, adding a string to an integer raises a TypeError. Let's explore all things about this error in detail.
+[...]
+A TypeError is an exception raised when an operation or function receives an argument of an inappropriate type. Python is dynamically typed, but it is still strongly typed. This means you cannot mix types without explicit conversion.
+[...]
+For instance, you cannot add a string and an integer directly. Python will raise a TypeError to tell you the types are incompatible.
+[...]
+The error message clearly says you cannot concatenate a string and an integer. You must convert the integer to a string first.
+[...]
+### 1. Mixing Types in Operations
+[...]
+This is the most frequent cause. You try to add, subtract, or compare values of different types.
+[...]
+To fix this, convert the string to an integer using`int()` or the integer to a string using`str()`.
+[...]
+### 2. Calling a Non-Callable Object
+[...]
+Another common cause is trying to call an object that is not a function. For example, using parentheses on an integer.
+[...]
+This often happens when you accidentally name a variable the same as a function. Always check your
+[...]
+### 3. Using Wrong Arguments in Functions
+[...]
+Built-in functions expect specific types. If you pass the wrong type, you get a TypeError.
+[...]
+The`len()` function expects a sequence like a string, list, or tuple. An integer is not a sequence.
+[...]
+### 4. Indexing with Wrong Type
+[...]
+When accessing items in a list or dictionary, you must use the correct key type. Lists require integers, while dictionaries can use strings or other hashable types.
+[...]
+For lists, always use integer indices. If you need to access by key, use a dictionary instead.
+[...]
+### 5. Iterating Over Non-Iterable Objects
+[...]
+Using a`for` loop on an integer or a non-iterable object raises a TypeError.
+[...]
+To loop a specific number of times, use the`range()` function:`for i in range(5)`.
+[...]
+## How to Fix TypeError
+[...]
+Fixing a TypeError is usually straightforward. Follow these steps:
+[...]
+- Created with Sketch.
+- Read the error message carefully. It tells you what types are involved.
+- Check the types of your variables using the`type()` function.
+- Convert types explicitly using`int()`,`str()`,`float()`, or`list()`.
+- Ensure you are using the correct function or method for the data type.
+[...]
+Always check the type of your data before performing operations. This simple habit saves a lot of debugging time.
+[...]
+Lists are common sources of TypeError. Beginners often mix list types or use wrong indices. For more on list operations, read our Python List Operations Guide for Beginners.
+[...]
+One common mistake is trying to use a string as a list index. Another is adding a list to an integer.
+[...]
+To fix these, use integer indices and only concatenate lists with other lists.
+[...]
+## TypeError with Functions and Methods
+[...]
+When you call a function with the wrong number or type of arguments, Python raises a TypeError. For example, the`sum()` function expects an iterable of numbers.
+[...]
+The`sum()` function tries to add the characters, but strings cannot be added to integers. Use`join()` for strings instead.
+[...]
+Similarly, methods like`.append()` are only available for lists. Calling them on a string or integer gives a TypeError.
+[...]
+Note that this is an AttributeError, not TypeError. But it is related. Always use the correct method for the
+[...]
+## TypeError with Boolean Operations
+[...]
+Boolean values are a subtype of integers in Python. So`True` is 1 and`False` is 0. However, mixing booleans with strings or lists can still cause TypeError.
+[...]
+To fix this, convert the boolean to a string explicitly:`str(True) + "hello"`. For more on booleans in lists, see Python List All True Booleans: Check & Create.
+[...]
+## TypeError with Dictionaries
+[...]
+Dictionaries use keys, and keys must be hashable. Using a list as a dictionary key raises a TypeError because lists are mutable and unhashable.
+[...]
+The TypeError is a common but easy-to-fix error in Python. It happens when you mix incompatible data types or use wrong arguments. Always read the error message, check your variable types, and convert data when needed. With practice, you will handle these errors quickly and write robust code. Keep learning and happy coding!

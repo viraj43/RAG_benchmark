@@ -1,0 +1,2289 @@
+Title: Dockerizing a Node.js App: A Comprehensive Guide for Easy Deployment🐋 - DEV Community
+![DEV Community](https://media2.dev.to/dynamic/image/quality=100/https://dev-to-uploads.s3.amazonaws.com/uploads/logos/resized_logo_UQww2soKuUsjaOGNB38o.png)
+
+## DEV Community
+
+![](https://assets.dev.to/assets/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg)
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![Cover image for Dockerizing a Node.js App: A Comprehensive Guide for Easy Deployment🐋](https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fecbx1u45j278jvx74pbu.png)
+![Burak Boduroğlu](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1098747%2Fa5c733e3-1e83-4bdd-922f-8ad1432ae3d4.jpg)
+
+Posted on Jul 14, 2023
+• Edited on Jan 26, 2025
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+# Dockerizing a Node.js App: A Comprehensive Guide for Easy Deployment🐋
+
+Dockerizing a Node.js app is a useful technique that allows you to package your application and its dependencies into a container, making it easier to deploy and run consistently across different environments. In this blog post, we'll walk through the steps to dockerize a Node.js app. Let's get started!
+
+## Prerequisites
+
+Before we begin, make sure you have the following installed on your machine:  
+`Docker:` You can download and install Docker from the official website (<https://www.docker.com/>).
+
+`Docker:`
+
+## Step 1: Set up your Node.js app
+
+Assuming you already have a Node.js app, create a new directory for your project (if you haven't already) and navigate to it in your terminal.
+
+## Step 2: Create a Dockerfile
+
+A Dockerfile is a text file that contains instructions for building a Docker image. Create a new file called Dockerfile in the root directory of your project and open it in a text editor.
+
+Add the following content to your Dockerfile:
+
+`FROM node: 18-alpine
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
+# If you are building your code for production
+# RUN npm ci --omit=dev
+COPY . .
+EXPOSE 3000
+CMD [ "node", "server.js" ]`
+
+Let's go through what each line does:
+
+`FROM node:18-alpine:`
+`WORKDIR /usr/src/app:`
+`COPY package*.json ./:`
+`RUN npm install:`
+`COPY . .:`
+`EXPOSE 3000:`
+`CMD ["node", "app.js"]:`
+
+Save the Dockerfile.
+
+## Step 3: Build the Docker image
+
+In your terminal, navigate to the root directory of your project (where the Dockerfile is located).
+
+Run the following command to build the Docker image:
+
+`docker build -t your-image-name .`
+
+Make sure to replace your-image-name with the desired name for your Docker image. The `.` at the end specifies the build context as the current directory.
+
+`.`
+
+Docker will now execute the instructions in the Dockerfile and build the image. This might take a while, especially if it's the first time you're running this command, as Docker needs to download the base image and install the dependencies.
+
+## Step 4: Run the Docker container
+
+Once the Docker image is built, you can create a container and run your Node.js app using the following command:
+
+`docker run --name your-container-name -p 3000:3000 your-image-name`
+
+This command maps port 3000 from the your container to port 3000 on your machine, allowing you to access the app on <http://localhost:3000>. Replace your-image-name with the name you specified when building the image.
+
+You should now see your Node.js app running inside the Docker container.
+
+## Conclusion
+
+Dockerizing a Node.js app provides several benefits, including easy deployment, consistent environments, and improved scalability. By following the steps outlined in this blog post, you've learned how to create a Dockerfile, build a Docker image, and run a Docker container for your Node.js app.
+
+## References
+
+[Node.js Docs](https://nodejs.org/en/docs/guides/nodejs-docker-webapp)
+
+[ChatGPT](https://chat.openai.com/auth/login)
+
+## Top comments (3)
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+![cjsmocjsmo profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F313555%2Fcf43c146-9418-4812-b209-0253586daa65.png)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F313555%2Fcf43c146-9418-4812-b209-0253586daa65.png)
+
+As your base image I would suggest using:
+
+node: 18-alpine  
+or  
+node: 20-alpine
+
+your image sizes will be a lot smaller.
+
+Happy Coding
+
+![burakboduroglu profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1098747%2Fa5c733e3-1e83-4bdd-922f-8ad1432ae3d4.jpg)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1098747%2Fa5c733e3-1e83-4bdd-922f-8ad1432ae3d4.jpg)
+
+Thanks for your comment. I will also update that part.
+
+![uguremirmustafa profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F523142%2F8abeeeb6-d6d1-43f8-b9b4-d45e5554350f.jpeg)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F523142%2F8abeeeb6-d6d1-43f8-b9b4-d45e5554350f.jpeg)
+
+adding .dockerignore to the recipe will give you a lot of optimisations.
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](#).
+
+Hide child comments as well
+
+Confirm
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1098747%2Fa5c733e3-1e83-4bdd-922f-8ad1432ae3d4.jpg)
+
+### More from [Burak Boduroğlu](/burakboduroglu)
+
+💎 DEV Diamond Sponsors
+
+Thank you to our Diamond Sponsors for supporting the DEV Community
+
+![Google AI - Official AI Model and Platform Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fxjlyhbdqehj3akhz166w.png)
+
+Google AI is the official AI Model and Platform Partner of DEV
+
+![Neon - Official Database Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fbnl88cil6afxzmgwrgtt.png)
+
+Neon is the official database partner of DEV
+
+![Algolia - Official Search Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv30ephnolfvnlwgwm0yz.png)
+
+Algolia is the official search partner of DEV
+
+[DEV Community](/) — A space to discuss and keep up software development and manage your software career
+
+Built on [Forem](https://www.forem.com) — the [open source](https://dev.to/t/opensource) software that powers [DEV](https://dev.to) and other inclusive communities.
+
+Made with love and [Ruby on Rails](https://dev.to/t/rails). DEV Community © 2016 - 2026.
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+---
+
+Title: Dockerizing Node.js Apps: A Complete Guide | Better Stack Community
+[Back to Scaling Node.js Applications guides](/community/guides/scaling-nodejs/) 
+
+# Dockerizing Node.js Apps: A Complete Guide
+
+[Docker](/tag/docker?utm_content&utm_medium=guides&utm_source=community&utm_term=dockerize-nodejs) [Node.js](/tag/node.js?utm_content&utm_medium=guides&utm_source=community&utm_term=dockerize-nodejs)
+
+Ayooluwa Isaiah
+
+Updated on January 23, 2026
+
+###### Contents
+
+* [Prerequisites](#prerequisites)
+* [Step 1 — Setting up the demo project](#step-1-setting-up-the-demo-project)
+* [Step 2 — Creating a Docker image for your Node.js app](#step-2-creating-a-docker-image-for-your-node-js-app)
+* [Step 3 — Building the Docker image and launching a container](#step-3-building-the-docker-image-and-launching-a-container)
+* [Step 4 — Setting up a web server](#step-4-setting-up-a-web-server)
+* [Step 5 — Using Docker Compose to manage multiple containers](#step-5-using-docker-compose-to-manage-multiple-containers)
+* [Step 6 — Developing your Node.js application in Docker](#step-6-developing-your-node-js-application-in-docker)
+* [Final thoughts](#final-thoughts)
+
+Are you tired of the dreaded "it works on my machine" syndrome? By packaging your application and its dependencies into portable, self-contained units called containers, [Docker](https://www.docker.com/) ensures consistent behavior across different environments, from development to production.
+
+In this hands-on guide, I'll show you how to effortlessly "Dockerize" your Node.js applications to unlock a smoother and more reliable development and deployment process.
+
+Let's get started!
+
+## Prerequisites
+
+* Prior Node.js development experience.
+* Familiarity with the Linux command-line.
+* Access to a Linux machine with [Docker Engine](https://docs.docker.com/engine/install/) installed.
+
+## Step 1 — Setting up the demo project
+
+To demonstrate Node.js application development and deployment with Docker, we'll use a [URL shortener application](https://github.com/betterstack-community/fastify-url-shortener) built with [Fastify](https://fastify.dev/) that stores shortened URLs in PostgreSQL. Our goal is to create a custom Docker image to run this application in various environments.
+
+Begin by cloning the application from GitHub:
+
+```
+git clone https://github.com/betterstack-community/fastify-url-shortener 
+```
+
+Navigate into the project directory and install its dependencies:
+
+Copied!
+
+```
+cd fastify-url-shortener 
+```
+
+Copied!
+
+```
+npm install 
+```
+
+Before running the application, we need a PostgreSQL database. Launch a PostgreSQL Docker container using the Alpine variant of its [official image](https://hub.docker.com/_/postgres):
+
+Copied!
+
+```
+docker run \ --rm \ --name url-shortener-db \ --env POSTGRES_PASSWORD=admin \ --env POSTGRES_DB=url-shortener \ --volume pg-data:/var/lib/postgresql/data \ --publish 5432:5432 \ postgres:alpine 
+```
+
+If you don't have the `postgres:alpine` image, it will be downloaded from DockerHub. The container will be named `url-shortener-db`, removed upon stopping (`--rm`), and have port 5432 mapped to the same port on your host machine.
+
+Two environmental variables are also supplied to the container:
+
+1. `POSTGRES_PASSWORD`: This sets a password for the default `postgres` user. You must provide a value to this variable to use the PostgreSQL image.
+2. `POSTGRED_DB`: This allows you to specify the name of the default database that will be created when the container is launched.
+
+If you have a local PostgreSQL instance, stop it first to avoid port conflicts:
+
+Copied!
+
+```
+sudo systemctl stop postgres 
+```
+
+A successful launch of the container will output logs confirming database readiness:
+
+Output
+
+```
+. . . 2024-07-28 20:33:22.578 UTC [1] LOG: starting PostgreSQL 16.3 (Debian 16.3-1.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit 2024-07-28 20:33:22.578 UTC [1] LOG: listening on IPv4 address "0.0.0.0", port 5432 2024-07-28 20:33:22.578 UTC [1] LOG: listening on IPv6 address "::", port 5432 2024-07-28 20:33:22.591 UTC [1] LOG: listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432" 2024-07-28 20:33:22.606 UTC [29] LOG: database system was interrupted; last known up at 2024-07-28 20:32:16 UTC 2024-07-28 20:33:22.672 UTC [29] LOG: database system was not properly shut down; automatic recovery in progress
+
+2024-07-28 20:33:23.094 UTC [1] LOG: database system is ready to accept connections
+
+
+```
+
+With the database running, open a new terminal, navigate to the project directory, then copy `.env.sample` to `.env` and modify the `POSTGRES` entries within as needed:
+
+Copied!
+
+```
+cp .env.sample .env 
+```
+
+.env
+
+Copied!
+
+```
+NODE_ENV=production LOG_LEVEL=info PORT=5000
+
+POSTGRES_DB=url-shortener
+
+
+
+POSTGRES_USER=postgres
+
+
+
+POSTGRES_PASSWORD=admin
+
+
+
+POSTGRES_HOST=localhost
+
+
+```
+
+With the `.env` file created and updated, apply the database migrations and start the Node.js application:
+
+Copied!
+
+```
+npm run migrate:up 
+```
+
+Output
+
+```
+Sequelize CLI [Node: 22.5.1, CLI: 6.6.2, ORM: 6.37.3] Loaded configuration file "src/config/db.js". Using environment "development". == 20240729152055-create-url: migrating ======= == 20240729152055-create-url: migrated (0.038s) 
+```
+
+Copied!
+
+```
+npm start 
+```
+
+The console output will indicate the application running on port 5000:
+
+Output
+
+```
+. . . {"level":"info","time":"2024-07-28T20:58:44.149Z","pid":236289,"host":"fedora","msg":"Server listening at http://[::1]:5000"} {"level":"info","time":"2024-07-28T20:58:44.149Z","pid":236289,"host":"fedora","msg":"Server listening at http://127.0.0.1:5000"}
+
+{"level":"info","time":"2024-07-28T20:58:44.149Z","pid":236289,"host":"fedora","msg":"URL Shortener is running in development mode → PORT http://[::1]:5000"}
+
+
+```
+
+You may now open `http://localhost:5000` to see the application interface:
+
+![URL Shortener application user interface]()    ![URL Shortener application user interface](https://imagedelivery.betterstackcdn.com/xZXo0QFi-1_4Zimer-T0XQ/4f18fee3-1513-40f1-1966-48296734df00/orig)
+
+Test its functionality by shortening a URL and clicking **Visit** to verify redirection:
+
+![URL Shortener app with shortened url]()    ![URL Shortener app with shortened url](https://imagedelivery.betterstackcdn.com/xZXo0QFi-1_4Zimer-T0XQ/9dd61b02-e521-4073-df56-4d0e27b3a700/orig)
+
+With a functional Node.js application set up, you're now ready to containerize it using Docker.
+
+## Side note: Monitor your Dockerized app with Better Stack
+
+Once your Node.js app is running in a container, make sure it stays reachable. **[Better Stack Uptime Monitoring](https://betterstack.com/uptime?utm_content=callout&utm_medium=guides&utm_source=community&utm_term=dockerize-nodejs)** checks your endpoints from multiple regions and alerts you fast when something breaks, with timelines, error details, and screenshots so you can pinpoint the cause.
+
+## Step 2 — Creating a Docker image for your Node.js app
+
+To deploy our Node.js application, we'll create a Docker image using a [Dockerfile](https://docs.docker.com/engine/reference/builder/). This text file provides instructions to the Docker engine on constructing the image.
+
+Think of a Docker image as a template capturing your application and its environment. It includes configuration details and a layered filesystem containing the software required to run your application. A Docker container is a live, isolated environment created from this image where your application runs.
+
+Essentially, Docker images define the application's build and packaging process, while containers are the running instances.
+
+Let's start by examining the format of the `Dockerfile` which is shown below:
+
+Dockerfile
+
+Copied!
+
+```
+# Comment COMMAND arguments 
+```
+
+Any line that begins with a `#` is a comment (except [parser directives](https://docs.docker.com/engine/reference/builder/#parser-directives)), while other lines must contain a specific command followed by its arguments. Although command names are not case-sensitive, they are often written in uppercase to distinguish them from arguments.
+
+Let's create a `Dockerfile` to build our URL shortener's Docker image:
+
+Copied!
+
+```
+code Dockerfile 
+```
+
+The first decision to make when writing a `Dockerfile` is choosing an appropriate base image. This image must be capable of running Node.js code so that your application can run within the container. A common choice is the [official Node.js image](https://hub.docker.com/_/node) which comes pre-installed with the necessary runtime environment for running Node.js applications.
+
+![Screenshot of Node.js image on DockerHub]()    ![Screenshot of Node.js image on DockerHub](https://imagedelivery.betterstackcdn.com/xZXo0QFi-1_4Zimer-T0XQ/a191a418-5fda-4d07-eae0-2a2a270b9500/orig)
+
+I recommend using the latest LTS version (v20.16.0 at the time of writing) to guarantee stability when deploying to production. For the most up-to-date information, check the [Node.js releases page](https://nodejs.org/en/about/previous-releases).
+
+There are also several variants to pick from, but I recommend using the latest Alpine variant as it is known for being exceptionally lightweight and simple.
+
+Go ahead and enter the base image into your `Dockerfile` as follows:
+
+Dockerfile
+
+Copied!
+
+```
+# Use Node 20.16 alpine as base image FROM node:20.16-alpine3.19 AS base 
+```
+
+[This image sets up a functional Node.js environment](https://github.com/nodejs/docker-node/blob/766b2dec6f59b6c98bf190e818edb1b0c7e532c5/20/alpine3.19/Dockerfile), saving us setup time. All subsequent instructions will be built upon this base.
+
+Next, change the working directory within the image to `/build` with the `WORKDIR` instruction:
+
+Dockerfile
+
+Copied!
+
+```
+. . . # Change the working directory to /build WORKDIR /build 
+```
+
+This directive avoids the need to run `mkdir` and `cd` when you want to navigate into a new directory.
+
+Installing your application dependencies is the next step. Before proceeding, you need to copy the `package.json` and `package-lock.json` files into the image with the `COPY` directive:
+
+Dockerfile
+
+Copied!
+
+```
+. . . # Copy the package.json and package-lock.json files to the /build directory COPY package*.json ./ 
+```
+
+Copying `package.json` and `package-lock.json` first optimizes Docker builds by leveraging [layer caching](https://docs.docker.com/build/cache/). Since dependencies change less frequently than application code, this ensures that the subsequent dependency installation instruction is only re-executed when those files are modified, leading to significantly faster build times when only the source code changes.
+
+Let's add the instruction to install the application dependencies next:
+
+Dockerfile
+
+Copied!
+
+```
+. . . # Install production dependencies and clean the cache RUN npm ci --omit=dev && npm cache clean --force 
+```
+
+Here, we've opted for `npm ci` over `npm install` for faster and more consistent builds. It removes any existing `node_modules` directory and installs production dependencies (without `devDependencies`) precisely as listed in `package-lock.json` without modifying this file. Clearing the cache also helps reduce image size since it's not needed within the container.
+
+Now that you've installed the application dependencies, the next step is to copy the rest of the source code into the image:
+
+Dockerfile
+
+Copied!
+
+```
+. . . # Copy the entire source code into the container COPY . . 
+```
+
+Next, you can document the ports that a container built on this image will listen on using the `EXPOSE` instruction:
+
+Dockerfile
+
+Copied!
+
+```
+. . . # Document the port that may need to be published EXPOSE 5000 
+```
+
+Finally, specify the command to run when starting the application:
+
+Dockerfile
+
+Copied!
+
+```
+. . . # Start the application CMD ["node", "src/server.js"] 
+```
+
+The `CMD` instruction defines the command for launching the application in a container based on this image. We're using the `node` command directly here instead of `npm start` because the latter doesn't forward termination signals like `SIGTERM` to the application (for a graceful shutdown) but kills it directly.
+
+The final `Dockerfile` is thus:
+
+Dockerfile
+
+Copied!
+
+```
+# Use Node 20.16 alpine as base image FROM node:20.16-alpine3.19 AS base # Change the working directory to /build WORKDIR /build # Copy the package.json and package-lock.json files to the /build directory COPY package*.json ./ # Install production dependencies and clean the cache RUN npm ci --omit=dev && npm cache clean --force # Copy the entire source code into the container COPY . . # Document the port that may need to be published EXPOSE 5000 # Start the application CMD ["node", "src/server.js"] 
+```
+
+With these instructions in place, you're ready to build the Docker image.
+
+## Step 3 — Building the Docker image and launching a container
+
+Having prepared your `Dockerfile`, you can create the Docker image using the `docker build` command. Before proceeding, create a `.dockerignore` file in your project's root directory to exclude unnecessary files from the build context. This helps with reducing image size, speeding up builds, and preventing accidental inclusion of sensitive information.
+
+In our case, we'll ignore any `.env` files, the `.git` directory, and the `node_modules` directory:
+
+.dockerignore
+
+Copied!
+
+```
+**/*.env # Dependencies **/node_modules # Other unnecessary files or directories .git/ 
+```
+
+Now, build the Docker image from your project root:
+
+Copied!
+
+```
+docker build . -t url-shortener 
+```
+
+The `-t` flag assigns the `url-shortener` name to the image. You can also add a specific tag, such as 0.1.0, using the command below. Without a tag, Docker defaults to `latest`.
+
+Copied!
+
+```
+docker build . -t url-shortener:0.1.0 
+```
+
+After the build, verify the new image exists in your local library:
+
+Copied!
+
+```
+docker image ls url-shortener 
+```
+
+Output
+
+```
+REPOSITORY TAG IMAGE ID CREATED SIZE url-shortener latest 20f75e2d7b45 17 seconds ago 183MB 
+```
+
+Now, run the image as a Docker container with `docker run`:
+
+Copied!
+
+```
+docker run --rm --name url-shortener-app --publish 5000:5000 url-shortener 
+```
+
+However, this command fails due to missing environment variables:
+
+Output
+
+```
+/build/node_modules/env-schema/index.js:85 const error = new Error(ajv.errorsText(ajv.errors, { dataVar: 'env' })) ^ Error: env must have required property 'POSTGRES_USER', env must have required property 'POSTGRES_PASSWORD', env must have required property 'POSTGRES_DB' at envSchema (/build/node_modules/env-schema/index.js:85:19) at file:///build/src/config/env.js:46:16 at ModuleJob.run (node:internal/modules/esm/module_job:222:25) at async ModuleLoader.import (node:internal/modules/esm/loader:316:24) at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:123:5) { . . . 
+```
+
+The error indicates that the application could not find some required environmental variables when starting the container. This makes sense since the `.env` file wasn't copied over to the Docker image to prevent secrets from leaking into the image.
+
+To resolve this, pass environment variables from the `.env` file to the container through the `--env-file` flag:
+
+Copied!
+
+```
+docker run --rm --name url-shortener-app --publish 5000:5000 --env-file .env url-shortener 
+```
+
+Now we get a different error:
+
+Output
+
+```
+{"level":"fatal","time":"2024-07-28T23:07:58.786Z","pid":17,"host":"54431553635f","err":{"type":"ConnectionRefusedError","message":"","stack":"SequelizeConnectionRefusedError\n at Client. _connectionCallback (/build/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:133:24)\n at Client._handleErrorWhileConnecting (/app/node_modules/pg/lib/client.js:327:19)\n at Client._handleErrorEvent (/build/node_modules/pg/lib/client.js:337:19)\n at Connection.emit (node:events:519:28)\n at Socket.reportStreamError (/app/node_modules/pg/lib/connection. js:58:12)\n at Socket.emit (node:events:519:28)\n at emitErrorNT (node:internal/streams/destroy:169:8)\n at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n at process.pr ocessTicksAndRejections (node:internal/process/task_queues:82:21)","name":"SequelizeConnectionRefusedError","parent":{"type":"AggregateError","message":"","stack":"AggregateError [ECONNREFUS ED]: \n at internalConnectMultiple (node:net:1118:18)\n at afterConnectMultiple (node:net:1685:7)","aggregateErrors":[{"type":"Error","message":"connect ECONNREFUSED ::1:5432","stack": "Error: connect ECONNREFUSED ::1:5432\n at createConnectionError (node:net:1648:14)\n at afterConnectMultiple (node:net:1678:16)","errno":-111,"code":"ECONNREFUSED","syscall":"connect" ,"address":"::1","port":5432},{"type":"Error","message":"connect ECONNREFUSED 127.0.0.1:5432","stack":"Error: connect ECONNREFUSED 127.0.0.1:5432\n at createConnectionError (node:net:1648 :14)\n at afterConnectMultiple (node:net:1678:16)","errno":-111,"code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432}],"code":"ECONNREFUSED"},"original":{"type":"Ag gregateError","message":"","stack":"AggregateError [ECONNREFUSED]: \n at internalConnectMultiple (node:net:1118:18)\n at afterConnectMultiple (node:net:1685:7)","aggregateErrors":[{"ty pe":"Error","message":"connect ECONNREFUSED ::1:5432","stack":"Error: connect ECONNREFUSED ::1:5432\n at createConnectionError (node:net:1648:14)\n at afterConnectMultiple (node:net:16 78:16)","errno":-111,"code":"ECONNREFUSED","syscall":"connect","address":"::1","port":5432},{"type":"Error","message":"connect ECONNREFUSED 127.0.0.1:5432","stack":"Error: connect ECONNREFUS ED 127.0.0.1:5432\n at createConnectionError (node:net:1648:14)\n at afterConnectMultiple (node:net:1678:16)","errno":-111,"code":"ECONNREFUSED","syscall":"connect","address":"127.0.0. 1","port":5432}],"code":"ECONNREFUSED"}},"msg":""} {"level":"info","time":"2024-07-28T23:07:58.787Z","pid":17,"host":"54431553635f","msg":"Server closed"} 
+```
+
+This occurs because the application is configured to connect a PostgreSQL instance running on `localhost` within the container, where PostgreSQL isn't running.
+
+To enable communication between the application container and the `url-shortener-db` container, create a custom [Docker network](https://docs.docker.com/engine/userguide/networking/work-with-networks/):
+
+Copied!
+
+```
+docker network create url-shortener 
+```
+
+Output
+
+```
+b4cf8bc783d4cdcedfd623a8af1a6aa592b5b64d3e2bbaf3492064657d7f54f7 
+```
+
+Stop the existing `url-shortener-db` container with `Ctrl-C`, and restart it on the new `url-shortener` network through the `--network` option:
+
+Copied!
+
+```
+docker run \ --rm \ --name url-shortener-db \ --env POSTGRES_PASSWORD=admin \ --env POSTGRES_DB=url-shortener \ --volume pg-data:/var/lib/postgresql/data \ --publish 5432:5432 \
+
+--network url-shortener \
+
+postgres:alpine 
+```
+
+Once it's up and running once again, update your `.env` file as follows:
+
+.env
+
+Copied!
+
+```
+NODE_ENV=development LOG_LEVEL=debug PORT=5000 POSTGRES_DB=url-shortener-dev POSTGRES_USER=postgres POSTGRES_PASSWORD=admin
+
+POSTGRES_HOST=url-shortener-db
+
+
+```
+
+The `POSTGRES_HOST` variable has been updated from `localhost` to `url-shortener-db`, which makes it possible for application container to communicate with the PostgreSQL instance running in the `url-shortener-db` container.
+
+Finally, launch the application once again and apply the `--network` option like this:
+
+Copied!
+
+```
+docker run \ --rm \ --name url-shortener-app \ --publish 5000:5000 \ --env-file .env \
+
+--network url-shortener \
+
+url-shortener 
+```
+
+You will observe that it is successful now:
+
+Output
+
+```
+. . . {msg":"Connected to database"} {msg":"Server listening at http://[::1]:5000"} {msg":"Server listening at http://127.0.0.1:5000"} {msg":"URL Shortener is running in production mode → PORT http://[::1]:5000"} 
+```
+
+However, when you try to visit `http://localhost:5000`, you will observe that the application doesn't load:
+
+![localhost:5000 is not working on docker]()    ![localhost:5000 is not working on docker](https://imagedelivery.betterstackcdn.com/xZXo0QFi-1_4Zimer-T0XQ/0aa31909-13a9-4e00-3df8-c6de395dce00/orig)
+
+Fastify (and other servers) typically listen for connections only on the local interface (`127.0.0.1`) when running on a host machine. However, this isn't sufficient within a Docker container as the host and other network devices can't access it.
+
+To enable external connections, Fastify needs to bind to an address accessible outside the container. Using `0.0.0.0` achieves this by binding to all available network interfaces, allowing Fastify to receive connections from any reachable IP address.
+
+Open your `server.js` file and modify the following line by adding the `host` property:
+
+server.js
+
+Copied!
+
+```
+. . . const address = await app.listen({ host: '0.0.0.0', port: config.port }); . . . 
+```
+
+Save the file, then quit the existing `url-shortener-app` container with `Ctrl-C`. Now build a new version of your `url-shortener` Docker image to replace the existing one:
+
+Copied!
+
+```
+docker build . -t url-shortener 
+```
+
+Once it finishes, relaunch the container once again:
+
+Copied!
+
+```
+docker run \ --rm \ --name url-shortener-app \ --publish 5000:5000 \ --env-file .env \ --network url-shortener \ url-shortener 
+```
+
+Output
+
+```
+. . . {msg":"Connected to database"}
+
+{msg":"Server listening at http://0.0.0.0:5000"}
+
+
+
+{msg":"URL Shortener is running in production mode → PORT http://0.0.0.0:5000"}
+
+
+```
+
+The application should now be accessible at `http://localhost:5000`.
+
+## Step 4 — Setting up a web server
+
+Web servers like [Nginx](/community/guides/scaling-nodejs/nodejs-reverse-proxy-nginx/) or [Caddy](/community/guides/web-servers/caddy/) are often placed before Node.js applications to enhance performance and security. They excel at tasks like load balancing, reverse proxying, serving static assets, and handling SSL/TLS termination and caching. While Node.js can handle some of these, a dedicated web server is often a more performant and robust solution for production environments.
+
+Let's set up a Caddy instance as a reverse proxy for our Node.js application. Keep both the application and PostgreSQL containers running, then open a new terminal and launch a Caddy container based on the [official Alpine image](https://hub.docker.com/_/caddy):
+
+Ensure to keep both application and PostgreSQL containers running, then open a new terminal and launch a new container for Caddy by running the command below:
+
+Copied!
+
+```
+docker run --rm --name url-shortener-caddy-server -p 80:80 caddy:alpine 
+```
+
+Output
+
+```
+. . . {"level":"info","ts":1722214551.173808,"logger":"http.log","msg":"server running","name":"srv0","protocols":["h1","h2","h3"]} {"level":"info","ts":1722214551.174112,"msg":"autosaved config (load with --resume flag)","file":"/config/caddy/autosave.json"}
+
+{"level":"info","ts":1722214551.1741202,"msg":"serving initial configuration"}
+
+{"level":"info","ts":1722214551.1805758,"logger":"tls","msg":"cleaning storage unit","storage":"FileStorage:/data/caddy"} {"level":"info","ts":1722214551.1807494,"logger":"tls","msg":"finished cleaning storage units"} 
+```
+
+Once you see the "serving initial configuration" message, you can visit `http://localhost` in your browser to view the Caddy default page:
+
+![The default Caddy Works! page]()    ![The default Caddy Works! page](https://imagedelivery.betterstackcdn.com/xZXo0QFi-1_4Zimer-T0XQ/109b6ec1-6745-49b0-bb4c-ec24c959e300/orig)
+
+Exit the container with `Ctrl-C` and create a `Caddyfile` in the project root:
+
+Copied!
+
+```
+code Caddyfile 
+```
+
+Populate it with the following contents:
+
+Caddyfile
+
+Copied!
+
+```
+http:// localhost { reverse_proxy url-shortener-app:5000 } 
+```
+
+This `Caddyfile` configures a web server on `http://localhost` that forwards all incoming requests to the `url-shortener-app` host listening on port 5000.
+
+To see this in action, relaunch the Caddy container and add the highlighted options below for persistent storage and network connectivity:
+
+Copied!
+
+```
+docker run \ --rm \ --name url-shortener-caddy-server \ -p 80:80 \
+
+-v caddy-config:/config \
+
+
+
+-v caddy-data:/data \
+
+
+
+-v $(pwd)/Caddyfile:/etc/caddy/Caddyfile \
+
+
+
+--network url-shortener \
+
+caddy:alpine 
+```
+
+This command now includes persistent volumes (`caddy-config` and `caddy-data)` to store configuration and data, respectively. It also mounts your custom `Caddyfile` and connects to the `url-shortener` network for communication with the app container.
+
+Now, when you access `http://localhost`, you should see the URL shortener application functioning as it did before, but with the added benefits of a dedicated web server. Do check out the [Caddy docs](https://caddyserver.com/docs/) for more details.
+
+![URL Shortener Application working via Caddy]()    ![URL Shortener Application working via Caddy](https://imagedelivery.betterstackcdn.com/xZXo0QFi-1_4Zimer-T0XQ/4f4241da-2232-4645-8a04-f410352c8f00/orig)
+
+## Step 5 — Using Docker Compose to manage multiple containers
+
+I'm sure you'll agree that running multiple containers to get your application going is quite tedious, especially if your application isn't a monolith like in this demo but contains multiple microservices all running in standalone containers.
+
+This is where [Docker Compose](https://docs.docker.com/compose/) comes in. Instead of manually creating and managing individual Docker containers using the `docker run` command, Compose offers a solution by allowing you to define and manage multi-container applications within a single YAML file. This streamlines your workflow and provides a structured approach for complex applications.
+
+Let's create a `docker-compose.yml` file in your project's root directory to configure your Node.js application and its associated services:
+
+Copied!
+
+```
+code docker-compose.yml 
+```
+
+docker-compose.yml
+
+Copied!
+
+```
+services: app: build: context: . container_name: url-shortener-app environment: NODE_ENV: ${NODE_ENV} LOG_LEVEL: ${LOG_LEVEL} PORT: ${PORT} POSTGRES_HOST: ${POSTGRES_HOST} POSTGRES_DB: ${POSTGRES_DB} POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} POSTGRES_USER: ${POSTGRES_USER} env_file: - ./.env depends_on: postgres: condition: service_healthy networks: - url-shortener caddy: image: caddy:alpine container_name: url-shortener-caddy-server depends_on: - app ports: - 80:80 volumes: - caddy-config:/config - caddy-data:/data - ./Caddyfile:/etc/caddy/Caddyfile:ro networks: - url-shortener postgres: image: postgres:alpine restart: always container_name: url-shortener-db env_file: - ./.env environment: POSTGRES_USER: ${POSTGRES_USER} POSTGRES_DB: ${POSTGRES_DB} POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} healthcheck: test: [CMD-SHELL, "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"] interval: 10s timeout: 5s retries: 5 ports: - 5432:5432 volumes: - pg-data:/var/lib/postgresql/data networks: - url-shortener volumes: pg-data: caddy-config: caddy-data: networks: url-shortener: 
+```
+
+This configuration defines three services:
+
+* `app`: Your URL shortener application that is dependent on a health `postgres` service.
+* `caddy`: A Caddy web server acting as a reverse proxy, serving on port 80 and using a custom `Caddyfile`.
+* `postgres`: An Alpine Linux-based PostgreSQL database, configured with specific settings and a health check to ensure readiness.
+
+These services share the `url-shortener` network and utilize volumes to persist data. Placeholders are used for environment variables, which will be populated from your `.env` file when the containers are started. Notably, port 5000 isn't published anymore, making the app accessible only via Caddy at `http://localhost`.
+
+Before bringing up your services with `docker compose`, run the command below to stop and remove the existing containers with:
+
+Copied!
+
+```
+docker stop $(docker ps -a -q) 
+```
+
+Copied!
+
+```
+docker container prune -f 
+```
+
+Now, run the following command to launch all three services with Compose:
+
+Copied!
+
+```
+docker compose up --build 
+```
+
+This builds the `app` image and launches all three services in the foreground. You'll notice that the respective logs produced by each container are prefixed with the container name as shown below:
+
+Output
+
+```
+[+] Running 5/5 ✔ Network fastify-url-shortener_url-shortener Created 0.2s ✔ Volume "fastify-url-shortener_pg-data" Created 0.0s ✔ Container url-shortener-db Created 0.1s ✔ Container url-shortener-app Created 0.1s ✔ Container url-shortener-caddy-server Created 0.1s Attaching to url-shortener-app, url-shortener-caddy-server, url-shortener-db . . . url-shortener-db | 2024-07-30 12:43:54.957 UTC [1] LOG: starting PostgreSQL 16.3 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit . . . url-shortener-caddy-server | {"level":"info","ts":1722343436.5617106,"logger":"tls","msg":"finished cleaning storage units"} . . . url-shortener-app | {"level":"info","time":"2024-07-30T12:45:21.950Z","pid":17,"host":"d51e7abc421b","reqId":" 
+```
+
+You can also run the services in the background through the `--detach` option. Stop the existing instances with `Ctrl-C` first, then run:
+
+Copied!
+
+```
+docker compose up --build --detach 
+```
+
+Output
+
+```
+[+] Running 3/3 ✔ Container url-shortener-db Healthy 10.8s ✔ Container url-shortener-app Started 11.2s ✔ Container url-shortener-caddy-server Started 11.5 
+```
+
+Verify they're running with `docker compose ps`:
+
+Copied!
+
+```
+docker compose ps 
+```
+
+Output
+
+```
+NAME IMAGE COMMAND SERVICE CREATED STATUS PORTS url-shortener-app fastify-url-shortener-app "docker-entrypoint.s…" app 3 minutes ago Up 2 minutes url-shortener-caddy-server caddy:alpine "caddy run --config …" caddy 3 minutes ago Up 2 minutes 443/tcp, 0.0.0.0:80->80/tcp, :::80->80/tcp, 2019/tcp, 443/udp url-shortener-db postgres:alpine "docker-entrypoint.s…" postgres 3 minutes ago Up 3 minutes (healthy) 0.0.0.0:5432->5432/tcp, :::5432->5432/tcp 
+```
+
+To stop and remove the running containers, execute:
+
+Copied!
+
+```
+docker compose down 
+```
+
+Output
+
+```
+[+] Running 4/4 ✔ Container webserver Removed 0.3s ✔ Container url-shortener Removed 0.2s ✔ Container url-shortener-db Removed 0.3s ✔ Network fastify-url-shortener_url-shortener Removed 0.3s 
+```
+
+There you have it! You can now launch all your services and their dependencies with a single command and stop them again as needed. Creating additional services is also as easy as adding a new service definition in the `docker-compose.yml` file.
+
+Let's move on now to exploring how to develop your application directly within Docker.
+
+## Side note: Visualize your container logs in Better Stack
+
+With **[Better Stack Logs](https://betterstack.com/logs?utm_content=callout&utm_medium=guides&utm_source=community&utm_term=dockerize-nodejs)**, you can stream logs in real time, search across containers, and spot patterns like failing health checks or error spikes after a deploy.
+
+## Step 6 — Developing your Node.js application in Docker
+
+Now that you've mastered image creation and multi-container management with Docker Compose, let's transform Docker into a productive development environment. This will simplify setup on your local machine and ensure a standardized workflow for the rest of your team.
+
+Begin by modifying your `Dockerfile` to make use of [multi-stage builds](https://docs.docker.com/build/building/multi-stage/):
+
+Dockerfile
+
+Copied!
+
+```
+# Use Node 20.16 alpine as base image FROM node:20.16-alpine3.19 AS base
+
+# Development stage
+
+
+
+# =============================================================================
+
+
+
+# Create a development stage based on the "base" image
+
+
+
+FROM base AS development
+
+
+
+# Change the working directory to /node
+
+
+
+WORKDIR /node
+
+
+
+# Copy the package.json and package-lock.json files to /node
+
+
+
+COPY package*.json ./
+
+
+
+# Install all dependencies and clean the cache
+
+
+
+RUN npm ci && npm cache clean --force
+
+
+
+# Change the working directory to /node/app
+
+
+
+# This is where the project directory will be mounted to
+
+
+
+WORKDIR /node/app
+
+
+
+# Run the `dev` script for auto-reloading
+
+
+
+CMD ["npm", "run", "dev"]
+
+
+
+# Production stage
+
+
+
+# =============================================================================
+
+
+
+# Create a production stage based on the "base" image
+
+
+
+FROM base AS production
+
+# Change the working directory to /build WORKDIR /build # Copy the package.json and package-lock.json files to the /build directory COPY package*.json ./ # Install production dependencies and clean the cache RUN npm ci --omit=dev && npm cache clean --force # Copy the entire source code into the container COPY . . # Document the port that may need to be published EXPOSE 5000 # Start the application CMD ["node", "src/server.js"] 
+```
+
+We've introduced a `development` stage inheriting from the `base` image, designed to execute `npm run dev` from the `/app` directory. The `production` stage, intended for production builds, retains the original instructions.
+
+The application dependencies are now being installed in the `/node` directory without omitting the `devDependencies` this time around. This is essential since you can't guarantee that everyone will be using host OS for development.
+
+You'll also notice that we didn't copy the project's contents into `/node/app` for the `development` stage; instead, we'll mount the local directory for live development and enable automatic reloads via `nodemon`.
+
+Next, update the `app` portion of your `docker-compose.yml` file:
+
+docker-compose.yml
+
+Copied!
+
+```
+services: app: container_name: url-shortener-app build: context: .
+
+target: ${NODE_ENV}
+
+env_file: - ./.env environment: NODE_ENV: ${NODE_ENV} LOG_LEVEL: ${LOG_LEVEL} PORT: ${PORT} POSTGRES_HOST: ${POSTGRES_HOST} POSTGRES_DB: ${POSTGRES_DB} POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} POSTGRES_USER: ${POSTGRES_USER} depends_on: postgres: condition: service_healthy networks: - url-shortener
+
+volumes:
+
+
+
+- .:/node/app
+
+
+
+- /node/app/node_modules
+
+. . . 
+```
+
+The `services.app.build.target` value is now set to `${NODE_ENV}` so that when you're building the application appropriate stage is used instead according what the value supplied through the `.env` file.
+
+On the other hand, the current directory is mounted to the `/node/app` directory within the container. This also mounts the local `node_modules` directory into the container negating the effect of installing the dependencies to `/node` in the first place.
+
+To mitigate this, we've added an anonymous volume to hide the container's local `node_modules` directory. Node.js's module resolution algorithm ensures that the `node_modules` directory in the `/node` directory is found and used as a result.
+
+To launch the application in development mode, all you need to do is change your `NODE_ENV` entry to `development`:
+
+.env
+
+Copied!
+
+```
+NODE_ENV=development . . . 
+```
+
+Then run:
+
+Copied!
+
+```
+docker compose up --build 
+```
+
+After building the Docker image, everything should start up the same way as before:
+
+Output
+
+```
+[+] Running 3/3 ✔ Container url-shortener-db Created 0.0s ✔ Container url-shortener-app Recreated 0.2s ✔ Container url-shortener-caddy-server Recreated 0.1s Attaching to url-shortener-app, url-shortener-caddy-server, url-shortener-db . . . url-shortener-db | 2024-07-30 14:43:31.061 UTC [1] LOG: database system is ready to accept connections url-shortener-app |
+
+url-shortener-app | > url-shortener@1.0.0 dev
+
+
+
+url-shortener-app | > npx nodemon src/server.js
+
+url-shortener-app | . . . url-shortener-caddy-server | {"level":"info","ts":1722350622.1455085,"msg":"serving initial configuration"} url-shortener-caddy-server | {"level":"info","ts":1722350622.152146,"logger":"tls","msg":"storage cleaning happened too recently; skipping for now","storage":"FileStorage:/data/caddy","instance":"4dc8b8de-9c03-44e8-8c5c-3a61aa14c47c","try_again":1722437022.1521447,"try_again_in":86399.999999631} url-shortener-caddy-server | {"level":"info","ts":1722350622.1522992,"logger":"tls","msg":"finished cleaning storage units"}
+
+url-shortener-app | [nodemon] 3.1.4
+
+
+
+url-shortener-app | [nodemon] to restart at any time, enter `rs`
+
+
+
+url-shortener-app | [nodemon] watching path(s): *.*
+
+
+
+url-shortener-app | [nodemon] watching extensions: js,mjs,cjs,json
+
+
+
+url-shortener-app | [nodemon] starting `node src/server.js`
+
+. . . url-shortener-app | {"level":"info","time":"2024-07-30T14:43:42.459Z","pid":18,"host":"5d53b2894b01","msg":"URL Shortener is running in development mode → PORT http://0.0.0.0:5000"} 
+```
+
+You'll notice that this time around, the `dev` script was executed and `nodemon` is now watching for changes. Since we mounted the project directory to the docker container, making changes as usual will trigger a restart of the application.
+
+You can test this out by adding a simple health check route to your application code:
+
+src/routes/routes.js
+
+Copied!
+
+```
+import urlSchema from '../schemas/url.schema.js'; import urlController from '../controllers/url.controller.js'; import rootController from '../controllers/root.controller.js'; import errorHandler from '../middleware/error.js'; export default async function fastifyRoutes(fastify) { fastify.get('/', rootController.render); fastify.post( '/shorten', { schema: { body: urlSchema, }, }, urlController.shorten );
+
+fastify.get('/health', (req, reply) => {
+
+
+
+reply.send({ status: 'ok' });
+
+
+
+});
+
+fastify.get('/:shortID', urlController.redirect); fastify.setErrorHandler(errorHandler); } 
+```
+
+Once you save the file, you'll notice that the application restarts in the `url-shortener-app` container:
+
+Output
+
+```
+. . . url-shortener-app | [nodemon] restarting due to changes... url-shortener-app | [nodemon] starting `node src/server.js` url-shortener-app | {"level":"debug","time":"2024-07-30T14:58:22.430Z","pid":67,"host":"d07124bccc28","msg":"Executing (default): SELECT 1+1 AS result"} url-shortener-app | {"level":"debug","time":"2024-07-30T14:58:22.432Z","pid":67,"host":"d07124bccc28","msg":"Executing (default): SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'urls'"} url-shortener-app | {"level":"debug","time":"2024-07-30T14:58:22.437Z","pid":67,"host":"d07124bccc28","msg":"Executing (default): SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND t.relkind = 'r' and t.relname = 'urls' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;"} url-shortener-app | {"level":"info","time":"2024-07-30T14:58:22.442Z","pid":67,"host":"d07124bccc28","msg":"Connected to database"} url-shortener-app | {"level":"info","time":"2024-07-30T14:58:22.464Z","pid":67,"host":"d07124bccc28","msg":"Server listening at http://0.0.0.0:5000"} url-shortener-app | {"level":"info","time":"2024-07-30T14:58:22.464Z","pid":67,"host":"d07124bccc28","msg":"URL Shortener is running in development mode → PORT http://0.0.0.0:5000"} 
+```
+
+You can now send a request to `http://localhost/health` and you should get the correct response:
+
+Copied!
+
+```
+curl http://localhost/health 
+```
+
+Output
+
+```
+{"status":"ok"} 
+```
+
+The only time you'll need to rebuild the image in development is when you add or remove a dependency to your project.
+
+With this setup, you only need access to the source code and Docker installed on the host machine to create a complete Node.js development environment with a single command.
+
+If you're a VS Code user, you might want to check out the [Dev Containers extension](https://code.visualstudio.com/docs/devcontainers/containers) to enhance your local development workflow even further. The relevant tooling for other editors may be found [here](https://containers.dev/supporting).
+
+## Side note: Trace Docker requests with eBPF (no code changes)
+
+With **[Better Stack](https://betterstack.com/telemetry?utm_content=callout&utm_medium=guides&utm_source=community&utm_term=dockerize-nodejs)**, you can use **eBPF instrumentation** to capture request traces automatically, even in containers, without adding tracing libraries or changing your app code.
+
+## Final thoughts
+
+Throughout this guide, you've gained hands-on experience in preparing a Docker image for your Node.js application and using it for local development or production deployment.
+
+But this is just the beginning of your Docker journey! There are countless opportunities for optimizing your development and deployment workflows even further.
+
+Ensure to check out the following resources on [Dockerfile best practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/), [security recommendations](/community/guides/scaling-docker/docker-security-best-practices/), [logging in Docker](/community/guides/logging/how-to-start-logging-with-docker/) and [deploying containerized apps to AWS](/community/guides/web-servers/deploy-docker-aws/) to take your usage to the next level.
+
+If you'd like to continue experimenting with the demo app, do check out the updated source code on [GitHub](https://github.com/betterstack-community/fastify-url-shortener/tree/final).
+
+Thanks for reading, and happy coding!
+
+Got an article suggestion? [Let us know](mailto:hello@betterstack.com?subject=Suggestion%20for%20Dockerizing%20Node.js%20Apps%3A%20A%20Complete%20Guide&body=)
+
+Next article
+
+[How to Configure Nginx as a Reverse Proxy for Node.js Applications
+
+→](/community/guides/scaling-nodejs/nodejs-reverse-proxy-nginx/)
+
+[![Licensed under CC-BY-NC-SA]()](https://creativecommons.org/licenses/by-nc-sa/4.0/) 
+
+This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+
+1. Basics
+
+   1. [Express and Pug](/community/guides/scaling-nodejs/build-nodejs-application-express-pug/)
+   2. [NVM Alternatives](/community/guides/scaling-nodejs/nvm-alternatives-guide/)
+   3. [Debugging Node.js Apps](/community/guides/scaling-nodejs/nodejs-debugging/)
+   4. [Solutions to Common Node.js Errors](/community/guides/scaling-nodejs/nodejs-errors/)
+   5. [Using TypeScript with Node.js](/community/guides/scaling-nodejs/nodejs-typescript/)
+   6. [Understanding TypeScript Generics](/community/guides/scaling-nodejs/typescript-generics/)
+   7. [Deno Overview for Node.js Users](/community/guides/scaling-nodejs/deno-overview-for-nodejs-users/)
+   8. [Introduction to Bun for Node.js Users](/community/guides/scaling-nodejs/introduction-to-bun-for-nodejs-users/)
+   9. [Node.js vs Deno vs Bun](/community/guides/scaling-nodejs/nodejs-vs-deno-vs-bun/)
+   10. [What's New in Express.js v5.0](/community/guides/scaling-nodejs/express-5-new-features/)
+   11. [CommonJS vs. ES Modules](/community/guides/scaling-nodejs/commonjs-vs-esm/)
+   12. [Express.js vs Fastify](/community/guides/scaling-nodejs/fastify-express/)
+   13. [Building Node.js Apps with Fastify](/community/guides/scaling-nodejs/introduction-to-fastify/)
+   14. [A Complete Guide to Zod](/community/guides/scaling-nodejs/zod-explained/)
+   15. [A Complete Guide to Joi](/community/guides/scaling-nodejs/joi-explained/)
+   16. [Getting Started with Yup](/community/guides/scaling-nodejs/yup-validation/)
+   17. [Beginner's Guide to TypeBox](/community/guides/scaling-nodejs/typebox-explained/)
+   18. [Joi vs Zod](/community/guides/scaling-nodejs/joi-vs-zod/)
+   19. [Yup vs Zod](/community/guides/scaling-nodejs/yup-vs-zod/)
+   20. [TypeBox vs Zod](/community/guides/scaling-nodejs/typebox-vs-zod/)
+   21. [TypeBox vs Joi](/community/guides/scaling-nodejs/typebox-joi/)
+   22. [Express Error Handling Patterns](/community/guides/scaling-nodejs/error-handling-express/)
+   23. [Next.js Error Handling Patterns](/community/guides/scaling-nodejs/error-handling-nextjs/)
+   24. [NestJS Error Handling Patterns](/community/guides/scaling-nodejs/error-handling-nestjs/)
+   25. [Remix Error Handling Patterns](/community/guides/scaling-nodejs/error-handling-remix/)
+   26. [Exploring the Temporal API](/community/guides/scaling-nodejs/temporal-explained/)
+   27. [Prisma ORM for Node.js](/community/guides/scaling-nodejs/prisma-orm/)
+   28. [The Definitive Guide to Commander.js](/community/guides/scaling-nodejs/commander-explained/)
+   29. [Building Web APIs with Express](/community/guides/scaling-nodejs/express-web-api/)
+   30. [Building Web APIs with Fastify](/community/guides/scaling-nodejs/fastify-web-api/)
+   31. [Getting Started with PNPM](/community/guides/scaling-nodejs/pnpm-explained/)
+   32. [Getting Started with Yarn](/community/guides/scaling-nodejs/yarn-explained/)
+   33. [Getting Started with Sequelize ORM](/community/guides/scaling-nodejs/sequelize-orm/)
+   34. [Getting Started with Drizzle ORM](/community/guides/scaling-nodejs/drizzle-orm/)
+   35. [Getting Started with MikroORM](/community/guides/scaling-nodejs/mikro-orm/)
+   36. [Beginner's Guide to Knex.js](/community/guides/scaling-nodejs/knexjs-explained/)
+   37. [Getting Started with Kysely](/community/guides/scaling-nodejs/kysely-query-builder/)
+   38. [Drizzle vs Prisma](/community/guides/scaling-nodejs/drizzle-vs-prisma/)
+   39. [A Beginner's Guide to NVM](/community/guides/scaling-nodejs/nvm-explained/)
+   40. [A Practical Guide to Execa for Node.js](/community/guides/scaling-nodejs/execa-cli/)
+   41. [Uploading Files with Multer in Node.js](/community/guides/scaling-nodejs/multer-in-nodejs/)
+   42. [Prettier vs ESLint](/community/guides/scaling-nodejs/prettier-vs-eslint/)
+   43. [Parcel vs Vite: Choosing the Right Frontend Build Tool](/community/guides/scaling-nodejs/parcel-vs-vite/)
+   44. [JSON Schema Validation with Ajv](/community/guides/scaling-nodejs/ajv-validation/)
+   45. [Native SQLite in Node.js](/community/guides/scaling-nodejs/nodejs-sqlite/)
+   46. [TypeORM vs. MikroORM](/community/guides/scaling-nodejs/typeorm-v-mikroorm/)
+   47. [Kysely vs. Knex.js](/community/guides/scaling-nodejs/kysely-vs-knexjs/)
+   48. [Knex vs Prisma](/community/guides/scaling-nodejs/knex-vs-prisma/)
+   49. [Moment.js alternatives](/community/guides/scaling-nodejs/momentjs-alternatives/)
+   50. [Express Alternatives](/community/guides/scaling-nodejs/expressjs-alternatives/)
+   51. [The Definitive Guide to Valibot](/community/guides/scaling-nodejs/valibot-validation/)
+   52. [Parsing CSV Files with Papa Parse](/community/guides/scaling-nodejs/parsing-csv-files-with-papa-parse/)
+   53. [Vitest vs Jest](/community/guides/scaling-nodejs/vitest-vs-jest/)
+   54. [Vite.js: A Beginner's Guide](/community/guides/scaling-nodejs/vitejs-explained/)
+   55. [From REST to tRPC: Type-Safe APIs with Node.js](/community/guides/scaling-nodejs/trpc-explained/)
+   56. [Using Express-Validator for Data Validation in Node.js](/community/guides/scaling-nodejs/express-validator-nodejs/)
+   57. [Using VineJS for Data Validation in NodeJS](/community/guides/scaling-nodejs/vinejs-nodejs/)
+   58. [Getting Started with Rspack](/community/guides/scaling-nodejs/rspack-explained/)
+   59. [Getting Started with Oxlint](/community/guides/scaling-nodejs/oxlint-explained/)
+   60. [Vite and Webpack](/community/guides/scaling-nodejs/vite-vs-webpack/)
+   61. [Next.js vs Remix vs Nuxt 3](/community/guides/scaling-nodejs/nextjs-vs-remix-vs-nuxt-3/)
+   62. [Environment Variables in Node.js](/community/guides/scaling-nodejs/node-environment-variables/)
+   63. [Getting Started with esbuild](/community/guides/scaling-nodejs/esbuild-explained/)
+   64. [Full‑Text Search in Postgres with TypeScript](/community/guides/scaling-nodejs/full-text-search-in-postgres-with-typescript/)
+   65. [Prevent Bad Commits with Husky and lint-staged](/community/guides/scaling-nodejs/husky-and-lint-staged/)
+   66. [TypeScript + SWC: An Introduction](/community/guides/scaling-nodejs/introduction-to-typescript-swc/)
+   67. [Getting Started with Superstruct](/community/guides/scaling-nodejs/superstruct-explained/)
+   68. [TanStack for Beginners](/community/guides/scaling-nodejs/tanstack-for-beginners/)
+   69. [Getting Started with GraphQL and Express](/community/guides/scaling-nodejs/graphql-express/)
+   70. [How to Use Fastify with GraphQL](/community/guides/scaling-nodejs/graphql-fastify/)
+   71. [File Uploads with Fastify](/community/guides/scaling-nodejs/fastify-file-uploads/)
+   72. [Building Web APIs with Hapi.js](/community/guides/scaling-nodejs/web-apis-with-hapijs/)
+   73. [Setting up GraphQL with Hapi.js](/community/guides/scaling-nodejs/graphql-with-hapi-js/)
+   74. [File Uploads with Hapi.js](/community/guides/scaling-nodejs/file-uploads-with-hapijs/)
+   75. [Integrating Passport.js with Express](/community/guides/scaling-nodejs/passport-js-with-express/)
+   76. [Rate Limiting in Express.js](/community/guides/scaling-nodejs/rate-limiting-express/)
+   77. [Migrating from Express to Fastify](/community/guides/scaling-nodejs/migrating-from-express-to-fastify/)
+   78. [Getting Started with TSX](/community/guides/scaling-nodejs/tsx-explained/)
+   79. [Getting Started with ts-node](/community/guides/scaling-nodejs/ts-node-intro/)
+   80. [Getting Started with Jiti](/community/guides/scaling-nodejs/jiti-runtime/)
+   81. [Getting Started with Express WebSockets](/community/guides/scaling-nodejs/express-websockets/)
+   82. [Getting Started with Fastify WebSockets](/community/guides/scaling-nodejs/fastify-websockets/)
+   83. [How to Implement WebSockets in Koa.js](/community/guides/scaling-nodejs/koajs-websockets/)
+   84. [Getting Started with WebSockets in Hapi.js](/community/guides/scaling-nodejs/harpi-websockets/)
+   85. [Deno vs TSX](/community/guides/scaling-nodejs/deno-vs-tsx/)
+   86. [Understanding Template Literal Types in TypeScript](/community/guides/scaling-nodejs/template-literal-types-in-typescript/)
+   87. [Understanding TypeScript's never and unknown Types](/community/guides/scaling-nodejs/never-unknown-types/)
+   88. [Understanding TypeScript Utility Types: Pick, Omit, and Beyond](/community/guides/scaling-nodejs/ts-utility-types/)
+   89. [Mise vs asdf](/community/guides/scaling-nodejs/mise-vs-asdf/)
+   90. [Understanding TypeScript Enums](/community/guides/scaling-nodejs/typescript-enums/)
+   91. [Understanding TypeScript Type Guards](/community/guides/scaling-nodejs/typescript-type-guards/)
+   92. [Understanding TypeScript's Satisfies Operator](/community/guides/scaling-nodejs/satisfies-operator/)
+   93. [Understanding TypeScript Conditional Types and infer](/community/guides/scaling-nodejs/conditional-types/)
+   94. [Understanding TypeScript Type Assertions](/community/guides/scaling-nodejs/type-assertions/)
+   95. [Understanding readonly in TypeScript](/community/guides/scaling-nodejs/ts-readonly/)
+   96. [Optional Properties and Null Handling in TypeScript](/community/guides/scaling-nodejs/typescript-optional-properties/)
+   97. [Index Signatures in TypeScript](/community/guides/scaling-nodejs/typescript-index-signatures/)
+   98. [Interfaces in TypeScript](/community/guides/scaling-nodejs/typescript-interfaces/)
+   99. [TypeScript as vs satisfies vs Type Annotations](/community/guides/scaling-nodejs/typescript-as-satisfies-type/)
+   100. [Type Assertions and Type Casting in TypeScript](/community/guides/scaling-nodejs/type-assertions-casting/)
+   101. [A Quick Look into StyleX: Meta's Solution for Scalable CSS](/community/guides/scaling-nodejs/stylex-metas/)
+   102. [Type Assertions and Type Casting in TypeScript](/community/guides/scaling-nodejs/type-assertions-casting/)
+   103. [Why bun install Is So Fast?](/community/guides/scaling-nodejs/bun-install-performance/)
+   104. [Rest Parameters and Spread Syntax in TypeScript](/community/guides/scaling-nodejs/rest-parameters-spread/)
+   105. [Tuple Types in TypeScript](/community/guides/scaling-nodejs/typescript-tuple-types/)
+   106. [A Look into Valdi](/community/guides/scaling-nodejs/valdi-snapchat/)
+   107. [TypeScript Discriminated Unions](/community/guides/scaling-nodejs/discriminated-unions/)
+   108. [TypeScript Mapped Types](/community/guides/scaling-nodejs/mapped-types/)
+   109. [Understanding module resolution in TypeScript](/community/guides/scaling-nodejs/typescript-module-resolution/)
+   110. [Understanding TypeScript’s Target Compiler Option](/community/guides/scaling-nodejs/typescript-target-compiler/)
+   111. [Understanding TypeScript's Strict Compiler Option](/community/guides/scaling-nodejs/typescript-strict-option/)
+   112. [Using the TypeScript Compiler (tsc)](/community/guides/scaling-nodejs/cli-tsc-compiler/)
+   113. [React2Shell and React Server Components Remote Code Execution Explained](/community/guides/scaling-nodejs/react2shell_react_server/)
+   114. [Understanding TypeScript's SkipLibCheck Compiler Option](/community/guides/scaling-nodejs/typescript-skiplibcheck/)
+   115. [React Server Components: DoS and Source Code Leak Vulnerabilities](/community/guides/scaling-nodejs/react-server-security-vulnerabilities/)
+   116. [Ory Kratos for Next.js](/community/guides/scaling-nodejs/ory-kratos/)
+   117. [Type-Safe JSON in TypeScript](/community/guides/scaling-nodejs/typescript-json-type-safety/)
+   118. [Getting Started with the sourceMap Option in TypeScript](/community/guides/scaling-nodejs/typescript-sourcemap-option/)
+   119. [Understanding the verbatimModuleSyntax Option in TypeScript](/community/guides/scaling-nodejs/ts-verbatimmodulesyntax/)
+   120. [Understanding Declaration Files in TypeScript](/community/guides/scaling-nodejs/typescript-declaration-files/)
+   121. [React Doctor: Find React Anti-Patterns Fast](/community/guides/scaling-nodejs/react-doctor/)
+   122. [Building Ultra-Fast Desktop Apps with Electrobun](/community/guides/scaling-nodejs/electrobun-desktop-apps-typescript/)
+   123. [GitHub's Storybook Performance Panel](/community/guides/scaling-nodejs/storybook-addon/)
+2. Deploying to production
+
+   1. [Process Management with PM2](/community/guides/scaling-nodejs/pm2-guide/)
+   2. [Dockerizing Node.js Apps](/community/guides/scaling-nodejs/dockerize-nodejs/)
+   3. [Nginx Reverse Proxy for Node.js](/community/guides/scaling-nodejs/nodejs-reverse-proxy-nginx/)
+3. Practical performance tuning
+
+   1. [Redis Caching in Node.js](/community/guides/scaling-nodejs/nodejs-caching-redis/)
+   2. [Timeouts in Node.js](/community/guides/scaling-nodejs/nodejs-timeouts/)
+   3. [Debugging Node.js Memory Leaks](/community/guides/scaling-nodejs/high-performance-nodejs/nodejs-memory-leaks/)
+   4. [Introduction to Node.js Workers](/community/guides/scaling-nodejs/nodejs-workers-explained/)
+   5. [Node.js Clustering](/community/guides/scaling-nodejs/node-clustering/)
+   6. [Measuring Node.js Performance](/community/guides/scaling-nodejs/performance-apis/)
+   7. [Node.js Performance Monitoring](/community/guides/scaling-nodejs/nodejs-performance-monitoring/)
+   8. [Profiling Node.js Applications](/community/guides/scaling-nodejs/profiling-nodejs-applications/)
+   9. [AbortController in Node.js](/community/guides/scaling-nodejs/understanding-abortcontroller/)
+   10. [Node.js Streams vs. Web Streams API](/community/guides/scaling-nodejs/nodejs-streams-vs-web-streams-api/)
+   11. [Understanding Node.js Streams](/community/guides/scaling-nodejs/nodejs-streams/)
+   12. [Implementing WebAssembly for High-Performance Web Apps](/community/guides/scaling-nodejs/webassembly-web-apps/)
+   13. [Getting Started with Mise](/community/guides/scaling-nodejs/mise-explained/)
+   14. [Fix Next.js Build Failures on Small Servers with Swap](/community/guides/scaling-nodejs/fix-nextjs-build-failures/)
+4. 1. [Load Testing with Artillery](/community/guides/scaling-nodejs/artillery-intro/)
+   2. [Comparing Node.js Testing Libraries](/community/guides/testing/best-node-testing-libraries/)
+   3. [Node.js Test Runner](/community/guides/testing/nodejs-test-runner/)
+5. Observability & monitoring
+
+   1. [Logging with Pino](/community/guides/logging/how-to-install-setup-and-use-pino-to-log-node-js-applications/)
+   2. [Logging with Winston](/community/guides/logging/how-to-install-setup-and-use-winston-and-morgan-to-log-node-js-applications/)
+   3. [Node.js Logging Best Practices](/community/guides/logging/nodejs-logging-best-practices/)
+   4. [Monitoring Node.js with Prometheus](/community/guides/scaling-nodejs/nodejs-prometheus/)
+6. Job scheduling
+
+   1. [Job Scheduling in Node.js with Agenda](/community/guides/scaling-nodejs/node-scheduled-tasks/)
+   2. [Job Scheduling in Node.js with BullMQ](/community/guides/scaling-nodejs/bullmq-scheduled-tasks/)
+   3. [Job Scheduling in Node.js with Node-cron](/community/guides/scaling-nodejs/node-cron-scheduled-tasks/)
+   4. [Best Node Scheduling Libraries](/community/guides/scaling-nodejs/best-nodejs-schedulers/)
+7. Node.js comparisons
+
+   1. [Hono vs Fastify](/community/guides/scaling-nodejs/hono-vs-fastify/)
+   2. [Pino vs Bunyan](/community/guides/scaling-nodejs/pino-vs-bunyan/)
+   3. [Flutter vs React Native](/community/guides/scaling-nodejs/flutter-vs-react-native/)
+   4. [Koa.js vs Hapi.js](/community/guides/scaling-nodejs/koa-vs-hapi/)
+   5. [SvelteKit vs Next.js](/community/guides/scaling-nodejs/sveltekit-vs-nextjs/)
+   6. [Koa.js vs Express.js](/community/guides/scaling-nodejs/koajs-vs-expressjs/)
+   7. [Jiti vs ts-node](/community/guides/scaling-nodejs/jiti-vs-ts-node-typescript/)
+   8. [Jiti vs TSX](/community/guides/scaling-nodejs/jiti-vs-tsx/)
+   9. [TSX vs ts-node](/community/guides/scaling-nodejs/tsx-vs-ts-node/)
+   10. [TSX vs Native Node.js TypeScript](/community/guides/scaling-nodejs/tsx-vs-native-nodejs-typescript/)
+   11. [Bun vs TSX](/community/guides/scaling-nodejs/bun-vs-tsx/)
+   12. [Bun vs Native Node.js TypeScript](/community/guides/scaling-nodejs/bun-vs-nodejs-typescript/)
+   13. [Bun vs ts-node](/community/guides/scaling-nodejs/bun-vs-ts-node-typescript/)
+   14. [Native TypeScript Support: Node.js vs Deno](/community/guides/scaling-nodejs/nodejs-vs-deno-typescript/)
+   15. [The Top 6 TSX Alternatives for TypeScript Development](/community/guides/scaling-nodejs/tsx-alternatives/)
+   16. [The Top 6 ts-node Alternatives for TypeScript](/community/guides/scaling-nodejs/ts-node-alternatives/)
+   17. [Top 6 esbuild Alternatives](/community/guides/scaling-nodejs/esbuild-alternatives/)
+   18. [Top 6 SWC Alternatives](/community/guides/scaling-nodejs/swc-alternatives/)
+   19. [Deno vs Bun: TypeScript Development Compared](/community/guides/scaling-nodejs/deno-vs-bun-typescript/)
+   20. [Top 6 Webpack Alternatives](/community/guides/scaling-nodejs/webpack-alternatives/)
+   21. [Webpack vs Parcel: A Bundler Comparison](/community/guides/scaling-nodejs/webpack-vs-parcel/)
+   22. [Esbuild vs Vite: A Complete Build Tool Comparison](/community/guides/scaling-nodejs/esbuild-vs-vite/)
+   23. [Top 6 Vite Alternatives for JavaScript Bundling](/community/guides/scaling-nodejs/vite-alternatives/)
+   24. [Top 6 Parcel Alternatives](/community/guides/scaling-nodejs/parcel-alternatives/)
+   25. [NestJS vs. Laravel](/community/guides/scaling-nodejs/nestjs-vs-laravel/)
+   26. [NestJS vs. Ruby on Rails](/community/guides/scaling-nodejs/nestjs-vs-rails/)
+   27. [NestJS vs Fastify](/community/guides/scaling-nodejs/nestjs-vs-fastify/)
+   28. [NestJS vs Spring Boot](/community/guides/scaling-nodejs/nestjs-vs-spring-boot/)
+   29. [NestJS vs Express](/community/guides/scaling-nodejs/nestjs-vs-express/)
+   30. [Ruby on Rails vs Express](/community/guides/scaling-nodejs/rails-vs-express/)
+   31. [NVM vs Mise: Choosing the Right Node.js Version Manager](/community/guides/scaling-nodejs/nvm-vs-mise/)
+   32. [Biome vs ESLint: Comparing JavaScript Linters and Formatters](/community/guides/scaling-nodejs/biome-eslint/)
+   33. [Oxlint vs ESLint: Comparing JavaScript Linters](/community/guides/scaling-nodejs/oxlint-vs-eslint/)
+8. New tools & features
+
+   1. [Remix 3 and the Future Beyond React](/community/guides/scaling-nodejs/remix-3-beyond-react/)
+9. 1. [The Shai-Hulud 2.0 NPM Supply Chain Attack Explained](/community/guides/scaling-nodejs/npm-supply-chain-attack/)
+
+### Please accept cookies
+
+We use cookies to authenticate users, improve the product user experience, and for [personalized ads](https://business.safety.google/privacy/). [Learn more.](/privacy)
+
+ 
+
+---
+
+Title: How to Containerize and Deploy Your Node.js Applications
+/  [#containers](/news/tag/containers/)
+
+# How to Containerize and Deploy Your Node.js Applications
+
+![Manish Shivanandhan](https://cdn.hashnode.com/res/hashnode/image/upload/v1725238262566/37625c8b-4d87-4b8c-8fb7-b4fdcf34de9e.png?w=500&h=500&fit=crop&crop=entropy&auto=compress,format&format=webp)
+
+[Manish Shivanandhan](/news/author/manishshivanandhan/)
+
+    ![How to Containerize and Deploy Your Node.js Applications](https://cdn.hashnode.com/res/hashnode/image/upload/v1760051426715/fd0f14cf-95dc-4191-b0fc-e5c916520097.png)  
+
+When you build a Node.js application, running it locally is simple. You type `npm start`, and it works.
+
+But when you need to run it on the cloud, things get complicated. You need to think about servers, environments, dependencies, and deployment pipelines. That’s where containerization comes in.
+
+Containers make your application portable and predictable. You can run the same code with the same setup anywhere, from your laptop to the cloud.
+
+In this guide, we will walk through how to containerize a simple Node.js API and deploy it to the cloud. By the end, you will know how to set up Docker for your app, push it to a registry, and see your application running on the cloud.
+
+## **Table of Contents**
+
+* [What is Containerization?](#heading-what-is-containerization)
+* [Setting Up a Node.js App](#heading-setting-up-a-nodejs-app)
+* [Writing the Dockerfile](#heading-writing-the-dockerfile)
+* [Building and Testing the Container](#heading-building-and-testing-the-container)
+* [Preparing for Deployment](#heading-preparing-for-deployment)
+* [Deploying to the Cloud](#heading-deploying-to-the-cloud)
+* [Scaling Your App](#heading-scaling-your-app)
+* [Updating Your App](#heading-updating-your-app)
+* [Benefits of sing Containers](#heading-benefits-of-sing-containers)
+* [Conclusion](#heading-conclusion)
+
+## Prerequisites
+
+Before we dive into containerizing and deploying your Node.js application, make sure you have the following set up on your system. These basics will help you follow along without running into errors.
+
+**Node.js and npm**  
+You should have [Node.js](https://nodejs.org/en) (v18 or higher) and npm installed on your local machine. This ensures you can run your app locally before containerizing it.  
+To check your versions, run:
+
+```
+node -v npm -v 
+```
+
+**Docker installed and running**  
+[Docker](https://www.docker.com/) is the core tool we’ll use to containerize the app. Install Docker Desktop or Docker Engine depending on your system. Once installed, confirm that it’s running and working by typing:
+
+```
+docker --version 
+```
+
+**Docker Hub account (or any container registry)**  
+You’ll need a Docker Hub account to push your container image to the cloud. This allows your deployment platform to pull and run the image. You can create one for free at [hub.docker.com](http://hub.docker.com)[.](https://hub.docker.com/)
+
+Once you have these prerequisites ready, you’ll be set to build your first containerized Node.js app and deploy it to the cloud.
+
+## **What is Containerization?**
+
+Containerization is a way to package an application along with everything it needs to run. That includes the code, libraries, system tools, and settings. The package is called a container image.
+
+When you run that image, you get a container that behaves exactly the same on any system that supports [Docker](https://www.freecodecamp.org/news/the-docker-handbook/).
+
+Without containers, deployment can be messy. Your app might work on your machine but fail in production due to missing libraries or version mismatches.
+
+Containers solve this by locking in the environment. Think of them as lightweight virtual machines that only contain what your app needs.
+
+## **Setting Up a Node.js App**
+
+Let’s start by building a simple Node.js API. We will keep it minimal so we can focus on the containerization and deployment steps.
+
+Create a new folder and add a file called `server.js`:
+
+```
+const express = require('express'); const app = express(); const PORT = process.env.PORT || 3000; app.get('/', (req, res) => { res.json({ message: 'Hello from Container!' }); }); app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); }); 
+```
+
+Next, create a `package.json` file with the following content:
+
+```
+{ "name": "container-node-app", "version": "1.0.0", "main": "server.js", "scripts": { "start": "node server.js" }, "dependencies": { "express": "^5.1.0" } } 
+```
+
+Run `npm install` to install the Express dependency. You now have a simple Node.js API that runs locally. You can test it with `npm start` and open `http://localhost:3000` in your browser.
+
+## **Writing the Dockerfile**
+
+To run this app in a container, we need to write a `Dockerfile`. This file defines how to build the container image. Create a new file called `Dockerfile` and add this:
+
+```
+FROM node:24 WORKDIR /usr/src/app COPY package*.json ./ RUN npm install COPY . . EXPOSE 3000 CMD ["npm", "start"] 
+```
+
+Let’s break this down. We start with the official Node.js 24 image. We set a working directory inside the container. We copy the package files and install dependencies.
+
+Then we copy the rest of the code. We expose port 3000 so that the app can accept traffic. Finally, we run `npm start` as the default command.
+
+## **Building and Testing the Container**
+
+Now that we have the `Dockerfile`, we can build the image. Run the following command:
+
+```
+docker build -t container-node-app . 
+```
+
+This builds an image named `container-node-app`. To test it locally, run:
+
+```
+docker run -p 3000:3000 container-node-app 
+```
+
+Open `http://localhost:3000` in your browser, and you should see the JSON message `{"message":"Hello from Container!"}`. At this point, we know our app works in a container.
+
+## **Preparing for Deployment**
+
+To deploy on any cloud platform, you need to push your image to a container registry. A registry is a place where container images are stored and shared. Your cloud provider can pull images from [Docker Hub](https://hub.docker.com/) or other registries.
+
+Tag your image with a registry path. For Docker Hub, it looks like this:
+
+```
+docker tag container-node-app your-dockerhub-username/container-node-app:latest 
+```
+
+Then log in and push it:
+
+```
+docker login docker push your-dockerhub-username/container-node-app:latest 
+```
+
+Your image should now be available in the cloud registry and ready for deployment.
+
+Here’s mine:
+
+## **Deploying to the Cloud**
+
+In this tutorial, I’ll be using Sevalla since it offers a free tier, so there are no costs involved to deploy this container to the cloud. You can use other providers like [AWS](https://aws.amazon.com/) or [Heroku](https://www.heroku.com/), but just note that you will incur costs for creating resources.
+
+[Sevalla](https://sevalla.com/) is a modern, usage-based Platform-as-a-service provider. It offers application hosting, database, object storage, and static site hosting for your projects.
+
+Once you have your account set up, you can create a new application and tell it which container image to use. Sevalla will pull the image from the registry, create a container, and handle the networking, scaling, and updates for you.
+
+To get started, [login](https://app.sevalla.com/login) to Sevalla. In the dashboard, choose to create a new application. Give it a name like `node-api`. Provide the registry path of your image.
+
+Choose a location and use the “Hobby” plan. Sevalla comes with a $50 free credit, so you wont be charged for deploying this image.
+
+Click “Create and Deploy”. Sevalla will handle the rest. You can watch it configure the application and run the deployment.
+
+Once the deployment is complete, click on “Visit app” to get your app’s live URL. You can see the response from the API.
+
+## **Scaling Your App**
+
+One of the main benefits of Sevalla is easy scaling. If you start getting more traffic, you can increase the number of containers running your app with just a few clicks. Sevalla will load balance traffic between them. This means your app can handle more requests without downtime.
+
+Scaling with containers is efficient because each container runs the exact same code. There is no need to configure extra servers manually. Sevalla takes care of orchestration, so your focus stays on writing code instead of managing infrastructure.
+
+## **Updating Your App**
+
+When you make changes to your Node.js app, updating is straightforward. You rebuild the Docker image, push it to the registry, and tell Sevalla to redeploy.
+
+Since containers are immutable, every new build creates a fresh environment. This ensures your updates are clean, consistent, and free of old dependencies.
+
+For example, if you change the message in `server.js` and want to deploy it, you would run:
+
+```
+docker build -t your-dockerhub-username/container-node-app:latest . docker push your-dockerhub-username/container-node-app:latest 
+```
+
+Then trigger a redeploy in the Sevalla dashboard. Within minutes, your users will see the updated response.
+
+## **Benefits of sing Containers**
+
+[Containers](https://techcrunch.com/2016/10/16/wtf-is-a-container/) bring many advantages when deploying Node.js applications. They make your app portable because the container holds both the code and its dependencies, ensuring it runs the same way everywhere.
+
+They improve consistency, since every build creates an isolated environment without leftover files or mismatched versions. Scaling becomes simple because you can spin up more containers as traffic grows, and each one behaves identically. Updates are cleaner too, as you replace old containers with fresh ones built from the latest code.
+
+For developers, this means fewer surprises and less time fixing environment issues. Containers provide a reliable foundation, so you can focus on building features rather than troubleshooting deployments.
+
+## **Conclusion**
+
+Containerization is one of the most important shifts in modern software development. By learning how to put your Node.js app into a Docker container, you unlock the ability to run it anywhere.
+
+In this guide, we built a small Node.js API, created a Dockerfile, tested the container locally, pushed it to a registry, and deployed it to the cloud. The steps you followed here apply to much larger and more complex applications as well. Once you get the basics, you can scale up your workflows to production-level projects.
+
+Hope you enjoyed this article. Connect with me [on Linkedin](https://www.linkedin.com/in/manishmshiva/?originalSubdomain=in) or [visit my website](https://manishshivanandhan.com/).
+
+---
+
+![Manish Shivanandhan](https://cdn.hashnode.com/res/hashnode/image/upload/v1725238262566/37625c8b-4d87-4b8c-8fb7-b4fdcf34de9e.png?w=500&h=500&fit=crop&crop=entropy&auto=compress,format&format=webp)
+
+[Manish Shivanandhan](/news/author/manishshivanandhan/)  
+
+Read [more posts](/news/author/manishshivanandhan/).
+
+---
+
+If you read this far, thank the author to show them you care.
+
+Learn to code for free. freeCodeCamp's open source curriculum has helped more than 40,000 people get jobs as developers. [Get started](https://www.freecodecamp.org/learn)
+
+ 
+
+---
+
+Title: Deploy your app | Docker Docs
+Ask Gordon — AI assistant for Docker docs
+
+### Ask me about Docker
+
+Get instant answers to your Docker questions. I can help with commands, concepts, troubleshooting, and best practices.
+
+Try asking:
+
+Was this helpful?
+
+remaining in this thread.
+
+You've reached the maximum of questions per thread. For better answer quality, start a new thread.
+
+Answers are generated based on the documentation.
+
+* [Get started](/get-started/)
+* [Manuals](/manuals/)
+* [Reference](/reference/)
+
+[Node.js language-specific guide](https://docs.docker.com/guides/nodejs/)
+
+This guide explains how to containerize Node.js applications using Docker.
+
+![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg "JavaScript") JavaScript  Docker Hardened Images
+
+20 minutes
+
+[1](https://docs.docker.com/guides/nodejs/containerize/)
+
+[Containerize](https://docs.docker.com/guides/nodejs/containerize/)
+
+[2](https://docs.docker.com/guides/nodejs/develop/)
+
+[Develop your app](https://docs.docker.com/guides/nodejs/develop/)
+
+[3](https://docs.docker.com/guides/nodejs/run-tests/)
+
+[Run your tests](https://docs.docker.com/guides/nodejs/run-tests/)
+
+[4](https://docs.docker.com/guides/nodejs/configure-github-actions/)
+
+[Automate your builds with GitHub Actions](https://docs.docker.com/guides/nodejs/configure-github-actions/)
+
+[5](https://docs.docker.com/guides/nodejs/deploy/)
+
+[Deploy your app](https://docs.docker.com/guides/nodejs/deploy/)
+
+[« Back to all guides](/guides/)
+
+# Deploy your Node.js application
+
+Table of contents
+
+---
+
+## [Prerequisites](#prerequisites)
+
+* Complete all the previous sections of this guide, starting with [Containerize a Node.js application](https://docs.docker.com/guides/nodejs/containerize/).
+* [Turn on Kubernetes](https://docs.docker.com/desktop/use-desktop/kubernetes/#enable-kubernetes) in Docker Desktop.
+
+## [Overview](#overview)
+
+In this section, you'll learn how to deploy your containerized Node.js application to Kubernetes using Docker Desktop. This deployment uses production-ready configurations including security hardening, auto-scaling, persistent storage, and high availability features.
+
+You'll deploy a complete stack including:
+
+* Node.js Todo application with 3 replicas.
+* PostgreSQL database with persistent storage.
+* Auto-scaling based on CPU and memory usage.
+* Ingress configuration for external access.
+* Security settings.
+
+## [Create a Kubernetes deployment file](#create-a-kubernetes-deployment-file)
+
+Create a new file called `nodejs-sample-kubernetes.yaml` in your project root:
+
+```
+# ======================================== # ======================================== # ========================================  # Node.js Todo App - Kubernetes Deployment # Node.js Todo App - Kubernetes Deployment # Node.js Todo App - Kubernetes Deployment  # ======================================== # ======================================== # ========================================     apiVersion: v1 apiVersion: v1 apiVersion:  v1  kind: Namespace kind: Namespace kind:  Namespace  metadata: metadata: metadata:   name: todoapp  name: todoapp  name:  todoapp   labels:  labels:  labels:   app: todoapp  app: todoapp  app:  todoapp     --- --- ---  # ======================================== # ======================================== # ========================================  # ConfigMap for Application Configuration # ConfigMap for Application Configuration # ConfigMap for Application Configuration  # ======================================== # ======================================== # ========================================  apiVersion: v1 apiVersion: v1 apiVersion:  v1  kind: ConfigMap kind: ConfigMap kind:  ConfigMap  metadata: metadata: metadata:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   namespace: todoapp  namespace: todoapp  namespace:  todoapp  data: data: data:   NODE_ENV: 'production'  NODE_ENV: 'production'  NODE_ENV:  'production'   ALLOWED_ORIGINS: 'https://yourdomain.com'  ALLOWED_ORIGINS: 'https://yourdomain.com'  ALLOWED_ORIGINS:  'https://yourdomain.com'   POSTGRES_HOST: 'todoapp-postgres'  POSTGRES_HOST: 'todoapp-postgres'  POSTGRES_HOST:  'todoapp-postgres'   POSTGRES_PORT: '5432'  POSTGRES_PORT: '5432'  POSTGRES_PORT:  '5432'   POSTGRES_DB: 'todoapp'  POSTGRES_DB: 'todoapp'  POSTGRES_DB:  'todoapp'   POSTGRES_USER: 'todoapp'  POSTGRES_USER: 'todoapp'  POSTGRES_USER:  'todoapp'     --- --- ---  # ======================================== # ======================================== # ========================================  # Secret for Database Credentials # Secret for Database Credentials # Secret for Database Credentials  # ======================================== # ======================================== # ========================================  apiVersion: v1 apiVersion: v1 apiVersion:  v1  kind: Secret kind: Secret kind:  Secret  metadata: metadata: metadata:   name: todoapp-secrets  name: todoapp-secrets  name:  todoapp-secrets   namespace: todoapp  namespace: todoapp  namespace:  todoapp  type: Opaque type: Opaque type:  Opaque  data: data: data:   postgres-password: dG9kb2FwcF9wYXNzd29yZA== # base64 encoded "todoapp_password"  postgres-password: dG9kb2FwcF9wYXNzd29yZA== # base64 encoded "todoapp_password"  postgres-password:  dG9kb2FwcF9wYXNzd29yZA==  # base64 encoded "todoapp_password"     --- --- ---  # ======================================== # ======================================== # ========================================  # PostgreSQL PersistentVolumeClaim # PostgreSQL PersistentVolumeClaim # PostgreSQL PersistentVolumeClaim  # ======================================== # ======================================== # ========================================  apiVersion: v1 apiVersion: v1 apiVersion:  v1  kind: PersistentVolumeClaim kind: PersistentVolumeClaim kind:  PersistentVolumeClaim  metadata: metadata: metadata:   name: postgres-pvc  name: postgres-pvc  name:  postgres-pvc   namespace: todoapp  namespace: todoapp  namespace:  todoapp  spec: spec: spec:   accessModes:  accessModes:  accessModes:   - ReadWriteOnce  - ReadWriteOnce  ReadWriteOnce   resources:  resources:  resources:   requests:  requests:  requests:   storage: 10Gi  storage: 10Gi  storage:  10Gi   storageClassName: standard  storageClassName: standard  storageClassName:  standard     --- --- ---  # ======================================== # ======================================== # ========================================  # PostgreSQL Deployment # PostgreSQL Deployment # PostgreSQL Deployment  # ======================================== # ======================================== # ========================================  apiVersion: apps/v1 apiVersion: apps/v1 apiVersion:  apps/v1  kind: Deployment kind: Deployment kind:  Deployment  metadata: metadata: metadata:   name: todoapp-postgres  name: todoapp-postgres  name:  todoapp-postgres   namespace: todoapp  namespace: todoapp  namespace:  todoapp   labels:  labels:  labels:   app: todoapp-postgres  app: todoapp-postgres  app:  todoapp-postgres  spec: spec: spec:   replicas: 1  replicas: 1  replicas:  1   selector:  selector:  selector:   matchLabels:  matchLabels:  matchLabels:   app: todoapp-postgres  app: todoapp-postgres  app:  todoapp-postgres   template:  template:  template:   metadata:  metadata:  metadata:   labels:  labels:  labels:   app: todoapp-postgres  app: todoapp-postgres  app:  todoapp-postgres   spec:  spec:  spec:   containers:  containers:  containers:   - name: postgres  - name: postgres  name:  postgres   image: postgres:18-alpine  image: postgres:18-alpine  image:  postgres:18-alpine   ports:  ports:  ports:   - containerPort: 5432  - containerPort: 5432  containerPort:  5432   name: postgres  name: postgres  name:  postgres   env:  env:  env:   - name: POSTGRES_DB  - name: POSTGRES_DB  name:  POSTGRES_DB   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: POSTGRES_DB  key: POSTGRES_DB  key:  POSTGRES_DB   - name: POSTGRES_USER  - name: POSTGRES_USER  name:  POSTGRES_USER   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: POSTGRES_USER  key: POSTGRES_USER  key:  POSTGRES_USER   - name: POSTGRES_PASSWORD  - name: POSTGRES_PASSWORD  name:  POSTGRES_PASSWORD   valueFrom:  valueFrom:  valueFrom:   secretKeyRef:  secretKeyRef:  secretKeyRef:   name: todoapp-secrets  name: todoapp-secrets  name:  todoapp-secrets   key: postgres-password  key: postgres-password  key:  postgres-password   volumeMounts:  volumeMounts:  volumeMounts:   - name: postgres-storage  - name: postgres-storage  name:  postgres-storage   mountPath: /var/lib/postgresql  mountPath: /var/lib/postgresql  mountPath:  /var/lib/postgresql   livenessProbe:  livenessProbe:  livenessProbe:   exec:  exec:  exec:   command:  command:  command:   - pg_isready  - pg_isready  pg_isready   - -U  - -U  U   - todoapp  - todoapp  todoapp   - -d  - -d  d   - todoapp  - todoapp  todoapp   initialDelaySeconds: 30  initialDelaySeconds: 30  initialDelaySeconds:  30   periodSeconds: 10  periodSeconds: 10  periodSeconds:  10   readinessProbe:  readinessProbe:  readinessProbe:   exec:  exec:  exec:   command:  command:  command:   - pg_isready  - pg_isready  pg_isready   - -U  - -U  U   - todoapp  - todoapp  todoapp   - -d  - -d  d   - todoapp  - todoapp  todoapp   initialDelaySeconds: 5  initialDelaySeconds: 5  initialDelaySeconds:  5   periodSeconds: 5  periodSeconds: 5  periodSeconds:  5   volumes:  volumes:  volumes:   - name: postgres-storage  - name: postgres-storage  name:  postgres-storage   persistentVolumeClaim:  persistentVolumeClaim:  persistentVolumeClaim:   claimName: postgres-pvc  claimName: postgres-pvc  claimName:  postgres-pvc     --- --- ---  # ======================================== # ======================================== # ========================================  # PostgreSQL Service # PostgreSQL Service # PostgreSQL Service  # ======================================== # ======================================== # ========================================  apiVersion: v1 apiVersion: v1 apiVersion:  v1  kind: Service kind: Service kind:  Service  metadata: metadata: metadata:   name: todoapp-postgres  name: todoapp-postgres  name:  todoapp-postgres   namespace: todoapp  namespace: todoapp  namespace:  todoapp   labels:  labels:  labels:   app: todoapp-postgres  app: todoapp-postgres  app:  todoapp-postgres  spec: spec: spec:   type: ClusterIP  type: ClusterIP  type:  ClusterIP   ports:  ports:  ports:   - port: 5432  - port: 5432  port:  5432   targetPort: 5432  targetPort: 5432  targetPort:  5432   protocol: TCP  protocol: TCP  protocol:  TCP   name: postgres  name: postgres  name:  postgres   selector:  selector:  selector:   app: todoapp-postgres  app: todoapp-postgres  app:  todoapp-postgres     --- --- ---  # ======================================== # ======================================== # ========================================  # Application Deployment # Application Deployment # Application Deployment  # ======================================== # ======================================== # ========================================  apiVersion: apps/v1 apiVersion: apps/v1 apiVersion:  apps/v1  kind: Deployment kind: Deployment kind:  Deployment  metadata: metadata: metadata:   name: todoapp-deployment  name: todoapp-deployment  name:  todoapp-deployment   namespace: todoapp  namespace: todoapp  namespace:  todoapp   labels:  labels:  labels:   app: todoapp  app: todoapp  app:  todoapp  spec: spec: spec:   replicas: 3  replicas: 3  replicas:  3   selector:  selector:  selector:   matchLabels:  matchLabels:  matchLabels:   app: todoapp  app: todoapp  app:  todoapp   template:  template:  template:   metadata:  metadata:  metadata:   labels:  labels:  labels:   app: todoapp  app: todoapp  app:  todoapp   spec:  spec:  spec:   securityContext:  securityContext:  securityContext:   runAsNonRoot: true  runAsNonRoot: true  runAsNonRoot:  true   runAsUser: 1001  runAsUser: 1001  runAsUser:  1001   fsGroup: 1001  fsGroup: 1001  fsGroup:  1001   containers:  containers:  containers:   - name: todoapp  - name: todoapp  name:  todoapp   image: ghcr.io/your-username/docker-nodejs-sample:latest  image: ghcr.io/your-username/docker-nodejs-sample:latest  image:  ghcr.io/your-username/docker-nodejs-sample:latest   imagePullPolicy: Always  imagePullPolicy: Always  imagePullPolicy:  Always   ports:  ports:  ports:   - containerPort: 3000  - containerPort: 3000  containerPort:  3000   name: http  name: http  name:  http   protocol: TCP  protocol: TCP  protocol:  TCP   env:  env:  env:   - name: NODE_ENV  - name: NODE_ENV  name:  NODE_ENV   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: NODE_ENV  key: NODE_ENV  key:  NODE_ENV   - name: ALLOWED_ORIGINS  - name: ALLOWED_ORIGINS  name:  ALLOWED_ORIGINS   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: ALLOWED_ORIGINS  key: ALLOWED_ORIGINS  key:  ALLOWED_ORIGINS   - name: POSTGRES_HOST  - name: POSTGRES_HOST  name:  POSTGRES_HOST   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: POSTGRES_HOST  key: POSTGRES_HOST  key:  POSTGRES_HOST   - name: POSTGRES_PORT  - name: POSTGRES_PORT  name:  POSTGRES_PORT   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: POSTGRES_PORT  key: POSTGRES_PORT  key:  POSTGRES_PORT   - name: POSTGRES_DB  - name: POSTGRES_DB  name:  POSTGRES_DB   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: POSTGRES_DB  key: POSTGRES_DB  key:  POSTGRES_DB   - name: POSTGRES_USER  - name: POSTGRES_USER  name:  POSTGRES_USER   valueFrom:  valueFrom:  valueFrom:   configMapKeyRef:  configMapKeyRef:  configMapKeyRef:   name: todoapp-config  name: todoapp-config  name:  todoapp-config   key: POSTGRES_USER  key: POSTGRES_USER  key:  POSTGRES_USER   - name: POSTGRES_PASSWORD  - name: POSTGRES_PASSWORD  name:  POSTGRES_PASSWORD   valueFrom:  valueFrom:  valueFrom:   secretKeyRef:  secretKeyRef:  secretKeyRef:   name: todoapp-secrets  name: todoapp-secrets  name:  todoapp-secrets   key: postgres-password  key: postgres-password  key:  postgres-password   livenessProbe:  livenessProbe:  livenessProbe:   httpGet:  httpGet:  httpGet:   path: /health  path: /health  path:  /health   port: 3000  port: 3000  port:  3000   initialDelaySeconds: 30  initialDelaySeconds: 30  initialDelaySeconds:  30   periodSeconds: 10  periodSeconds: 10  periodSeconds:  10   readinessProbe:  readinessProbe:  readinessProbe:   httpGet:  httpGet:  httpGet:   path: /health  path: /health  path:  /health   port: 3000  port: 3000  port:  3000   initialDelaySeconds: 5  initialDelaySeconds: 5  initialDelaySeconds:  5   periodSeconds: 5  periodSeconds: 5  periodSeconds:  5   resources:  resources:  resources:   requests:  requests:  requests:   memory: '256Mi'  memory: '256Mi'  memory:  '256Mi'   cpu: '250m'  cpu: '250m'  cpu:  '250m'   limits:  limits:  limits:   memory: '512Mi'  memory: '512Mi'  memory:  '512Mi'   cpu: '500m'  cpu: '500m'  cpu:  '500m'   securityContext:  securityContext:  securityContext:   allowPrivilegeEscalation: false  allowPrivilegeEscalation: false  allowPrivilegeEscalation:  false   readOnlyRootFilesystem: true  readOnlyRootFilesystem: true  readOnlyRootFilesystem:  true   capabilities:  capabilities:  capabilities:   drop:  drop:  drop:   - ALL  - ALL  ALL     --- --- ---  # ======================================== # ======================================== # ========================================  # Application Service # Application Service # Application Service  # ======================================== # ======================================== # ========================================  apiVersion: v1 apiVersion: v1 apiVersion:  v1  kind: Service kind: Service kind:  Service  metadata: metadata: metadata:   name: todoapp-service  name: todoapp-service  name:  todoapp-service   namespace: todoapp  namespace: todoapp  namespace:  todoapp   labels:  labels:  labels:   app: todoapp  app: todoapp  app:  todoapp  spec: spec: spec:   type: ClusterIP  type: ClusterIP  type:  ClusterIP   ports:  ports:  ports:   - name: http  - name: http  name:  http   port: 80  port: 80  port:  80   targetPort: 3000  targetPort: 3000  targetPort:  3000   protocol: TCP  protocol: TCP  protocol:  TCP   selector:  selector:  selector:   app: todoapp  app: todoapp  app:  todoapp     --- --- ---  # ======================================== # ======================================== # ========================================  # Ingress for External Access # Ingress for External Access # Ingress for External Access  # ======================================== # ======================================== # ========================================  apiVersion: networking.k8s.io/v1 apiVersion: networking.k8s.io/v1 apiVersion:  networking.k8s.io/v1  kind: Ingress kind: Ingress kind:  Ingress  metadata: metadata: metadata:   name: todoapp-ingress  name: todoapp-ingress  name:  todoapp-ingress   namespace: todoapp  namespace: todoapp  namespace:  todoapp   annotations:  annotations:  annotations:   nginx.ingress.kubernetes.io/rewrite-target: /  nginx.ingress.kubernetes.io/rewrite-target: /  nginx.ingress.kubernetes.io/rewrite-target:  /   cert-manager.io/cluster-issuer: 'letsencrypt-prod'  cert-manager.io/cluster-issuer: 'letsencrypt-prod'  cert-manager.io/cluster-issuer:  'letsencrypt-prod'  spec: spec: spec:   tls:  tls:  tls:   - hosts:  - hosts:  hosts:   - yourdomain.com  - yourdomain.com  yourdomain.com   secretName: todoapp-tls  secretName: todoapp-tls  secretName:  todoapp-tls   rules:  rules:  rules:   - host: yourdomain.com  - host: yourdomain.com  host:  yourdomain.com   http:  http:  http:   paths:  paths:  paths:   - path: /  - path: /  path:  /   pathType: Prefix  pathType: Prefix  pathType:  Prefix   backend:  backend:  backend:   service:  service:  service:   name: todoapp-service  name: todoapp-service  name:  todoapp-service   port:  port:  port:   number: 80  number: 80  number:  80     --- --- ---  # ======================================== # ======================================== # ========================================  # HorizontalPodAutoscaler # HorizontalPodAutoscaler # HorizontalPodAutoscaler  # ======================================== # ======================================== # ========================================  apiVersion: autoscaling/v2 apiVersion: autoscaling/v2 apiVersion:  autoscaling/v2  kind: HorizontalPodAutoscaler kind: HorizontalPodAutoscaler kind:  HorizontalPodAutoscaler  metadata: metadata: metadata:   name: todoapp-hpa  name: todoapp-hpa  name:  todoapp-hpa   namespace: todoapp  namespace: todoapp  namespace:  todoapp  spec: spec: spec:   scaleTargetRef:  scaleTargetRef:  scaleTargetRef:   apiVersion: apps/v1  apiVersion: apps/v1  apiVersion:  apps/v1   kind: Deployment  kind: Deployment  kind:  Deployment   name: todoapp-deployment  name: todoapp-deployment  name:  todoapp-deployment   minReplicas: 1  minReplicas: 1  minReplicas:  1   maxReplicas: 5  maxReplicas: 5  maxReplicas:  5   metrics:  metrics:  metrics:   - type: Resource  - type: Resource  type:  Resource   resource:  resource:  resource:   name: cpu  name: cpu  name:  cpu   target:  target:  target:   type: Utilization  type: Utilization  type:  Utilization   averageUtilization: 70  averageUtilization: 70  averageUtilization:  70   - type: Resource  - type: Resource  type:  Resource   resource:  resource:  resource:   name: memory  name: memory  name:  memory   target:  target:  target:   type: Utilization  type: Utilization  type:  Utilization   averageUtilization: 80  averageUtilization: 80  averageUtilization:  80     --- --- ---  # ======================================== # ======================================== # ========================================  # PodDisruptionBudget # PodDisruptionBudget # PodDisruptionBudget  # ======================================== # ======================================== # ========================================  apiVersion: policy/v1 apiVersion: policy/v1 apiVersion:  policy/v1  kind: PodDisruptionBudget kind: PodDisruptionBudget kind:  PodDisruptionBudget  metadata: metadata: metadata:   name: todoapp-pdb  name: todoapp-pdb  name:  todoapp-pdb   namespace: todoapp  namespace: todoapp  namespace:  todoapp  spec: spec: spec:   minAvailable: 1  minAvailable: 1  minAvailable:  1   selector:  selector:  selector:   matchLabels:  matchLabels:  matchLabels:   app: todoapp app: todoapp  app:  todoapp
+```
+
+## [Configure the deployment](#configure-the-deployment)
+
+Before deploying, you need to customize the deployment file for your environment:
+
+1. **Image reference**: Replace `your-username` with your GitHub username or Docker Hub username:
+
+   ```
+   image: ghcr.io/your-username/docker-nodejs-sample:latestimage: ghcr.io/your-username/docker-nodejs-sample:latest image:  ghcr.io/your-username/docker-nodejs-sample:latest
+   ```
+2. **Domain name**: Replace `yourdomain.com` with your actual domain in two places:
+
+   ```
+   # In ConfigMap # In ConfigMap # In ConfigMap  ALLOWED_ORIGINS: "https://yourdomain.com" ALLOWED_ORIGINS: "https://yourdomain.com" ALLOWED_ORIGINS:  "https://yourdomain.com"     # In Ingress # In Ingress # In Ingress  - host: yourdomain.com - host: yourdomain.com host:  yourdomain.com
+   ```
+3. **Database password** (optional): The default password is already base64 encoded. To change it:
+
+   ```
+   $ echo -n "your-new-password" | base64 $ echo -n "your-new-password" | base64 $ echo"your-new-password" |
+   ```
+
+   Then update the Secret:
+
+   ```
+   data: data: data:   postgres-password:  postgres-password:  postgres-password:  
+   ```
+4. **Storage class**: Adjust based on your cluster (current: `standard`)
+
+## [Understanding the deployment](#understanding-the-deployment)
+
+The deployment file creates a complete application stack with multiple components working together.
+
+### [Architecture](#architecture)
+
+The deployment includes:
+
+* **Node.js application**: Runs 3 replicas of your containerized Todo app
+* **PostgreSQL database**: Single instance with 10Gi of persistent storage
+* **Services**: Kubernetes services handle load balancing across application replicas
+* **Ingress**: External access through an ingress controller with SSL/TLS support
+
+### [Security](#security)
+
+The deployment uses several security features:
+
+* Containers run as a non-root user (UID 1001)
+* Read-only root filesystem prevents unauthorized writes
+* Linux capabilities are dropped to minimize attack surface
+* Sensitive data like database passwords are stored in Kubernetes secrets
+
+### [High availability](#high-availability)
+
+To keep your application running reliably:
+
+* Three application replicas ensure service continues if one pod fails
+* Pod disruption budget maintains at least one available pod during updates
+* Rolling updates allow zero-downtime deployments
+* Health checks on the `/health` endpoint ensure only healthy pods receive traffic
+
+### [Auto-scaling](#auto-scaling)
+
+The Horizontal Pod Autoscaler scales your application based on resource usage:
+
+* Scales between 1 and 5 replicas automatically
+* Triggers scaling when CPU usage exceeds 70%
+* Triggers scaling when memory usage exceeds 80%
+* Resource limits: 256Mi-512Mi memory, 250m-500m CPU per pod
+
+### [Data persistence](#data-persistence)
+
+PostgreSQL data is stored persistently:
+
+* 10Gi persistent volume stores database files
+* Database initializes automatically on first startup
+* Data persists across pod restarts and updates
+
+## [Deploy your application](#deploy-your-application)
+
+### [Step 1: Deploy to Kubernetes](#step-1-deploy-to-kubernetes)
+
+Deploy your application to the local Kubernetes cluster:
+
+```
+$ kubectl apply -f nodejs-sample-kubernetes.yaml $ kubectl apply -f nodejs-sample-kubernetes.yaml $
+```
+
+You should see output confirming all resources were created:
+
+```
+namespace/todoapp created namespace/todoapp created secret/todoapp-secrets created secret/todoapp-secrets created configmap/todoapp-config created configmap/todoapp-config created persistentvolumeclaim/postgres-pvc created persistentvolumeclaim/postgres-pvc created deployment.apps/todoapp-postgres created deployment.apps/todoapp-postgres created service/todoapp-postgres created service/todoapp-postgres created deployment.apps/todoapp-deployment created deployment.apps/todoapp-deployment created service/todoapp-service created service/todoapp-service created ingress.networking.k8s.io/todoapp-ingress created ingress.networking.k8s.io/todoapp-ingress created poddisruptionbudget.policy/todoapp-pdb created poddisruptionbudget.policy/todoapp-pdb created horizontalpodautoscaler.autoscaling/todoapp-hpa createdhorizontalpodautoscaler.autoscaling/todoapp-hpa created
+```
+
+### [Step 2: Verify the deployment](#step-2-verify-the-deployment)
+
+Check that your deployments are running:
+
+```
+$ kubectl get deployments -n todoapp $ kubectl get deployments -n todoapp $
+```
+
+Expected output:
+
+```
+NAME READY UP-TO-DATE AVAILABLE AGE NAME READY UP-TO-DATE AVAILABLE AGE todoapp-deployment 3/3 3 3 30s todoapp-deployment 3/3 3 3 30s 3 3todoapp-postgres 1/1 1 1 30stodoapp-postgres 1/1 1 1 30s 1 1
+```
+
+Verify your services are created:
+
+```
+$ kubectl get services -n todoapp $ kubectl get services -n todoapp $
+```
+
+Expected output:
+
+```
+NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE ()todoapp-service ClusterIP 10.111.101.229  80/TCP 45s todoapp-service ClusterIP 10.111.101.229  80/TCP 45s todoapp-postgres ClusterIP 10.111.102.130  5432/TCP 45stodoapp-postgres ClusterIP 10.111.102.130  5432/TCP 45s
+```
+
+Check that persistent storage is working:
+
+```
+$ kubectl get pvc -n todoapp $ kubectl get pvc -n todoapp $
+```
+
+Expected output:
+
+```
+NAME STATUS VOLUME CAPACITY ACCESS MODES STORAGECLASS AGE NAME STATUS VOLUME CAPACITY ACCESS MODES STORAGECLASS AGE postgres-pvc Bound pvc-12345678-1234-1234-1234-123456789012 10Gi RWO standard 1mpostgres-pvc Bound pvc-12345678-1234-1234-1234-123456789012 10Gi RWO standard 1m
+```
+
+### [Step 3: Access your application](#step-3-access-your-application)
+
+For local testing, use port forwarding to access your application:
+
+```
+$ kubectl port-forward -n todoapp service/todoapp-service 8080:80 $ kubectl port-forward -n todoapp service/todoapp-service 8080:80 $
+```
+
+Open your browser and visit <http://localhost:8080> to see your Todo application running in Kubernetes.
+
+### [Step 4: Test the deployment](#step-4-test-the-deployment)
+
+Test that your application is working correctly:
+
+1. **Add some todos** through the web interface
+2. **Check application pods**:
+
+   ```
+   $ kubectl get pods -n todoapp -l app=todoapp $ kubectl get pods -n todoapp -l app=todoapp $ app =
+   ```
+3. **View application logs**:
+
+   ```
+   $ kubectl logs -f deployment/todoapp-deployment -n todoapp $ kubectl logs -f deployment/todoapp-deployment -n todoapp $
+   ```
+4. **Check database connectivity**:
+
+   ```
+   $ kubectl get pods -n todoapp -l app=todoapp-postgres $ kubectl get pods -n todoapp -l app=todoapp-postgres $ app =
+   ```
+5. **Monitor auto-scaling**:
+
+   ```
+   $ kubectl describe hpa todoapp-hpa -n todoapp $ kubectl describe hpa todoapp-hpa -n todoapp $
+   ```
+
+### [Step 5: Clean up](#step-5-clean-up)
+
+When you're done testing, remove the deployment:
+
+```
+$ kubectl delete -f nodejs-sample-kubernetes.yaml $ kubectl delete -f nodejs-sample-kubernetes.yaml $
+```
+
+## [Summary](#summary)
+
+You've deployed your containerized Node.js application to Kubernetes. You learned how to:
+
+* Create a comprehensive Kubernetes deployment file with security hardening
+* Deploy a multi-tier application (Node.js + PostgreSQL) with persistent storage
+* Configure auto-scaling, health checks, and high availability features
+* Test and monitor your deployment locally using Docker Desktop's Kubernetes
+
+Your application is now running in a production-like environment with enterprise-grade features including security contexts, resource management, and automatic scaling.
+
+---
+
+## [Related resources](#related-resources)
+
+Explore official references and best practices to sharpen your Kubernetes deployment workflow:
+
+* [Kubernetes documentation](https://kubernetes.io/docs/home/) – Learn about core concepts, workloads, services, and more.
+* [Deploy on Kubernetes with Docker Desktop](https://docs.docker.com/desktop/use-desktop/kubernetes/) – Use Docker Desktop's built-in Kubernetes support for local testing and development.
+* [`kubectl` CLI reference](https://kubernetes.io/docs/reference/kubectl/) – Manage Kubernetes clusters from the command line.
+* [Kubernetes Deployment resource](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) – Understand how to manage and scale applications using Deployments.
+* [Kubernetes Service resource](https://kubernetes.io/docs/concepts/services-networking/service/) – Learn how to expose your application to internal and external traffic.
+
+---
+
+Title: Deploy your NodeJS App to a server with Docker - DEV Community
+![DEV Community](https://media2.dev.to/dynamic/image/quality=100/https://dev-to-uploads.s3.amazonaws.com/uploads/logos/resized_logo_UQww2soKuUsjaOGNB38o.png)
+
+## DEV Community
+
+![](https://assets.dev.to/assets/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg)
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![Cover image for Deploy your NodeJS App to a server with Docker](https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fi%2Fc0dlqprqxezzaspt4ab1.png)
+![arnu515](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![Subscriber](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+
+Posted on Jan 22, 2021
+• Edited on Feb 5, 2021
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+# Deploy your NodeJS App to a server with Docker
+
+Hey there! Welcome to my short crash course on deploying your NodeJS app to a DigitalOcean VPS using Docker and NGINX
+
+## Introduction and comparision to Heroku
+
+If you've wanted to deploy your web apps easily, you would have come across something called [Heroku](https://heroku.com). Heroku is a PaaS, or Platform as a Service, that allows you to deploy your apps without worrying about servers, scaling, load balancing, maintenance or any of that jazz. It does have a free tier, which is nice to get started with, but once you have some sort of revenue from your app, it's time for you to upgrade
+
+### Why upgrade?
+
+The Heroku free tier has something called sleeping apps. Sleeping apps will "sleep", i.e. shut down after 30 minutes of inactivity, i.e. 30 minutes of nobody visiting your website. After it sleeps, it takes a good 15-30 seconds to start back up, and this is **REALLY BAD** for an API. Because of your API sleeping, it can cause the performance of the apps who use your API to suffer, making them move to other APIs. If you only want to remove the sleeping apps thing, it would cost you $7 a month, PER APP. Your app will get 512MB of ram. If we compare this pricing to something like [DigitalOcean](https://m.do.co/c/371591aa3027), you can see that we get a 1GB ram instance for just $5 a month.
+
+I'm using DigitalOcean because I have a bit of the free credit left 😛. If you use [my referral link](https://m.do.co/c/371591aa3027), you get $100 dollars of credit FREE in DigitalOcean!
+
+## Creating and setting up a droplet
+
+Let's create a DigitalOcean Droplet. A droplet is DigitalOcean's way of saying VPS, or Virtual Private Server. A VPS is usually a linux server, but it can have the windows operating system too. You'll be dealing with linux most of the time when you want to deploy. If you want to go the Windows route, just be prepared for a lot of frustration!
+
+I'll create a brand new Ubuntu 20.04 LTS droplet. Ubuntu is a linux distro, and it is the most used one too. I'm choosing the LTS (Long Time Support) release. I'll go with the $5/month plan, and I'll pick my location to be Bangalore. For the auth method, I'll add a root password, and the hostname will be the domain I'd like my app to be hosted at, i.e. `test.arnu515.gq` in my case.
+
+`test.arnu515.gq`
+
+I got this domain from [Freenom](https://my.freenom.com), which gives you FREE DOMAINS!
+
+While the droplet is getting created, I'll add a record to my domain, [arnu515.gq](https://arnu515.gq) using the built in DNS Management. I'll add an `A` record called `test` (which will map to `test.arnu515.gq`) with the IP of my machine. Remember to set the TTL (Time To Live) to a small number like 300 seconds (5 minutes), so your domain propogates faster.
+
+`A`
+`test`
+`test.arnu515.gq`
+
+# SSHing into our droplet and securing it
+
+Now for the fun part! Let's login to our droplet from our own computer's terminal using SSH. Open up a new shell and type:
+
+`ssh root@IP_OF_YOUR_MACHINE`
+
+If you have windows, you will most likely need to use an external SSH client, or use WSL. I'm not going to cover that, so you're on your own.
+
+Enter your root password you set earlier and now we can begin!
+
+First, always run these two commands whenever you create a new VPS:
+
+`apt update
+apt upgrade`
+
+These commands fetch the latest versions of the package repositories and upgrade your existing applications.
+
+### Installing docker
+
+[Head over to the Docker Installation docs](https://docs.docker.com/engine/install/ubuntu/) and install docker using the commands given to you, namely:
+
+`apt install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt update
+apt install docker-ce docker-ce-cli containerd.io`
+
+And docker should be installed. Run `docker -v` to verify.
+
+`docker -v`
+
+### Installing `docker-compose`
+
+`docker-compose`
+
+Installing `docker-compose` is easier than installing docker, but you will need the latter installed first.
+
+`docker-compose`
+
+All you have to do is download `docker-compose`, save it in `/usr/local/bin` and make it executable.
+
+`docker-compose`
+`/usr/local/bin`
+`curl -L "https://github.com/docker/compose/releases/download/1.28.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose`
+
+And `docker-compose` should be installed! Run `docker-compose -v` to verify.
+
+`docker-compose`
+`docker-compose -v`
+
+### Installing NGINX
+
+I would say that installing NGINX is even easier! All you have to do is:
+
+`apt install nginx`
+
+And that's it! NGINX is installed. You can visit your machine's IP address or even visit the domain name you set, in my case, `test.arnu515.gq` and you should see the NGINX default website.
+
+`test.arnu515.gq`
+
+[![Alt Text](https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fi%2Fjdd602y2m9l9ozy1ajlj.png)](https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fi%2Fjdd602y2m9l9ozy1ajlj.png)
+
+![Alt Text](https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fi%2Fjdd602y2m9l9ozy1ajlj.png)
+
+If your IP works but not the domain, you will have to wait a bit longer. If you forgot to set the TTL, you will have to wait an hour until your domain works.
+
+### Creating a new user
+
+Let's create a new user, because logging in as the `root` user will enable us to do ANYTHING we want without having to give any permissions. This can be bad because we may remove certain directories that we usually can't remove because we don't have permissions, but that will get bypassed by `root`, damaging or destroying our server.
+
+`root`
+`root`
+
+To create a new user,
+
+`adduser USERNAME`
+
+Provide the password for the user, and you can accept the defaults for everything else by pressing `Enter` a bunch of times.
+
+`Enter`
+
+For additional security, make sure that your new user's password doesn't match your root password.
+
+Let's allow our new user to execute commands as root, but only when the command is prefixed with `sudo`. This will allow us to run some command that need root access, like `apt`, while running others that don't, like `cd`, without root:
+
+`sudo`
+`apt`
+`cd`
+`usermod -aG sudo USERNAME`
+
+#### Logging in to our user
+
+We can login to our user by typing:
+
+`su USERNAME`
+
+You will notice that the prompt changes. We can logout of the user by typing:
+
+`exit`
+
+We will return back to the root user. Close the connection by typing `exit`.
+
+`exit`
+
+Let's login to our user directly from ssh. We'll use our domain name instead of the IP, because it has probably propogated by now.
+
+`ssh USERNAME@DOMAINNAME`
+
+For me, the command would be:
+
+`ssh arnu515@test.arnu515.gq`
+
+You should be logged in to your user now.
+
+## Securing our server
+
+Let's work on securing our server so some uninvited guests don't barge into your server.
+
+### SSH
+
+Let's start with SSH. First of all, let's change the default SSH Port. Attackers will try using the default ssh port to ssh into your machine. If we change this port, then they will have to do a hit and trial method to login to your computer. Then we need to disable logging in as root. Then, we need to disable logging in with a password. Why, you ask? It's because hackers can guess your password if they try hard enough, so if there isn't a password they can guess, how can they log in? Now you may be thinking, how can WE log in? We'll be using something called SSH keys. These keys will identify us, so the server will allow us to login.
+
+Let's change our SSH config file first.
+
+`sudo nano /etc/ssh/sshd_config`
+
+If nano is not installed, type `sudo apt install nano`
+
+`sudo apt install nano`
+
+This will open up a terminal-based text editor. We can edit the SSH Config file here.
+
+#### Syntax of the ssh config
+
+The SSH config contains a key and value separated with a space. For example,
+
+`Example 10
+Key value`
+
+If there's a pound (`#`) in front of a statement, it becomes a comment. Comments are ignored. If a certain field doesn't exist in your SSH config, add it.
+
+`#`
+
+#### Changing the port
+
+Find/Add the option called `Port` and set it from any number other than `22`. I will use `3333`.
+
+`Port`
+`22`
+`3333`
+`Port 3333`
+
+#### Disabling root login
+
+Find/Add the option `PermitRootLogin` and set it to `no`
+
+`PermitRootLogin`
+`no`
+`PermitRootLogin no`
+
+#### Disable password auth
+
+Finally, find/add the option `PasswordAuthentication` and set it to `no`
+
+`PasswordAuthentication`
+`no`
+`PasswordAuthentication no`
+
+If the field `PubkeyAuthentication` is set to `no`, please comment it out or set it to `yes`, otherwise you CANNOT login to your machine
+
+`PubkeyAuthentication`
+`no`
+`yes`
+
+Exit out of the config by pressing `Ctrl+X`, `y` and `Enter`.
+
+`Ctrl+X`
+`y`
+`Enter`
+
+The config won't affect automatically. We have to restart SSH, but first, let's add our SSH Key to the machine.
+
+#### Adding the SSH Key
+
+Exit out of SSH first. On your local machine, if you don't have an ssh key, create one with `ssh-keygen`. You should be given a path where the SSH key was stored. You can accept the defaults. Next, let's add the ssh key to our machine.
+
+`ssh-keygen`
+`ssh-copy-id -i PATH_TO_YOUR_SSH_KEY USERNAME@DOMAIN`
+
+For me, the SSH key is in `/Users/arnu515/.ssh/id_rsa`, so the command would be:
+
+`/Users/arnu515/.ssh/id_rsa`
+`ssh-copy-id -i /Users/arnu515/.ssh/id_rsa arnu515@test.arnu515.gq`
+
+You'll be prompted to enter the password. Once done, relog with ssh and you'll see that you don't have to enter a password!
+
+Finally, we can restart ssh on the droplet by typing:
+
+`sudo service ssh restart`
+
+Exit out of SSH and try to log back in again. The command will fail because we're still connecting on port `22`, while the new SSH port was `3333`, atleast for me. Change the port by specifying the `-p` flag:
+
+`22`
+`3333`
+`-p`
+`ssh USERNAME@DOMAIN -p PORT`
+
+For me, the command will be:
+
+`ssh arnu515@test.arnu515.gq -p 3333`
+
+And congratulations! You've secured SSH!
+
+### Firewall
+
+By default, atleast on DigitalOcean, ALL PORTS are allowed. This is really bad, so let's install a firewall called `ufw`.
+
+`ufw`
+`sudo apt install ufw`
+
+Once that's done, let's whitelist the port 3333 so that we can login to our machine.
+
+`sudo ufw allow 3333`
+
+We can check the status of the firewall:
+
+`sudo ufw status`
+
+If you get `Status: inactive`, we need to enable the firewall. Let's do that using:
+
+`Status: inactive`
+`sudo ufw enable`
+
+This MAY disrupt your ssh connection, so if that happens, log back in again.
+
+If we visit our website at our domain, it will no longer work, because `ufw` blocks it. To allow NGINX to work,
+
+`ufw`
+`sudo ufw enable "Nginx Full"`
+
+And we're done with the security aspect. Let's deploy our app!
+
+## Deploy
+
+I made an [example application](https://github.com/arnu515/nginx-deploy-example) that uses Express with MongoDB and Redis, to show that we can have multiple services. I'll be using `docker-compose` to connect the mongodb, redis and the app containers together.
+
+`docker-compose`
+
+We need to put this code on our machine, and the easiest way is using Github. I pushed my code from my local machine over to Github, and we can pull the code from github down to our droplet using `git clone`. Once that's done, we can build and run the app using `docker-compose` with:
+
+`git clone`
+`docker-compose`
+`docker-compose up -d`
+
+You will get a `PermissionDenied` error. This is happening because we don't have access to the `docker` engine by default. To fix that, run:
+
+`PermissionDenied`
+`docker`
+`sudo usermod -aG docker USERNAME`
+
+You need to logout and log back in to SSH and now, if you run `docker-compose`, it should work! My app is hosted on port 5000. I could manually allow that port in the firewall and you could all visit my app at `test.arnu515.gq:5000`, but if you see other websites, none of them have a port. That's where NGINX comes in. We can create a `proxy_pass`, that basically maps all requests coming to port `80`, i.e. the default port to port `5000`. Let's see how.
+
+`docker-compose`
+`test.arnu515.gq:5000`
+`proxy_pass`
+`80`
+`5000`
+
+### Configuring NGINX
+
+On port `80`, there's already the default nginx website. We can disable that by running:
+
+`80`
+`sudo rm /etc/nginx/sites-enabled/default`
+
+And then, we can restart NGINX
+
+`sudo systemctl restart nginx`
+
+Now, let's create our website. I'll give it the name `test`.
+
+`test`
+`sudo nano /etc/nginx/sites-available/test`
+
+This will open up the `nano` text editor, and here, I can write:
+
+`nano`
+`server {
+# Listens on port 80
+listen 80;
+# For all URLs on port 80,
+location / {
+# Send them to port 5000
+proxy_pass http://localhost:5000;
+# Add some headers
+proxy_set_header Host $host;
+}
+}`
+
+Don't forget the semicolon (;)!
+
+Let's now enable this website by putting the same file in `sites-enabled`:
+
+`sites-enabled`
+`sudo cp /etc/nginx/sites-available/test /etc/nginx/sites-enabled`
+
+Restart NGINX:
+
+`sudo systemctl restart NGINX`
+
+And we're done 🚀! Visit your app on port 80, and you can see the amazing app that you've built! Congratulations 🥳, you just deployed your app for a fraction of the cost! If you have any doubts, feel free to ask it here or in the comments section of the youtube video.
+
+## Top comments (9)
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+![creekorful profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F9371%2Fa88beefd-8905-4618-b909-1ef18e028eea.jpg)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F9371%2Fa88beefd-8905-4618-b909-1ef18e028eea.jpg)
+
+This article is pretty good nice job!
+
+Just a little suggestion, why install Nginx on the host where you can run it in a docker container and increase isolation? Since you've already containerize your app just add the reverse proxy as a container and all you'll need on your host is the docker runtime. :)
+
+Another thing regarding firewalling: if you are using DigitalOcean like you wrote, I suggest using their [cloud firewall](https://www.digitalocean.com/docs/networking/firewalls/) directly. It's much easier to use and you can share firewall configuration for multiple hosts. Using UFW on a Docker host can by painful BTW and it won't works by default! Docker network isolation works by playing a **LOT** with iptables, and therefore UFW rules are bypassed.
+
+If you still want to use ufw, I suggest taking a look at: [github.com/chaifeng/ufw-docker](https://github.com/chaifeng/ufw-docker) wich fix this issue.
+
+Other than that great article, keep going!
+
+![Sloan, the sloth mascot](https://media2.dev.to/dynamic/image/width=32,height=32,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fi%2Fy5767q6brm62skiyywvc.png)
+![creekorful profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F9371%2Fa88beefd-8905-4618-b909-1ef18e028eea.jpg)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F9371%2Fa88beefd-8905-4618-b909-1ef18e028eea.jpg)
+
+RAM consumption for Nginx isn't that high, an HA instance may consumes <30MB RAM, see this link for more details.
+
+For the port issue, what you can do is have a single Nginx instance running with privilege mode to bind in :80, :443. This way you still have process isolation and are covered in case someones exploit your web-server.
+
+![arnu515 profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![Subscriber](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+
+I agree
+
+![tam2 profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F482544%2F44cb17ec-d1ce-4a93-a016-a3ec975207b5.jpeg)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F482544%2F44cb17ec-d1ce-4a93-a016-a3ec975207b5.jpeg)
+
+I started using [caprover.com/](https://caprover.com/) for deploys it automatically created docker containers from source code and configures nginx too. Worth looking into if you want to achieve this with some really nice tooling
+
+![arnu515 profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![Subscriber](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+
+I really like caprover, and I recommend it too!
+
+![fridolinho profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F204367%2Ff1c41f4d-9c3f-4464-9e92-2b2250dbeb0f.png)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F204367%2Ff1c41f4d-9c3f-4464-9e92-2b2250dbeb0f.png)
+
+this is a great article. Weldone
+
+![arnu515 profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![Subscriber](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+
+Thank you!
+
+![arnu515 profile image](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![Subscriber](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+
+Oops! I had a little markdown syntax error at the end, but that's been fixed now.
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](#).
+
+Hide child comments as well
+
+Confirm
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F406164%2F7a619321-9edf-458c-bd4f-76a540668cd8.png)
+![](https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png)
+
+### More from [arnu515](/arnu515)
+
+💎 DEV Diamond Sponsors
+
+Thank you to our Diamond Sponsors for supporting the DEV Community
+
+![Google AI - Official AI Model and Platform Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fxjlyhbdqehj3akhz166w.png)
+
+Google AI is the official AI Model and Platform Partner of DEV
+
+![Neon - Official Database Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fbnl88cil6afxzmgwrgtt.png)
+
+Neon is the official database partner of DEV
+
+![Algolia - Official Search Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv30ephnolfvnlwgwm0yz.png)
+
+Algolia is the official search partner of DEV
+
+[DEV Community](/) — A space to discuss and keep up software development and manage your software career
+
+Built on [Forem](https://www.forem.com) — the [open source](https://dev.to/t/opensource) software that powers [DEV](https://dev.to) and other inclusive communities.
+
+Made with love and [Ruby on Rails](https://dev.to/t/rails). DEV Community © 2016 - 2026.
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)

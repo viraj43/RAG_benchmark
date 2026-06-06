@@ -1,0 +1,350 @@
+Title: Best practices for REST API design - The Stack Overflow Blog
+**Definition:** REST APIs are one of the most common kinds of web interfaces available today.
+
+**Key Points:** For instance, we can use Express to add the following endpoints for manipulate articles as follows:
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app. For example, if we want to reject the data from the request payload, then we should return a 400 response as follows in an Express API:
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); // existing users const users = [   { email: 'abc@foo. Cache data to improve performanceWe can add caching to return data from the local memory cache instead of querying the database to get the data every time we want to retrieve some data that users request.
+
+Stack Overflow Business Stack Internal: the knowledge intelligence layer that powers enterprise AI.Stack Data Licensing: decades of verified, technical knowledge to boost AI performance and trust.Stack Ads: engage developers where it matters — in their daily workflow.REST APIs are one of the most common kinds of web interfaces available today. They allow various clients including browser apps to communicate with services via the REST API. Therefore, it's very important to design REST APIs properly so that we won't run into problems down the road. We have to take into accountsecurity, performance, and ease of use for API consumers.Otherwise, we create problems for clients that use our APIs, which isn’t pleasant and detracts people from using our API. If we don’t follow commonly accepted conventions, then we confuse the maintainers of the API and the clients that use them since it’s different from what everyone expects.In this article, we'll look at how to design REST APIs to be easy to understand for anyone consuming them,future-proof, and secure and fast since they serve data to clients that may be confidential.Accept and respond with JSONUse nouns instead of verbs in endpoint pathsName collections with plural nounsNesting resources for hierarchical objectsHandle errors gracefully and return standard error codesAllow filtering, sorting, and paginationMaintain Good Security PracticesCache data to improve performanceVersioning our APIsWhat is a REST API?A REST API is an application programming interface architecture style that conforms to specific architectural constraints, like stateless communication and cacheable data. It is not a protocol or standard. While REST APIs can be accessed through a number of communication protocols, most commonly, they are called over HTTPS, so the guidelines below apply to REST API endpoints that will be called over the internet.Note: For REST APIs called over the internet, you'll like want to follow thebest practices for REST API authentication.Accept and respond with JSONEven thoughsome people think REST should only return hypertext(includingRoy Fieldingwho created the term) REST APIs should accept JSON for request payload and also send responses to JSON. JSON is the standard for transferring data. Almost every networked technology can use it: JavaScript has built-in methods to encode and decode JSON either through the Fetch API or another HTTP client. Server-side technologies have libraries that can decode JSON without doing much work.There are other ways to transfer data. XML isn’t widely supported by frameworks without transforming the data ourselves to something that can be used, and that’s usually JSON. We can’t manipulate this data as easily on the client-side, especially in browsers. It ends up being a lot of extra work just to do normal data transfer.Form data is good for sending data, especially if we want to send files. But for text and numbers, we don’t need form data to transfer those since—with most frameworks—we can transfer JSON by just getting the data from it directly on the client side. It’s by far the most straightforward to do so.To make sure that when our REST API app responds with JSON that clients interpret it as such, we should set Content-Type in the response header to application/json after the request is made. Many server-side app frameworks set the response header automatically. Some HTTP clients look at the Content-Type response header and parse the data according to that format.The only exception is if we’re trying to send and receive files between client and server. Then we need to handle file responses and send form data from client to server. But that is a topic for another time.
+We should also make sure that our endpoints return JSON as a response. Many server-side frameworks have this as a built-in feature.
+Let’s take a look at an example API that accepts JSON payloads. This example will use theExpressback end framework for Node.js. We can use thebody-parser middlewareto parse the JSON request body, and then we can call the res.json method with the object that we want to return as the JSON response as follows:
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.post('/', (req, res) => {   res.json(req.body); }); app.listen(3000, () => console.log('server started')); bodyParser.json() parses the JSON request body string into a JavaScript object and then assigns it to the req.body object.
+Set the Content-Type header in the response to application/json; charset=utf-8 without any changes. The method above applies to most other back end frameworks.Use nouns instead of verbs in endpoint pathsWe shouldn't use verbs in our endpoint paths. Instead, we should use the nouns which represent the entity that the endpoint that we're retrieving or manipulating as the pathname.
+This is because our HTTP request method already has the verb. Having verbs in our API endpoint paths isn’t useful and it makes it unnecessarily long since it doesn’t convey any new information. The chosen verbs could vary by the developer’s whim. For instance, some like ‘get’ and some like ‘retrieve’, so it’s just better to let the HTTP GET verb tell us what and endpoint does.
+The action should be indicated by the HTTP request method that we're making. The most common methods include GET, POST, PUT, and DELETE.GET retrieves resources.POST submits new data to the server.PUT updates existing data.DELETE removes data.The verbs map toCRUDoperations.With the two principles we discussed above in mind, we should create routes like GET /articles/ for getting news articles. Likewise, POST /articles/ is for adding a new article , PUT /articles/:id is for updating the article with the given id. DELETE /articles/:id is for deleting an existing article with the given ID.
+/articles represents a REST API resource. For instance, we can use Express to add the following endpoints for manipulate articles as follows:
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.get('/articles', (req, res) => {   const articles = [];   // code to retrieve an article...   res.json(articles); }); app.post('/articles', (req, res) => {   // code to add a new article...   res.json(req.body); }); app.put('/articles/:id', (req, res) => {   const { id } = req.params;   // code to update an article...   res.json(req.body); }); app.delete('/articles/:id', (req, res) => {   const { id } = req.params;   // code to delete an article...   res.json({ deleted: id }); }); app.listen(3000, () => console.log('server started'));In the code above, we defined the endpoints to manipulate articles. As we can see, the path names do not have any verbs in them. All we have are nouns. The verbs are in the HTTP verbs.
+The POST, PUT, and DELETE endpoints all take JSON as the request body, and they all return JSON as the response, including the GET endpoint.Use logical nesting on endpointsWhen designing endpoints, it makes sense to group those that contain associated information. That is, if one object can contain another object, you should design the endpoint to reflect that. This is good practice regardless of whether your data is structured like this in your database. In fact, it may be advisable to avoid mirroring your database structure in your endpoints to avoid giving attackers unnecessary information.
+For example, if we want an endpoint to get the comments for a news article, we should append the /comments path to the end of the /articles path. We can do that with the following code in Express:
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.get('/articles/:articleId/comments', (req, res) => {   const { articleId } = req.params;   const comments = [];   // code
+
+---
+
+Title: Best Practices in API Design - Swagger
+**Definition:** Best Practices in API Design    Good API design is a topic that comes up a lot for teams that are trying to perfect their API strategy.
+
+**Key Points:** Hard to misuse: Implementing and integrating with an API with good design will be a straightforward process, and writing incorrect code will be a less likely outcome. Describe resource functionality with HTTP methods All resources have a set of methods that can be operated against them to work with the data being exposed by the API. Get started with API design There isn’t a single approach to API design that will work for every organization.
+
+                 Best Practices in API Design    Good API design is a topic that comes up a lot for teams that are trying to perfect their API strategy. In a previous blog post, I briefly discussed the importance of API design. The benefits of a well-designed API include: improved developer experience, faster documentation, and higher adoption for your API .  But what exactly goes into good API design? In this blog post, I will detail a few best practices for designing RESTful APIs.   Characteristics of a well-designed API In general, an effective API design will have the following characteristics:  Easy to read and work with: A well designed API will be easy to work with, and its resources and associated operations can quickly be memorized by developers who work with it constantly. Hard to misuse: Implementing and integrating with an API with good design will be a straightforward process, and writing incorrect code will be a less likely outcome. It has informative feedback, and doesn’t enforce strict guidelines on the API’s end consumer.  Complete and concise: Finally, a complete API will make it possible for developers to make full- fledged applications against the data you expose. Completeness happens over time usually, and most API designers and developers incrementally build on top of existing APIs. It is an ideal which every engineer or company with an API must strive towards.  For the purpose of illustrating the concepts listed below, I’ll be taking the example of a photosharing app. The app allows users to upload photos, characterizing them with the location where these photos were taken and hashtags that describe the emotions associated with them.  Collections, Resources, and their URLs Understanding resources and collections Resources are fundamental to the concept of REST. A resource is an object that’s important enough to be referenced in itself. A resource has data, relationships to other resources, and methods that operate against it to allow for accessing and manipulating the associated information.  A group of resources is called a collection. The contents of collections and resources depend on your organizational and consumer requirements. If, for example, you believe the market will benefit from obtaining basic information about your product’s user base, then you could expose this as a collection or resource.  A Uniform Resource Locator (URL) identifies the online location of a resource. This URL points to the location where your API’s resources exist. The base URL is the consistent part of this location. In the case of the photosharing app, we could expose data about the users who use the app through collections and resources, accessed by the appropriate URL.   /users: a collection of users  /users/username1: a resource with information about a specific user     Nouns describe URLs better The base URL should be neat, elegant, and simple so that developers using your product can easily use them in their web applications. A long and difficult-to-read base URL is not just bad to look at, but can also be prone to mistakes when trying to recode it. Nouns should always be trusted.  There’s no rule on keeping the resource nouns singular or plural, though it is advisable to keep collections plural. Having the same plurality across all resources and collections respectively for consistency is good practice.  Keeping these nouns self explanatory helps developers understand the kind of resource described from the URL, which can eventually enable them to become self sufficient while working with your API .   Coming back to the photosharing app, say it has a public API with /users and  /photos as collections. Notice how they’re all plural nouns?They’re also self explanatory and we can infer that /users and /photos gives information about the product’s registered userbase, and shared photos respectively.  Describe resource functionality with HTTP methods All resources have a set of methods that can be operated against them to work with the data being exposed by the API.  REStful APIs comprise majorly of HTTP methods which have well defined and unique actions against any resource. Here’s a list of commonly used HTTP methods that define the CRUD operations for any resource or collection in a  RESTful API.    Method Description   GET Used to retrieve a representation of a resource.    POST Used to create new new resources and sub-resources   PUT Used to update existing resources    PATCH Used to update existing resources    DELETE Used to delete existing resources    (If you want to know the difference between PUT and PATCH, check out this feed on StackOverflow.)   Keeping verbs out of your URLs is also a good idea. The operations GET, PUT, POST and DELETE  are already used to operate on your resource described by the URL, so having verbs instead of nouns in the URL can make working with your resources confusing.  In the photosharing app, with /users and /photos as end points, an end consumer of your API can easily work with them intuitively using the RESTful CRUD operations described above.  Responses Give feedback to help developers succeed Providing good feedback to developers on how well they are using your product goes a long way in improving adoption and retention.   Every client request and server side response is a message and, in an ideal RESTful ecosystem, these messages must be self descriptive.  Good feedback involves positive validation on correct implementation, and an informative error on incorrect implementation that can help users debug and correct the way they use the product. For an API, errors are a great way to provide context to using an API. Align your errors around the standard HTTP codes. Incorrect, client side calls should have 400-type errors associated with them. If there are any server side errors, then a suitable 500 response must be associated with them. A successful method used against your resource should return a 200-type response.  There are a lot of response codes. For additional information, check out this REST API tutorial. In general, there are three possible outcomes when using your API: -   The client application behaved erroneously (client error - 4xx response code) The API behaved erroneously (server error - 5xx response code) The client and API worked (success - 2xx response code)       Hand holding your end consumer to success whenever they hit a road block working with your API will go a long way in improving developer experience and preventing API misuse. Describe these error responses well, but keep them concise and neat. Provide enough information in the error codes for an end user to start work on fixing the cause, and, if you feel there’s more information needed, provide links to additional documentation.    Give examples for all your GET responses A well- designed API also has an example of the kind of response one can expect on successful call against a URL. This example response should be simple, plain, and quick to comprehend. A good rule of thumb is to help developers understand exactly what a successful response would give them in under five seconds.  Coming back to our photosharing app, we’ve defined a /users and a /photos URL. The /users collection would give the username and date of joining of all the users who have registered with the app in an array.  You can use an API design tool to define your API in the Swagger (OpenAPI) specification as follows:  responses: 200: description: Successfully returned information about users  schema: type: array items: type: object properties: username: type: "string" example: "kesh92" created_time: type: "dateTime" example: "2010-01-12T05:23:19+0000"  Notice the data types and an example described in each response item an end user can expect from a successful GET call. The successful response an end user would receive in JSON would look as follows.     { “data”:[ { “Username”:“example_user1”, ��
+
+---
+
+Title: Best practices for RESTful web API design - Azure
+**Definition:** le for me
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ A RESTful web API implementation is a web API that employs Representational State Transfer (REST) architectural principles to achieve a stateless, loosely coupled interface between a client and service.
+
+**Key Points:** Implement data pagination and filtering
+To optimize data retrieval and reduce payload size, implement data pagination and query-based filtering in your API design. Consider the following best practices:
+
+Sorting allows clients to sort data by using a sort parameter like sort=price. In these scenarios, consider one of the following approaches:
+
+URI versioning
+Query string versioning
+Header versioning
+Media type versioning
+
+URI versioning
+Each time you modify the web API or change the schema of resources, you add a version number to the URI for each resource.
+
+| Resource | POST | GET | PUT | DELETE | 
+|---|---|---|---|---|
+| /customers | Create a new customer | Retrieve all customers | Bulk update of customers | Remove all customers | 
+| /customers/1 | Error | Retrieve the details for customer 1 | Update the details of customer 1 if it e | Remove customer 1 | 
+| /customers/1/orders | Create a new order for customer 1 | Retrieve all orders for customer 1 | Bulk update of orders for customer 1 | Remove all orders for customer 1 | 
+
+
+| HTTP status code | Reason | 
+|---|---|
+| 200 (OK) | The method has successfully returned the | 
+| 204 (No Content) | The response body doesn't contain any co | 
+| 404 (Not Found) | The requested resource can't be found. | 
+
+
+```json
+{"orderId":1,"orderValue":99.9,"productId":1,"quantity":1}
+```
+
+```json
+{
+  "orderID":3,
+  "productID":2,
+  "quantity":4,
+  "orderValue":16.60,
+  "links": [
+    {"rel":"product","href":"https://api.contoso.com/customers/3", "action":"GET" },
+    {"rel":"product","href":"https://api.contoso.com/customers/3", "action":"PUT" }
+  ]
+}
+```
+
+## RESTful web API design concepts
+To implement a RESTful web API, you need to understand the following concepts.
+Uniform Resource Identifier (URI): REST APIs are designed around resources, which are any kind of object, data, or service that the client can access. Each resource is represented by a URI that uniquely identifies that resource. For example, the URI for a particular customer order might be:
+https://api.contoso.com/orders/1
+
+
+Resource representation defines how a resource that's identified by its URI is encoded and transported over the HTTP protocol in a specific format, such as XML or JSON. Clients that want to retrieve a specific resource must use the resource's URI in the request to the API. The API returns a resource representation of the data that the URI indicates. For example, a client can make a GET request to the URI identifier https://api.contoso.com/orders/1 to receive the following JSON body:
+{"orderId":1,"orderValue":99.9,"productId":1,"quantity":1}
+
+
+Uniform interface is how RESTful APIs achieve loose coupling between client and service implementations. For REST APIs that are built on HTTP, the uniform interface includes using standard HTTP verbs to perform operations like GET, POST, PUT, PATCH, and DELETE on resources.
+
+Stateless request model: RESTful APIs use a stateless request model, which means that HTTP requests are independent and might occur in any order. For this reason, keeping transient state information between requests isn't feasible. The only place where information is stored is in the resources themselves, and each request should be an atomic operation. A stateless request model supports high scalability because it doesn't need to retain any affinity between clients and specific servers. However, the stateless model can also limit scalability because of challenges with web service back-end storage scalability. For more information about strategies to scale out a data store, see Data partitioning.
+
+Hypermedia links: REST APIs can be driven by hypermedia links that are contained in each resource representation. For example, the following code block shows a JSON representation of an order. It contains links to get or update the customer that's associated with the order.
+{
+  "orderID":3,
+  "productID":2,
+  "quantity":4,
+  "orderValue":16.60,
+  "links": [
+    {"rel":"product","href":"https://api.contoso.com/customers/3", "action":"GET" },
+    {"rel":"product","href":"https://api.contoso.com/customers/3", "action":"PUT" }
+  ]
+}
+
+
+## Define RESTful web API resource URIs
+A RESTful web API is organized around resources. To organize your API design around resources, define resource URIs that map to the business entities. When possible, base resource URIs on nouns (the resource) and not verbs (the operations on the resource).
+For example, in an e-commerce system, the primary business entities might be customers and orders. To create an order, a client sends the order information in an HTTP POST request to the resource URI. The HTTP response to the request indicates whether the order creation is successful.
+The URI for creating the order resource might be something like:
+https://api.contoso.com/orders // Good
+Avoid using verbs in URIs to represent operations. For example, the following URI isn't recommended:
+https://api.contoso.com/create-order // Avoid
+Entities are often grouped together into collections like customers or orders. A collection is a separate resource from the items inside the collection, so it should have its own URI. For example, the following URI might represent the collection of orders:
+https://api.contoso.com/orders
+After the client retrieves the collection, it can make a GET request to the URI of each item. For example, to receive information on a specific order, the client performs an HTTP GET request on the URI https://api.contoso.com/orders/1 to receive the following JSON body as a resource representation of the internal order data:
+{"orderId":1,"orderValue":99.9,"productId":1,"quantity":1}
+
+
+## Define RESTful web API methods
+RESTful web API methods align with the request methods and media types defined by the HTTP protocol. This section describes the most common request methods and the media types used in RESTful web APIs.
+
+
+## OpenAPI Initiative
+The OpenAPI Initiative was created by an industry consortium to standardize REST API descriptions across vendors. The standardizing specification was called Swagger before it was brought under the OpenAPI Initiative and renamed to the OpenAPI Specification (OAS).
+You might want to adopt OpenAPI for your RESTful web APIs. Consider the following points:
+The OAS comes with a set of opinionated guidelines for REST API design. The guidelines are advantageous for interoperability but require you to ensure that your design conforms with the specifications.
+
+OpenAPI promotes a contract-first approach instead of an implementation-first approach. Contract-first means that you design the API contract (the interface) first and then write code that implements the contract.
+
+Tools like Swagger (OpenAPI) can generate client libraries or documentation from API contracts. For an example, see ASP.NET Core web API documentation with Swagger/OpenAPI.
+
+
+## Web API maturity model
+In 2008, Leonard Richardson proposed what is now known as the Richardson Maturity Model (RMM) for web APIs. The RMM defines four levels of maturity for web APIs and is based on the principles of REST as an architectural approach to designing web services. In the RMM, as the level of maturity increases, the API becomes more RESTful and more closely follows the principles of REST.
+The levels are:
+Level 0: Define one URI, and all operations are POST requests to this URI. Simple Object Access Protocol web services are typically at this level.
+Level 1: Create separate URIs for individual resources. This level isn't yet RESTful, but it begins to align with RESTful design.
+Level 2: Use HTTP methods to define operations on resources. In practice, many published web APIs align approximately with this level.
+Level 3: Use hypermedia (HATEOAS). This level is truly a RESTful API, according to Fielding's definition.
+
+
+## Enable distributed tracing and trace context in APIs
+As distributed systems and microservice architectures become the standard, the complexity of modern architectures increases. Using headers, such as Correlation-ID, X-Request-ID, or X-Trace-ID, to propagate trace context in API requests is a best practice to achieve end-to-end visibility. This approach enables tracking of requests as they flow from the client to back-end services. It facilitates rapid identification of failures, monitors latency, and maps API dependencies across services.
+APIs that support the inclusion of trace and context information enhance their observability level and debugging capabilities. By enabling distributed tracing, these APIs allow for a more granular understanding of system behavior and make it easier to track, diagnose, and resolve problems across complex, multiple-service environments.
+GET https://api.contoso.com/orders/3
+Correlation-ID: aaaa0000-bb11-2222-33cc-444444dddddd
+HTTP/1.1 200 OK
+...
+Correlation-ID: aaaa0000-bb11-2222-33cc-444444dddddd
+
+{...}
+
+
+## Multitenant web APIs
+A multitenant web API solution is shared by multiple tenants, such as distinct organizations that have their own groups of users.
+Multitenancy significantly affects web API design because it dictates how resources are accessed and discovered across multiple tenants within a single web API. Design an API with multitenancy in mind to help avoid the need for future refactoring to implement isolation, scalability, or tenant-specific customizations.
+A well-architected API should clearly define how tenants are identified in requests, whether through subdomains, paths, headers, or tokens. This structure ensures a consistent yet flexible experience for all users within the system. For more information, see Map requests to tenants in a multitenant solution.
+Multitenancy affects endpoint structure, request handling, authentication, and authorization. This approach also influences how API gateways, load balancers, and back-end services route and process requests. The following strategies are common ways to achieve multitenancy in a web API.
+
+
+
+
+---
+
+Title: REST API Best Practices: A Developer's Guide to Building ...
+**Definition:** Try Postman today →
+
+A well-designed REST API is intuitive, secure, scalable, and easy to maintain.
+
+**Key Points:** REST API Best Practices: A Developer’s Guide to Building Reliable APIs 
+ 
+ 
+ 
+ 
+ The Postman Team
+ 
+ 
+ December 22, 2025 
+ 
+ 
+ 
+ 
+Quick reference
+
+Use nouns, not verbs. Whether you’re designing your first REST API or refining an existing one, following proven best practices helps teams avoid breaking clients, reduce support overhead, and make APIs easier to adopt. Examples, Uses, and Challenges 
+ 
+ 
+ 
+ 
+ 
+ 
+ The Postman Team
+ 
+ 
+ 
+ Quick answer: API vs Web Service Question Answer What is a REST API?
+
+```text
+GET /getUsers
+POST /createOrder
+DELETE /deleteProduct/123
+```
+
+```text
+GET /users → List all users
+GET /users/123 → Get specific user
+POST /users → Create new user
+PUT /users/123 → Update user
+DELETE /users/123 → Delete user
+```
+
+## REST API Best Practices: A Developer’s Guide to Building Reliable APIs
+The Postman Team
+							
+							
+								December 22, 2025
+Quick reference
+
+
+Use nouns, not verbs. URLs represent resources, and HTTP methods define what happens.
+
+
+Use correct HTTP methods. GET, POST, PUT, PATCH, and DELETE each have clear semantics.
+
+
+Return meaningful status codes. Clients should understand outcomes without parsing bodies.
+
+
+Version your API. Plan versioning from the start to manage changes without breaking clients.
+
+
+Secure with HTTPS and authentication. Never transmit sensitive data over unencrypted connections.
+
+
+Paginate large collections. Break large result sets into manageable chunks for better performance.
+
+
+Standardize errors. Consistent error shapes save debugging time.
+
+
+Design for idempotency. Retries should not create duplicates.
+
+
+Observe everything. Logs, metrics, and request IDs make issues diagnosable.
+
+
+Keep documentation executable. Examples should match reality.
+
+
+
+Try Postman today →
+A well-designed REST API is intuitive, secure, scalable, and easy to maintain. In production, reliability starts with consistency. Whether you’re designing your first REST API or refining an existing one, following proven best practices helps teams avoid breaking clients, reduce support overhead, and make APIs easier to adopt.
+This guide covers essential REST API design principles, along with practical examples that you can apply immediately.
+
+
+## What Is a REST API? Examples, Uses, and Challenges
+The Postman Team
+Quick answer: API vs Web Service Question Answer What is a REST API? An architectural style for building APIs that uses HTTP…
+Read more →
+
+
+## Version your API deliberately
+APIs evolve over time, and versioning allows you to make improvements without breaking existing clients. Plan your versioning strategy from the start, even if you only have one version initially.
+
+
+## Secure your API with proper authentication
+Security is non-negotiable for APIs. Choose authentication methods appropriate for your use case and implement them consistently.
+
+
+## API keys
+Simple authentication using unique keys passed in headers.
+GET /api/users
+X-API-Key: sk_live_abc123xyz789
+API keys are well-suited for server-to-server communication, but they shouldn’t be the only security layer for sensitive operations.
+
+
+## Design for idempotency
+Idempotent operations produce the same result regardless of the number of times they’re executed. Network issues and retries are inevitable, and idempotency prevents duplicate actions.
+Safe methods (GET, HEAD) are naturally idempotent because they don’t modify state. PUT and DELETE should also be idempotent by design.
+"PUT /users/123 → Updates user 123, same result if called multiple times
+DELETE /users/123 → Deletes user 123, subsequent calls return 404
+POST is typically not idempotent because each request might create a new resource. To make POST operations safer, implement idempotency keys.
+POST /payments
+Idempotency-Key: unique-key-abc123
+Content-Type: application/json { "amount": 100.00, "currency": "USD" } >
+The server stores the idempotency key and returns the same response if the request is repeated with the same key, preventing duplicate payments.
+
+
+## Observe, log, and monitor API usage
+Reliable APIs are observable APIs. Comprehensive logging helps you understand how your API is being used, diagnose problems, and identify performance bottlenecks:
+Log request method, endpoint, status code, and latency
+
+
+Track error rates and slow endpoints
+
+
+Alert on anomalies
+
+
+## API Network
+App
+                                                Security
+                                        Artificial
+                                                Intelligence
+                                        
+                                                Communication
+                                        Data
+                                                Analytics
+                                        Database
+                                        
+                                        Developer
+                                                Productivity
+                                        DevOps
+                                        
+                                        Ecommerce
+                                        
+                                        eSignature
+                                        
+                                        Financial
+                                                Services
+                                        Payments
+                                        
+                                        Travel
+
+
+## Types of APIs: A Complete Guide to API Architectures
+The Postman Team
+Quick answer: What are the main types of APIs? The five foundational types of APIs define how systems communicate and exchange data…
+Read more →
+
+
+## Test APIs continuously
+Rigorous testing catches issues before they affect clients. Test APIs across multiple dimensions to ensure reliability, beyond the happy paths:
+Authentication failures
+Validation errors
+Rate limiting
+Edge cases and retries
+Unit tests verify that individual components work correctly. Integration tests confirm components work together properly. End-to-end tests validate complete workflows from the client’s perspective.
+
+

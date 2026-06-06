@@ -1,0 +1,171 @@
+Title: A guide to Linux file systems - UFS Explorer
+**Definition:** file systems of Linux  In contrast to Windows and macOS, that are strictly controlled by the Microsoft and Apple corporations respectively, Linux is a big open-source project developed by a community of enthusiasts.
+
+**Key Points:** Content:  Ext XFS Btrfs F2FS JFS ReiserFS Other storage technologies of Linux   Ext Ext (Extended File System) was released in 1992 as the first very format designed specifically for Linux. Here are some of the most common storage technologies that Linux file systems may be combined with:   Logical Volume Manager (LVM) – a disk management technology that enables more flexible and efficient storage capacity allocation compared to traditional partitioning. This way, a standard Linux file system, like Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS or ReiserFS remains responsible for managing the data blocks and other metadata, while eCryptfs ensures that the contents of the files are encrypted or decrypted as they are accessed.
+
+         Main ►   Knowledge Base    The file systems of Linux  In contrast to Windows and macOS, that are strictly controlled by the Microsoft and Apple corporations respectively, Linux is a big open-source project developed by a community of enthusiasts. Its code always remains available for those who want to contribute, and anyone is free to tweak it as per individual requirements or create their own distributions on its foundation. That is why Linux exists in so many variants, and the same goes for its file system, a fundamental part of any OS defined in the article on Filesystem basics. The kernel offers support for numerous storage formats, yet, the most commonly used are ones of the Ext family, XFS, Btrfs, F2FS, JFS, and ReiserFS. Below you can find their brief descriptions and learn about the main specificities associated with them. You may also familiarize yourself with the main technologies related to these Linux file systems. Please note: Linux also provides read-write access to file systems of other platforms, such as NTFS, FAT32 and exFAT of Microsoft Windows, HFS+ of macOS and ZFS of BSD, Solaris, Unix that are addressed in the dedicated articles.  Content:  Ext XFS Btrfs F2FS JFS ReiserFS Other storage technologies of Linux   Ext Ext (Extended File System) was released in 1992 as the first very format designed specifically for Linux. However, it still had serious performance limitations and was quickly superseded by Ext2. This filesystem and its later revisions – Ext3 and Ext4 – became the default choice for a large majority of Linux distributions. Ext2 has proved to be more efficient owing to its structure, which is based around the concept of inodes. Such an index descriptor keeps the attributes of a certain object, like a file or directory, and points to the locations of its underlying data. The space in Ext2 is divided into blocks that form larger units referred to as Block Groups. The information about all Block Groups is maintained by the Descriptor Table positioned straight after the Superblock. Each Block Group keeps inodes in its own Inode Table. It also monitors the state of its blocks and inodes using the Block and the Inode Bitmaps. Meanwhile, the name of a file or directory doesn’t constitute a part of its inode – names are mapped to the corresponding inode numbers via directories, implemented as a special kind of files. Most Linux filesystems are similar in that the name is not regarded as an attribute and rather defined as an alias for a file in a certain directory. A file object can be linked from many locations and exist under different names (the so-called hard links). This can lead to serious and even insurmountable difficulties in recovery of file names after file deletion or logical damage. Ext3 is in fact an upgraded version of Ext2 that supports journaling. The journal in Ext3 is organized as a log file, which records all changes to the filesystem and protects it from corruption in the event of a crash. Ext4 is an improvement over Ext4, which changed the method of data allocation from individual blocks to extents. The idea behind it is to write most of the file’s data to a continuous area and then note down only the address of its first block and the number of blocks in a sequence. Up to four extents can be stored directly in the inode, while the rest are arranged as a B+tree. In addition, Ext4 postpones the operation until the data is actually committed to the disk, and thus is able to minimize fragmentation. On the whole, it is considered to be one of the most flexible general-purpose FS types, which has also gained a reputation for solid stability. XFS XFS (Extended File System) is another very mature filesystem that was initially created by Silicon Graphics and applied on the company's IRIX servers. In 2001, it made its way to the Linux kernel and is now supported by most Linux distributions, some of which, like Red Hat Enterprise Linux, even use it by default. This FS type is optimized for storing very large files and volumes on a single host. It splits its storage space into equally sized areas called Allocation Groups. Each of them acts like a distinct filesystem, i.e. has its own Superblock, manages its own structures and space usage. The latter is controlled with the help of B+trees, one of which records the first block in the continuous free space region, and the other – the number of blocks it is composed of. Storage blocks are assigned to files using the same extent-based approach. All files and directories in XFS are represented by their individual inodes. The allocation of extents may be stored directly in the inode or traced by another B+tree linked to it in case of a very large or fragmented file. And just like inodes in Ext, they do not contain the names, that are available only in the corresponding directory entries. XFS deploys the journaling principle for any updates to its metadata. All changes are written to the Journal first before the actual blocks get modified, which enables its instant recovery in case of any mishaps. In general, this FS type is designed to be highly scalable and operates very well on server hardware. Btrfs Btrfs (B-tree File System) is one of the most popular new-generation formats for Linux, and a lot of effort is being put to make it stable. It was developed by Oracle and has been supported by the mainline Linux kernel since 2009. Fedora and SUSE already employ it by default. Btrfs is adjusted to work on a wide range of devices, from smartphones to high-end servers. Moreover, it embraces the features of a logical volume manager, being able to spread over multiple storages, together with countless other advanced possibilities. As its name suggests, Btrfs relies heavily on B-tree structures, each composed of internal nodes and leaves. An internal node points to a child node or leaf, while a leaf contains an item with some information. The actual layout and content of an item depends on the type of the given B-tree. The Root B-tree, whose location is available in the Superblock, has references to the rest of B-trees. The Chunk B-tree manages logical to physical address mapping, whereas the Device B-tree conversely links the physical blocks on the underlying devices to their virtual addresses. The File System B-tree is responsible for the allocation of files and folders. Small files are stored right there in inside extent items. Larger ones are placed outside in contiguous areas called extents. In such a case, an extent item references all extents holding the file’s data. Directory items include file names and point to their inode items. Inode items, in their turn, are used for other properties, like size, permissions, etc. Btrfs is a Copy-on-Write (CoW) filesystem. Instead of employing a journal, it makes copies of the blocks before modifying them and then writes this data to a different free location. This mechanism helps it to eliminate the risk for data corruption when an update gets interrupted, for example, due to power loss. Thanks to it and a wide variety of other attractive features, Btrfs is finding more and more adherents among modern Linux users. F2FS F2FS (Flash-Friendly File System)  is another modern format introduced by Samsung Electronics in 2012. It has been designed specifically for storage devices based on the NAND flash memory, and thus is most extensively utilized in modern smartphones and removable storage media. F2FS works on the basis of the log-structured FS approach (LFS) and takes into account such peculiarities of flash storage as constant access time and a limited number of data rewriting cycles. Instead of creating one large chunk for writing, F2FS assembles the blocks into separate chunks (up to 6) that are written concurrently. It divides its storage space into fixed-sized segments. Consecutive segments make up a section, and several sections constitute a zone. Data allocation in them is performed wit
+
+---
+
+Title: Linux File System - GeeksforGeeks
+**Definition:** x File SystemLast Updated : 12 Jan, 2026The Linux File System is a structured method of storing and organizing data on a Linux machine.
+
+**Key Points:** CoursesTutorialsInterview PrepLinux-UnixInterview QuestionsShell ScriptingKaliUbuntuRed HatCentOSDockerKubernetesPythonRJavaLinux File SystemLast Updated : 12 Jan, 2026The Linux File System is a structured method of storing and organizing data on a Linux machine. Virtual File System (VFS)Provides a common interface for different file systems (ext4, XFS, FAT32, NTFS, etc. DesignEach file system has limitations on maximum file size, number of files, and storage capacity.
+
+## ext4 in the Linux File System
+The ext4 (Fourth Extended File System) was designed with full backward compatibility to ext3 and ext2. It builds upon their strengths while introducing major enhancements in performance, scalability, reliability, and storage flexibility.
+
+
+## Linux File System Structure
+The Linux file system architecture is organized into three important layers, each responsible for different functionalities. These layers work together to provide smooth file access, storage, and management.
+
+
+## Online File System Growth
+Allows resizing the filesystem without unmountingSupported by ext3, ext4, XFS, JFS, Reiser4, and BtrfsNot supported by older file systems
+
+
+## File Systems Comparison:
+Given below is a comparative overview of different file systems based on their storage limits, supported features, and structural capabilities.
+
+
+## Characteristics of a File System
+A file system defines the structure, rules, and methods for how data is organized, stored, accessed, and managed on a storage device.
+
+
+## 1. Large File System Support
+ext4 can handle significantly larger files and volumes compared to its predecessors, making it suitable for modern storage demands.
+
+
+## File System Implementations
+Here are some linux file systems:
+Note: Cluster and distributed file systems will not be included for simplicity.
+
+
+## 2. Virtual File System (VFS)
+Provides a common interface for different file systems (ext4, XFS, FAT32, NTFS, etc.).Allows Linux to use multiple file system types at the same time.Acts as an abstraction layer, hiding the internal complexities of each file system.Makes file operations uniform and compatible, regardless of the underlying file system format.
+
+
+## 1. ext (Extended File System)
+Introduced in 1992 as the first file system created specifically for Linux.Marked the beginning of the ext family, laying the foundation for ext2, ext3, and ext4.
+
+
+## 3. Physical File System
+Directly interacts with the hardware and disk storage.Manages data blocks, inodes, and physical memory allocation.Responsible for writing data to the disk and retrieving it efficiently.Ensures reliable storage, error handling, and low-level data management.
+
+
+## Maximum Volume (Filesystem) Size
+Older file systems support volumes up to 2 GBext2/ext3 support 2 TB to 32 TBXFS supports up to 8 EBJFS supports up to 32 PBBtrfs supports volumes up to 16 EB
+
+
+## 5. JFS (Journaled File System)
+Originally developed by IBM in 1990, later open-sourced for Linux.Known for stable performance under varying workloads.Usage declined after ext4 emerged with better performance and compatibility.
+
+
+## 1. Logical File System
+Acts as the interface between user applications and the file system.Handles key operations like open, read, write, and close.Provides security checks, such as permissions and file access control.Ensures applications interact with files in a simple and consistent way, without worrying about storage details.
+
+
+## Maximum Number of Files
+Many traditional file systems do not define a fixed maximumext4 supports up to 2³² filesBtrfs supports up to 2⁶⁴ files
+
+
+## 1. Maximum Filename Length
+Most Linux file systems support a maximum filename length of 255 bytes/charactersReiserFS supports up to 4032 charactersBtrfs supports up to 3976 charactersXiafs supports slightly smaller filenames (248 bytes)
+
+
+## Maximum File Size
+Older file systems support smaller files (e.g., 2 GB in ext)ext2, ext3, ext4 support 16 GB to several TBXFS supports files up to 8 TBJFS supports files up to 4 PBBtrfs supports files up to 16 EBReiser4 supports extremely large files (8 EB)
+
+
+## 2. Filename
+Imposes rules on filename length, allowed characters, and case sensitivity.Ensures consistent file naming to avoid conflicts and maintain compatibility across systems.
+
+
+
+
+---
+
+Title: File systems - ArchWiki
+**Definition:** In computing, a file system or filesystem controls how data is stored and retrieved.
+
+**Key Points:** In-tree and FUSE file systems
+
+File system
+
+Creation command
+
+Userspace utilities
+
+Archiso [1]
+
+Kernel documentation [2]
+
+Notes
+
+Btrfs
+
+mkfs. Mount a file system
+To manually mount a file system located on a device (e. For example, if /etc/fstab contains a line indicating that /dev/sda1 should be mounted to /mnt, then the following will automatically mount the device to that location:
+
+# mount /dev/sda1
+
+Or
+
+# mount /mnt
+
+mount contains several options, many of which depend on the file system specified.
+
+| File system | Creation command | Userspace utilities | Archiso [1] | Kernel documentation [2] | Notes | 
+|---|---|---|---|---|---|
+| Btrfs | mkfs.btrfs(8) | btrfs-progs | Yes | btrfs.html | Stability status | 
+| VFAT | mkfs.fat(8) | dosfstools | Yes | vfat.html | Windows 9x file system. Commonly used fo | 
+| exFAT | mkfs.exfat(8) | exfatprogs | Yes |  | Commonly used for USB flash drives and S | 
+| mkexfatfs(8) | exfat-utils | No | N/A (FUSE-based) |  |  | 
+| F2FS | mkfs.f2fs(8) | f2fs-tools | Yes | f2fs.html | Flash-based devices. Cannot be shrunk. | 
+| ext3 | mkfs.ext3(8) | e2fsprogs | Yes | ext3.html |  | 
+| ext4 | mkfs.ext4(8) | e2fsprogs | Yes | ext4.html |  | 
+| HFS | mkfs.hfsplus(8) | hfsprogsAUR | No | hfs.html | Classic Mac OS file system | 
+| HFS+ | mkfs.hfsplus(8) | hfsprogsAUR | No | hfsplus.html | macOS (8–10.12) file system | 
+| JFS | mkfs.jfs(8) | jfsutils | Yes | jfs.html |  | 
+| JFFS2 | mkfs.jffs2(1) | mtd-utils | No |  |  | 
+| NILFS2 | mkfs.nilfs2(8) | nilfs-utils | Yes | nilfs2.html | Mostly intended for flash based devices. | 
+| NTFS |  |  | Yes | ntfs3.html | Windows NT file system. [3] | 
+| mkfs.ntfs(8) | ntfs-3g | Yes | N/A (FUSE-based) | FUSE driver with extended capabilities. |  | 
+| UDF | mkfs.udf(8) | udftools | Yes | udf.html | ISO/IEC 13346 file system for disc image | 
+
+
+| File system | Creation command | Kernel patchset | Userspace utilities | Notes | 
+|---|---|---|---|---|
+| Bcachefs | bcachefs format | bcachefs-dkms | bcachefs-tools | Removed from the kernel on 6.18 | 
+| APFS | mkapfs(8) | linux-apfs-rw-dkms | apfsprogs | macOS (10.13 and newer) file system. Rea | 
+| ReiserFS | mkfs.reiserfs(8) |  | reiserfsprogsAUR | Removed from the kernel on 6.13. | 
+| Reiser4 | mkfs.reiser4(8) |  | reiser4progsAUR |  | 
+| ZFS |  | zfs-linuxAUR, zfs-dkmsAUR | zfs-utilsAUR | OpenZFS port | 
+
+
+```text
+NAME   FSTYPE LABEL     UUID                                 MOUNTPOINT
+sdb
+└─sdb1 vfat   Transcend 4A3C-A9E9
+```
+
+```text
+NAME   FSTYPE   LABEL       UUID                                 MOUNTPOINT
+sda
+├─sda1                      C4DA-2C4D
+├─sda2 ext4                 5b1564b2-2e2c-452c-bcfa-d1f572ae99f2 /mnt
+└─sda3                      56adc99b-a61e-46af-aab7-a6d07e504652
+```
+
+## File systems
+8 languages
+	
+	
+
+		
+			
+			
+				
+				EspañolMagyarItaliano日本語PortuguêsРусскийУкраїнська中文（简体）
+
+

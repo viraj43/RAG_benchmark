@@ -1,0 +1,1328 @@
+Title: How to determine your Linux system’s filesystem types | Network World
+## Topics
+
+![sandra_henrystocker](https://www.networkworld.com/wp-content/uploads/2025/06/2004-0-39498900-1750715051-sandra_h-s-3-100646724-orig.jpg?quality=50&strip=all&w=113)
+
+# How to determine your Linux system’s filesystem types
+
+## Linux provides quite a few commands to look into file system types. Here's a look at the various file system types used by Linux systems and the commands that will identify them.
+
+![Files](https://www.networkworld.com/wp-content/uploads/2025/02/972445-0-06286600-1740683198-istock-1164612248-1-100940167-orig.jpg?quality=50&strip=all&w=1024)
+
+Linux systems use a number of file system types – such as Ext, Ext2, Ext3, Ext4, JFS, XFS, ZFS, XFS, ReiserFS and btrfs. Fortunately, there are a number of commands that can look at your file systems and report on the type of each of them. This post covers seven ways to display this information.
+
+To begin, the file system types that are used on Linux systems are described below.
+
+## File system types on Linux
+
+**Ext4** is the fourth generation of the ext file system, released in 2008 and pretty much the default since 2010. It supports file systems as big as 16 terabytes. It also supports unlimited subdirectories where ext3 only supports 32,000. Yet it’s backward compatible with both ext3 and ext2, thus allowing them to be mounted with the same driver. Ext4 is also very stable, widely supported and compatible with solid state drives.
+
+**JFS** is a journaling file system (thus the name) developed by IBM for AIX Unix. It allows for quick file system recovery after a crash by logging file metadata.
+
+**XFS** is currently the default file system in Red Hat Enterprise Linux. Due to the way it lays out files as extents, it is less vulnerable to fragmentation than ext4.
+
+**ZFS** is a file system that began life as part of Sun Microsystems’ Solaris OS. It provides robust data repair features and high storage capacity and is good for large-scale data storage.
+
+**ReiserFS** is an alternative to the ext3 file system, but with better performance and some advanced features.
+
+**Btrfs** (which stands for “B-tree file system”) is a file system that prioritizes data integrity, fault tolerance and easy administration. It supports advanced features like snapshots, built-in RAID, and copy-on-write.
+
+**Vfat** is a file system type that contains the bootloader. It’s commonly referred to as the “boot partition”.
+
+**Tmpfs** is a file system type which keeps all of its files in virtual memory.
+
+You are unlikely to see more than a handful of these on most Linux systems.
+
+## Linux commands that display file system types
+
+There are many ways to determine file system types on Linux. This section covers six different commands and one system file. The details provided by the commands often depend on options used and some require sudo privileges.
+
+#### Using the lsblk command
+
+The [**lsblk** command](https://www.networkworld.com/video/3824003/how-to-use-the-lsblk-command.html) provides details on specified block devices. With no options, you will see something like this:
+
+As you can see, it provides partition names (e.g., sda1), major and minor device numbers (the major number is the larger, more generic category), RM (removable or not), the size, type (disk or partition) and the mount point. An RM of 0 indicates the disk or partition is not removable.
+
+In the command below, the options used specifically request that the file system type (FSTYPE) be included.
+
+The **lsblk** command with the **-f** option includes file system version information, the UUIDs and both available and used space.
+
+Related:
+
+#### Using the blkid command
+
+The **blkid** command requires the use of **sudo** privilege and supplies information like that shown below including the partition names, UUIDs, block size, file system type and PARTUUID (raw physical storage partition UUID).
+
+#### Using the df command
+
+The [**df** command](https://www.networkworld.com/video/663073/how-to-use-the-df-th-command.html) with the **-T** option will display details for file systems in the format shown below.
+
+Adding the **-H** option alters the numbers use to make them more human-friendly.
+
+Related:
+
+#### Using the mount command
+
+The **mount** command displays file system types along with a lot of additional information. The command below ensures that only details about disk devices are included in the output.
+
+#### Using fsck
+
+The **fsck** command with the **-N** option will display file system types without performing a file system check as the command normally would.
+
+#### Using the file command
+
+The **file** command as shown below will display the file system type along with the device label, sector size and other details.
+
+#### Examining /etc/fstab
+
+You can also retrieve information on file system types by looking at the  **/etc/fstab** file.
+
+An easier option would be to use a command like what is shown below and limit the output to just the mount point and file system types.
+
+### Wrap-up
+
+There are so many Linux commands ready to provide details on file system types that choosing a favorite or two and setting them up as aliases might be a good idea!
+
+More Linux tips and how-tos:
+
+## Related content
+
+### Protecting iOS against the aLTEr attacks
+
+### Rapid7 demystifies penetration testing
+
+### Book review — The Book of R: A First Course in Programming and Statistics
+
+### EZ file extraction on Unix
+
+## Other Sections
+
+### From our editors straight to your inbox
+
+![sandra_henrystocker](https://www.networkworld.com/wp-content/uploads/2025/06/2004-0-39498900-1750715051-sandra_h-s-3-100646724-orig.jpg?quality=50&strip=all&w=188)
+
+Sandra Henry-Stocker was a programmer, Linux systems administrator, security engineer and Linux journalist for most of her 30-year career. She describes herself as "USL" (Unix as a second language) but remembers enough English to write books and buy groceries. She lives in the mountains in Virginia where, when not working with or writing about Unix, she's chasing the bears away from her bird feeders. Tune into her [2-Minute Linux](https://www.youtube.com/playlist?list=PLYaGSokOr0MN-fXA0snsiEd1rFcqSGbow) video tutorials and take command of your command line.
+
+Sandra Henry-Stocker was a programmer, Linux systems administrator, security engineer and Linux journalist for most of her 30-year career. She describes herself as "USL" (Unix as a second language) but remembers enough English to write books and buy groceries. She lives in the mountains in Virginia where, when not working with or writing about Unix, she's chasing the bears away from her bird feeders. Tune into her [2-Minute Linux](https://www.youtube.com/playlist?list=PLYaGSokOr0MN-fXA0snsiEd1rFcqSGbow) video tutorials and take command of your command line.
+
+## More from this author
+
+### Parameter expansion on Linux
+
+### Essential commands for Linux server management
+
+### Why people love Linux
+
+### Understanding devices on Linux systems
+
+### Many ways to use the date command on Linux
+
+### More math on the Linux command line
+
+### Making use of your command history on Linux
+
+### 18 essential commands for new Linux users
+
+## Show me more
+
+### Network hiring, skills and certification trends
+
+![Image](https://www.networkworld.com/wp-content/uploads/2026/04/2093749-0-57600800-1776969283-shutterstock_2102457295.jpg?quality=50&strip=all&w=444)
+
+### Cisco switch aimed at building practical quantum networks
+
+![Image](https://www.networkworld.com/wp-content/uploads/2026/04/4162201-0-99069400-1776950423-shutterstock_1139952263.jpg?quality=50&strip=all&w=444)
+
+### How AI is reshaping copper, fiber networking
+
+![Image](https://www.networkworld.com/wp-content/uploads/2026/04/4162206-0-34024200-1776952823-shutterstock_2556469215.jpg?quality=50&strip=all&w=444)
+
+### Has the hype around ‘Internet of Things’ paid off? | Ep. 145
+
+![Image](https://www.networkworld.com/wp-content/uploads/2024/04/nw-thumb-iot-episode-1.jpeg?quality=50&strip=all&w=320)
+
+### Episode 1: Understanding Cisco’s Converged SDN Transport
+
+![Image](https://www.networkworld.com/wp-content/uploads/2023/11/iStock-1132912672-1-1.jpg?quality=50&strip=all&w=444)
+
+### Episode 2: Pluggable Optics and the Internet for the Future
+
+![Image](https://www.networkworld.com/wp-content/uploads/2023/11/episode-2-100908797-orig.jpg?quality=50&strip=all&w=444)
+
+### Master Linux Math with the bc Command | Easy CLI Calculations Explained!
+
+![Image](https://www.networkworld.com/wp-content/uploads/2025/06/4011089-0-94386400-1750691632-youtube-thumbnail-iOn2hKG4r1g_bf1d19.jpg?quality=50&strip=all&w=444)
+
+### Master Linux Math in Seconds: How to Use the expr Command Like a Pro
+
+![Image](https://www.networkworld.com/wp-content/uploads/2025/06/4008334-0-25623800-1750169271-youtube-thumbnail-xMZtgqVK5ws_1fcb3d.jpg?quality=50&strip=all&w=444)
+
+### How to Do Math in the Command Line Using Double Parentheses
+
+![Image](https://www.networkworld.com/wp-content/uploads/2025/06/4003180-0-10579600-1749219962-youtube-thumbnail-BnCTtihBbBg_a9be27.jpg?quality=50&strip=all&w=444)
+
+### About
+
+### Policies
+
+### More
+
+### Our Network
+
+---
+
+Title: Which Linux Filesystem Should You ACTUALLY Use? (Complete Guide 2026)
+# Which Linux Filesystem Should You ACTUALLY Use? (Complete Guide 2026)
+## PulsarTECH
+34400 subscribers
+2839 likes
+
+### Description
+45441 views
+Posted: 28 Mar 2026
+Choosing the right Linux filesystem can make or break your Linux system performance and data safety. In this guide, we compare EXT4, Btrfs, ZFS, XFS, F2FS, and Bcachefs to help you decide which one to use.
+
+You'll learn:
+✅ How each filesystem works under the hood
+✅ The pros and cons of every option
+✅ Which filesystem is best for your specific hardware (SSD, HDD, NVMe)
+✅ Snapshots, RAID, and data integrity features explained
+✅ Why Btrfs and ZFS are game-changers for data protection
+
+Whether you're setting up a new Linux install, building a NAS, or just curious about how filesystems work, this video gives you everything you need to make an informed decision.
+
+This video covers Linux filesystem comparison including EXT4 vs Btrfs vs ZFS vs XFS vs F2FS performance, snapshots, RAID, and data integrity features.
+
+💖 Like my content? Support me on Ko-fi: https://ko-fi.com/pulsartech
+
+🔔 Subscribe for more Linux tutorials, distro reviews, and tips.
+
+📌 Timestamps:
+0:00 - Intro
+1:01 - What is a filesystem?
+2:31 - Btrfs - The Multi-Tool
+5:47 - EXT4 - The Reliable Hammer
+08:29 - XFS - The Scalable Heavy Lifter
+11:37 - F2FS - The Flash Specialist
+15:39 - ZFS - The Enterprise Tank
+20:21 - Which One Should You Choose?
+23:24 - Outro
+
+🔗 Related Videos:
+► I Tested ALL 10 CachyOS Desktops https://youtu.be/3JdUBpakX5A
+► Nobara vs Bazzite – Which Linux Gaming Distro Wins? https://youtu.be/kaNZnqJrr34
+► The Best Linux Gaming Distros: https://youtu.be/ONhjc2lzX7o
+► Which Linux Distro Should You Choose? https://youtu.be/dbYwbJusud4
+► Linux Mint XFCE vs Zorin OS Lite vs Xubuntu Compared: https://youtu.be/8DPTdhpNkUg
+► Linux Mint 22.3 vs Zorin OS 18 – Detailed Comparison: https://youtu.be/FtLdvzOXo5A
+► Linux Mint Cinnamon vs LMDE Compared: https://youtu.be/uN9dYGxx62c
+►All Linux Mint Editions Compared: Cinnamon vs MATE vs XFCE: https://youtu.be/O4trbVOFe_E
+► All MX Linux Editions Compared: Xfce vs KDE vs Fluxbox: https://youtu.be/_gp8xD-q-hw
+
+DISCLAIMER:
+This video is for informational and entertainment purposes only. By relying on the information presented in this video, you assume full responsibility for any outcomes. PulsarTECH cannot guarantee accuracy if the information is modified or misused. Furthermore, PulsarTECH assumes no liability for property damage, injuries, or losses resulting from the application of information provided in this video. Any actions taken based on this video are at your own risk. Use tools and equipment responsibly and follow all safety guidelines.
+
+ #PulsarTECH #Linux #CachyOS #LinuxFileSystem #LinuxTutorial
+
+410 comments
+### Transcript:
+Butterfs, ext4, XFS, F2FS, ZFS. What are they? You've downloaded a Linux ISO file. You're ready to install. And suddenly you face a choice. Choose the file system. All these different letters, what do they mean? And more importantly, does your choice even matter? The short answer, yes. The file system you choose affects everything. how fast your computer feels, how easy it is to recover from a broken update, or even how long your SSD will last. Now, different distributions handle this choice differently. Some hide it from you. Others, like Cache OS, give you the full menu. So, I'll be using Cache OS as our example today, but everything we cover applies to any Linux distribution. Hello guys, welcome to the channel. In this video, I'll explain each file system in plain English. By the end, you'll understand how they work, the pros and cons of each and exactly which one is right for your hardware and workflow. Let's get into it. Before we look at each file system individually, let's answer one fundamental question. What actually is the file system? In simple terms, a file system is the method your operating system uses to organize, store, and retrieve data on a drive. Think of it like a library. The hard drive is the library building itself. The files are books. The file system is the card catalog, the shelving system, and the librarian all rolled into one. It decides where a file goes, how to find it when you need it, and how to keep a track of what's been changed. Now, different file systems make different trade-offs. Some prioritize speed, some prioritize data integrity, some give you advanced features like snapshots or compression, and some are designed specifically for certain types of hardware like SSDs or multi-drive servers. Cash OS offers file different file systems. Each one has its own philosophy, its own strength, and its own weaknesses. Over the next few minutes, I'll walk you through each one. You'll learn a brief history of where each file system came from, the practical advantages and disadvantages, who each file system is for, and any gotchas you need to watch out for. One quick note, while I'm showing this on Cash OS, the commands, concepts, and recommendations apply to any Linux distribution. Whether you are on Arch, Fedora, Davian, or something else, the file system you choose works the same way. All right, let's start with the default file system that Cach OS recommends. First up is Ber FS, often pronounced as B FS or BTRFS. It's the default file system for Cache OS and what I recommend for most users. But FS stands for B3 file system. It was created in 2007 and declared stable in Linux kernel in 2013. It's a modern copy on write file system. So what is copy on write? Normally when you modify a file, the file system writes the changes directly over the original data. With copy on write is different. When you modify data, BTRFS writes the changes to a new location on a drive, then updates a pointer to that new location. The original data stay untouched. Why does this matter? because it enables two of Butterfest's most powerful features, snapshots and transparent compression. Let's start with snapshots. Because Butterfs doesn't override data immediately, it can create snapshots of your system that take up almost no extra space. Think of it like taking a photo of your system at a specific moment. If an update breaks something, you can roll back to that snapshot and your system is instantly restored. This is a gamecher for beginners and advanced users alike. It means you can experiment freely knowing you have a safety net. Cach OS sets up butterfs with a specific subvol layout of the box. You've got atmounted at root at homemounted at for/home and separate subvols for cache TPM and others. This layout is intentional. It allows you to snapshot your system while excluding your personal files or logs, giving you fine grain control over what gets backed up and what doesn't. Next up, transparent compression. Butterfest supports compressing files on the fly. Cach OS ships with ZSTD compression set to level three by default. What does this mean for you? Your files take up less space without you having to do anything. On a typical install, you might see 20 to 30% space saving, sometimes more. And because it's transparent, you don't notice it happening. Files open normally, applications run normally, but they're store compressed on your drive. So, let's look at the big picture. What are the pros? Transparent compression saves significant space. Snapshots give you easier rollback capability. Sub volumes give you granular control. You can grow or shrink the file system as needed. Active development with new features being added. Now, what are the cons? It can require occasional maintenance like balancing or def fragmentation. Performance on old spinning hard drives can suffer due to fragmentation. If you're using cache OS, butterfs is the default for good reason. It gives you modern features that protect your data and sanity without requiring you to be an expert. Who should use butterfs? I recommend butterf users. If you want safety net of snapshots, the space saving of compression and a modern feature set, this is your choice. If you're unsure which file system to pick, start here. But maybe you don't need those features. Maybe you want something simpler. Next, let's take a look at the most common Linux file system of all. Next up is ext4, short for the fourth extended file system. If Butterfest is the modern feature-p packed option, ext4 is the tried andrue veteran. It's been around since 2008 and is quite possibly the most widely used Linux file system in existence. Nearly every Linux distribution has offered ext4 as either the default or primary option for almost two decades. It's the file system that most Linux users grew up with and it has proven track record of reliability. So, what makes ext4 special? In many ways, it's what you don't get. No snapshots, no transparent compression, no copy and write complexity. Ext4 is a straightforward, nononsense file system. It does one thing and it does it well. It stores your files reliably and efficiently. Let's look at the pros. First, it's fast. In many scenarios, ext4 can be just as fast or even faster than XFS or BFS. It's particularly well suited for general desktop use and small to medium-siz drives. Second, it's everywhere. Because the XT4 is so common, you'll find plenty of documentation, tools, and community support. If something goes wrong, chances are someone else has already solved the problem. Third, it's reliable. Extested for over 15 years. It's stable, mature, and predictable. And fourth, you can grow or shrink it. Unlike some other file systems, ext4 supports both growing and shrinking. Though shrinking does require the file system to be unmounted first. What are the cons? The main downside is what it lacks. You don't get advanced features like snapshots or built-in compression. If you want those, you'll need to use external tools or a different file system. That's really it. EXT's four weaknesses are mostly about what it doesn't do, not about what it does wrong. Who should use ext4? Extal for users who want the simplest, most battle tested file system available. If you don't need snapshots or compression, or you just want something that works without any complexity, ext4 is an excellent choice. It's also a great fit for older hardware or speeding hard drives where butterf copy and write behavior might cause performance issues. Think of VXT4 like a hammer. It's not flashy. It doesn't have all the latest features, but it's been around forever. It's reliable. Everyone knows how to use it, and it'll get the job done without any surprises. But maybe you want something faster. Maybe you're working with large files or high performance workloads. That's where XFS comes in. Let's take a look. Now, let's talk about XFS. If EXT4 is the reliable commuter car, XFS is the sports car. It was built with one thing in mind, speed. XFS has an interesting history. It was originally created by Silicon Graphics in 1993 for their IRX operating system. Designed specifically for high-end workstations and servers. In 2001, it was ported to Linux and has been a staple for performance focused users ever since. What makes XFS fast? First, it was designed with extreme scalability in mind where talking file systems up to xabytes in size. It handles large files exceptionally well. Think video editing, database servers or any workload involving massive files. Second, it uses extendbased allocation and delayed allocation strategies. In simple terms, XFS is a smart about where it places data on the drive. It groups related data together and delays rights to optimize how they're laid out. The result, less fragmentation and faster performance. XFS is also remarkably resistant to fragmentation because of its extentbased nature. Even as files grow and change over time, they tend to stay organized. This is a huge advantage for workloads that involve constantly modifying large files. Let's break down the pros and cons. First and foremost, speed. XFS consistently delivers top tier performance, especially with large files and high throughput workloads. Second, it's reliable. XFS incorporates several technologies to prevent data corruption, including meta data journaling and check sums. Third, it scales incredibly well. Whether you have a small SSD or a massive RAID array, XFS handles it gracefully. What about the cons? There is one major limitation you need to know. XFS cannot be shrunk. Once you create an XFS partition, you can grow it, but you cannot make it smaller. This means you need to plan your partition size carefully. If you think you might need to resize later, this is an important consideration. Who should use XFS? XFS is the recommended file system for users who don't need advanced features like snapshots or compression, but want fast, reliable file system. It's an excellent choice for video editing workstations, working with large media files, database servers, any workload where raw speed is the priority. Users who want performance without the complexity of copy on write features. If you're running Cash OS on modern hardware with SSDs, and you just want the fastest possible performance without snapshots or compression, XFS is a compelling option. Think of XFS like a race car. It's incredibly fast, built for performance, but it requires a bit more planning. You need to know exactly what you want because you can change the chassis size later. But what if you're specifically concerned about your SSD's lifespan? That's where our next file system comes in. Let's look at F2FS. Next up is F2FS, which stands for flashfriendly file system. If XFS is built for speed and EXT4 for reliability, F2FS is built for something entirely different, longevity. F2FS was created by Samsung in 2012 specifically for nan flash storage. The technology inside your SSDs, USB drives, and memory cards. Unlike traditional file systems that were designed for spinning hard drives and later adapted to flash, F2FS was built from the ground up with flash memory in mind. What makes flash storage different? Traditional hard drives have spinning platters and moving read write heads. They don't really care how data is written. The mechanical parts are the bottleneck anyway. But nan flash is different. Each memory cell can only be written to a limited number of times before it wears out. And writing data inefficiently can dramatically shorten the lifespan of your drive. F2FS addresses this with intelligent wear leveling. Instead of hammering the same memory cells repeatedly, F2FS spreads rides evenly across the entire drive. Think of it like rotating the tires on your car. Instead of wearing out the front tires first, you rotate them so all four wear evenly and last longer. F2FS also supports transparent compression. Though there is an important catch here. Unlike butterfs where compression gives you visible space savings, F2FS's compression is currently focused on reducing ride amplification, meaning it helps your SSDs last longer by writing less data. You don't actually see the space savings as free storage. That may change in the future, but for now, it's about longevity, not capacity. Let's look at the pros and cons. First, it's designed specifically for flash. You get better wear leveling which can extend the life of your SSD, USB drive or memory card. Second, it reduces ride amplification through compression and intelligent data placement. Less riding means less wear. Third, it's lightweight and efficient, making it great for embedded devices, Raspberry Pi systems, or any device with flash storage. Cons: First, like XFS, F2FS cannot be shrunk. Plan your partition sizes carefully. Second, the space savings from the compression aren't currently usable by the user. You get the longevity benefits, but you won't see more free space. Third, F2FS has relatively weak FSCK, the file system check tool. If corruption occurs, recovery is harder than with ext4 or XFS. Fourth, the risk compatibility consideration. If you create an F2FS file system with a newer kernel, downgrading to an older kernel may cause issues. And finally, if you're using GRUB on a traditional bias or MBR system, F2FS requires a workaround. Cash OS recommends using Limina as the bootloader instead in this scenario. Who should use F2FS? F2FS is recommended for users who want to maximize the lifespan of their non flash devices. It's an excellent choice for USB flash drives that get heavy use, SD cards and Raspberry Pi or other single board computers, lower end SSDs where you want to extend longevity. Any situation where right endurance is a concern. However, for a typical desktop or laptop with a modern SSD, you probably don't need F2FS. Modern SSDs have sophisticated controllers that handle wear leveling internally. For most users, the performance and features of butterf or XFS will serve you better. Think of F2FS like a fuel efficient car. It's not the fastest. It doesn't have all the luxury features, but if you're planning a long road trip or in this case trying to make your flash storage last as long as possible, it's the right tool for the job. Now, let's shift the gears completely. The next file system is the most powerful and the most complex option in this lineup. Let's look at ZFS. Now we're entering advanced territory. Let's talk about ZFS. If the other system we've covered are like different types of vehicles, ZFS is more like an entire transportation network. It's powerful, it's sophisticated, and it's a class of its own. ZFS was originally developed by Sun Micro Systemystems in 2005 for the Solaris operating system. It was designed to be what they called a zero administration file system. Something that combine the features of a file system, a volume manager, and a RAID controller allinone. But there is an important legal note here. ZFS is licensed under the CDDL, which is incompatible with the Linux kernel's GPL license. What does that mean for you? ZFS cannot be included directly in the Linux kernel. Instead, it requires a separate kernel module to be installed. Cache OS provides this pre-ompiled ZFS module for each kernel version. So, it works, but it's an extra layer of complexity to be aware of. So, what makes ZFS so special? Let's break down its key features. First, pulled storage. Instead of managing individual partitions on separate drives, ZFS uses storage pools called Zpools. You can take multiple drives of different sizes, combine them into one single pool, and ZFS manages the space as one unified storage resource. Second, RAID Z. ZFS has its own implementation of RAID called RAID Z. Unlike traditional RAID, RAID Z handles data integrity at the file system level, protecting you from both drive failures and silent data corruption. Third, copy on write and snapshots. Like butterfs, ZFS uses copy on write technology which enables instant snapshots. You can take point in time snapshots of your data that take almost no extra space and you can roll back to them instantly. Fourth, compression. ZFS supports transparent compression, reducing storage usage and often improving performance since less data need to be read from disk. Fifth, ARC cache. This is where ZFS gets really interesting. ZFS uses an adaptive replacement cache or ARC which intelligently caches frequently accessed data in system RAM. The more RAM you have, the more data ZFS can cache and the faster your frequently used files become. Let's be honest about the trade-offs. First, the pros. Pulled storage gives you incredible flexibility across multiple drives. RAID Z provides integrated redundancy and data integrity. Snapshots and compression work seamlessly. ARC cache can deliver phenomenal read performance on systems with ample RAM, enterprisegrade reliability and data protection. Now the cons and they are significant. First, it's complicated. ZFS introduces concepts like Zpools, data sets, and ARC that have a real learning curve. This is not a file system where you can just click next and forget about it. Second, the ARC cache requires a lot of RAM to be effective. ZFS can happily consume a gigabyte or more of RAM by default. On a system with 8 or 16 GB, that's manageable. On a system with 4 GB, it can be a problem. Third, ZFS is not included in the Linux kernel. It depends on a third-party kernel module, which adds complexity and can sometimes lag behind kernel updates. Fourth, there is a critical compatibility warning. Do not use ZFS together with a realtime kernel. They are incompatible due to licensing issues. Who should use ZFS? ZFS should only be used by advanced users who specifically need its advanced features. If you fall in any of these categories, ZFS is worth considering. You have multiple drives and won't pull storage with integrated RAID. You run in a home server or NAS and need enterprisegrade data protection. You have ample RAM, think 16 GB or more, and want to leverage the ARC cache. You're comfortable with command line administration and learning new concepts. But here's the reality check for most viewers. If you install in Linux on a single drive laptop or desktop, ZFS is likely overkill. Butterfest gives you snapshots and compression with far less complexity and no kernel module headaches. Think of ZFS like a commercial airliner. It's incredibly capable. It has redundant systems for safety and it can carry massive loads. But you wouldn't fly it for a short trip to the grocery store. You bring in the experts when you need the level of capability. Now, let's wrap it up. All right, we've covered five different file systems. That's a lot of information to take in. So, let's bring it all together with clear, practical recommendations. Instead of listing them all again, let me give you a simple decision tree to follow. Start with this question. Do you want advanced features like snapshots or built-in compression? If yes, choose butterfs. It's the default for cashios. It's what I recommend for most users and it gives you the safety net of snapshots and the space savings of compression without requiring you to become an expert. If no, then ask yourself what's your priority. If your priority is raw speed, especially with large files, choose XFS. Just remember you cannot shrink it later. If your priority is simplicity and proven reliability, choose EXT4. It's boring. It's predictable. It just works. If your priority is maximizing the lifespan of flash storage, like USB drives or SD cards, choose F2FS. For most modern desktop SSDs, this isn't necessary, but for external flash devices, it's a solid choice. Now, if you're an advanced user with multiple drives, ample RAM, and you know what a Zpool is, then ZFS is worth considering. For everyone else, it's overkill. And Bcash FS, keep an eye on it. It's an exciting project that aims to combine the best of BFS and ZFS. But for now, it's still quite experimental and has had stability issues reported. Don't use it for data you care about. Let me leave you with a quick visual summary. Butterfest the default snapshots compression modern features. Choose this if you're unsure. Some users still prefer ext4 for maximum simplicity and fewer edge cases. Ext4 the reliable standard. Simple proven everywhere. Choose this if you want simplicity. XFS the speedster. Blazing fast with large files. Choose this if performance is your priority. Excellent for media servers or large file workloads. F2FS, the flash specialist, extends the life of USB drives and SD cards. Choose this for external flash devices. ZFS, the advanced powerhouse, full storage, RAID Z, arc cache. Choose this if you're an advanced user with multiple drives and ample RAM. Bcash FS the experimental future. Exciting but not ready for production use. If you take one thing from this video, let it be this. The default exists for a reason. Cash OS defaults to butterf because it's the best balance of features, stability, and ease of use for most users. If you don't have a specific reason to choose something else, butterf is the right choice. The beauty of Linux is that you have the freedom to choose. Now you know what each option does, what it's good at, and where it falls short. You can make an informed decision based on your hardware and your workflow. Let me know which file system are you going to choose and why. Drop your choice in the comment section below. If this video helped you understand Linux file systems, please give it a like. I make content like this to help new Linux users navigate the choices without getting overwhelmed. And if your first time to the channel, please take a second to click the subscribe button and hit the notification bell so you don't miss new videos. I'm going to have a lot more helpful, interesting Linux videos on my channel. So, make sure to subscribe and if you want to learn more about Linux, I have a full playlist of different helpful Linux videos. I'm also going to put a link in the description. Make sure to check it out. And if you like what I'm doing and would like to support my channel, you can use Super Thanks or simply buy me a coffee. All the links will be in the description. But this is it for today. Thanks for watching and I'll see you in the next one. Bye-bye.
+
+---
+
+Title: A Comprehensive Guide to Linux File System Types
+# A Comprehensive Guide to Linux File System Types | by Extio Technology | Medium
+
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![Image 1](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+# A Comprehensive Guide to Linux File System Types
+
+[![Image 2: Extio Technology](https://miro.medium.com/v2/resize:fill:32:32/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---byline--fcb13cd7d3f3---------------------------------------)
+
+[Extio Technology](https://medium.com/@extio?source=post_page---byline--fcb13cd7d3f3---------------------------------------)
+
+Follow
+
+5 min read
+
+·
+
+Aug 2, 2023
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Ffcb13cd7d3f3&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&user=Extio+Technology&userId=f76cf0a4587e&source=---header_actions--fcb13cd7d3f3---------------------clap_footer------------------)
+
+15
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ffcb13cd7d3f3&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---header_actions--fcb13cd7d3f3---------------------bookmark_footer------------------)
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3Dfcb13cd7d3f3&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---header_actions--fcb13cd7d3f3---------------------post_audio_button------------------)
+
+Share
+
+Press enter or click to view image in full size
+
+![Image 3](https://miro.medium.com/v2/resize:fit:700/1*tanrzE-hA1A9IA7KOOt7_g.png)
+
+Extio Linux File System Types Explained
+
+## Introduction
+
+When it comes to the world of Linux, one of the most fundamental aspects is the file system. Understanding the various file system types in Linux is crucial for both system administrators and everyday users. A file system is responsible for organizing and managing data on storage devices such as hard drives, solid-state drives (SSDs), and USB drives. In this blog post, we’ll explore the most commonly used Linux file system types and learn about their unique features and benefits.
+
+### **Ext4 (Fourth Extended File System)**
+
+Press enter or click to view image in full size
+
+![Image 4](https://miro.medium.com/v2/resize:fit:700/1*LwPP91ks7J-Uf3ugUh1VvA.png)
+
+Extio ext4 File System overview
+
+Ext4 is the most widely used and default file system for many Linux distributions. It is the successor to Ext3 and comes with various improvements, including better performance, increased file size limits, and faster file system checks. Ext4 is known for its robustness, journaling capabilities, and backward compatibility with Ext2 and Ext3.
+
+**Advantages**:
+
+*   High performance for most workloads.
+*   Reliable journaling, reducing the risk of data corruption after system crashes.
+*   Supports large file and partition sizes.
+
+> Creating a new Ext4 file system on a partition:
+
+sudo mkfs.ext4 /dev/sdX1
+> Mounting an Ext4 file system:
+
+sudo mount /dev/sdX1 /mnt/ext4_partition
+> Checking the file system’s disk usage:
+
+df -hT /mnt/ext4_partition
+### **Btrfs (B-Tree File System)**
+
+![Image 5](https://miro.medium.com/v2/resize:fit:661/1*JwNkskDswIfV71kjS7wX9A.jpeg)
+
+Extio Btrfs File System overview
+
+Btrfs is a modern, advanced file system designed to address the limitations of older file systems. It offers features such as snapshot support, data deduplication, RAID, and online defragmentation. Btrfs also enables the user to expand or shrink file systems on-the-fly, making it a flexible choice for both single and multi-disk setups.
+
+**Advantages**:
+
+*   Built-in data integrity with checksums.
+*   Efficient space usage through data compression and deduplication.
+*   Snapshots for easy system backups and recovery.
+
+> Creating a new Btrfs file system on a partition:
+
+sudo mkfs.btrfs /dev/sdX1
+> Mounting a Btrfs file system:
+
+sudo mount /dev/sdX1 /mnt/btrfs_partition
+> Creating a Btrfs subvolume:
+
+sudo btrfs subvolume create /mnt/btrfs_partition/subvol1
+> Taking a snapshot of a Btrfs subvolume:
+
+sudo btrfs subvolume snapshot /mnt/btrfs_partition/subvol1 /mnt/btrfs_partition/snapshot1
+### **XFS (XFS File System)**
+
+Press enter or click to view image in full size
+
+![Image 6](https://miro.medium.com/v2/resize:fit:700/1*gLH-9Tu5XiZsas8BK6nsxA.jpeg)
+
+Extio XFS File System overview
+
+XFS is a high-performance, journaling file system that excels in handling large files and massive storage volumes. Initially developed by Silicon Graphics (SGI), XFS has found its way into many Linux distributions due to its exceptional scalability and stability.
+
+## Get Extio Technology’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+- [x] 
+
+Remember me for faster sign in
+
+ 
+
+**Advantages**:
+
+*   Efficient handling of large files and file systems.
+*   Excellent performance for parallel I/O operations.
+*   Robust journaling for data protection.
+
+> Creating a new XFS file system on a partition:
+
+sudo mkfs.xfs /dev/sdX1
+> Mounting an XFS file system:
+
+sudo mount /dev/sdX1 /mnt/xfs_partition
+> Checking the file system’s disk usage:
+
+df -hT /mnt/xfs_partition
+### **ZFS (Z File System)**
+
+![Image 7](https://miro.medium.com/v2/resize:fit:438/1*-m3cDe_S1nAVE8RPbs6eDQ.jpeg)
+
+Extio ZFS File System overview
+
+Though not a native Linux file system, ZFS deserves mention due to its popularity and exceptional features. Developed by Sun Microsystems, ZFS provides advanced data management capabilities, including snapshotting, data compression, deduplication, and built-in RAID functionality.
+
+**Advantages**:
+
+*   Unparalleled data integrity through checksums and self-healing capabilities.
+*   Efficient storage with data compression and deduplication.
+*   Simplified volume management with dynamic resizing and RAID features.
+
+> Creating a ZFS pool using a single device:
+
+sudo zpool create mypool /dev/sdX1
+> Creating a ZFS dataset within the pool:
+
+sudo zfs create mypool/dataset1
+> Taking a snapshot of a ZFS dataset:
+
+sudo zfs snapshot mypool/dataset1@snapshot1
+> Mounting a ZFS dataset:
+
+sudo zfs mount mypool/dataset1
+### **F2FS (Flash-Friendly File System)**
+
+![Image 8](https://miro.medium.com/v2/resize:fit:698/1*SnpKbMY0mpK46dH3Az7dNg.png)
+
+Extio F2FS File System overview
+
+As the name suggests, F2FS is optimized for use with flash-based storage devices like SSDs and eMMC. It aims to minimize write amplification and extend the lifespan of flash storage by reducing unnecessary writes. F2FS performs well in scenarios where traditional file systems might struggle, making it an excellent choice for embedded devices and smartphones.
+
+**Advantages**:
+
+*   Efficient wear leveling for flash storage.
+*   Improved performance on flash-based devices.
+*   Reduced write overhead, leading to longer flash storage life.
+
+> Creating a new F2FS file system on a partition:
+
+sudo mkfs.f2fs /dev/sdX1
+> Mounting an F2FS file system:
+
+sudo mount /dev/sdX1 /mnt/f2fs_partition
+> Checking the file system’s disk usage:
+
+df -hT /mnt/f2fs_partition
+> **_Please note that some of these commands may require administrative privileges, so make sure to use_**`sudo`**_when necessary. Additionally, ensure that you replace_**`/dev/sdX1`**_with the appropriate device name for your system when executing these commands. Always be cautious when working with file systems to avoid data loss or corruption._**
+
+## Conclusion
+
+Linux offers a diverse range of file system types, each tailored to specific use cases and scenarios. As a Linux user or administrator, understanding the different file system options available can help you make informed decisions when choosing the most suitable file system for your needs.
+
+When deciding on a file system, consider factors such as performance requirements, data integrity, scalability, and the type of storage device being used. While Ext4 remains the default choice for many Linux distributions, other options like Btrfs, XFS, ZFS, and F2FS provide compelling alternatives with unique features and advantages.
+
+Ultimately, the choice of file system will depend on your specific use case and preferences. Whichever file system you choose, Linux’s versatility and the wide array of file systems available make it an excellent platform for a variety of applications, from personal use to enterprise-level storage solutions.
+
+[Linux](https://medium.com/tag/linux?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[API](https://medium.com/tag/api?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[DevOps](https://medium.com/tag/devops?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Ffcb13cd7d3f3&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&user=Extio+Technology&userId=f76cf0a4587e&source=---footer_actions--fcb13cd7d3f3---------------------clap_footer------------------)
+
+15
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Ffcb13cd7d3f3&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&user=Extio+Technology&userId=f76cf0a4587e&source=---footer_actions--fcb13cd7d3f3---------------------clap_footer------------------)
+
+15
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ffcb13cd7d3f3&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---footer_actions--fcb13cd7d3f3---------------------bookmark_footer------------------)
+
+[![Image 9: Extio Technology](https://miro.medium.com/v2/resize:fill:48:48/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---post_author_info--fcb13cd7d3f3---------------------------------------)
+
+[![Image 10: Extio Technology](https://miro.medium.com/v2/resize:fill:64:64/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---post_author_info--fcb13cd7d3f3---------------------------------------)
+
+Follow
+
+## [Written by Extio Technology](https://medium.com/@extio?source=post_page---post_author_info--fcb13cd7d3f3---------------------------------------)
+
+[942 followers](https://medium.com/@extio/followers?source=post_page---post_author_info--fcb13cd7d3f3---------------------------------------)
+
+·[2 following](https://medium.com/@extio/following?source=post_page---post_author_info--fcb13cd7d3f3---------------------------------------)
+
+Building the next generation virtualization layer for the cloud, virtual Kubernetes clusters.
+
+Follow
+
+## No responses yet
+
+[](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page---post_responses--fcb13cd7d3f3---------------------------------------)
+
+![Image 11](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---post_responses--fcb13cd7d3f3---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+## More from Extio Technology
+
+![Image 12: Understanding JSON Web Tokens (JWT): A Secure Approach to Web Authentication](https://miro.medium.com/v2/resize:fit:679/format:webp/1*7L1HN_-qdY4sGIXtziPstg.png)
+
+[![Image 13: Extio Technology](https://miro.medium.com/v2/resize:fill:20:20/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----0---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[Extio Technology](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----0---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+## [Understanding JSON Web Tokens (JWT): A Secure Approach to Web Authentication ### Introduction](https://medium.com/@extio/understanding-json-web-tokens-jwt-a-secure-approach-to-web-authentication-f551e8d66deb?source=post_page---author_recirc--fcb13cd7d3f3----0---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+Jul 28, 2023
+
+[5](https://medium.com/@extio/understanding-json-web-tokens-jwt-a-secure-approach-to-web-authentication-f551e8d66deb?source=post_page---author_recirc--fcb13cd7d3f3----0---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---author_recirc--fcb13cd7d3f3----0-----------------explicit_signal----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ff551e8d66deb&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Funderstanding-json-web-tokens-jwt-a-secure-approach-to-web-authentication-f551e8d66deb&source=---author_recirc--fcb13cd7d3f3----0-----------------bookmark_preview----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+![Image 14: Mastering Kubernetes Pod-to-Pod Communication: A Comprehensive Guide](https://miro.medium.com/v2/resize:fit:679/format:webp/1*nRKAzsavaIORIdLKOUwRhQ.png)
+
+[![Image 15: Extio Technology](https://miro.medium.com/v2/resize:fill:20:20/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----1---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[Extio Technology](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----1---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+## [Mastering Kubernetes Pod-to-Pod Communication: A Comprehensive Guide ### Introduction](https://medium.com/@extio/mastering-kubernetes-pod-to-pod-communication-a-comprehensive-guide-46832b30556b?source=post_page---author_recirc--fcb13cd7d3f3----1---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+Jun 16, 2023
+
+[2](https://medium.com/@extio/mastering-kubernetes-pod-to-pod-communication-a-comprehensive-guide-46832b30556b?source=post_page---author_recirc--fcb13cd7d3f3----1---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---author_recirc--fcb13cd7d3f3----1-----------------explicit_signal----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F46832b30556b&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fmastering-kubernetes-pod-to-pod-communication-a-comprehensive-guide-46832b30556b&source=---author_recirc--fcb13cd7d3f3----1-----------------bookmark_preview----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+![Image 16: Kubernetes Authentication with OIDC: Simplifying Identity Management](https://miro.medium.com/v2/resize:fit:679/format:webp/1*oj6q-kTdGzcmOIzy-roRxg.png)
+
+[![Image 17: Extio Technology](https://miro.medium.com/v2/resize:fill:20:20/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----2---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[Extio Technology](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----2---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+## [Kubernetes Authentication with OIDC: Simplifying Identity Management ### Introduction](https://medium.com/@extio/kubernetes-authentication-with-oidc-simplifying-identity-management-c56ede8f2dec?source=post_page---author_recirc--fcb13cd7d3f3----2---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+Jun 22, 2023
+
+[2](https://medium.com/@extio/kubernetes-authentication-with-oidc-simplifying-identity-management-c56ede8f2dec?source=post_page---author_recirc--fcb13cd7d3f3----2---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---author_recirc--fcb13cd7d3f3----2-----------------explicit_signal----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fc56ede8f2dec&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fkubernetes-authentication-with-oidc-simplifying-identity-management-c56ede8f2dec&source=---author_recirc--fcb13cd7d3f3----2-----------------bookmark_preview----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+![Image 18: Kubernetes Architecture Explained](https://miro.medium.com/v2/resize:fit:679/format:webp/1*30JgJtH4ZEs0HkFQJdUKRw.jpeg)
+
+[![Image 19: Extio Technology](https://miro.medium.com/v2/resize:fill:20:20/1*Oyj9IDqBiRL4auVApS_WyQ.png)](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----3---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[Extio Technology](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3----3---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+## [Kubernetes Architecture Explained ### Introduction](https://medium.com/@extio/kubernetes-architecture-explained-5e9b406de5d1?source=post_page---author_recirc--fcb13cd7d3f3----3---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+May 13, 2023
+
+[](https://medium.com/@extio/kubernetes-architecture-explained-5e9b406de5d1?source=post_page---author_recirc--fcb13cd7d3f3----3---------------------8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---author_recirc--fcb13cd7d3f3----3-----------------explicit_signal----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F5e9b406de5d1&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fkubernetes-architecture-explained-5e9b406de5d1&source=---author_recirc--fcb13cd7d3f3----3-----------------bookmark_preview----8b1be37d_9f65_4282_9b4b_c3968a568e61--------------)
+
+[See all from Extio Technology](https://medium.com/@extio?source=post_page---author_recirc--fcb13cd7d3f3---------------------------------------)
+
+## Recommended from Medium
+
+![Image 20: Don’t Become a DevOps Engineer in 2026!](https://miro.medium.com/v2/resize:fit:679/format:webp/1*jbajxX_SZsz_WdtxVW1Xtw.png)
+
+[![Image 21: Dhanush N](https://miro.medium.com/v2/resize:fill:20:20/1*g-aoUi88UKMpAxezY9NcmQ.png)](https://medium.com/@dhanushnehru?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[Dhanush N](https://medium.com/@dhanushnehru?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+## [Don’t Become a DevOps Engineer in 2026! ### Stop writing YAML. Stop babysitting pipelines. The game has fundamentally changed.](https://medium.com/@dhanushnehru/dont-become-a-devops-engineer-in-2026-f2e94541e700?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+Mar 2
+
+[19](https://medium.com/@dhanushnehru/dont-become-a-devops-engineer-in-2026-f2e94541e700?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---read_next_recirc--fcb13cd7d3f3----0-----------------explicit_signal----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ff2e94541e700&operation=register&redirect=https%3A%2F%2Fdhanushnehru.medium.com%2Fdont-become-a-devops-engineer-in-2026-f2e94541e700&source=---read_next_recirc--fcb13cd7d3f3----0-----------------bookmark_preview----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+![Image 22: My Terminal Setup: A Deep Dive into My Zsh Configuration](https://miro.medium.com/v2/resize:fit:679/format:webp/1*3pSLVe3KlYmH-zNwri1btw.png)
+
+[![Image 23: Abhishek Amralkar](https://miro.medium.com/v2/resize:fill:20:20/2*FnUlumBTfoGDiNLc-eH5nA.jpeg)](https://medium.com/@abhishekamralkar?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[Abhishek Amralkar](https://medium.com/@abhishekamralkar?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+## [My Terminal Setup: A Deep Dive into My Zsh Configuration ### Moving from Oh-My-Zsh after 10 years](https://medium.com/@abhishekamralkar/my-terminal-setup-a-deep-dive-into-my-zsh-configuration-e36eeb46535b?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+Jan 31
+
+[](https://medium.com/@abhishekamralkar/my-terminal-setup-a-deep-dive-into-my-zsh-configuration-e36eeb46535b?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---read_next_recirc--fcb13cd7d3f3----1-----------------explicit_signal----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fe36eeb46535b&operation=register&redirect=https%3A%2F%2Fabhishekamralkar.medium.com%2Fmy-terminal-setup-a-deep-dive-into-my-zsh-configuration-e36eeb46535b&source=---read_next_recirc--fcb13cd7d3f3----1-----------------bookmark_preview----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+![Image 24: 6 brain images](https://miro.medium.com/v2/resize:fit:679/format:webp/1*Q-mzQNzJSVYkVGgsmHVjfw.png)
+
+[![Image 25: Write A Catalyst](https://miro.medium.com/v2/resize:fill:20:20/1*KCHN5TM3Ga2PqZHA4hNbaw.png)](https://medium.com/write-a-catalyst?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+In
+
+[Write A Catalyst](https://medium.com/write-a-catalyst?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+by
+
+[Dr. Patricia Schmidt](https://medium.com/@creatorschmidt?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+## [As a Neuroscientist, I Quit These 5 Morning Habits That Destroy Your Brain ### Most people do #1 within 10 minutes of waking (and it sabotages your entire day)](https://medium.com/write-a-catalyst/as-a-neuroscientist-i-quit-these-5-morning-habits-that-destroy-your-brain-3efe1f410226?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+Jan 14
+
+[964](https://medium.com/write-a-catalyst/as-a-neuroscientist-i-quit-these-5-morning-habits-that-destroy-your-brain-3efe1f410226?source=post_page---read_next_recirc--fcb13cd7d3f3----0---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---read_next_recirc--fcb13cd7d3f3----0-----------------explicit_signal----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F3efe1f410226&operation=register&redirect=https%3A%2F%2Fmedium.com%2Fwrite-a-catalyst%2Fas-a-neuroscientist-i-quit-these-5-morning-habits-that-destroy-your-brain-3efe1f410226&source=---read_next_recirc--fcb13cd7d3f3----0-----------------bookmark_preview----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+![Image 26: If You Understand These 5 AI Terms, You’re Ahead of 90% of People](https://miro.medium.com/v2/resize:fit:679/format:webp/1*qbVrf-wO9PYtthAj6E4RYQ.png)
+
+[![Image 27: Towards AI](https://miro.medium.com/v2/resize:fill:20:20/1*JyIThO-cLjlChQLb6kSlVQ.png)](https://medium.com/towards-artificial-intelligence?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+In
+
+[Towards AI](https://medium.com/towards-artificial-intelligence?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+by
+
+[Shreyas Naphad](https://medium.com/@shreyasnaphad?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+## [If You Understand These 5 AI Terms, You’re Ahead of 90% of People ### Master the core ideas behind AI without getting lost](https://medium.com/towards-artificial-intelligence/if-you-understand-these-5-ai-terms-youre-ahead-of-90-of-people-c7622d353319?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+Mar 29
+
+[233](https://medium.com/towards-artificial-intelligence/if-you-understand-these-5-ai-terms-youre-ahead-of-90-of-people-c7622d353319?source=post_page---read_next_recirc--fcb13cd7d3f3----1---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---read_next_recirc--fcb13cd7d3f3----1-----------------explicit_signal----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fc7622d353319&operation=register&redirect=https%3A%2F%2Fpub.towardsai.net%2Fif-you-understand-these-5-ai-terms-youre-ahead-of-90-of-people-c7622d353319&source=---read_next_recirc--fcb13cd7d3f3----1-----------------bookmark_preview----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+![Image 28: Building a Ticketing System: Concurrency, Locks, and Race Conditions](https://miro.medium.com/v2/resize:fit:679/format:webp/1*kHmNBOqo5a14TpOC7A119w.png)
+
+[![Image 29: Arvind Kumar](https://miro.medium.com/v2/resize:fill:20:20/1*qLgT62h04Vn1WA1vdYL9lg.png)](https://medium.com/@codefarm0?source=post_page---read_next_recirc--fcb13cd7d3f3----2---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[Arvind Kumar](https://medium.com/@codefarm0?source=post_page---read_next_recirc--fcb13cd7d3f3----2---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+## [Building a Ticketing System: Concurrency, Locks, and Race Conditions ### What happens when 100,000 fans try to book the same concert ticket at exactly 10:00 AM? Let’s design a ticketing system that prevents…](https://medium.com/@codefarm0/building-a-ticketing-system-concurrency-locks-and-race-conditions-182e0932d962?source=post_page---read_next_recirc--fcb13cd7d3f3----2---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+Oct 30, 2025
+
+[24](https://medium.com/@codefarm0/building-a-ticketing-system-concurrency-locks-and-race-conditions-182e0932d962?source=post_page---read_next_recirc--fcb13cd7d3f3----2---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---read_next_recirc--fcb13cd7d3f3----2-----------------explicit_signal----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F182e0932d962&operation=register&redirect=https%3A%2F%2Fcodefarm0.medium.com%2Fbuilding-a-ticketing-system-concurrency-locks-and-race-conditions-182e0932d962&source=---read_next_recirc--fcb13cd7d3f3----2-----------------bookmark_preview----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+![Image 30: Stop Memorizing Design Patterns: Use This Decision Tree Instead](https://miro.medium.com/v2/resize:fit:679/format:webp/1*xfboC-sVIT2hzWkgQZT_7w.png)
+
+[![Image 31: Women in Technology](https://miro.medium.com/v2/resize:fill:20:20/1*kd0DvPkLdn59Emtg_rnsqg.png)](https://medium.com/womenintechnology?source=post_page---read_next_recirc--fcb13cd7d3f3----3---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+In
+
+[Women in Technology](https://medium.com/womenintechnology?source=post_page---read_next_recirc--fcb13cd7d3f3----3---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+by
+
+[Alina Kovtun✨](https://medium.com/@akovtun?source=post_page---read_next_recirc--fcb13cd7d3f3----3---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+## [Stop Memorizing Design Patterns: Use This Decision Tree Instead ### Choose design patterns based on pain points: apply the right pattern with minimal over-engineering in any OO language.](https://medium.com/womenintechnology/stop-memorizing-design-patterns-use-this-decision-tree-instead-e84f22fca9fa?source=post_page---read_next_recirc--fcb13cd7d3f3----3---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+Jan 29
+
+[79](https://medium.com/womenintechnology/stop-memorizing-design-patterns-use-this-decision-tree-instead-e84f22fca9fa?source=post_page---read_next_recirc--fcb13cd7d3f3----3---------------------3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40extio%2Fa-comprehensive-guide-to-linux-file-system-types-fcb13cd7d3f3&source=---read_next_recirc--fcb13cd7d3f3----3-----------------explicit_signal----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fe84f22fca9fa&operation=register&redirect=https%3A%2F%2Fmedium.com%2Fwomenintechnology%2Fstop-memorizing-design-patterns-use-this-decision-tree-instead-e84f22fca9fa&source=---read_next_recirc--fcb13cd7d3f3----3-----------------bookmark_preview----3067aee3_3dae_48cd_9cdb_46e19080e2a8--------------)
+
+[See more recommendations](https://medium.com/?source=post_page---read_next_recirc--fcb13cd7d3f3---------------------------------------)
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----fcb13cd7d3f3---------------------------------------)
+
+---
+
+Title: A guide to Linux file systems
+* [Search](/search/)
+* [Site map](/map/)
+* [About us](/about/)
+
+* Eng
+  + [Deutsch](/de/articles/linux-file-systems/ "German")
+  + [Español](/es/articles/linux-file-systems/ "Spanish")
+  + [Українська](/uk/articles/linux-file-systems/ "Ukrainian")
+
+
+
+* [Main](/) ►
+* [Knowledge Base](/articles/)
+
+# The file systems of Linux
+
+In contrast to Windows and macOS, that are strictly controlled by the Microsoft and Apple corporations respectively, Linux is a big open-source project developed by a community of enthusiasts. Its code always remains available for those who want to contribute, and anyone is free to tweak it as per individual requirements or create their own distributions on its foundation. That is why Linux exists in so many variants, and the same goes for its file system, a fundamental part of any OS defined in the article on [Filesystem basics](/articles/file-systems-basics/). The kernel offers support for numerous storage formats, yet, the most commonly used are ones of the **Ext** family, **XFS**, **Btrfs**, **F2FS**, **JFS**, and **ReiserFS**. Below you can find their brief descriptions and learn about the main specificities associated with them. You may also familiarize yourself with the main technologies related to these Linux file systems.
+
+**Please note:** Linux also provides read-write access to file systems of other platforms, such as [NTFS, FAT32 and exFAT of Microsoft Windows](/articles/windows-file-systems/), [HFS+ of macOS](/articles/macos-file-systems/) and [ZFS of BSD, Solaris, Unix](/articles/bsd-solaris-unix-file-systems/) that are addressed in the dedicated articles.
+
+**Content:**
+
+* [Ext](#Ext)
+* [XFS](#XFS)
+* [Btrfs](#Btrfs)
+* [F2FS](#F2FS)
+* [JFS](#JFS)
+* [ReiserFS](#ReiserFS)
+* [Other storage technologies of Linux](#otht)
+
+## Ext
+
+Ext (Extended File System) was released in 1992 as the first very format designed specifically for Linux. However, it still had serious performance limitations and was quickly superseded by **Ext2**. This filesystem and its later revisions – **Ext3** and **Ext4** – became the default choice for a large majority of Linux distributions.
+
+Ext2 has proved to be more efficient owing to its structure, which is based around the concept of inodes. Such an index descriptor keeps the attributes of a certain object, like a file or directory, and points to the locations of its underlying data. The space in Ext2 is divided into blocks that form larger units referred to as Block Groups. The information about all Block Groups is maintained by the Descriptor Table positioned straight after the Superblock. Each Block Group keeps inodes in its own Inode Table. It also monitors the state of its blocks and inodes using the Block and the Inode Bitmaps. Meanwhile, the name of a file or directory doesn’t constitute a part of its inode – names are mapped to the corresponding inode numbers via directories, implemented as a special kind of files.
+
+Most Linux filesystems are similar in that the name is not regarded as an attribute and rather defined as an alias for a file in a certain directory. A file object can be linked from many locations and exist under different names (the so-called hard links). This can lead to serious and even insurmountable difficulties in recovery of file names after file deletion or logical damage.
+
+Ext3 is in fact an upgraded version of Ext2 that supports journaling. The journal in Ext3 is organized as a log file, which records all changes to the filesystem and protects it from corruption in the event of a crash.
+
+Ext4 is an improvement over Ext4, which changed the method of data allocation from individual blocks to extents. The idea behind it is to write most of the file’s data to a continuous area and then note down only the address of its first block and the number of blocks in a sequence. Up to four extents can be stored directly in the inode, while the rest are arranged as a B+tree. In addition, Ext4 postpones the operation until the data is actually committed to the disk, and thus is able to minimize fragmentation.
+
+On the whole, it is considered to be one of the most flexible general-purpose FS types, which has also gained a reputation for solid stability.
+
+## XFS
+
+XFS (Extended File System) is another very mature filesystem that was initially created by Silicon Graphics and applied on the company's IRIX servers. In 2001, it made its way to the Linux kernel and is now supported by most Linux distributions, some of which, like Red Hat Enterprise Linux, even use it by default.
+
+This FS type is optimized for storing very large files and volumes on a single host. It splits its storage space into equally sized areas called Allocation Groups. Each of them acts like a distinct filesystem, i.e. has its own Superblock, manages its own structures and space usage. The latter is controlled with the help of B+trees, one of which records the first block in the continuous free space region, and the other – the number of blocks it is composed of. Storage blocks are assigned to files using the same extent-based approach. All files and directories in XFS are represented by their individual inodes. The allocation of extents may be stored directly in the inode or traced by another B+tree linked to it in case of a very large or fragmented file. And just like inodes in Ext, they do not contain the names, that are available only in the corresponding directory entries.
+
+XFS deploys the journaling principle for any updates to its metadata. All changes are written to the Journal first before the actual blocks get modified, which enables its instant recovery in case of any mishaps. In general, this FS type is designed to be highly scalable and operates very well on server hardware.
+
+## Btrfs
+
+Btrfs (B-tree File System) is one of the most popular new-generation formats for Linux, and a lot of effort is being put to make it stable. It was developed by Oracle and has been supported by the mainline Linux kernel since 2009. Fedora and SUSE already employ it by default.
+
+Btrfs is adjusted to work on a wide range of devices, from smartphones to high-end servers. Moreover, it embraces the features of a logical volume manager, being able to spread over multiple storages, together with countless other advanced possibilities.
+
+As its name suggests, Btrfs relies heavily on B-tree structures, each composed of internal nodes and leaves. An internal node points to a child node or leaf, while a leaf contains an item with some information. The actual layout and content of an item depends on the type of the given B-tree. The Root B-tree, whose location is available in the Superblock, has references to the rest of B-trees. The Chunk B-tree manages logical to physical address mapping, whereas the Device B-tree conversely links the physical blocks on the underlying devices to their virtual addresses. The File System B-tree is responsible for the allocation of files and folders. Small files are stored right there in inside extent items. Larger ones are placed outside in contiguous areas called extents. In such a case, an extent item references all extents holding the file’s data. Directory items include file names and point to their inode items. Inode items, in their turn, are used for other properties, like size, permissions, etc.
+
+Btrfs is a Copy-on-Write (CoW) filesystem. Instead of employing a journal, it makes copies of the blocks before modifying them and then writes this data to a different free location. This mechanism helps it to eliminate the risk for data corruption when an update gets interrupted, for example, due to power loss. Thanks to it and a wide variety of other attractive features, Btrfs is finding more and more adherents among modern Linux users.
+
+## F2FS
+
+F2FS (Flash-Friendly File System)  is another modern format introduced by Samsung Electronics in 2012. It has been designed specifically for storage devices based on the NAND flash memory, and thus is most extensively utilized in modern smartphones and removable storage media.
+
+F2FS works on the basis of the log-structured FS approach (LFS) and takes into account such peculiarities of flash storage as constant access time and a limited number of data rewriting cycles. Instead of creating one large chunk for writing, F2FS assembles the blocks into separate chunks (up to 6) that are written concurrently.
+
+It divides its storage space into fixed-sized segments. Consecutive segments make up a section, and several sections constitute a zone. Data allocation in them is performed with the help of nodes. The latter come in three types: direct, indirect and inodes. An inode stores metadata, including name, size and other file’s properties; A direct node indicates the location of its data blocks, while an indirect node points to blocks in other nodes. The physical addresses of these nodes can be found in the Node Address Table (NIT). The content itself is stored in the Main Area. The sections in it separate the data blocks from the node blocks with service information. The usage status of all blocks is recorded by the Segment Information Table (SIT). The Segment Summary Area (SSA) specifies which blocks are assigned to which node.
+
+When running out of free segments, F2FS cleans up itself in the background when the system is inactive. The cleaning algorithm selects the victim segments based on the number of used blocks according to the SIT or by their age.
+
+The described organization makes F2FS perform quite well on solid-state storage. Yet, so far, it has been mostly applied on portable devices and is rarely encountered on desktop and server machines.
+
+## JFS
+
+JFS (Journaled File System) was created by IBM in 1990. The original version, sometimes referred to as JFS1, was implemented in the company’s AIX OS. Later, JFS2 was released and ported to Linux after it became open-source.
+
+A JFS volume is composed of regions called Allocation Groups, and each of them contains one or more FileSets. All files and directories are described by their individual inodes, whereas the data content is represented by one or more extents. All extents are indexed by a dedicated B+tree. The content of small directories is stored within their inodes, while larger ones are organized as B+trees. B+trees also control the usage of storage space: the first tree stores the starting blocks of free extents, and the second one – the number of free extents. JFS also comprises a separate log area and writes to it whenever metadata changes take place.
+
+In general, JFS is considered to be a speedy and reliable filesystem. However, it seldom sees any enhancements and now is falling out of use, being surpassed by more modern options.
+
+## ReiserFS
+
+ReiserFS is an alternative Linux format optimized for storing a big number of small files. It was initially designed by Namesys in 2001 and brought a number of new features that were very innovative at the time of its introduction. Yet, eventually, its maintenance was handed over to volunteers due to certain technical issues.
+
+ReiserFS is organized around the S+tree, which is composed of internal and leaf nodes. This structure is used to manage all files, directories and metadata. It contains items of four basic types: direct, indirect, directory and stat items. Direct items hold actual data, indirect items just link to certain data blocks, directory items represent entries in a directory, and stat items contain the properties of files and folders. Each item has its unique key used to locate it in the tree. This key includes the item’s identifier, address and type.
+
+Files and file fragments that don’t occupy the entire block are combined and stored directly in the leaf nodes of the S+tree. This mechanism is called tail-packing, and it helps to reduce the amount of wasted space and fragmentation. Moreover, ReiserFS doesn’t make any changes directly to the S+tree – it writes them to the Journal first and then copies to the required location on the storage.
+
+All in all, ReiserFS has good search capabilities and enables compact allocation of small files. However, this format is no longer actively supported, and it is very unlikely to remain relevant in the nearest future.
+
+**Hint:** The information concerning the possibility of successful recovery of data from the mentioned FS types can be found in the articles describing the [specifics of data recovery from different operating systems](/articles/os-data-recovery-specifics/#linux) and [chances for data recovery](/articles/chances-for-data-recovery/). To get a grasp on how the procedure should be carried out, please, use the manual on [data recovery from Linux](/solutions/recover-deleted-files-linux/).
+
+## Other storage technologies of Linux
+
+Linux file systems are generally self-contained and operate directly on a partition when used with ordinary standalone drives. However, additional technologies may also be layered between physical storage and a Linux file system in order to provide more advanced capabilities. Some of them, like Btrfs, go even further by integrating certain features into their core functionality, minimizing the need for extra layers.
+
+Here are some of the most common storage technologies that Linux file systems may be combined with:
+
+* **Logical Volume Manager** (LVM) – a disk management technology that enables more flexible and efficient storage capacity allocation compared to traditional partitioning. It’s compatible with most Linux file systems, including Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS and ReiserFS. With its help, it is possible to create storage pools that span multiple physical storage devices and set up adjustable logical volumes on top of them. Thin provisioning, a special feature of LVM, allows optimizing storage usage by allocating space dynamically, only when actual data is written to the volumes. In this case, a dedicated "thin pool" is used as a source, and the volumes created within it are referred to as "thin volumes". Such a volume may have a virtual size that exceeds the real amount of space available in the thin pool.
+
+  **Hint:** Please rely on the instruction if you need to [recover data from a thin-provisioned LVM volume](/articles/how-to/recover-data-lvm-thin-provisioning/).
+* **mdadm** – a Linux utility for creating and managing software RAID. It combines multiple physical drives into a single logical unit, with the possibility to improve storage performance and/or achieve fault-tolerance. mdadm supports various RAID levels, including RAID 0 (striping), RAID 1 (mirroring), RAID 5 (striping with parity) RAID 6 (double parity) and RAID 10 (mirror of stripes). The resulting RAID set appears as a single logical block device in Linux and can be formatted with any file system supported by the kernel.
+
+  **Hint:** Please rely on the instruction if you need to [recover data from RAID](/solutions/raid-data-recovery/).
+* **LUKS** (Linux Unified Key Setup) – a standard for encrypting block devices in Linux, making the data stored on them inaccessible without the correct encryption key. LUKS is compatible with a wide range of Linux file systems, including Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS and ReiserFS. In addition, it can be used in conjunction with other Linux storage technologies, such as LVM or mdadm, to provide encryption layered on top of the volumes managed by these systems.
+
+  **Hint:** Please rely on the instruction if you need to [recover data from a LUKS-encrypted volume](/articles/how-to/recover-data-luks-encryption/).
+* **eCryptfs** – a Linux-native cryptographic file system. It allows encrypting individual directories or files within a volume, without the need to apply full-disk encryption. Operating as a "stacked" file system, eCryptfs layers its encryption on top of an existing file system, while preserving the underlying FS structure. This way, a standard Linux file system, like Ext2, Ext3, Ext4, XFS, Btrfs, F2FS, JFS or ReiserFS remains responsible for managing the data blocks and other metadata, while eCryptfs ensures that the contents of the files are encrypted or decrypted as they are accessed.
+
+  **Hint:** Please rely on the instruction if you need to [recover data encrypted with eCryptfs](/articles/how-to/recover-data-ecryptfs/).
+* **Btrfs-RAID** – RAID functionality embedded into the Btrfs file system. It allows users to configure flexible fault-tolerant storage volumes from multiple storage devices. Btrfs supports diverse RAID levels, including RAID 0 (striping), RAID 1 (mirroring), RAID 5 (striping with parity), RAID 6 (double parity) and RAID 10 (mirror of stripes). Unlike traditional RAID, Btrfs-RAID makes it possible to add, remove or replace drives in the array dynamically, without taking the system offline.
+
+  **Hint:** Please rely on the instruction if you need to [recover data from Btrfs-RAID](/articles/how-to/recover-data-btrfs-raid/).
+
+If you wish to get to know the filesystems utilized in other environments, please read the following articles:
+
+* [The filesystems of Windows: FAT/FAT32, exFAT, NTFS, ReFS, HPFS](/articles/windows-file-systems/)
+* [The filesystems of macOS: APFS, HFS+](/articles/macos-file-systems/)
+* [The filesystems of BSD, Solaris, Unix: UFS, ZFS](/articles/bsd-solaris-unix-file-systems/)
+
+Last update: November 09, 2024
+
+If you liked this article, you can share it on social media:
+
+ 
+
+---
+
+Title: Linux File System - GeeksforGeeks
+[![geeksforgeeks](https://media.geeksforgeeks.org/gfg-gg-logo.svg)](https://www.geeksforgeeks.org/)
+
+* Interview Prep
+
+* [Linux-Unix](https://www.geeksforgeeks.org/linux-unix/linux-tutorial/)
+* [Interview Questions](https://www.geeksforgeeks.org/linux-unix/linux-interview-questions/)
+* [Shell Scripting](https://www.geeksforgeeks.org/linux-unix/introduction-linux-shell-shell-scripting/)
+* [Kali](https://www.geeksforgeeks.org/linux-unix/introduction-to-kali-linux/)
+* [Ubuntu](https://www.geeksforgeeks.org/linux-unix/how-to-install-ubuntu-on-virtualbox/)
+* [Red Hat](https://www.geeksforgeeks.org/tag/red-hat/)
+* [CentOS](https://www.geeksforgeeks.org/linux-unix/getting-started-with-centos/)
+* [Docker](https://www.geeksforgeeks.org/devops/introduction-to-docker/)
+* [Kubernetes](https://www.geeksforgeeks.org/devops/introduction-to-kubernetes-k8s/)
+* [Python](https://www.geeksforgeeks.org/python/python-programming-language-tutorial/)
+* [R](https://www.geeksforgeeks.org/r-language/r-tutorial/)
+* [Java](https://www.geeksforgeeks.org/java/java/)
+
+# Linux File System
+
+Last Updated : 12 Jan, 2026
+
+The Linux File System is a structured method of storing and organizing data on a Linux machine. It arranges files in a hierarchical directory format starting from the root directory `/`.
+
+* All files and directories in Linux originate from a single root directory /.
+* It follows a [hierarchical](https://www.geeksforgeeks.org/linux-unix/linux-file-hierarchy-structure/) tree structure, making navigation simple and logical.
+* Different directories like /home, /etc, /bin, and /var serve specific system purposes.
+* Linux supports multiple file system types like ext4, XFS, Btrfs, each offering different features.
+
+## Linux File System Structure
+
+The Linux file system architecture is organized into three important layers, each responsible for different functionalities. These layers work together to provide smooth file access, storage, and management.
+
+### 1. Logical File System
+
+* Acts as the interface between user applications and the file system.
+* Handles key operations like open, read, write, and close.
+* Provides security checks, such as permissions and file access control.
+* Ensures applications interact with files in a simple and consistent way, without worrying about storage details.
+
+### 2. Virtual File System (VFS)
+
+* Provides a common interface for different file systems (ext4, XFS, FAT32, NTFS, etc.).
+* Allows Linux to use multiple file system types at the same time.
+* Acts as an abstraction layer, hiding the internal complexities of each file system.
+* Makes file operations uniform and compatible, regardless of the underlying file system format.
+
+### 3. Physical File System
+
+* Directly interacts with the hardware and disk storage.
+* Manages data blocks, inodes, and physical memory allocation.
+* Responsible for writing data to the disk and retrieving it efficiently.
+* Ensures reliable storage, error handling, and low-level data management.
+
+![the_architecture_of_a_file_system](https://media.geeksforgeeks.org/wp-content/uploads/20260112171619580125/the_architecture_of_a_file_system.webp)
+
+## Characteristics of a File System
+
+A file system defines the structure, rules, and methods for how data is organized, stored, accessed, and managed on a storage device.
+
+### 1. Space Management
+
+* Determines how data is placed on storage using blocks, allocation methods, and fragmentation control.
+* Ensures efficient use of space by managing free blocks, allocation tables, and storage optimization techniques.
+
+### 2. Filename
+
+* Imposes rules on filename length, allowed characters, and case sensitivity.
+* Ensures consistent file naming to avoid conflicts and maintain compatibility across systems.
+
+### 3. Directory
+
+* Organizes files in a linear or hierarchical structure for easy navigation.
+* Maintains an index/table to track files inside directories and subdirectories efficiently.
+
+### 4. Metadata
+
+* Stores essential file information such as size, permissions, timestamps, and type.
+* Helps the system manage files by keeping track of attributes required for access and modification.
+
+### 5. Utilities
+
+* Provides operations like creating, deleting, copying, moving, renaming, and backing up files.
+* Supports advanced functions such as recovery tools and access control management.
+
+### 6. Design
+
+* Each file system has limitations on maximum file size, number of files, and storage capacity.
+* Influenced by internal architecture, affecting performance, reliability, and scalability.
+
+## ****Advanced File System Features****
+
+### ****1) Journaling****
+
+Journaling file systems maintain a special log called a journal that records file system changes before they are permanently written to disk. This helps restore data in case of unexpected shutdowns or crashes.
+
+### How Journaling Works
+
+* Changes are first logged in the journal.
+* Then they are written to the actual disk.
+* Finally, they are marked as completed.
+
+### ****Journaling Modes****
+
+Journaling can operate in three different modes, each offering a balance between speed and data safety:
+
+****1. Journal Mode (Highest Safety)****
+
+* Logs both file data and metadata.
+* Most reliable but slowest due to heavy logging.
+
+****2. Ordered Mode (Balanced)****
+
+* Logs metadata only, but ensures file data is written before metadata.
+* Provides a good balance of performance and safety.
+
+****3. Writeback Mode (Fastest)****
+
+* Logs metadata only without enforcing write order.
+* Fastest mode but least safe and more prone to data corruption.
+
+### ****2) Versioning****
+
+Versioning file systems keep track of previous versions of a file, allowing users to recover older copies when needed.
+
+****Key Points:****
+
+* Stores earlier states of files based on commits, time intervals (minute/hour), or system events.
+* Useful for backup, history tracking, and accidental deletion recovery.
+
+### ****3) Inode****
+
+An inode (index node) is a data structure that stores important information about files and directories.
+
+****Inode Contains:****
+
+* File size, permissions, and ownership details.
+* Storage location (pointers to actual data blocks on disk).
+
+Inodes act as the internal identity of files in Linux file systems.
+
+## File System Implementations
+
+Here are some linux file systems:
+
+![file](https://media.geeksforgeeks.org/wp-content/uploads/20260110115203625332/file.webp)
+
+> ****Note****: **Cluster and distributed file systems will not be included for simplicity.**
+
+### 1. ext (Extended File System)
+
+* Introduced in 1992 as the first file system created specifically for Linux.
+* Marked the beginning of the ext family, laying the foundation for ext2, ext3, and ext4.
+
+### 2. ext2
+
+* Developed in 1993 as a non-journaling file system known for performance on SSDs and flash drives.
+* Improved timestamp handling and file attribute management compared to ext.
+* Lacks journaling, making boot-time recovery slower after improper shutdowns.
+
+### 3. Xiafs
+
+* Created in 1993 as an alternative to ext2.
+* Had limited features and poor scalability, making it less reliable.
+* Eventually discontinued and no longer used in modern systems.
+
+### 4. ext3
+
+* Introduced in 1999, adding journaling for better reliability and faster crash recovery.
+* Supports online file system resizing and uses HTree indexing for large directories.
+* Eliminates lengthy boot-time checks that were common with ext2.
+
+### 5. JFS (Journaled File System)
+
+* Originally developed by IBM in 1990, later open-sourced for Linux.
+* Known for stable performance under varying workloads.
+* Usage declined after ext4 emerged with better performance and compatibility.
+
+### 6. ReiserFS
+
+* Introduced in 2001 with advanced features like tail packing to reduce internal fragmentation.
+* Uses B+ Trees, enabling fast directory lookups and updates.
+* Was default in SUSE Linux (until 6.4) before being replaced by ext3.
+
+### 7. XFS
+
+* A 64-bit journaling file system ported to Linux in 2001.
+* Supports snapshots, sparse files, online defragmentation, and large storage capacity.
+* Excellent for parallel I/O operations, now default in several Linux distributions.
+
+### 8. SquashFS
+
+* Introduced in 2002 as a compressed, read-only file system.
+* Used mainly in embedded systems where low storage overhead is required.
+
+### 9. Reiser4
+
+* Developed in 2004 as the successor to ReiserFS.
+* Offers improved performance and design but lacks wide adoption.
+* Not officially supported in most major Linux distributions.
+
+### 10. ext4
+
+* Released in 2006 as a journaling file system with backward compatibility to ext2/ext3.
+* Supports large files, metadata checksumming, persistent pre-allocation, and unlimited subdirectories.
+* Default file system in many Linux distributions; also readable by Windows and macOS.
+
+### 11. btrfs (B-tree / Better FS)
+
+* Introduced in 2007 with modern features like snapshots, drive pooling, data scrubbing, and self-healing.
+* Supports online defragmentation and advanced storage management.
+* Default file system for Fedora Workstation.
+
+### 12. bcachefs
+
+* Announced in 2015 as a high-performance copy-on-write file system.
+* Includes full filesystem encryption, native compression, snapshots, and 64-bit checksumming.
+* Designed as a potential successor to btrfs and ext4.
+
+### 13. Others (NTFS, exFAT, etc.)
+
+* Linux supports file systems from other OSes like NTFS (Windows) and exFAT.
+* These offer good compatibility but lack Unix-style permissions and metadata features.
+* Primarily used for cross-platform data exchange.
+
+## File Systems Comparison:
+
+Given below is a comparative overview of different file systems based on their storage limits, supported features, and structural capabilities.
+
+![table_8](https://media.geeksforgeeks.org/wp-content/uploads/20260108164555469644/table_8.webp)
+
+### 1. Maximum Filename Length
+
+* Most Linux file systems support a maximum filename length of 255 bytes/characters
+* ReiserFS supports up to 4032 characters
+* Btrfs supports up to 3976 characters
+* Xiafs supports slightly smaller filenames (248 bytes)
+
+### Allowable Characters in Directory Entries
+
+* All file systems allow any character except NUL (\0)
+* Some file systems also disallow / (slash) as it is used as a directory separator
+* Modern file systems support Unicode characters
+* Filenames are generally case-sensitive
+
+### Maximum Pathname Length
+
+* For most file systems, the maximum pathname length is undefined
+* The limit depends on system configuration and kernel constraints
+
+### Maximum File Size
+
+* Older file systems support smaller files (e.g., 2 GB in ext)
+* ext2, ext3, ext4 support 16 GB to several TB
+* XFS supports files up to 8 TB
+* JFS supports files up to 4 PB
+* Btrfs supports files up to 16 EB
+* Reiser4 supports extremely large files (8 EB)
+
+### Maximum Volume (Filesystem) Size
+
+* Older file systems support volumes up to 2 GB
+* ext2/ext3 support 2 TB to 32 TB
+* XFS supports up to 8 EB
+* JFS supports up to 32 PB
+* Btrfs supports volumes up to 16 EB
+
+### Maximum Number of Files
+
+* Many traditional file systems do not define a fixed maximum
+* ext4 supports up to 2³² files
+* Btrfs supports up to 2⁶⁴ files
+
+### Metadata Journaling
+
+* ext3, ext4, JFS, XFS support metadata journaling
+* Journaling helps in faster recovery after crashes
+* ext and ext2 do not support journaling
+* Reiser4 supports journaling, while Btrfs uses advanced metadata handling
+
+### Compression Support
+
+* Most traditional file systems do not support compression
+* Reiser4 and Btrfs support file compression
+* Compression helps save disk space
+
+### Block Sub-allocation
+
+* Improves space efficiency by allocating smaller blocks
+* Supported by JFS, XFS, Reiser4, and Btrfs
+* Not supported by older file systems like ext and ext2
+
+### Online File System Growth
+
+* Allows resizing the filesystem without unmounting
+* Supported by ext3, ext4, XFS, JFS, Reiser4, and Btrfs
+* Not supported by older file systems
+
+### Encryption Support
+
+* Most traditional file systems do not support encryption
+* Btrfs and ext4 support encryption (ext4 is experimental)
+* Encryption protects data from unauthorized access
+
+### Checksum Support
+
+* Checksums help detect data corruption
+* Btrfs provides full checksum support
+* XFS and ext4 provide partial checksum support
+* Older file systems do not support checksums
+
+## ext4 in the Linux File System
+
+The ext4 (Fourth Extended File System) was designed with full backward compatibility to ext3 and ext2. It builds upon their strengths while introducing major enhancements in performance, scalability, reliability, and storage flexibility.
+
+### Key Improvements and Features of ext4
+
+### 1. Large File System Support
+
+ext4 can handle significantly larger files and volumes compared to its predecessors, making it suitable for modern storage demands.
+
+### 2. Extents for Efficient Storage
+
+It uses extents (continuous physical blocks) instead of block mapping, improving large file performance and reducing fragmentation.
+
+### 3. Persistent Pre-Allocation
+
+Guarantees storage allocation in advance, ensuring contiguous space and consistent performance especially useful for media files and databases.
+
+### 4. Delayed Allocation
+
+ext4 delays block allocation until data is flushed to disk. This improves performance and reduces fragmentation by allocating blocks more efficiently.
+
+### 5. Unlimited Subdirectories (HTree Indexing)
+
+Uses HTree-based indexing, enabling the creation of unlimited subdirectories with fast lookup times.
+
+### 6. Journal Checksumming
+
+Adds checksums to the journal, allowing the file system to detect invalid or corrupted entries after a crash, improving reliability.
+
+### 7. Enhanced Timestamps
+
+Includes creation-time stamps and supports nanosecond-level precision for improved granularity.
+
+### 8. Transparent Encryption
+
+Supports filesystem-level encryption, improving data confidentiality without external tools.
+
+### 9. Lazy Initialization
+
+Cleans inode tables in the background, reducing the time required to initialize or expand the file system.
+
+### 10. Default Write Barriers
+
+Ensures proper ordering of metadata writes to protect against corruption during sudden power loss.
+
+### 11. In-Development Features
+
+Some enhancements like metadata checksumming, quota improvements, and larger allocation blocks are still being refined for broader stability.
+
+## Hands-On Example: Using XFS for a Media Server
+
+****[Example]:**** Suppose our use case is to set up a server that stores and serves large multimedia files (videos, audio files, etc.). In this scenario, we need a file system optimized for high-speed data transfer and efficient handling of large files.
+
+* The XFS file system is a suitable choice because it is optimized for large files, supports high throughput, and performs exceptionally well in media-heavy environments.
+
+Steps to Set Up and Use XFS
+
+### [Step 1]: Install XFS Utilities
+
+Install the required tools for managing the XFS file system:
+
+```
+sudo apt-get install xfsprogs
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417112811/26.webp)
+
+Installing xfsprogs
+
+### [Step 2]: Create a Partition
+
+Create or choose a partition (e.g., /dev/sda1) where XFS will be applied.  
+ You can use tools like:
+
+* fdisk
+* parted
+
+to create/manage the partition.
+
+### [Step 3]: Format the Partition as XFS
+
+Format the partition using the XFS file system:
+
+```
+sudo mkfs.xfs /dev/sda1 -f
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417114011/27.webp)
+
+Format the partition
+
+* -f is used to force the formatting and avoid warnings.
+
+### [Step 4]: Mount the XFS Partition
+
+Mount the formatted XFS partition to a directory:
+
+```
+sudo mount /dev/sda1 /mnt/jayesh_xfs_partition
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417114815/28.webp)
+
+mounting of XFS partition
+
+* You may create your own mount directory using:
+
+```
+sudo mkdir /mnt/my_xfs_data
+```
+
+### [Step 5]: Verify the Mount
+
+Check whether the XFS partition is mounted successfully:
+
+```
+df -h
+```
+
+![](https://media.geeksforgeeks.org/wp-content/uploads/20230417115224/29.webp)
+
+Successful mount
+
+* This will confirm the mount point, file system type, and usage.
+
+Comment
+
+Article Tags:
+
+Article Tags:
+
+[Linux-Unix](https://www.geeksforgeeks.org/category/linux-unix/)
+
+### Explore
+
+Basics
+
++ [Introduction to Linux8 min read](https://www.geeksforgeeks.org/linux-unix/introduction-to-linux-operating-system/)
++ [Linux Distributions6 min read](https://www.geeksforgeeks.org/linux-unix/what-are-linux-distributions/)
++ [Architecture of Linux5 min read](https://www.geeksforgeeks.org/linux-unix/architecture-of-linux-operating-system/)
++ [Installing Linux Using a Virtual Machine6 min read](https://www.geeksforgeeks.org/linux-unix/installing-linux-using-virtual-machine/)
++ [25 Basic Linux Commands5 min read](https://www.geeksforgeeks.org/linux-unix/basic-linux-commands/)
++ [Linux Commands8 min read](https://www.geeksforgeeks.org/linux-unix/linux-commands/)
+
+File System & Management
+
++ [Linux File System9 min read](https://www.geeksforgeeks.org/linux-unix/linux-file-system/)
++ [Linux File Hierarchy Structure5 min read](https://www.geeksforgeeks.org/linux-unix/linux-file-hierarchy-structure/)
++ [Linux Directory Structure7 min read](https://www.geeksforgeeks.org/linux-unix/linux-directory-structure/)
++ [File Management in Linux4 min read](https://www.geeksforgeeks.org/linux-unix/file-management-in-linux/)
++ [Directory Management in Linux3 min read](https://www.geeksforgeeks.org/linux-unix/how-to-manage-directories-in-linux/)
+
+Permissions & Ownership
+
++ [User Management in Linux7 min read](https://www.geeksforgeeks.org/linux-unix/user-management-in-linux/)
++ [Group Management in Linux5 min read](https://www.geeksforgeeks.org/linux-unix/group-management-in-linux/)
++ [Linux Permissions7 min read](https://www.geeksforgeeks.org/linux-unix/set-file-permissions-linux/)
++ [File Permission and Ownership Commands in Linux2 min read](https://www.geeksforgeeks.org/linux-unix/file-permission-and-ownership-commands-in-linux/)
++ [chmod Command in Linux4 min read](https://www.geeksforgeeks.org/linux-unix/chmod-command-linux/)
++ [chown Command in Linux7 min read](https://www.geeksforgeeks.org/linux-unix/chown-command-in-linux-with-examples/)
+
+Process & Networking
+
++ [ps Command in Linux7 min read](https://www.geeksforgeeks.org/linux-unix/ps-command-in-linux-with-examples/)
++ [top Command in Linux8 min read](https://www.geeksforgeeks.org/linux-unix/top-command-in-linux-with-examples/)
++ [kill Command in Linux5 min read](https://www.geeksforgeeks.org/linux-unix/kill-command-in-linux-with-examples/)
++ [ifconfig Command in Linux7 min read](https://www.geeksforgeeks.org/linux-unix/ifconfig-command-in-linux-with-examples/)
++ [ip Command in Linux4 min read](https://www.geeksforgeeks.org/linux-unix/ip-command-in-linux-with-examples/)
++ [Ping Command in Linux5 min read](https://www.geeksforgeeks.org/linux-unix/ping-command-in-linux-with-examples/)
++ [Netstat command in Linux4 min read](https://www.geeksforgeeks.org/linux-unix/netstat-command-linux/)
+
+Services & System Management
+
++ [Boot Process with Systemd in Linux4 min read](https://www.geeksforgeeks.org/linux-unix/boot-process-with-systemd-in-linux/)
++ [Systemd and its Components in Linux2 min read](https://www.geeksforgeeks.org/linux-unix/linux-systemd-and-its-components/)
++ [Controling systemd Services on Remote Linux Server2 min read](https://www.geeksforgeeks.org/linux-unix/how-to-control-systemd-services-on-remote-linux-server/)
++ [Managing System Services in Linux - systemctl Command3 min read](https://www.geeksforgeeks.org/linux-unix/systemctl-in-unix/)
++ [Enabling SSH on Ubuntu3 min read](https://www.geeksforgeeks.org/linux-unix/enabling-ssh-on-ubuntu/)
++ [scp Command for Secure File and Folder Transfer6 min read](https://www.geeksforgeeks.org/linux-unix/scp-command-in-linux-with-examples/)
+
+Shell Scripting & Bash Scripting
+
++ [Introduction to Linux Shell and Shell Scripting8 min read](https://www.geeksforgeeks.org/linux-unix/introduction-linux-shell-shell-scripting/)
++ [Understanding Terminal, Console, Shell and Kernel4 min read](https://www.geeksforgeeks.org/operating-systems/what-is-terminal-console-shell-and-kernel/)
++ [Writing and executing shell scripts2 min read](https://www.geeksforgeeks.org/linux-unix/how-to-create-a-shell-script-in-linux/)
++ [Shell Scripting - Shell Variables in Linux4 min read](https://www.geeksforgeeks.org/linux-unix/shell-scripting-different-types-of-variables/)
++ [Bash Scripting Fundamentals8 min read](https://www.geeksforgeeks.org/linux-unix/bash-scripting-introduction-to-bash-and-bash-scripting/)
++ [Bash Scripting - Working of Bash Scripting4 min read](https://www.geeksforgeeks.org/linux-unix/bash-scripting-working-of-bash-scripting/)
++ [Bash Script - Define Bash Variables and its types8 min read](https://www.geeksforgeeks.org/linux-unix/bash-script-define-bash-variables-and-its-types/)
++ [Bash Script - Difference between Bash Script and Shell Script4 min read](https://www.geeksforgeeks.org/linux-unix/bash-script-difference-between-bash-script-and-shell-script/)
++ [Bash Scripting - Functions4 min read](https://www.geeksforgeeks.org/linux-unix/bash-scripting-functions/)

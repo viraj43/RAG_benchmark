@@ -1,0 +1,1981 @@
+Title: What are Diffusion Models? | IBM
+# What are diffusion models?
+
+## Resources
+
+[IBV Report
+ 
+ 
+ The enterprise in 2030: Engineered for perpetual innovation
+ 
+ 
+ Discover our five predictions about what will define the most successful enterprises in 2030 and the steps leaders can take to gain an AI-first advantage.
+ 
+ 
+ 
+ Read the report](https://www.ibm.com/thought-leadership/institute-business-value/report/enterprise-2030)[Training
+ 
+ 
+ Take your gen AI skills to the next level
+ 
+ 
+ Learn fundamental concepts and build your skills with hands-on labs, courses, guided projects, trials and more.
+ 
+ 
+ 
+ Learn generative AI](https://developer.ibm.com/technologies/generative-ai/?cm_sp=ibmdev-_-developer-_-getstarted-_-genai)[Guide
+ 
+ 
+ Put AI to work: Driving ROI with gen AI
+ 
+ 
+ Want to get a better return on your AI investments? Learn how scaling gen AI in key areas drives change by helping your best minds build and deliver innovative new solutions.
+ 
+ 
+ 
+ Read the guide](https://www.ibm.com/forms/mkt-53137)[Report
+ 
+ 
+ From AI projects to profits: How agentic AI can sustain financial returns
+ 
+ 
+ Learn how organizations are shifting from launching AI in disparate pilots to applying AI to drive transformation at the core.
+
+ 
+ 
+ 
+ Read the report](https://www.ibm.com/thought-leadership/institute-business-value/report/agentic-ai-profits)[Techsplainers Podcast
+ 
+ 
+ Generative AI explained
+ 
+ 
+ Techsplainers by IBM breaks down the essentials of gen AI, from key concepts to real‑world use cases. Clear, quick episodes help you learn the fundamentals fast.
+ 
+ 
+ 
+ Listen now](https://www.ibm.com/think/podcasts/techsplainers#tabs-fw-44e285b2cc-item-4d0cf859ce-tab)[Guide
+ 
+ 
+ The CEO's guide to generative AI
+ 
+ 
+ Learn how CEOs can balance the value generative AI can create against the investment it demands and the risks it introduces.
+ 
+ 
+ 
+ Read the guide](https://www.ibm.com/thought-leadership/institute-business-value/report/ceo-generative-ai)[Training
+ 
+ 
+ watsonx® Developer Hub
+ 
+ 
+ Explore essential tools and resources to accelerate your next project. Get started and discover the full range of supported models available from IBM.
+ 
+ 
+ 
+ Get started](https://www.ibm.com/watsonx/developer/get-started/models)[Report
+ 
+ 
+ The truth about successful generative AI
+ 
+ 
+ Uncover the benefits of AI platforms that enable foundation model customization through technology, processes and best practices to help you easily operationalize the gen AI lifecycle.
+ 
+ 
+ 
+ Read the report](https://www.ibm.com/account/reg/signup?formid=urx-52750)[AI models
+ 
+ 
+ Explore IBM Granite
+ 
+ 
+ IBM Granite® is our family of open, performant, and trusted AI models designed for business and optimized to scale your AI applications. Explore models for language, code, time series and guardrails.
+ 
+ 
+ 
+ Meet Granite](https://www.ibm.com/granite)[Ebook
+ 
+ 
+ How to choose the right foundation model
+ 
+ 
+ Learn how to select the most suitable AI foundation model for your use case.
+ 
+ 
+ 
+ Read the ebook](https://www.ibm.com/forms/mkt-52620)[Guide
+ 
+ 
+ How to thrive in this new era of AI with trust and confidence
+ 
+ 
+ Dive into the 3 critical elements of a strong AI strategy: creating a competitive edge, scaling AI across the business and advancing trustworthy AI.
+ 
+ 
+ 
+ Read the guide](https://www.ibm.com/downloads/documents/us-en/10c31775a25403b9)Related solutions IBM® watsonx Orchestrate™ 
+
+Easily design scalable AI assistants and agents, automate repetitive tasks and simplify complex processes with IBM® watsonx Orchestrate™. 
+
+[Explore watsonx Orchestrate](https://www.ibm.com/products/watsonx-orchestrate)Artificial intelligence solutions 
+
+Put AI to work in your business with IBM’s industry-leading AI expertise and portfolio of solutions at your side. 
+
+[Explore AI solutions](https://www.ibm.com/artificial-intelligence)Artificial intelligence consulting and services 
+
+IBM Consulting AI services help reimagine how businesses work with AI for transformation. 
+
+[Explore AI services](https://www.ibm.com/consulting/artificial-intelligence)Take the next step 
+
+Whether you choose to customize pre-built apps and skills or build and deploy custom agentic services using an AI studio, the IBM watsonx platform has you covered. 
+
+#### Footnotes
+
+*NOTE: All links reside outside ibm.com. *
+
+[1] [“Improved Denoising Diffusion Probabilistic Models,”](https://arxiv.org/abs/2102.09672)arXiv, 18 February 2021 
+[2] [“Variational Diffusion Models,”](https://arxiv.org/abs/2107.00630)arXiv, last revised 14 April 2023
+
+---
+
+Title: Introduction to Diffusion Models for Machine Learning
+Join our 60-minute workshop to supercharge your AI agents with actionable performance insights. [Register now](https://www.superannotate.com/agent-evaluation-workshop?utm_source=website&utm_medium=alert_bar&utm_campaign=Agent_Eval_Workshop)[Back to blog](/blog)
+
+#### Contents
+
+Table of content Item
+
+The quest for [multimodal AI](https://www.superannotate.com/blog/multimodal-ai)that can create, imagine, and innovate like humans has been a driving force in machine learning research. In this pursuit, diffusion models emerged as a novel solution in the [generative AI](https://www.superannotate.com/blog/generative-ai-explained)industry. 
+
+Diffusion models are prominent in generating high-quality images, video, sound, etc. They are named for their similarity to the natural diffusion process in physics, which describes how molecules move from high-concentration to low-concentration areas. In the context of machine learning, diffusion models generate new data by reversing a diffusion process, i.e., information loss due to noise intervention. The main idea here is to add random noise to data and then undo the process to get the original data distribution from the noisy data. 
+
+The famous DALL-E 2, Midjourney, and open-source Stable Diffusion that create realistic images based on the user's text input are all examples of diffusion models. This article will teach us about generative models, how they work, and some common applications. 
+
+## What are diffusion models
+
+Diffusion models are advanced machine learning algorithms that uniquely generate high-quality data by progressively adding noise to a dataset and then learning to reverse this process. This innovative approach enables them to create remarkably accurate and detailed outputs, from lifelike images to coherent text sequences. Central to their function is the concept of gradually degrading data quality, only to reconstruct it to its original form or transform it into something new. This technique enhances the fidelity of generated data and offers new possibilities in areas like medical imaging, autonomous vehicles, and personalized AI assistants. 
+
+## How diffusion models work
+
+Diffusion models work in a dual-phase mechanism: They first train a neural network to introduce noise into the dataset(a staple in the forward diffusion process) and then methodically reverse this process. Here's a detailed breakdown of the diffusion model lifecycle. 
+
+### Data preprocessing
+
+Before the diffusion process begins, data needs to be appropriately formatted for model training. This process involves data cleaning to remove outliers, data normalization to scale features consistently, and data augmentation to increase dataset diversity, especially in the case of image data. Standardization is also applied to achieve normal data distribution, which is important for handling noisy image data. Different data types, such as text or images, may require specific preprocessing steps, like addressing class-imbalance issues. Well-executed data processing ensures high-quality training data and contributes to the model's ability to learn meaningful patterns and generate high-quality images (or other data types) during inference. 
+
+### Introducing noise: Forward diffusion process
+
+The forward diffusion process begins by sampling from a basic, usually Gaussian, distribution. This initial simple sample undergoes a series of reversible, incremental modifications, where each step introduces a controlled amount of complexity through a Markov chain. It gradually layers on complexity, often visualized as the addition of structured noise. This diffusion of the initial data through successive transformations allows the model to capture and reproduce the complex patterns and details inherent in the target distribution. The ultimate goal of the forward diffusion process is to evolve these simple beginnings into samples that closely mimic the desired complex data distribution. This really shows how starting with minimal information can lead to rich, detailed outputs. 
+
+![forward diffusion](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861a1_656087d1d88278538f110480_forward-diffusion.webp)[Source](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)
+
+In the forward diffusion process, the small Gaussian noise is incrementally added to the distribution over *T *steps, resulting in a series of increasingly noisy samples. The noise added at each step is regulated by a variance schedule β1,...,βT. If the variance schedule ‘behaves well,’ the xT will nearly be isotropic Gaussian for sufficiently large T. 
+
+![forward diffusion formula](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686187_656088655b44ab0766b062c8_forward-diffusion-formula.webp)[Source](https://theaisummer.com/diffusion-models/)![mean](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268618a_656088a71de1e27984cbbf08_mean.webp)
+
+Here, q(xₜ​​∣xₜ₋₁​) is defined by the mean ***μ ***. 
+
+### Reverse diffusion process
+
+This reverse process separates diffusion models from other generative models, such as [generative adversarial networks (GANs)](https://en.wikipedia.org/wiki/Generative_adversarial_network). The reverse diffusion process involves recognizing the specific noise patterns introduced at each step and training the neural network to denoise the data accordingly. This isn't a simple process but rather involves complex reconstruction through a Markov chain. The model uses its acquired knowledge to predict the noise at each step and then carefully removes it. 
+But how does reverse diffusion actually work? 
+
+As T gets very large, the variable xT​ behaves like an isotropic Gaussian distribution. If we learn to reverse the distribution q(xt−1∣xt), we can start with xT​ from a normal distribution N(0,I), go backward, and create a new data point similar to the original dataset. 
+
+#### Modeling the reverse process with a neural network
+
+We can't directly calculate q(xt−1∣xt) because it involves complex data-related calculations. 
+Instead, we use a model (like a neural network) to estimate q(xt−1∣xt). Assuming q(xt−1∣xt) is Gaussian, and with a small enough βt, we set our model pθ​ to be Gaussian and simply adjust the mean and variance. 
+
+![modeling the reverse process with a neural network](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37446e7a112e2df81a8ad_66b36c95567858babfda466e_modeling-the-reverse-process-with-a-neural-network.webp)
+
+‍ 
+
+![reverse diffusion](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268618e_656088e19afd6cf5bcf22c2d_reverse-diffusion.webp)[Source](https://erdem.pl/2023/11/step-by-step-visual-introduction-to-diffusion-models#reverse-diffusion-diagram)
+
+If we apply the reverse formula for all time steps, also known as the trajectory, we can trace our steps back to the original data distribution. By doing this at every timestep, the model learns to predict specific characteristics like the average value and spread of the data at each point in time. 
+
+![ reverse process with a neural network](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37445e7a112e2df81a799_66b36f86cfedff91e5594ede_reverse-process-with-a-neural-network.webp)
+
+Additionally, by tuning the model to focus on each specific time step, it gets better at estimating these characteristics. This way, it becomes more accurate in predicting how the data behaves at different stages. 
+
+#### Model Training
+
+![model training](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37445e7a112e2df81a7c1_66b3703ed381db285275715e_model-training.webp)Lvlb is an *upper *bound (the negative of the ELBO) which we’re trying to minimize. 
+
+A Diffusion Model is trained by determining the reverse transitions in a Markov process that maximizes the likelihood of the training data. Essentially, training this model involves reducing the variational upper limit on the negative log likelihood of the data. 
+
+We aim to express L vlb using Kullback-Leibler (KL) Divergences. The KL Divergence is an asymmetrical distance measure of how different one probability distribution, P, is from another reference distribution, Q.Expressing L vlb in terms of KL divergences is useful in our case because  the transitions in our Markov chain are Gaussian, and the KL divergence between Gaussian distributions is closed. 
+
+#### KL divergence
+
+In diffusion models, Kullback-Leibler (KL) divergence is used to measure how one probability distribution diverges from a second, expected probability distribution. It helps quantify the difference between the actual transition of data in the model and what the model predicts should happen. Essentially, KL divergence gives a mathematical way to see how well the model's predictions align with the actual changes observed in the data as it moves through various stages of the diffusion process. This is crucial for refining the model to make more accurate predictions. 
+
+![kl divergence](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37445e7a112e2df81a79c_66b37292cfbcf617845d1173_kl-divergence.webp)
+
+As mentioned earlier, we can express L vlb in terms of KL divergences. 
+
+![kullback-leibler divergence](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37446e7a112e2df81a8b0_66b372df22b68c17fbcf7560_kullback-leibler-divergence.webp)
+
+From here, 
+
+![lvlb in terms of kl divergences.](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37e8b2ea6e35611d24c1b_66b374c0489325459c0110d9_lvlb-in-terms-of-kl-divergences.webp)
+
+When we condition the forward process x0​ in Lt−1, it simplifies the form, allowing us to directly calculate all KL divergences. These divergences are comparisons between Gaussian distributions, meaning we can calculate them precisely using straightforward formulas instead of relying on approximate Monte Carlo methods. 
+
+## Diffusion model techniques
+
+Central to the diffusion model's operation are several key mechanisms that collectively drive its performance. Understanding these elements is vital for grasping how diffusion models function. These include score-based generative modeling, denoising diffusion probabilistic models, and stochastic differential equations, each playing a critical role in the model's ability to process and generate complex data. 
+
+### Stochastic differential equations (SDEs)
+
+SDEs are mathematical tools that describe the noise addition process in diffusion models. They provide a detailed blueprint of how noise is incrementally added to the data over time. This framework is essential because it gives diffusion models the flexibility to work with different types of data and applications, allowing them to be tailored for various generative tasks. 
+
+![reverse sde](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686191_65608be75079ab1a96ef681b_reverse-sde.webp)*Reverse SDE (noise → data): *[Source](https://arxiv.org/pdf/2011.13456)
+
+### Score-based generative models (SGMs)
+
+This is where the model learns to understand and reverse the process of noise addition. Imagine adding layers of noise to an image until it's unrecognizable. Score-based generative modeling teaches the model to do the opposite - starting with noisy data and progressively removing noise to reveal clear, detailed images. This process is critical to creating realistic outputs from random noise. 
+
+![score based generative models](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686220_65608d38719b98273f83584a_sbg.webp)*Score-based generative modeling through SDEs. We can map data to a noise distribution (the prior) with an SDE and reverse this SDE for generative modeling: *[Source](https://arxiv.org/pdf/2011.13456)
+
+### Denoising diffusion probabilistic models (DDPMs)
+
+Denoising diffusion probabilistic models (DDPMs) are a specific type of diffusion model that focuses on probabilistically removing noise from data. During training, they learn how noise is added to data over time and how to reverse this process to recover the original data. This involves using probabilities to make educated guesses about what the data looked like before noise was added. This approach is essential for the model's capability to accurately reconstruct data, ensuring the outputs aren’t just noise-free but also closely resemble the original data. 
+
+![ddpms](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268621d_65609f066f555009dfa850ee_ddpms.webp)[Source](https://arxiv.org/pdf/2011.13456)
+
+Together, these components enable diffusion models to transform simple noise into detailed and realistic outputs, making them powerful tools in generative AI. Understanding these elements helps in appreciating the complex workings and capabilities of diffusion models. 
+
+## GAN vs diffusion model
+
+Let's talk about the benefits of diffusion models, why they're necessary, and their [advantages over GANs](https://dzone.com/articles/benefits-and-limitations-of-diffusion-models). 
+
+### Image quality
+
+A primary advantage of diffusion models over GANs and [VAEs](https://en.wikipedia.org/wiki/Variational_autoencoder)is the ease of training with simple and efficient loss functions and their ability to generate highly realistic images. They excel at closely matching the distribution of real images, outperforming GANs in this aspect. This proficiency is due to the distinct mechanisms in diffusion models, allowing for more precise replication of real-world imagery. 
+
+![dm image quality](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686194_65608ed4ebdf92227979f2e3_dm-image-quality.webp)[Source](https://research.google/blog/high-fidelity-image-generation-using-diffusion-models/)
+
+### Training stability
+
+Regarding training stability, generative diffusion models have an edge over GANs. GANs often struggle with 'mode collapse,' a limitation where they produce a limited output variety. Diffusion models effectively avoid this issue through their gradual data smoothing process, leading to a more diverse range of generated images. 
+
+### Input types
+
+It's also important to mention that diffusion models handle various input types. They perform diverse generative tasks like text-to-image synthesis, layout-to-image generation, inpainting, and super-resolution tasks. 
+
+## Techniques for speeding up diffusion models
+
+Generating a sample from DDPM using the reverse diffusion process is quite slow because it involves many steps, possibly up to a thousand. For instance, according to [Song et al. (2020)](https://arxiv.org/abs/2010.02502), it takes about 20 hours to generate 50,000 small images with a DDPM, while a GAN can create the same amount in less than a minute using an Nvidia 2080 Ti GPU. 
+
+There is an alternative method called [Denoising Diffusion Implicit Model (DDIM)](https://arxiv.org/abs/2010.02502)that stands out for its efficiency and quality. Unlike traditional models, DDIM needs fewer steps to create clear images from noisy data. 
+
+When you compare DDIM with the traditional Denoising Diffusion Probabilistic Model (DDPM), the key benefits are 
+
+### New techniques that improve DDIM
+
+There are techniques that improve DDIM even more: 
+
+![progressive distillation](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b47ec1953893cbe611e35e_66b47eb3fd72cbbe72a62dc9_distillation.webp)
+
+![consistency models](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66b37e8b2ea6e35611d24c2f_66b37e2e4af07a0baef9484c_consistency-models.webp)Consistency models learn to map any data point on the trajectory back to its origin: [Source](https://arxiv.org/abs/2303.01469)
+
+## Applications of diffusion models
+
+There are very diverse applications of diffusion models, one of the most exciting being digital art creation. Artists can use these models to transform abstract concepts or textual descriptions into detailed, visually striking images. This capability allows for a new form of artistic expression where the boundary between technology and art blurs, enabling creators to explore new styles and ideas previously difficult or impossible to achieve. 
+
+### Graphic design
+
+In graphic design and illustration, diffusion models provide a tool for rapidly generating visual content. Designers can input sketches, layouts, or rough ideas, and the models can flesh these out into complete, polished images. This can significantly speed up the design process, offering a range of possibilities from the initial concept to the final product. 
+
+Here's a diffusion model example – a tuned model for graphic design: 
+
+![diffusion model for graphic design](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861b4_6560942351b6803215dff75c_diffusion-model-graphic-design.webp)[Source](https://www.reddit.com/r/promptcraft/comments/10zdsph/stable_diffusion_graphic_design_tuned_model/)
+
+### Film and animation
+
+Another creative application is in the field of film and animation. Diffusion models can generate realistic backgrounds, characters, or even dynamic elements within scenes, reducing the time and effort required for traditional production methods. This streamlines the workflow and allows for greater experimentation and creativity in visual storytelling. 
+
+An artist used a set of Stable Diffusion algorithms to produce the [first full AI animation](https://mpost.io/the-artist-uses-stable-diffusion-to-produce-the-first-full-ai-animation-movie/). The movie, which is less than two minutes long, is a collaboration between the artist, AI, and several software tools like Daz3D, Unreal Engine, Adobe Photoshop, Adobe After Effects, and Adobe Premiere. It’s the latest in a series of AI-generated movies, which includes shorts from anime style. 
+
+![animation diffusion models](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268620b_656094f0ee76aadd22f9d78b_animation.webp)AI animation: [Source](https://mpost.io/the-artist-uses-stable-diffusion-to-produce-the-first-full-ai-animation-movie/)
+
+### Music and sound design
+
+In music and sound design, generative diffusion models can be adapted to generate unique soundscapes or represent music, offering new ways for artists to visualize and create auditory experiences. 
+
+A paper titled " [Controllable Music Production with Diffusion Models and Guidance Gradients](https://arxiv.org/abs/2311.00613)" discusses a diffusion model example used in the music industry. The authors demonstrate how conditional generation from diffusion models can be used to tackle a variety of realistic tasks in the production of music in 44.1kHz stereo audio with sampling-time guidance. The scenarios we consider include continuation, inpainting, and regeneration of musical audio, creating smooth transitions between two music tracks, and transferring desired stylistic characteristics to existing audio clips. 
+
+### Media and gaming industry
+
+The interactive media and gaming industry also stands to benefit from diffusion models. They can be used to create detailed environments, characters, and other assets, adding realism and immersion to games and interactive experiences previously challenging to achieve. 
+
+In essence, diffusion models are a powerful tool for anyone in the creative field, offering a blend of precision, efficiency, and artistic freedom. These models allow creators to push the boundaries of traditional mediums, explore new forms of expression, and bring imaginative concepts to life with unprecedented ease and detail. 
+
+Here's a [complete guide](https://ludo.ai/blog/how-to-use-ai-generated-art-for-your-video-games)on applications and techniques to use AI image generation tools in video games. 
+
+## Image generation in SuperAnnotate
+
+SuperAnnotate's [GenAI playground](https://www.superannotate.com/llms-genai-playground)allows users to try ready-made templates for their LLM and GenAI use cases or build their own. Among the most used templates are [GPT fine-tuning](https://llm.superannotate.com/editor?url=https://github.com/superannotateai/custom-llm/blob/main/chatgpt-fine-tuning/chatgpt-fine-tuning-template.json&reset=true), [supervised fine-tuning](https://llm.superannotate.com/editor?url=https:%2F%2Fgithub.com%2Fsuperannotateai%2Fcustom-llm%2Fblob%2Fmain%2Fsupervised-fine-tuning%2Fsupervised-fine-tuning-template.json), [chat rating](https://llm.superannotate.com/editor?url=https://github.com/superannotateai/custom-llm/blob/main/chat-rating/chat-rating-template.json&reset=true), [RLHF for image generation](https://llm.superannotate.com/editor?url=https://github.com/superannotateai/custom-llm/blob/main/rlhf-for-image-generation/rlhf-for-image-generation-template.json&reset=true), and others. For diffusion models, we'll talk about the image generation template. 
+
+The [RLHF for image generation template](https://llm.superannotate.com/editor?url=https:%2F%2Fgithub.com%2Fsuperannotateai%2Fcustom-llm%2Fblob%2Fmain%2Fmodel-comparison%2Fmodel-comparison-template.json&reset=true)looks like this: 
+
+![rlhf for image generation](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686198_65c373d9da689262f0fb041a_annotated-question-response-pairs.webp)RLHF for image generation 
+
+You can either use this template or build your own based on the project at hand. The customizability of the tool allows you to bring ideas into reality and adjust the template accordingly. If you build your use case, we'll walk you through the steps from scratch. 
+
+The first step is building the UI. Here's the cool thing about the tool—just look at the set of builders you can use to customize your form. 
+
+For this RLHF case, we'll build it this way. 
+
+> ‍Input => button => select => images in your desired number => annotation in ranking form => annotation in text form‍
+
+The next step is renaming the components. 
+
+Let's put the template to work. 
+
+Imagine you're designing ads for Lego and have this cool idea to feature the Great Wall of China, built from Lego bricks on a poster. But you don't want to be limited to just a few options. For this kind of project, you want to rank your model's outputs and have a textual annotation on why the highest-ranked output is the best. In the Lego scenario, the third option ended up being our favorite because it perfectly captures the beauty of the building in all its glory. 
+
+SuperAnnotate's RLHF for image generation tool offers a solid set of features, including: 
+
+This means if you're looking to create images for a particular project, you won't have to constantly prompt existing diffusion models. Continuous prompting might get annoying if the results are not quite right for your needs. Instead, with SuperAnnotate, you can select or build a template, generate images, review and rank the outcomes, and repeat as needed to collect training data. 
+
+Whether you're making a few unique images or launching a large marketing campaign, this tool has you covered. Its annotation and ranking features help ensure you get the best results possible. 
+
+## Popular Diffusion tools
+
+Some of the most popular diffusion models, which have gained widespread attention for their impressive capabilities in image generation, include: 
+
+### DALL-E 2
+
+Developed by OpenAI, [DALL-E 2](https://openai.com/index/dall-e-2/)is known for highly detailed and creative images from textual descriptions. It uses advanced diffusion techniques to produce images that are both imaginative and realistic, making it a popular tool in creative and artistic applications. 
+
+![dalle 2](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686228_65609bbf7a1ee7394941db48_dalle-2.webp)[Source](https://qz.com/2176389/the-best-examples-of-dall-e-2s-strange-beautiful-ai-art)
+
+### DALL-E 3
+
+[DALL-E 3](https://openai.com/index/dall-e-3/)is the latest version of OpenAI image generation models and is a huge advancement over DALL-E 2. The most notable change is that this latest version isn't just an app but is integrated into ChatGPT. It also stands out with its image generation quality. 
+
+Here's a comparison of DALL-E 2 vs DALL-E 3 with the same prompt. 
+
+![dall e 2 vs dall e 3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861ec_65c3740245656487e016ea13_dalle-2-vs-dalle-3.webp)DALL- E 2 vs. DALL-E 3: [Source](https://openai.com/dall-e-3)
+
+### Sora
+
+[Sora](https://www.superannotate.com/blog/openai-sora)'s the latest model by OpenAI, and it's a game-changer. The AI community has been waiting for this drop since it's the first-ever text-to-video model by OpenAI. Sora can make 1080p videos in any resolution up to a minute long, and the videos it creates are scarily realistic. Sora is now limited to a select group of users and red-teamers, which is worth appreciation since it proves OpenAI is cautious about the ethical regulations of the model. You don't want 100 percent realistic deepfakes of politicians on every corner of the Internet. 
+
+Here are a few Sora examples that left people speechless. 
+
+**Prompt: **The camera directly faces colorful buildings in Burano, Italy. An adorable dalmatian looks through a window on a building on the ground floor. Many people are walking and cycling along the canal streets in front of the buildings. 
+
+**Prompt: **A stylish woman walks down a street in Tokyo filled with warm glowing neon and animated city signage. She wears a black leather jacket, a long red dress, and black boots, while carrying a black purse. She wears sunglasses and red lipstick. She walks confidently and casually. The street is damp and reflective, creating a mirror effect of the colorful lights. Many pedestrians walk about. 
+
+**Prompt: **Archeologists discover a generic plastic chair in the desert, excavating and dusting it with great care. 
+
+### Stable Diffusion
+
+Stable diffusion was created by researchers at [Stability AI](https://stability.ai/), who had previously taken part in inventing the latent diffusion model architecture used by Stable Diffusion. This model stands out for its efficiency and effectiveness in converting text prompts into realistic images. It has been recognized for its high-quality image generation capabilities. 
+
+![stable diffusion](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686211_656095ab382b4529898a43c3_stable-diffusion.webp)[Source](https://zapier.com/blog/how-to-use-stable-diffusion/)
+
+[Stable Diffusion 3](https://stability.ai/news/stable-diffusion-3)is Stability AI's most recent release, and it's impressive. It's their most capable text-to-image model with greatly improved performance in multi-subject prompts, image quality, and spelling abilities. Look at the angled text "Stable diffusion" on the side of the bus. This used to be a dream for image generation tools. 
+
+![stable diffusion 3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861b1_65dc41d49adfdb536cc274a6_stable-diffusion-3.webp)[Source](https://stability.ai/news/stable-diffusion-3)
+
+The Stable Diffusion 3 collection spans models with 800M to 8B parameters, embracing Stability AI's will to widen access for everyone. This variety ensures users can find the perfect fit for their scalability and quality requirements, fueling their creativity. They've just opened the waitlist for an early preview. 
+
+***Prompt: ****Resting on the kitchen table is an embroidered cloth with the text 'good night' and an embroidered baby tiger. Next to the cloth, there is a lit candle. The lighting is dim and dramatic *. 
+
+![tiger sd3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268621a_65dc67707b4ac4562d6299b4_tiger-sd3.webp)
+
+Stable diffusion also features an exciting application that can extend an image in various directions. This is called [stable diffusion outpainting](https://stable-diffusion-art.com/outpainting/)and is used to expand an image beyond its original borders. 
+
+### Midjourney
+
+Midjourney is another diffusion model available via API that has been released recently. It is used for image generation from text prompts, much like the other models​​. Excitingly, the recent hype around Midjourney's latest release, [Midjourney v6](https://www.superannotate.com/blog/midjourney-v6), underscores its advancements and enhanced capabilities in generating even more refined and creative images. 
+
+![midjourney](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861ff_656095e8f3e1920147a7dae7_midjourney.webp)
+
+Midjourney is exclusively available through [Discord](https://discord.com/invite/midjourney)— probably the most unorthodox approach of all the models listed. 
+
+Here's a portrait image comparison between Midjourney V5.2 vs. Midjourney V6. 
+
+![midjourney v5.2 vs midjourney v6](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861ab_65c3743f6f4ca0e574e047a6_midjourney-v5.2-vs-midjourney-v6.webp)Midjourney V5.2 vs. Midjourney V6 
+
+### NAI diffusion
+
+The NovelAI Diffusion gives the user a unique image generation experience. It's a creative tool to visualize your visions without limitations, allowing you to paint the stories of your imagination. It does sound pretty intriguing and actually is. Here are the [key features](https://aituts.com/novelai-anime-image-generator/)of the NovelAI image generator: 
+
+![nai diffusion](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861a4_65609624fa7db1f7ae275aae_nai.webp)[Source](https://blog.novelai.net/image-generation-announcement-807b3cf0afec)
+
+### Imagen
+
+Developed by Google, [Imagen](https://imagen.research.google)is a text-to-image diffusion model known for its photorealism and deep language understanding. It uses large transformer language models for text encoding and achieves high-fidelity image generation. Imagen has been noted for its high FID score, indicating its effectiveness in producing images that closely align with human-rated quality and text-image alignment​​​​. 
+
+### Omnigen
+
+[Omnigen](https://arxiv.org/pdf/2409.11340)is the newest diffusion model available and it’s pretty impressive. This diffusion framework unifies various image generation tasks within a single model, cutting the need for task-specific networks or fine-tuning. Unlike other popular models like Stable Diffusion, Omnigen doesn’t require additional modules like ContolNet or IP-Adapter to process diverse control conditions. 
+
+Omnigen supports text-to-image, multimodal-to-image, few-shot-to-image use cases. They haven’t outsourced the related sources yet, but will soon do on their [GitHub](https://github.com/VectorSpaceLab/OmniGen). 
+
+![omnigen](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66ebd6199a5dbe420f9b517a_66ebd5b880cd177a6622949a_omnigen.webp)[Source](https://arxiv.org/pdf/2409.11340)
+
+## Comparing the latest diffusion models
+
+We already saw some comparisons of models with their older versions for Midjourney and DALL-E. Now, let us compare different players of diffusion models and see who outperforms where. 
+
+### Stable Diffusion 3 vs. DALL-E 3
+
+Some users say [Stable Diffusion 3 beats DALL-E 3](https://x.com/chaseleantj/status/1760672841849266343)at image generation, especially at text generation and listening to instructions. 
+
+***Prompt: ***cinematic photo of a red apple on a table in a classroom, on the blackboard are the words "go big or go home" written in chalk. 
+
+![stable diffusion 3 vs dall-e 3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861b9_65dc4254b9f823acfd124fc5_stable-diffussion-3-vs-dalle-3-2.webp)Stable Diffusion 3: [Source](http://source: https://x.com/chaseleantj/status/1760672841849266343)
+
+***Prompt: ***a painting of an astronaut riding a pig wearing a tutu holding a pink umbrella, on the ground next to the pig is a robin bird wearing a top hat, in the corner are the words "stable diffusion". 
+
+![dall-e 3 vs stable diffusion 3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686205_65dc42b909bdc824af57c696_dall-e-3-vs-stable-diffusion-1.webp)![dall-e 3 and stable diffusion 3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686208_65dc42dbd44870c428d70368_dall-e-3-vs-stable-diffusion-3-3.webp)Top: Stable Diffusion 3, Bottom: Dall-E 3 
+
+### Midjourney v6 vs. DALL-E 3
+
+The most intriguing comparison would be between the latest models of the image generation giants – DALL-E 3 and Midjourney v6. So, which one's the better model? 
+
+Prompt: a realistic closeup photo of an elderly man in an urban setting, leaning against a door opening with his hand to his face smoking a cigar. No emotion. Distant look in eyes. Moody misty. 
+
+![dall e old man](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268620e_65c3748fc512914c31f10923_dalle-old-man.webp)DALL-E: [Source](https://www.propellermediaworks.com/blog/ai-image-generators-comparison-midjourney-6-dall-e-3/)![midjourney old man](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686202_65c374be3fb12fa9774e5aae_midjourney.webp)Midjourney: [Source](https://www.propellermediaworks.com/blog/ai-image-generators-comparison-midjourney-6-dall-e-3/)
+
+**Prompt: **a graphic designed logo for a company called Buzz Coffee that sells very strong coffee. 
+
+![dall e coffee logo](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861ae_65c374ea4969a2ea759b63cf_dalle-coffee-logo.webp)DALL-E: [Source](https://www.propellermediaworks.com/blog/ai-image-generators-comparison-midjourney-6-dall-e-3/)![midjourney coffee logo](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861e9_65c375163fb12fa9774eb06e_midjourney-coffee-logo.webp)Midjourney: [Source](https://www.propellermediaworks.com/blog/ai-image-generators-comparison-midjourney-6-dall-e-3/)
+
+**Prompt: **a creative graphic design square poster for an electronic music band from the late 1990s. Flyer art style. 
+
+![dall e poster](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc22886268622b_65c37535f6182f93b27696ef_dalle-poster.webp)DALL-E: [Source](https://www.propellermediaworks.com/blog/ai-image-generators-comparison-midjourney-6-dall-e-3/)![midjourney poster](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686217_65c375f1de89a9c7d1ed9d46_midjourney-poster.webp)Midjourney: [Source](https://www.propellermediaworks.com/blog/ai-image-generators-comparison-midjourney-6-dall-e-3/)
+
+### Midjourney v6 vs. SDXL
+
+A few comparisons of Midjourney v6 vs. SDXL by Stable Diffusion: 
+
+![midjourney v6 vs sdxl 1](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc228862686214_65c37615db720f5b8cd8101f_midjourney-vs-sdxl.webp)[Source](https://www.linkedin.com/pulse/ai-image-generator-midjourney-v6-compare-v52sdxl-meta-soubhagya-sahu-8ynhc/)![midjourney v6 vs sdxl 2](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861bc_65c37640f9a91e69cd3d8e8a_midjourney-vs-sdxl-2.webp)[Source](https://www.linkedin.com/pulse/ai-image-generator-midjourney-v6-compare-v52sdxl-meta-soubhagya-sahu-8ynhc/)![midjourney v6 vs sdxl 3](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861f8_65c3768691245903c7aef04c_midjourney-vs-sdxl-3.webp)[Source](https://www.linkedin.com/pulse/ai-image-generator-midjourney-v6-compare-v52sdxl-meta-soubhagya-sahu-8ynhc/)
+
+## Diffusion model limitations
+
+Deploying diffusion models like those used in DALL-E can be challenging. They are computationally intensive and require significant resources, which can be a hurdle for real-time or large-scale applications. Additionally, their ability to generalize to unseen data can be limited, and adapting them to specific domains may require extensive fine-tuning or retraining. 
+
+Integrating these models into human workflows also presents challenges, as it's essential to ensure that the AI-generated outputs align with human intentions. Ethical and bias concerns are prevalent, as diffusion models can inherit biases from their training data, necessitating ongoing efforts to ensure fairness and ethical alignment. 
+
+Also, the complexity of diffusion models makes them difficult to interpret, posing challenges in applications where understanding the reasoning behind outputs is crucial. Managing user expectations and incorporating feedback to improve model performance is an ongoing process in the development and application of these models. 
+
+Another big [downside](https://arxiv.org/abs/2202.00512)is their slow sampling time: generating high-quality samples takes hundreds or thousands of model evaluations. There are two main ways to address this issue: The first is new parameterizations of diffusion models that provide increased stability when using a few sampling steps. The second method is the distillation of guided diffusion models. Progressive distillation for fast sampling of diffusion models to distill a trained deterministic diffusion sampler results in a new diffusion model that takes half as many sampling steps. 
+
+![diffusion models distillation](https://cdn.prod.website-files.com/614c82ed388d53640613982e/66acbdfb02fc2288626861fb_6560965d78f6858d0e0e6fff_diffusion-models-distillation.webp)
+
+## Wrapping up
+
+Diffusion models have truly transformed the way we think about AI's ability to generate images, videos, and sounds. These models operate by initially introducing noise into data and then cleverly removing it, which allows them to create complex and high-quality patterns. In this article, we dived into how these models work, their innovative techniques, and where they're being used. Beyond enhancing creativity in art and design, diffusion models are making strides in medical imaging and the development of self-driving cars. Their versatility offers a fascinating look at the ongoing evolution and expanding possibilities of AI. 
+
+![frequently asked questions](https://cdn.prod.website-files.com/614c82ed388d53640613982e/680f78e3dfe69749cc50f406_faq.webp)
+
+## Common Questions
+
+This FAQ section highlights the key points about diffusion models for machine learning. 
+
+### What are diffusion models in machine learning?
+
+Diffusion models are advanced machine learning algorithms that generate high-quality data by progressively adding noise to a dataset and then learning to reverse this process. This innovative approach enables them to create remarkably accurate and detailed outputs, from lifelike images to coherent text sequences. 
+
+### What are diffusion-based models?
+
+Diffusion-based models are a class of generative models that work by progressively adding noise to data and then reversing the process to generate new, high-quality data. They have become popular in AI for generating images, videos, and other data types. 
+
+### What are the key concepts of diffusion models?
+
+The key concepts of diffusion models include the forward process (where noise is added to data), the reverse process (where the noise is removed to reconstruct or generate new data), and the use of a neural network to model this process effectively. The goal is to generate realistic outputs, like images or text, by learning to reverse the diffusion of noise. 
+
+### How do diffusion models work?
+
+Diffusion models work by introducing noise into data in a forward process and then reversing this process to remove the noise and regenerate data. This technique is used to generate high-quality data and has applications in areas like AI, medical imaging, and autonomous vehicles. 
+
+### What are the applications of diffusion models?
+
+Diffusion models are widely used in image, video, and sound generation. They are applied in various fields including medical imaging, AI systems, and data augmentation for machine learning applications. 
+
+### What are the limitations of diffusion models?
+
+The main limitation of diffusion models is their slow sampling time. Generating high-quality samples can be computationally expensive and time-consuming compared to other generative models. 
+
+### How do diffusion models compare to GANs?
+
+Unlike GANs, which use a generator and discriminator to compete, diffusion models add noise to data and then reverse the process to generate new data. This often leads to more stable and high-quality outputs, particularly in complex tasks. 
+
+#### 
+
+#### 
+
+## Recommended for you
+
+[AIThe Next Big Thing: Preparing for Post-ChatGPT AI Training RequirementsLearn how to stay ahead in AI with stronger data pipelines, domain expertise, and adaptive training methods.August 5, 20256 min](/blog/post-chatgpt-ai-training-requirements)[AIEnterprise AI: Complete Overview 2026Explore Enterprise AI in 2026 – trends, infrastructure, and evaluation frameworks shaping the next phase of GenAI in large organizations.January 7, 20268 min](/blog/enterprise-ai-overview)[AI5 Scale AI Alternatives [After the Meta Deal]Explore 5 Scale AI alternatives after Meta’s $15B investment raised concerns for OpenAI, Google, and other Scale AI customers.November 12, 20257 min](/blog/scale-ai-alternatives)
+
+#### Our Newsletter
+
+Oops! Something went wrong while submitting the form.
+
+---
+
+Title: Diffusion Models for Generative Artificial Intelligence - arXiv
+License: CC BY 4.0 arXiv:2312.14977v1 [cs.LG] 21 Dec 2023 
+
+# Diffusion Models for Generative Artificial Intelligence: An Introduction for Applied Mathematicians
+
+Catherine F. Higham School of Computing Science,
+University of Glasgow,
+Sir Alwyn Williams Building, Glasgow, G12 8QQ.
+Supported by EPSRC grant EP/T00097X/1.
+( Catherine.Higham@glasgow.ac.uk ) Desmond J. Higham School of Mathematics,
+University of Edinburgh,
+EH9 3FD, UK.
+Supported by EPSRC grant EP/V046527/1.
+( d.j.higham@ed.ac.uk ) Peter Grindrod CBE Mathematical Institute, University of Oxford, Oxford, United Kingdom. Supported by EPSRC grant EP/R018472/1.
+( grindrod@maths.ox.c.uk ) 
+
+#### Abstract
+
+Generative artificial intelligence (AI) refers to algorithms that create synthetic but realistic output.
+Diffusion models currently offer state of the art performance in generative AI for images.
+They also form a key component in more general tools, including text-to-image generators and large language models.
+Diffusion models work by adding
+noise to the available training data and then learning how to reverse the process.
+The reverse operation may then be applied to new random data in order
+to produce new outputs.
+We provide a brief introduction to diffusion models for applied mathematicians and statisticians.
+Our key aims are (a) to present illustrative computational examples, (b) to
+give a careful derivation of the underlying mathematical formulas involved, and (c)
+to draw a connection with partial differential equation (PDE) diffusion models.
+We provide code for the computational experiments.
+We hope that this topic will be of interest to advanced undergraduate students and postgraduate students.
+Portions of the material may also provide useful motivational examples for those who teach
+courses in stochastic processes, inference, machine learning, PDEs or scientific computing. 
+
+## 1 Motivation
+
+Generative artificial intelligence (AI) models are designed to create new outputs that are similar to the examples on which they were trained.
+Over the past decade or so, advancements in generative AI have included the
+development of variational autoencoders [ 9, 22] ,
+generative adversarial networks [ 19] and
+transformers [ 38] .
+In this work we focus on
+denoising diffusion probabilistic models [ 15] ; for simplicity we use the term diffusion models.
+They currently represent the state of the art in image generation [ 7] , and form a key part of
+more sophisticated tools such as
+DALL-E 2 and 3 [ 31] .
+We refer to [ 4, 6, 8, 29] ,
+and the references therein,
+for details of the historical developments that have led to the current state-of-the art in generative AI. 
+
+The somewhat counterintuitive, but deceptively powerful, idea behind
+diffusion models is to destroy the training data by adding noise.
+While doing so, the model learns how to reverse the process. In this way, the final model is able to start with new,
+easily generated, random samples and denoise them, thereby
+generating new, synthetic examples.
+The task of building and applying
+a simple, yet impressive, model can be described very succinctly—see Algorithms 1and 2in section 5.
+However, deriving the expressions that go into these algorithms is not so straightforward, and we believe that there is a niche for a
+careful and accessible mathematically-oriented treatment. 
+
+Our intended readership is advanced undergraduate students and postgraduate students in mathematics or relate disciplines.
+The material should be suitable for independent study, and there are many directions in which this material can be followed up—the literature
+is rapidly expanding, and new extensions and connections are being discovered at a pace.
+We also hope that portions of this material will provide higher education professionals with topical and engaging examples that can be slipped into
+courses on stochastics, numerics, PDEs or data science. 
+
+We aimed to keep the prerequisites to a minimum; these are 
+
+We focus here on the task of image generation.
+We describe a bare bones form of diffusion model,
+explain carefully how the key mathematical expressions arise, and illustrate the concept via computational examples.
+The key reference for this article is [ 15] , which built on [ 35] and
+received more than ten citations per day during the year 2023.
+We also found [ 25] to be a very useful resource. 
+
+In section 2we present some pictures that
+give a feel for the idea of diffusion models in generative AI.
+We then provide details of the relevant forward and backward processes
+in sections 3and 4, respectively, which leads to the
+algorithms presented in section 5. 
+
+We emphasize that this is a very
+active and fast-moving research topic with connections to many related areas.
+In section 6we provide some links to the relevant literature.
+That section also highlights wider issues around performance evaluation, computational expense, copyright, privacy, ethics, bias,
+explainability and robustness. 
+
+We finish in section 7with more speculative material that suggests a connection between
+stable diffusion models and deterministic PDEs, providing a link to more traditional applied mathematics. 
+
+## 2 Illustration
+
+A diffusion model [ 15] aims to generate realistic-looking images.
+It works by 
+
+(i) 
+
+taking an existing image and iteratively adding noise until the original information is lost, 
+
+(ii) 
+
+learning how to reconstruct the original image by iteratively removing the noise. 
+
+After training, we can then use the reverse diffusion process to generate a realistic image from a new, random, starting point—remove the noise and see what emerges. 
+
+One way to conceptualize this method is to imagine an (unknown) probability distribution over the collection of all natural images.
+We hope to sample from this distribution; more likely images should be chosen with higher probability.
+We don’t have access to this magic probability distribution. Instead, we have training data; that is, examples of natural images.
+We also have a pseudorandom number generator that allows us to sample from a standard Gaussian distribution.
+In item (i) above, we are doing the easy part, mapping from the image distribution to the Gaussian distribution.
+In item (ii) we learn the inverse operator, mapping from the Gaussian distribution to the image distribution.
+This allows us to convert Gaussian samples into images. 
+
+We illustrate the idea of a diffusion model trained on images from the widely studied MNIST data set [ 23] .
+Here, each image represents a handwritten digit from the set { 0 , 1 , 2 , … , 9 } 0 1 2 … 9 \{0,1,2,\ldots,9\} { 0 , 1 , 2 , … , 9 } .
+These low resolution images are black-and-white with 28 × 28 28 28 28\times 28 28 × 28 pixels, resized by the model to 32 × 32 32 32 32\times 32 32 × 32 .
+Figure 1shows a representative collection of 64 64 64 64 images. 
+
+Figures 2– 4were produced with a diffusion model based on a Mathworks tutorial at 
+
+```
+https://uk.mathworks.com/help/deeplearning/ug/generate-images-using-diffusion.html
+```
+
+Figure 2illustrates the forward process that is used in the training phase.
+At time t = 0 𝑡 0 t=0 italic_t = 0 we have an MNIST image.
+At each integer time t = 0 , 1 , 2 , … , 499 𝑡 0 1 2 … 499 t=0,1,2,\ldots,499 italic_t = 0 , 1 , 2 , … , 499 Gaussian noise is added. At t = 500 𝑡 500 t=500 italic_t = 500 there is no visible
+evidence of the original image. 
+
+![Refer to caption](extracted/5311195/figures/mnist_1208.jpg)Figure 1 : Representative set of 64 64 64 64 images from the MNIST data set [ 23] . ![Refer to caption](extracted/5311195/figures/forward_1208b.jpg)Figure 2 : Result of forward map noising over time. 
+
+Figure 3shows the effect of the backward process that is available after training.
+The top left panel displays nine randomly chosen final time t = 500 𝑡 500 t=500 italic_t = 500 images—pure noise matrices consisting of independent Gaussian samples.
+We show the effect of applying the backward, denoising process as time is reversed.
+At t = 0 𝑡 0 t=0 italic_t = 0 the model has produced new, synthetic examples that, in at least eight of the nine cases, correspond to handwritten digits.
+We emphasize that labels were not used in the training process. In this simple, unconditional model there is no way to control which (if any) of the t = 0 𝑡 0 t=0 italic_t = 0 images will resemble any particular category of digit. 
+
+![Refer to caption](extracted/5311195/figures/reverse_500b.jpg)![Refer to caption](extracted/5311195/figures/reverse_400b.jpg)![Refer to caption](extracted/5311195/figures/reverse_300b.jpg)![Refer to caption](extracted/5311195/figures/reverse_200b.jpg)![Refer to caption](extracted/5311195/figures/reverse_100b.jpg)![Refer to caption](extracted/5311195/figures/reverse_0b.jpg)Figure 3 : Result of backward map denoising over time, for 9 9 9 9 different random choices at t = 500 𝑡 500 t=500 italic_t = 500 . 
+
+In Figure 4we show the results from a larger experiment. Here we used the trained diffusion model to generate images from
+500 independent time t = 500 𝑡 500 t=500 italic_t = 500 choices.
+For this figure, we separated the images into categories using an independent convolutional neural network classifier that was trained
+separately on real MNIST data.
+Since we have no control over how many of the 500 images will appear in each class, the number of synthetic outputs in each category varies
+considerably. 
+
+![Refer to caption](extracted/5311195/mnist_0.jpg)![Refer to caption](extracted/5311195/mnist_1.jpg)![Refer to caption](extracted/5311195/mnist_2.jpg)![Refer to caption](extracted/5311195/mnist_3.jpg)![Refer to caption](extracted/5311195/mnist_4.jpg)![Refer to caption](extracted/5311195/mnist_5.jpg)![Refer to caption](extracted/5311195/mnist_6.jpg)![Refer to caption](extracted/5311195/mnist_7.jpg)![Refer to caption](extracted/5311195/mnist_8.jpg)![Refer to caption](extracted/5311195/mnist_9.jpg)Figure 4 : 500 500 500 500 synthetic images generated by the diffusion model from different time t = 500 𝑡 500 t=500 italic_t = 500 noise samples. These have been sorted into classes by a
+convolutional neural network classifier that was trained separately on real MNIST data. 
+
+We finish with two experiments which illustrate that the backward, denoising process is both stochastic and unpredictable.
+In Figure 5we show the images generated after applying nine independent denoising runs to the same
+Gaussian at t = 500 𝑡 500 t=500 italic_t = 500 . We see that the denoising process can produce considerably different results from a single source of
+randomness. In Figure 6we perform a similar experiment where the t = 500 𝑡 500 t=500 italic_t = 500 data emerges from the training set.
+On the left we show a training image undergoing the forward, noising process up to time t = 500 𝑡 500 t=500 italic_t = 500 .
+On the right we show the results from nine independent denoising runs on this time t = 500 𝑡 500 t=500 italic_t = 500 data.
+We see that none of the synthetically generated images resemble the original. 
+
+![Refer to caption](extracted/5311195/figures/sameGN_500_1213b.jpg)![Refer to caption](extracted/5311195/figures/sameGN_0_1213b.jpg)Figure 5 : Nine images (right) created from the same Gaussian noise at t = 500 𝑡 500 t=500 italic_t = 500 (left). ![Refer to caption](extracted/5311195/figures/addGN_500_1213b.jpg)![Refer to caption](extracted/5311195/figures/removeGN_0_1213b.jpg)Figure 6 : Nine images (right) created from the noisy version (left t = 500 𝑡 500 t=500 italic_t = 500 ) of one original image (left t = 0 𝑡 0 t=0 italic_t = 0 ). 
+
+## 3 Forwards
+
+We begin this section with some background on Gaussian random variables; see a standard text such as [ 3, 27] for more details.
+When dealing with Gaussians, we will always consider the multivariate, isotropic case.
+We denote the probability density at a point 𝐱 ∈ ℝ d 𝐱 superscript ℝ 𝑑 \mathbf{x}\in\mathbb{R}^{d} bold_x ∈ blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT by 𝒩 ⁢ ( 𝐱 ; 𝝁 , σ ⁢ 𝐈 ) 𝒩 𝐱 𝝁 𝜎 𝐈 \mathcal{N}(\mathbf{x};\boldsymbol{\mu},\sigma\mathbf{I}) caligraphic_N ( bold_x ; bold_italic_μ , italic_σ bold_I ) ,
+where 
+
+| | 𝒩⁢(𝐱;𝝁,σ⁢𝐈):=1σ⁢(2⁢π)1/d⁢exp⁡(−12⁢σ2⁢(𝐱−𝝁)T⁢(𝐱−𝝁)).assign𝒩𝐱𝝁𝜎𝐈1𝜎superscript2𝜋1𝑑12superscript𝜎2superscript𝐱𝝁𝑇𝐱𝝁\mathcal{N}(\mathbf{x};\boldsymbol{\mu},\sigma\mathbf{I}):=\frac{1}{\sigma(2%
+\pi)^{1/d}}\exp\left(-{\textstyle{{\frac{1}{2\sigma^{2}}}}}(\mathbf{x}-%
+\boldsymbol{\mu})^{T}(\mathbf{x}-\boldsymbol{\mu})\right).caligraphic_N ( bold_x ; bold_italic_μ , italic_σ bold_I ) := divide start_ARG 1 end_ARG start_ARG italic_σ ( 2 italic_π ) start_POSTSUPERSCRIPT 1 / italic_d end_POSTSUPERSCRIPT end_ARG roman_exp ( - divide start_ARG 1 end_ARG start_ARG 2 italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT end_ARG ( bold_x - bold_italic_μ ) start_POSTSUPERSCRIPT italic_T end_POSTSUPERSCRIPT ( bold_x - bold_italic_μ ) ) . | | (1) | 
+|---|---|---|---|
+| | 𝒩⁢(𝐱;𝝁,σ⁢𝐈):=1σ⁢(2⁢π)1/d⁢ | | (1) | 
+
+Here, 𝝁 ∈ ℝ d 𝝁 superscript ℝ 𝑑 \boldsymbol{\mu}\in\mathbb{R}^{d} bold_italic_μ ∈ blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT is the mean, and we will refer to σ 2 superscript 𝜎 2 \sigma^{2} italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT as the variance, since the corresponding
+covariance matrix has the form σ 2 ⁢ 𝐈 superscript 𝜎 2 𝐈 \sigma^{2}\mathbf{I} italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT bold_I , with 𝐈 ∈ ℝ d × d 𝐈 superscript ℝ 𝑑 𝑑 \mathbf{I}\in\mathbb{R}^{d\times d} bold_I ∈ blackboard_R start_POSTSUPERSCRIPT italic_d × italic_d end_POSTSUPERSCRIPT denoting the identity matrix.
+Such Gaussian random variables have the important property that their sums remain Gaussian, with means and variances
+combining additively: the sum of two independent
+Gaussians with means 𝝁 1 subscript 𝝁 1 \boldsymbol{\mu}_{1} bold_italic_μ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT and 𝝁 2 subscript 𝝁 2 \boldsymbol{\mu}_{2} bold_italic_μ start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT and variances σ 1 2 superscript subscript 𝜎 1 2 \sigma_{1}^{2} italic_σ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT and σ 2 2 superscript subscript 𝜎 2 2 \sigma_{2}^{2} italic_σ start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT is a Gaussian random variable with mean 𝝁 1 + 𝝁 2 subscript 𝝁 1 subscript 𝝁 2 \boldsymbol{\mu}_{1}+\boldsymbol{\mu}_{2} bold_italic_μ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT + bold_italic_μ start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT and variance σ 1 2 + σ 2 2 superscript subscript 𝜎 1 2 superscript subscript 𝜎 2 2 \sigma_{1}^{2}+\sigma_{2}^{2} italic_σ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT + italic_σ start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT .
+The term standard Gaussian refers to the case where the mean is 𝟎 ∈ ℝ d 0 superscript ℝ 𝑑 \mathbf{0}\in\mathbb{R}^{d} bold_0 ∈ blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT and the variance is 1 1 1 1 .
+Multiplying a standard Gaussian by the scalar σ 𝜎 \sigma italic_σ and shifting by 𝝁 ∈ ℝ d 𝝁 superscript ℝ 𝑑 \boldsymbol{\mu}\in\mathbb{R}^{d} bold_italic_μ ∈ blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT produces a Gaussian with mean 𝝁 𝝁 \boldsymbol{\mu} bold_italic_μ and variance σ 2 superscript 𝜎 2 \sigma^{2} italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT .
+It follows that if 𝐲 𝐲 \mathbf{y} bold_y and 𝐳 𝐳 \mathbf{z} bold_z are independent standard Gaussians, and a 𝑎 a italic_a and b 𝑏 b italic_b are scalars, then a ⁢ 𝐲 + b ⁢ 𝐳 𝑎 𝐲 𝑏 𝐳 a\mathbf{y}+b\mathbf{z} italic_a bold_y + italic_b bold_z is Gaussian with mean zero and variance a 2 + b 2 superscript 𝑎 2 superscript 𝑏 2 a^{2}+b^{2} italic_a start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT + italic_b start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT ; so a ⁢ 𝐲 + b ⁢ 𝐳 𝑎 𝐲 𝑏 𝐳 a\mathbf{y}+b\mathbf{z} italic_a bold_y + italic_b bold_z can be sampled as a 2 + b 2 ⁢ ϵ superscript 𝑎 2 superscript 𝑏 2 bold-italic-ϵ \sqrt{a^{2}+b^{2}}\,\boldsymbol{\epsilon} square-root start_ARG italic_a start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT + italic_b start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT end_ARG bold_italic_ϵ , where ϵ bold-italic-ϵ \boldsymbol{\epsilon} bold_italic_ϵ is a standard Gaussian. 
+
+We consider images that can be described by d 𝑑 d italic_d real numbers, typically pixel values, and we collect these into a vector in ℝ d superscript ℝ 𝑑 \mathbb{R}^{d} blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT . In practice pixel values might be constrained—for example only integers between 0 0 and 255 255 255 255 might be allowed—but
+we ignore this issue here for simplicity. 
+
+Given an image 𝐱 0 ∈ ℝ d subscript 𝐱 0 superscript ℝ 𝑑 \mathbf{x}_{0}\in\mathbb{R}^{d} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ∈ blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT , the *forward process *iteratively adds noise to create a sequence 𝐱 1 , 𝐱 2 , … , 𝐱 T subscript 𝐱 1 subscript 𝐱 2 … subscript 𝐱 𝑇 \mathbf{x}_{1},\mathbf{x}_{2},\ldots,\mathbf{x}_{T} bold_x start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT , … , bold_x start_POSTSUBSCRIPT italic_T end_POSTSUBSCRIPT according to the rule 
+
+| | 𝐱t=1−βt⁢𝐱t−1+βt⁢ϵt.subscript𝐱𝑡1subscript𝛽𝑡subscript𝐱𝑡1subscript𝛽𝑡subscriptbold-italic-ϵ𝑡\mathbf{x}_{t}=\sqrt{1-\beta_{t}}\,\mathbf{x}_{t-1}+\sqrt{\beta_{t}}\,%
+\boldsymbol{\epsilon}_{t}.bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = square-root start_ARG 1 - italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT + square-root start_ARG italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT . | | (2) | 
+|---|---|---|---|
+| | 𝐱t=1−βt⁢𝐱t−1+βt⁢ϵt.subscript𝐱� | | (2) | 
+
+Here, each ϵ t subscript bold-italic-ϵ 𝑡 \boldsymbol{\epsilon}_{t} bold_italic_ϵ start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT is an independent standard Gaussian and the scalar parameter β t subscript 𝛽 𝑡 \beta_{t} italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT is between zero and one.
+The sequence β 1 , β 2 , … , β T subscript 𝛽 1 subscript 𝛽 2 … subscript 𝛽 𝑇 \beta_{1},\beta_{2},\ldots,\beta_{T} italic_β start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT , italic_β start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT , … , italic_β start_POSTSUBSCRIPT italic_T end_POSTSUBSCRIPT , known as the *variance schedule *, is predetermined.
+For example, in [ 15] , linearly increasing values from β 1 = 10 − 4 subscript 𝛽 1 superscript 10 4 \beta_{1}={10}^{-4} italic_β start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT = 10 start_POSTSUPERSCRIPT - 4 end_POSTSUPERSCRIPT to β T = 0.02 subscript 𝛽 𝑇 0.02 \beta_{T}=0.02 italic_β start_POSTSUBSCRIPT italic_T end_POSTSUBSCRIPT = 0.02 are used.
+Since β t subscript 𝛽 𝑡 \beta_{t} italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT here is increasing, more noise is added as the forward process evolves.
+It is useful to think of t 𝑡 t italic_t as a time-like variable. At time zero we have an image and at time T 𝑇 T italic_T we effectively have
+pure Gaussian noise. 
+
+The process ( 2) defines a discrete time Markov process, and the associated transition density may be written 
+
+| | q⁢(𝐱t|𝐱t−1)=𝒩⁢(𝐱t;1−βt⁢𝐱t−1,βt⁢𝐈).𝑞conditionalsubscript𝐱𝑡subscript𝐱𝑡1𝒩subscript𝐱𝑡1subscript𝛽𝑡subscript𝐱𝑡1subscript𝛽𝑡𝐈q(\mathbf{x}_{t}\,|\,\mathbf{x}_{t-1})=\mathcal{N}(\mathbf{x}_{t};\sqrt{1-%
+\beta_{t}}\,\mathbf{x}_{t-1},\beta_{t}\mathbf{I}).italic_q ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) = caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ; square-root start_ARG 1 - italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT bold_I ) . | | (3) | 
+|---|---|---|---|
+| | q⁢(𝐱t|𝐱t−1)=𝒩⁢(𝐱t;1−βt⁢𝐱 | | (3) | 
+
+This quantifies the probability of observing 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT at time t 𝑡 t italic_t , given 𝐱 t − 1 subscript 𝐱 𝑡 1 \mathbf{x}_{t-1} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT at time t − 1 𝑡 1 t-1 italic_t - 1 . 
+
+Updating over one time step in the forward process ( 2) is straightforward; just scale the current value and add Gaussian noise.
+For later use, it is helpful to know that stepping from time zero to a general time t 𝑡 t italic_t is possible with a single leap.
+To see this, we introduce α t = 1 − β t subscript 𝛼 𝑡 1 subscript 𝛽 𝑡 \alpha_{t}=1-\beta_{t} italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = 1 - italic_β start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT so that 
+
+| | 𝐱t=αt⁢𝐱t−1+1−αt⁢ϵt.subscript𝐱𝑡subscript𝛼𝑡subscript𝐱𝑡11subscript𝛼𝑡subscriptbold-italic-ϵ𝑡\mathbf{x}_{t}=\sqrt{\alpha_{t}}\,\mathbf{x}_{t-1}+\sqrt{1-\alpha_{t}}\,%
+\boldsymbol{\epsilon}_{t}.bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT . | | (4) | 
+|---|---|---|---|
+| | 𝐱t=αt⁢𝐱t−1+1−αt⁢ϵt.subscript𝐱� | | (4) | 
+
+Then, applying ( 4) again, we have 
+
+| | 𝐱tsubscript𝐱𝑡\displaystyle\mathbf{x}_{t}bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | =\displaystyle== | αt⁢(αt−1⁢𝐱t−2+1−αt−1⁢ϵt−1)+1−αt⁢ϵtsubscript𝛼𝑡subscript𝛼𝑡1subscript𝐱𝑡21subscript𝛼𝑡1subscriptbold-italic-ϵ𝑡11subscript𝛼𝑡subscriptbold-italic-ϵ𝑡\displaystyle\sqrt{\alpha_{t}}\left(\sqrt{\alpha_{t-1}}\,\mathbf{x}_{t-2}+%
+\sqrt{1-\alpha_{t-1}}\,\boldsymbol{\epsilon}_{t-1}\right)+\sqrt{1-\alpha_{t}}%
+\,\boldsymbol{\epsilon}_{t}square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG ( square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 2 end_POSTSUBSCRIPT + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | | (5) | 
+|---|---|---|---|---|---|
+| | 𝐱tsubscript𝐱𝑡\displaystyle\mathbf{x}_{t}b | =\displaystyle== | αt⁢(αt−1⁢𝐱t−2+1−αt−1⁢ϵt−1)+ | | (5) | 
+| | | =\displaystyle== | αt⁢αt−1⁢𝐱t−2+αt⁢1−αt−1⁢ϵt� | | 
+
+Using the properties of Gaussians mentioned at the start of this section, we see that α t ⁢ 1 − α t − 1 ⁢ ϵ t − 1 + 1 − α t ⁢ ϵ t subscript 𝛼 𝑡 1 subscript 𝛼 𝑡 1 subscript bold-italic-ϵ 𝑡 1 1 subscript 𝛼 𝑡 subscript bold-italic-ϵ 𝑡 \sqrt{\alpha_{t}}\sqrt{1-\alpha_{t-1}}\,\boldsymbol{\epsilon}_{t-1}+\sqrt{1-%
+\alpha_{t}}\,\boldsymbol{\epsilon}_{t} square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT can be combined into a single Gaussian. In this way,
+( 5) may be written 
+
+| | 𝐱t=αt⁢αt−1⁢𝐱t−2+1−αt⁢αt−1⁢ϵt,t−2,subscript𝐱𝑡subscript𝛼𝑡subscript𝛼𝑡1subscript𝐱𝑡21subscript𝛼𝑡subscript𝛼𝑡1subscriptbold-italic-ϵ𝑡𝑡2\mathbf{x}_{t}=\sqrt{\alpha_{t}\alpha_{t-1}}\,\mathbf{x}_{t-2}+\sqrt{1-\alpha_%
+{t}\alpha_{t-1}}\,\boldsymbol{\epsilon}_{t,t-2},bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 2 end_POSTSUBSCRIPT + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_t , italic_t - 2 end_POSTSUBSCRIPT , | | 
+|---|---|---|
+| | 𝐱t=αt⁢αt−1⁢𝐱t−2+1−αt⁢αt−1� | | 
+
+where ϵ t , t − 2 subscript bold-italic-ϵ 𝑡 𝑡 2 \boldsymbol{\epsilon}_{t,t-2} bold_italic_ϵ start_POSTSUBSCRIPT italic_t , italic_t - 2 end_POSTSUBSCRIPT is a standard Gaussian. 
+
+Proceeding inductively, suppose
+that for some k 𝑘 k italic_k between t − 2 𝑡 2 t-2 italic_t - 2 and 1 1 1 1 
+
+| | 𝐱t=αt⁢αt−1⁢…⁢αk+1⁢𝐱k+1−αt⁢αt−1⁢…⁢αk+1⁢ϵt,k,subscript𝐱𝑡subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘1subscript𝐱𝑘1subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘1subscriptitalic-ϵ𝑡𝑘\mathbf{x}_{t}=\sqrt{\alpha_{t}\alpha_{t-1}\ldots\alpha_{k+1}}\,\mathbf{x}_{k}%
++\sqrt{1-\alpha_{t}\alpha_{t-1}\ldots\alpha_{k+1}}\,\epsilon_{t,k},bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k + 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k + 1 end_POSTSUBSCRIPT end_ARG italic_ϵ start_POSTSUBSCRIPT italic_t , italic_k end_POSTSUBSCRIPT , | | (6) | 
+|---|---|---|---|
+| | 𝐱t=αt⁢αt−1⁢…⁢αk+1⁢𝐱k+1−αt� | | (6) | 
+
+where ϵ t , k subscript italic-ϵ 𝑡 𝑘 \epsilon_{t,k} italic_ϵ start_POSTSUBSCRIPT italic_t , italic_k end_POSTSUBSCRIPT is a standard Gaussian. Then replacing 𝐱 k subscript 𝐱 𝑘 \mathbf{x}_{k} bold_x start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT using ( 4) 
+
+| | 𝐱t=αt⁢αt−1⁢…⁢αk+1⁢(αk⁢𝐱k−1+1−αk⁢ϵk)+1−αt⁢αt−1⁢…⁢αk+1⁢ϵt,k.subscript𝐱𝑡subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘1subscript𝛼𝑘subscript𝐱𝑘11subscript𝛼𝑘subscriptbold-italic-ϵ𝑘1subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘1subscriptitalic-ϵ𝑡𝑘\mathbf{x}_{t}=\sqrt{\alpha_{t}\alpha_{t-1}\ldots\alpha_{k+1}}\,\left(\sqrt{%
+\alpha_{k}}\,\mathbf{x}_{k-1}+\sqrt{1-\alpha_{k}}\,\boldsymbol{\epsilon}_{k}%
+\right)+\sqrt{1-\alpha_{t}\alpha_{t-1}\ldots\alpha_{k+1}}\,\epsilon_{t,k}.bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k + 1 end_POSTSUBSCRIPT end_ARG ( square-root start_ARG italic_α start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_k - 1 end_POSTSUBSCRIPT + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ) + square-root start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k + 1 end_POSTSUBSCRIPT end_ARG italic_ϵ start_POSTSUBSCRIPT italic_t , italic_k end_POSTSUBSCRIPT . | | 
+|---|---|---|
+| | 𝐱t=αt⁢αt−1⁢…⁢αk+1⁢(αk⁢𝐱k�� | | 
+
+Again replacing the sum of two independent Gaussians by a single, appropriate Gaussian, we have 
+
+| | 𝐱tsubscript𝐱𝑡\displaystyle\mathbf{x}_{t}bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | =\displaystyle== | αt⁢αt−1⁢…⁢αk⁢𝐱k−1+αt⁢αt−1⁢…⁢αk+1⁢(1−αk)+1−αt⁢αt−1⁢…⁢αk+1⁢ϵt,k−1,subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘subscript𝐱𝑘1subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘11subscript𝛼𝑘1subscript𝛼𝑡subscript𝛼𝑡1…subscript𝛼𝑘1subscriptitalic-ϵ𝑡𝑘1\displaystyle\sqrt{\alpha_{t}\alpha_{t-1}\ldots\alpha_{k}}\,\mathbf{x}_{k-1}+%
+\sqrt{\alpha_{t}\alpha_{t-1}\ldots\alpha_{k+1}(1-\alpha_{k})+1-\alpha_{t}%
+\alpha_{t-1}\ldots\alpha_{k+1}}\,\epsilon_{t,k-1},square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_k - 1 end_POSTSUBSCRIPT + square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k + 1 end_POSTSUBSCRIPT ( 1 - italic_α start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ) + 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT italic_α start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT … italic_α start_POSTSUBSCRIPT italic_k + 1 end_POSTSUBSCRIPT end_ARG italic_ϵ start_POSTSUBSCRIPT italic_t , italic_k - 1 end_POSTSUBSCRIPT , | | 
+|---|---|---|---|---|
+| | 𝐱tsubscript𝐱𝑡\displaystyle\mathbf{x}_{t}b | =\displaystyle== | αt⁢αt−1⁢…⁢αk⁢𝐱k−1+αt⁢αt− | | 
+| | | =\displaystyle== | αt⁢αt−1⁢…⁢αk⁢𝐱k−1+1−αt⁢α | | 
+
+where ϵ t , k − 1 subscript italic-ϵ 𝑡 𝑘 1 \epsilon_{t,k-1} italic_ϵ start_POSTSUBSCRIPT italic_t , italic_k - 1 end_POSTSUBSCRIPT is a standard Gaussian.
+Hence, the form ( 6) is valid all the way down to k = 0 𝑘 0 k=0 italic_k = 0 . So,
+letting 
+
+| | α¯t=∏i=1tαi,subscript¯𝛼𝑡superscriptsubscriptproduct𝑖1𝑡subscript𝛼𝑖\overline{\alpha}_{t}=\prod_{i=1}^{t}\alpha_{i},over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = ∏ start_POSTSUBSCRIPT italic_i = 1 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT italic_t end_POSTSUPERSCRIPT italic_α start_POSTSUBSCRIPT italic_i end_POSTSUBSCRIPT , | | (7) | 
+|---|---|---|---|
+| | α¯t=∏i=1tαi,subscript¯𝛼𝑡superscriptsub | | (7) | 
+
+we may write 
+
+| | 𝐱t=α¯t⁢𝐱0+1−α¯t⁢ϵ¯t,subscript𝐱𝑡subscript¯𝛼𝑡subscript𝐱01subscript¯𝛼𝑡subscript¯bold-italic-ϵ𝑡\mathbf{x}_{t}=\sqrt{\overline{\alpha}_{t}}\,\mathbf{x}_{0}+\sqrt{1-\overline{%
+\alpha}_{t}}\,\bar{\boldsymbol{\epsilon}}_{t},bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT + square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , | | (8) | 
+|---|---|---|---|
+| | 𝐱t=α¯t⁢𝐱0+1−α¯t⁢ϵ¯t,subscript��� | | (8) | 
+
+where ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT is a standard Gaussian.
+We may therefore step directly from time 0 0 to any later time t 𝑡 t italic_t using a single Gaussian.
+This proves convenient for the analysis in section 4and also for the
+training algorithm discussed in section 5. 
+
+In terms of a transition density, ( 8) shows that 
+
+| | q⁢(𝐱t|𝐱0):=𝒩⁢(𝐱t;α¯t⁢𝐱0,(1−α¯t)⁢𝐈).assign𝑞conditionalsubscript𝐱𝑡subscript𝐱0𝒩subscript𝐱𝑡subscript¯𝛼𝑡subscript𝐱01subscript¯𝛼𝑡𝐈q(\mathbf{x}_{t}\,|\,\mathbf{x}_{0}):=\mathcal{N}(\mathbf{x}_{t};\sqrt{%
+\overline{\alpha}_{t}}\,\mathbf{x}_{0},(1-\overline{\alpha}_{t})\mathbf{I}).italic_q ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) := caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ; square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT , ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) bold_I ) . | | (9) | 
+|---|---|---|---|
+| | q⁢(𝐱t|𝐱0):=𝒩⁢(𝐱t;α¯t⁢𝐱0,(1� | | (9) | 
+
+## 4 Backwards
+
+We now consider the reverse process.
+We are interested in the probability of 𝐱 t − 1 subscript 𝐱 𝑡 1 \mathbf{x}_{t-1} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT given 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT and 𝐱 0 subscript 𝐱 0 \mathbf{x}_{0} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ; that is, q ⁢ ( 𝐱 t − 1 | 𝐱 t , 𝐱 0 ) 𝑞 conditional subscript 𝐱 𝑡 1 subscript 𝐱 𝑡 subscript 𝐱 0 q(\mathbf{x}_{t-1}\,|\,\mathbf{x}_{t},\mathbf{x}_{0}) italic_q ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) .
+To proceed we will make use of a result in conditional probability theory known as the product rule, [ 3, 27] , which for our purposes may be written 
+
+| | P⁢(A,B,C)=P⁢(A|B,C)⁢P⁢(B,C)=P⁢(A|B,C)⁢P⁢(B|C)⁢P⁢(C).𝑃𝐴𝐵𝐶𝑃conditional𝐴𝐵𝐶𝑃𝐵𝐶𝑃conditional𝐴𝐵𝐶𝑃conditional𝐵𝐶𝑃𝐶P(A,B,C)=P(A\,|\,B,C)\,P(B,C)=P(A\,|\,B,C)\,P(B\,|\,C)\,P(C).italic_P ( italic_A , italic_B , italic_C ) = italic_P ( italic_A | italic_B , italic_C ) italic_P ( italic_B , italic_C ) = italic_P ( italic_A | italic_B , italic_C ) italic_P ( italic_B | italic_C ) italic_P ( italic_C ) . | | 
+|---|---|---|
+| | P⁢(A,B,C)=P⁢(A|B,C)⁢P⁢(B,C)=P⁢(A|B,C)⁢ | | 
+
+By symmetry, we also have 
+
+| | P⁢(A,B,C)=P⁢(B,A,C)=P⁢(B|A,C)⁢P⁢(A,C)=P⁢(B|A,C)⁢P⁢(A|C)⁢P⁢(C).𝑃𝐴𝐵𝐶𝑃𝐵𝐴𝐶𝑃conditional𝐵𝐴𝐶𝑃𝐴𝐶𝑃conditional𝐵𝐴𝐶𝑃conditional𝐴𝐶𝑃𝐶P(A,B,C)=P(B,A,C)=P(B\,|\,A,C)\,P(A,C)=P(B\,|\,A,C)\,P(A\,|\,C)\,P(C).italic_P ( italic_A , italic_B , italic_C ) = italic_P ( italic_B , italic_A , italic_C ) = italic_P ( italic_B | italic_A , italic_C ) italic_P ( italic_A , italic_C ) = italic_P ( italic_B | italic_A , italic_C ) italic_P ( italic_A | italic_C ) italic_P ( italic_C ) . | | 
+|---|---|---|
+| | P⁢(A,B,C)=P⁢(B,A,C)=P⁢(B|A,C)⁢P⁢(A,C)=P� | | 
+
+Hence, 
+
+| | P⁢(A|B,C)=P⁢(B|A,C)⁢P⁢(A|C)P⁢(B|C).𝑃conditional𝐴𝐵𝐶𝑃conditional𝐵𝐴𝐶𝑃conditional𝐴𝐶𝑃conditional𝐵𝐶P(A\,|\,B,C)=\frac{P(B\,|\,A,C)\,P(A\,|\,C)}{P(B\,|\,C)}.italic_P ( italic_A | italic_B , italic_C ) = divide start_ARG italic_P ( italic_B | italic_A , italic_C ) italic_P ( italic_A | italic_C ) end_ARG start_ARG italic_P ( italic_B | italic_C ) end_ARG . | | 
+|---|---|---|
+| | P⁢(A|B,C)=P⁢(B|A,C)⁢P⁢(A|C)P⁢(B|C).𝑃c | | 
+
+We will use this in the form 
+
+| | q⁢(𝐱t−1|𝐱t,𝐱0)𝑞conditionalsubscript𝐱𝑡1subscript𝐱𝑡subscript𝐱0\displaystyle q(\mathbf{x}_{t-1}\,|\,\mathbf{x}_{t},\mathbf{x}_{0})italic_q ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) | =\displaystyle== | q⁢(𝐱t|𝐱t−1,𝐱0)⁢q⁢(𝐱t−1|𝐱0)q⁢(𝐱t|𝐱0).𝑞conditionalsubscript𝐱𝑡subscript𝐱𝑡1subscript𝐱0𝑞conditionalsubscript𝐱𝑡1subscript𝐱0𝑞conditionalsubscript𝐱𝑡subscript𝐱0\displaystyle\frac{q(\mathbf{x}_{t}\,|\,\mathbf{x}_{t-1},\mathbf{x}_{0})\,q(%
+\mathbf{x}_{t-1}\,|\,\mathbf{x}_{0})}{q(\mathbf{x}_{t}\,|\,\mathbf{x}_{0})}.divide start_ARG italic_q ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) italic_q ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) end_ARG start_ARG italic_q ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) end_ARG . | | (10) | 
+|---|---|---|---|---|---|
+| | q⁢(𝐱t−1|𝐱t,𝐱0)𝑞conditionalsubscrip | =\displaystyle== | q⁢(𝐱t|𝐱t−1,𝐱0)⁢q⁢(𝐱t−1|𝐱0 | | (10) | 
+
+So now we focus on the quantities appearing on the right hand side of ( 10). 
+
+By the Markovian nature of the forward process, from ( 3), 
+
+| | q⁢(𝐱t|𝐱t−1,𝐱0)=q⁢(𝐱t|𝐱t−1)=𝒩⁢(𝐱t;αt⁢𝐱t−1,(1−αt)⁢𝐈).𝑞conditionalsubscript𝐱𝑡subscript𝐱𝑡1subscript𝐱0𝑞conditionalsubscript𝐱𝑡subscript𝐱𝑡1𝒩subscript𝐱𝑡subscript𝛼𝑡subscript𝐱𝑡11subscript𝛼𝑡𝐈q(\mathbf{x}_{t}\,|\,\mathbf{x}_{t-1},\mathbf{x}_{0})=q(\mathbf{x}_{t}\,|\,%
+\mathbf{x}_{t-1})=\mathcal{N}(\mathbf{x}_{t};\sqrt{\alpha_{t}}\,\mathbf{x}_{t-%
+1},(1-\alpha_{t})\mathbf{I}).italic_q ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) = italic_q ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) = caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ; square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) bold_I ) . | | (11) | 
+|---|---|---|---|
+| | q⁢(𝐱t|𝐱t−1,𝐱0)=q⁢(𝐱t|𝐱t−1)= | | (11) | 
+
+Making use of ( 9) for 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT and 𝐱 t − 1 subscript 𝐱 𝑡 1 \mathbf{x}_{t-1} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , we then see that 
+
+| | q⁢(𝐱t−1|𝐱t,𝐱0)=𝒩⁢(𝐱t;αt⁢𝐱t−1,(1−αt)⁢𝐈)⁢𝒩⁢(𝐱t−1;α¯t−1⁢𝐱0,(1−α¯t−1)⁢𝐈)𝒩⁢(𝐱t;α¯t⁢𝐱0,(1−α¯t)⁢𝐈).𝑞conditionalsubscript𝐱𝑡1subscript𝐱𝑡subscript𝐱0𝒩subscript𝐱𝑡subscript𝛼𝑡subscript𝐱𝑡11subscript𝛼𝑡𝐈𝒩subscript𝐱𝑡1subscript¯𝛼𝑡1subscript𝐱01subscript¯𝛼𝑡1𝐈𝒩subscript𝐱𝑡subscript¯𝛼𝑡subscript𝐱01subscript¯𝛼𝑡𝐈q(\mathbf{x}_{t-1}\,|\,\mathbf{x}_{t},\mathbf{x}_{0})=\frac{\mathcal{N}(%
+\mathbf{x}_{t};\sqrt{\alpha_{t}}\,\mathbf{x}_{t-1},(1-\alpha_{t})\mathbf{I})\,%
+\mathcal{N}(\mathbf{x}_{t-1};\sqrt{\overline{\alpha}_{t-1}}\,\mathbf{x}_{0},(1%
+-\overline{\alpha}_{t-1})\mathbf{I})}{\mathcal{N}(\mathbf{x}_{t};\sqrt{%
+\overline{\alpha}_{t}}\,\mathbf{x}_{0},(1-\overline{\alpha}_{t})\mathbf{I})}.italic_q ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT | bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) = divide start_ARG caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ; square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) bold_I ) caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ; square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT , ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) bold_I ) end_ARG start_ARG caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ; square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT , ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) bold_I ) end_ARG . | | (12) | 
+|---|---|---|---|
+| | q⁢(𝐱t−1|𝐱t,𝐱0)=𝒩⁢(𝐱t;αt⁢�� | | (12) | 
+
+From the definition ( 1), and
+ignoring the normalizing constants, we see that this expression has the form 
+
+| | exp(−12(𝐱t−αt⁢𝐱t−1)T⁢(𝐱t−αt⁢𝐱t−1)1−αt−12(𝐱t−1−α¯t−1⁢𝐱0)T⁢(𝐱t−1−α¯t−1⁢𝐱0)1−α¯t−1\displaystyle\exp\left(-{\textstyle{{\frac{1}{2}}}}\frac{(\mathbf{x}_{t}-\sqrt%
+{\alpha_{t}}\,\mathbf{x}_{t-1})^{T}(\mathbf{x}_{t}-\sqrt{\alpha_{t}}\,\mathbf{%
+x}_{t-1})}{1-\alpha_{t}}-{\textstyle{{\frac{1}{2}}}}\frac{(\mathbf{x}_{t-1}-%
+\sqrt{\overline{\alpha}_{t-1}}\,\mathbf{x}_{0})^{T}(\mathbf{x}_{t-1}-\sqrt{%
+\overline{\alpha}_{t-1}}\,\mathbf{x}_{0})}{1-\overline{\alpha}_{t-1}}\right.roman_exp ( - divide start_ARG 1 end_ARG start_ARG 2 end_ARG divide start_ARG ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) start_POSTSUPERSCRIPT italic_T end_POSTSUPERSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) end_ARG start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG - divide start_ARG 1 end_ARG start_ARG 2 end_ARG divide start_ARG ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT - square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) start_POSTSUPERSCRIPT italic_T end_POSTSUPERSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT - square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG | | 
+|---|---|---|---|---|---|---|
+| | exp(−12(𝐱t−αt⁢𝐱t−1)T⁢(𝐱t−αt | | 
+| | +12(𝐱t−α¯t⁢𝐱0)T⁢(𝐱t−α¯t⁢��� | | (13) | 
+
+We will show that this expression matches 
+
+| | 𝒩⁢(𝐱t−1;μq⁢(𝐱t,𝐱0),σq2⁢(t)⁢𝐈),𝒩subscript𝐱𝑡1subscript𝜇𝑞subscript𝐱𝑡subscript𝐱0subscriptsuperscript𝜎2𝑞𝑡𝐈\mathcal{N}\left(\mathbf{x}_{t-1};\mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0}),%
+\sigma^{2}_{q}(t)\mathbf{I}\right),caligraphic_N ( bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ; italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) , italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) bold_I ) , | | (14) | 
+|---|---|---|---|
+| | 𝒩⁢(𝐱t−1;μq⁢(𝐱t,𝐱0),σq2⁢(t)�� | | (14) | 
+
+for appropriate μ q ⁢ ( 𝐱 t , 𝐱 0 ) subscript 𝜇 𝑞 subscript 𝐱 𝑡 subscript 𝐱 0 \mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0}) italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) and σ q 2 ⁢ ( t ) subscript superscript 𝜎 2 𝑞 𝑡 \sigma^{2}_{q}(t) italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) .
+From ( 1), we can find σ q 2 ⁢ ( t ) subscript superscript 𝜎 2 𝑞 𝑡 \sigma^{2}_{q}(t) italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) by considering the coefficient of − 𝐱 t − 1 T ⁢ 𝐱 t − 1 superscript subscript 𝐱 𝑡 1 𝑇 subscript 𝐱 𝑡 1 \mbox{}-\mathbf{x}_{t-1}^{T}\mathbf{x}_{t-1} - bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT italic_T end_POSTSUPERSCRIPT bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT in the exponent of ( 13). This coefficient is given by 
+
+| | 12⁢αt1−αt+12⁢11−α¯t−1=12⁢αt⁢(1−α¯t−1)+1−αt(1−αt)⁢(1−α¯t−1)=12⁢(1−α¯t(1−αt)⁢(1−α¯t−1)),12subscript𝛼𝑡1subscript𝛼𝑡1211subscript¯𝛼𝑡112subscript𝛼𝑡1subscript¯𝛼𝑡11subscript𝛼𝑡1subscript𝛼𝑡1subscript¯𝛼𝑡1121subscript¯𝛼𝑡1subscript𝛼𝑡1subscript¯𝛼𝑡1{\textstyle{{\frac{1}{2}}}}\frac{\alpha_{t}}{1-\alpha_{t}}+{\textstyle{{\frac{%
+1}{2}}}}\frac{1}{1-\overline{\alpha}_{t-1}}={\textstyle{{\frac{1}{2}}}}\frac{%
+\alpha_{t}(1-\overline{\alpha}_{t-1})+1-\alpha_{t}}{(1-\alpha_{t})(1-\overline%
+{\alpha}_{t-1})}={\textstyle{{\frac{1}{2}}}}\left(\frac{1-\overline{\alpha}_{t%
+}}{(1-\alpha_{t})(1-\overline{\alpha}_{t-1})}\right),divide start_ARG 1 end_ARG start_ARG 2 end_ARG divide start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG + divide start_ARG 1 end_ARG start_ARG 2 end_ARG divide start_ARG 1 end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG = divide start_ARG 1 end_ARG start_ARG 2 end_ARG divide start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) + 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) end_ARG = divide start_ARG 1 end_ARG start_ARG 2 end_ARG ( divide start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) end_ARG ) , | | 
+|---|---|---|
+| | 12⁢αt1−αt+12⁢11−α¯t−1=12⁢αt⁢(1� | | 
+
+where we used α t ⁢ α ¯ t − 1 = α ¯ t subscript 𝛼 𝑡 subscript ¯ 𝛼 𝑡 1 subscript ¯ 𝛼 𝑡 \alpha_{t}\,\overline{\alpha}_{t-1}=\overline{\alpha}_{t} italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT = over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT from ( 7).
+Hence, 
+
+| | σq2⁢(t)=(1−αt)⁢(1−α¯t−1)1−α¯t.subscriptsuperscript𝜎2𝑞𝑡1subscript𝛼𝑡1subscript¯𝛼𝑡11subscript¯𝛼𝑡\sigma^{2}_{q}(t)=\frac{(1-\alpha_{t})(1-\overline{\alpha}_{t-1})}{1-\overline%
+{\alpha}_{t}}.italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) = divide start_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG . | | (15) | 
+|---|---|---|---|
+| | σq2⁢(t)=(1−αt)⁢(1−α¯t−1)1−α¯t.su | | (15) | 
+
+Using the functional form ( 1) again,
+we can find μ q ⁢ ( 𝐱 t , 𝐱 0 ) subscript 𝜇 𝑞 subscript 𝐱 𝑡 subscript 𝐱 0 \mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0}) italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) by considering the vector, say 𝐯 𝐯 \mathbf{v} bold_v , such that 𝐱 t − 1 T ⁢ 𝐯 superscript subscript 𝐱 𝑡 1 𝑇 𝐯 \mathbf{x}_{t-1}^{T}\mathbf{v} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT italic_T end_POSTSUPERSCRIPT bold_v is the cross-product in the exponent of ( 13). We see that 
+
+| | μq⁢(𝐱t,𝐱0)σq2⁢(t)=𝐯=αt⁢𝐱t1−αt+α¯t−1⁢𝐱01−α¯t−1.subscript𝜇𝑞subscript𝐱𝑡subscript𝐱0subscriptsuperscript𝜎2𝑞𝑡𝐯subscript𝛼𝑡subscript𝐱𝑡1subscript𝛼𝑡subscript¯𝛼𝑡1subscript𝐱01subscript¯𝛼𝑡1\frac{\mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0})}{\sigma^{2}_{q}(t)}=\mathbf{v}=%
+\frac{\sqrt{\alpha_{t}}\,\mathbf{x}_{t}}{1-\alpha_{t}}+\frac{\sqrt{\overline{%
+\alpha}_{t-1}}\,\mathbf{x}_{0}}{1-\overline{\alpha}_{t-1}}.divide start_ARG italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) end_ARG start_ARG italic_σ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) end_ARG = bold_v = divide start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG + divide start_ARG square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG . | | 
+|---|---|---|
+| | μq⁢(𝐱t,𝐱0)σq2⁢(t)=𝐯=αt⁢𝐱t1− | | 
+
+Hence, using ( 15), 
+
+| | μq⁢(𝐱t,𝐱0)=αt⁢(1−α¯t−1)⁢𝐱t+α¯t−1⁢(1−αt)⁢𝐱01−α¯t.subscript𝜇𝑞subscript𝐱𝑡subscript𝐱0subscript𝛼𝑡1subscript¯𝛼𝑡1subscript𝐱𝑡subscript¯𝛼𝑡11subscript𝛼𝑡subscript𝐱01subscript¯𝛼𝑡\mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0})=\frac{\sqrt{\alpha_{t}}\,(1-\overline{%
+\alpha}_{t-1})\mathbf{x}_{t}+\sqrt{\overline{\alpha}_{t-1}}(1-\alpha_{t})%
+\mathbf{x}_{0}}{1-\overline{\alpha}_{t}}.italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) = divide start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT + square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG . | | (16) | 
+|---|---|---|---|
+| | μq⁢(𝐱t,𝐱0)=αt⁢(1−α¯t−1)⁢𝐱t+ | | (16) | 
+
+We wish to compute a sample from the distribution in
+( 14).
+This will allow us to perform the required transition along the backwards process.
+Our approach is to estimate the mean in ( 14) and then shift with an appropriate Gaussian in order to match the required variance. 
+
+If we know 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT and ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT in ( 8) then we may write 
+
+| | 𝐱0=𝐱t−1−α¯t⁢ϵ¯tα¯t.subscript𝐱0subscript𝐱𝑡1subscript¯𝛼𝑡subscript¯bold-italic-ϵ𝑡subscript¯𝛼𝑡\mathbf{x}_{0}=\frac{\mathbf{x}_{t}-\sqrt{1-\overline{\alpha}_{t}}\,\bar{%
+\boldsymbol{\epsilon}}_{t}}{\sqrt{\overline{\alpha}_{t}}}.bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT = divide start_ARG bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG . | | 
+|---|---|---|
+| | 𝐱0=𝐱t−1−α¯t⁢ϵ¯tα¯t.subscript𝐱 | | 
+
+Substituting this expression for 𝐱 0 subscript 𝐱 0 \mathbf{x}_{0} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT into ( 16) we see that the mean of 𝐱 t − 1 subscript 𝐱 𝑡 1 \mathbf{x}_{t-1} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT , given 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT and 𝐱 0 subscript 𝐱 0 \mathbf{x}_{0} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT , takes the form 
+
+| | μq⁢(𝐱t,𝐱0)=αt⁢(1−α¯t−1)1−α¯t⁢𝐱t+α¯t−1⁢(1−αt)(1−α¯t)⁢α¯t⁢𝐱t−α¯t−1⁢(1−αt)⁢1−α¯t(1−α¯t)⁢α¯t⁢ϵ¯t.subscript𝜇𝑞subscript𝐱𝑡subscript𝐱0subscript𝛼𝑡1subscript¯𝛼𝑡11subscript¯𝛼𝑡subscript𝐱𝑡subscript¯𝛼𝑡11subscript𝛼𝑡1subscript¯𝛼𝑡subscript¯𝛼𝑡subscript𝐱𝑡subscript¯𝛼𝑡11subscript𝛼𝑡1subscript¯𝛼𝑡1subscript¯𝛼𝑡subscript¯𝛼𝑡subscript¯bold-italic-ϵ𝑡\mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0})=\frac{\sqrt{\alpha_{t}}(1-\overline{%
+\alpha}_{t-1})}{1-\overline{\alpha}_{t}}\mathbf{x}_{t}+\frac{\sqrt{\overline{%
+\alpha}_{t-1}}(1-\alpha_{t})}{(1-\overline{\alpha}_{t})\sqrt{\overline{\alpha}%
+_{t}}}\mathbf{x}_{t}-\frac{\sqrt{\overline{\alpha}_{t-1}}(1-\alpha_{t})\sqrt{1%
+-\overline{\alpha}_{t}}}{(1-\overline{\alpha}_{t})\sqrt{\overline{\alpha}_{t}}%
+}\,\bar{\boldsymbol{\epsilon}}_{t}.italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) = divide start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT + divide start_ARG square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) end_ARG start_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - divide start_ARG square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG start_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT . | | (17) | 
+|---|---|---|---|
+| | μq⁢(𝐱t,𝐱0)=αt⁢(1−α¯t−1)1−α¯t | | (17) | 
+
+Noting from ( 7) that α ¯ t − 1 / α ¯ t = 1 / α t subscript ¯ 𝛼 𝑡 1 subscript ¯ 𝛼 𝑡 1 subscript 𝛼 𝑡 \overline{\alpha}_{t-1}/\overline{\alpha}_{t}=1/\alpha_{t} over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT / over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = 1 / italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT and α t × α ¯ t − 1 = α ¯ t subscript 𝛼 𝑡 subscript ¯ 𝛼 𝑡 1 subscript ¯ 𝛼 𝑡 \alpha_{t}\times\overline{\alpha}_{t-1}=\overline{\alpha}_{t} italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT × over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT = over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , we find that
+in ( 17) the coefficient of 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT simplifies as follows: 
+
+| | αt⁢(1−α¯t−1)1−α¯t+α¯t−1⁢(1−αt)(1−α¯t)⁢α¯t=1αt⁢(1−α¯t)⁢(αt⁢(1−α¯t−1)+1−αt)=1αt.subscript𝛼𝑡1subscript¯𝛼𝑡11subscript¯𝛼𝑡subscript¯𝛼𝑡11subscript𝛼𝑡1subscript¯𝛼𝑡subscript¯𝛼𝑡1subscript𝛼𝑡1subscript¯𝛼𝑡subscript𝛼𝑡1subscript¯𝛼𝑡11subscript𝛼𝑡1subscript𝛼𝑡\frac{\sqrt{\alpha_{t}}(1-\overline{\alpha}_{t-1})}{1-\overline{\alpha}_{t}}+%
+\frac{\sqrt{\overline{\alpha}_{t-1}}(1-\alpha_{t})}{(1-\overline{\alpha}_{t})%
+\sqrt{\overline{\alpha}_{t}}}=\frac{1}{\sqrt{\alpha_{t}}(1-\overline{\alpha}_{%
+t})}\left(\alpha_{t}(1-\overline{\alpha}_{t-1})+1-\alpha_{t}\right)=\frac{1}{%
+\sqrt{\alpha_{t}}}.divide start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) end_ARG start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG + divide start_ARG square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) end_ARG start_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG = divide start_ARG 1 end_ARG start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) end_ARG ( italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT ) + 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) = divide start_ARG 1 end_ARG start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG . | | 
+|---|---|---|
+| | αt⁢(1−α¯t−1)1−α¯t+α¯t−1⁢(1−α | | 
+
+Similarly, the coefficient of ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT in ( 17) simplifies to 
+
+| | −α¯t−1⁢(1−αt)⁢1−α¯t(1−α¯t)⁢α¯t=−1−αtαt⁢1−α¯t.subscript¯𝛼𝑡11subscript𝛼𝑡1subscript¯𝛼𝑡1subscript¯𝛼𝑡subscript¯𝛼𝑡1subscript𝛼𝑡subscript𝛼𝑡1subscript¯𝛼𝑡\mbox{}-\frac{\sqrt{\overline{\alpha}_{t-1}}(1-\alpha_{t})\sqrt{1-\overline{%
+\alpha}_{t}}}{(1-\overline{\alpha}_{t})\sqrt{\overline{\alpha}_{t}}}=\mbox{}-%
+\frac{1-\alpha_{t}}{\sqrt{\alpha_{t}}\sqrt{1-\overline{\alpha}_{t}}}.- divide start_ARG square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT end_ARG ( 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG start_ARG ( 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG = - divide start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG . | | 
+|---|---|---|
+| | −α¯t−1⁢(1−αt)⁢1−α¯t(1−α¯t)⁢ | | 
+
+Hence, ( 17) may be written 
+
+| | μq⁢(𝐱t,𝐱0)=1αt⁢(𝐱t−1−αt1−α¯t⁢ϵ¯t).subscript𝜇𝑞subscript𝐱𝑡subscript𝐱01subscript𝛼𝑡subscript𝐱𝑡1subscript𝛼𝑡1subscript¯𝛼𝑡subscript¯bold-italic-ϵ𝑡\mu_{q}(\mathbf{x}_{t},\mathbf{x}_{0})=\frac{1}{\sqrt{\alpha_{t}}}\left(%
+\mathbf{x}_{t}-\frac{1-\alpha_{t}}{\sqrt{1-\overline{\alpha}_{t}}}\bar{%
+\boldsymbol{\epsilon}}_{t}\right).italic_μ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT , bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) = divide start_ARG 1 end_ARG start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - divide start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT ) . | | (18) | 
+|---|---|---|---|
+| | μq⁢(𝐱t,𝐱0)=1αt⁢(𝐱t−1−αt1−α� | | (18) | 
+
+The missing ingredient here is ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT —the noise that drove the transition from 𝐱 0 subscript 𝐱 0 \mathbf{x}_{0} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT to 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT .
+To deal with this we will train a neural network to predict ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT .
+After training, the network will be a black box which takes as input 
+
+and returns 
+
+We will denote the prediction by the function ϵ θ subscript bold-italic-ϵ 𝜃 \boldsymbol{\epsilon}_{\theta} bold_italic_ϵ start_POSTSUBSCRIPT italic_θ end_POSTSUBSCRIPT , where θ 𝜃 \theta italic_θ represents the parameters in the neural network—these will be
+learned during the training phase. In each training step, we select an image 𝐱 0 subscript 𝐱 0 \mathbf{x}_{0} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT from the training set, take a Gaussian ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT and form a sample of 𝐱 t subscript 𝐱 𝑡 \mathbf{x}_{t} bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT using ( 8). The job of the network is to make the output ϵ θ subscript bold-italic-ϵ 𝜃 \boldsymbol{\epsilon}_{\theta} bold_italic_ϵ start_POSTSUBSCRIPT italic_θ end_POSTSUBSCRIPT as close as possible to ϵ ¯ t subscript ¯ bold-italic-ϵ 𝑡 \bar{\boldsymbol{\epsilon}}_{t} over¯ start_ARG bold_italic_ϵ end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT . 
+
+Recalling the expression ( 14) for the required transition density,
+using the neural network prediction ϵ θ subscript bold-italic-ϵ 𝜃 \boldsymbol{\epsilon}_{\theta} bold_italic_ϵ start_POSTSUBSCRIPT italic_θ end_POSTSUBSCRIPT in the expression ( 18) for the mean, and adjusting the variance using ( 15), we will
+obtain 𝐱 t − 1 subscript 𝐱 𝑡 1 \mathbf{x}_{t-1} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT from 
+
+| | 𝐱t−1=1αt⁢(𝐱t−1−αt1−α¯t⁢ϵθ)+σq⁢(t)⁢𝐳,subscript𝐱𝑡11subscript𝛼𝑡subscript𝐱𝑡1subscript𝛼𝑡1subscript¯𝛼𝑡subscriptbold-italic-ϵ𝜃subscript𝜎𝑞𝑡𝐳\mathbf{x}_{t-1}=\frac{1}{\sqrt{\alpha_{t}}}\left(\mathbf{x}_{t}-\frac{1-%
+\alpha_{t}}{\sqrt{1-\overline{\alpha}_{t}}}\,\boldsymbol{\epsilon}_{\theta}%
+\right)+\sigma_{q}(t)\,\mathbf{z},bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT = divide start_ARG 1 end_ARG start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - divide start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_θ end_POSTSUBSCRIPT ) + italic_σ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) bold_z , | | (19) | 
+|---|---|---|---|
+| | 𝐱t−1=1αt⁢(𝐱t−1−αt1−α¯t⁢ϵθ) | | (19) | 
+
+where 𝐳 𝐳 \mathbf{z} bold_z is a standard Gaussian.
+This allows us to run the denoising process from t = T 𝑡 𝑇 t=T italic_t = italic_T to t = 0 𝑡 0 t=0 italic_t = 0 . 
+
+Having set up the required expressions, in the next section we outline the resulting training and sampling algorithms. 
+
+## 5 Algorithms
+
+The training process is summarized in Algorithm 1.
+Here we are applying a basic stochastic gradient method [ 13] ; in step 5 the network parameters are updated using a least-squares loss function applied to a single, randomly chosen training image.
+This simple least-squares formulation can be justified from a likelihood perspective [ 4, 15, 16, 34] .
+The network architecture used for the experiments in section 2combines
+residual and
+attention blocks
+in a U-Net [ 33] type structure, motivated by the choice in [ 15] .
+Overall, that network has 12.9 Million parameters across 205 layers. 
+
+Algorithm 1 Training with the forward process [ 15] 1: repeat 2: 𝐱 0 ∼ q ⁢ ( 𝐱 0 ) similar-to subscript 𝐱 0 𝑞 subscript 𝐱 0 \mathbf{x}_{0}\sim q(\mathbf{x}_{0}) bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ∼ italic_q ( bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ) ▷ ▷ \triangleright ▷ choose an image from training set 3: t ∼ Uniform ⁢ ( { 1 , 2 , … , T } ) similar-to 𝑡 Uniform 1 2 … 𝑇 t\sim\mathrm{Uniform}(\{1,2,\ldots,T\}) italic_t ∼ roman_Uniform ( { 1 , 2 , … , italic_T } ) 4: ϵ ∼ N ⁢ ( 𝟎 , 𝐈 ) similar-to bold-italic-ϵ N 0 𝐈 \boldsymbol{\epsilon}\sim\mathrm{N}(\mathbf{0},\mathbf{I}) bold_italic_ϵ ∼ roman_N ( bold_0 , bold_I ) ▷ ▷ \triangleright ▷ standard Gaussian sample 5: Take gradient step w.r.t. θ 𝜃 \theta italic_θ on ‖ ϵ − ϵ θ ⁢ ( α ¯ t ⁢ 𝐱 0 + 1 − α ¯ t ⁢ ϵ , t ) ‖ 2 2 superscript subscript norm bold-italic-ϵ subscript bold-italic-ϵ 𝜃 subscript ¯ 𝛼 𝑡 subscript 𝐱 0 1 subscript ¯ 𝛼 𝑡 bold-italic-ϵ 𝑡 2 2 \|\boldsymbol{\epsilon}-\boldsymbol{\epsilon}_{\theta}(\sqrt{\overline{\alpha}%
+_{t}}\,\mathbf{x}_{0}+\sqrt{1-\overline{\alpha}_{t}}\,\boldsymbol{\epsilon},t)%
+\|_{2}^{2} ∥ bold_italic_ϵ - bold_italic_ϵ start_POSTSUBSCRIPT italic_θ end_POSTSUBSCRIPT ( square-root start_ARG over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT + square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG bold_italic_ϵ , italic_t ) ∥ start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT 6: until converged 
+
+Algorithm 2summarizes the sampling process.
+Here we define σ q ⁢ ( 1 ) = 0 subscript 𝜎 𝑞 1 0 \sigma_{q}(1)=0 italic_σ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( 1 ) = 0 , so that only the mean estimate based on ( 18) is used at t = 1 𝑡 1 t=1 italic_t = 1 . 
+
+Algorithm 2 Sampling with the backward process [ 15] 1: 𝐱 T ∼ N ⁢ ( 𝟎 , 𝐈 ) similar-to subscript 𝐱 𝑇 N 0 𝐈 \mathbf{x}_{T}\sim\mathrm{N}(\mathbf{0},\mathbf{I}) bold_x start_POSTSUBSCRIPT italic_T end_POSTSUBSCRIPT ∼ roman_N ( bold_0 , bold_I ) ▷ ▷ \triangleright ▷ standard Gaussian sample 2: for t = T , T − 1 , … , 1 𝑡 𝑇 𝑇 1 … 1 t=T,T-1,\ldots,1 italic_t = italic_T , italic_T - 1 , … , 1 do 3: 𝐳 ∼ N ⁢ ( 𝟎 , 𝐈 ) similar-to 𝐳 N 0 𝐈 \mathbf{z}\sim\mathrm{N}(\mathbf{0},\mathbf{I}) bold_z ∼ roman_N ( bold_0 , bold_I ) ▷ ▷ \triangleright ▷ standard Gaussian sample 4: 𝐱 t − 1 = 1 α t ⁢ ( 𝐱 t − 1 − α t 1 − α ¯ t ⁢ ϵ θ ) + σ q ⁢ ( t ) ⁢ 𝐳 subscript 𝐱 𝑡 1 1 subscript 𝛼 𝑡 subscript 𝐱 𝑡 1 subscript 𝛼 𝑡 1 subscript ¯ 𝛼 𝑡 subscript bold-italic-ϵ 𝜃 subscript 𝜎 𝑞 𝑡 𝐳 \mathbf{x}_{t-1}=\frac{1}{\sqrt{\alpha_{t}}}\left(\mathbf{x}_{t}-\frac{1-%
+\alpha_{t}}{\sqrt{1-\overline{\alpha}_{t}}}\,\boldsymbol{\epsilon}_{\theta}%
+\right)+\sigma_{q}(t)\,\mathbf{z} bold_x start_POSTSUBSCRIPT italic_t - 1 end_POSTSUBSCRIPT = divide start_ARG 1 end_ARG start_ARG square-root start_ARG italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG ( bold_x start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT - divide start_ARG 1 - italic_α start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG start_ARG square-root start_ARG 1 - over¯ start_ARG italic_α end_ARG start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT end_ARG end_ARG bold_italic_ϵ start_POSTSUBSCRIPT italic_θ end_POSTSUBSCRIPT ) + italic_σ start_POSTSUBSCRIPT italic_q end_POSTSUBSCRIPT ( italic_t ) bold_z 5: end for 6: return 𝐱 0 subscript 𝐱 0 \mathbf{x}_{0} bold_x start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT 
+
+## 6 Furthermore
+
+In this section we touch upon some issues that may have occurred to the reader, and provide references where further information may be found. 
+
+How do we judge the performance of generative AI? A generative model must balance the contradictory aims of producing outputs that are
+plausible (like the training data) and novel (not like the training data).
+Any attempt to quantify performance must involve somewhat arbitrary choices that allow this circle to be squared.
+A popular quantitative measure, which focuses on the plausibility aspect, is
+Fréchet Inception Distance [ 12] .
+This measure approximates and compares the probability distributions of the real and synthetic image spaces, under a Gaussian assumption.
+Some studies also make use of subjective human opinions, which raises new issues, including reproducibility and representativeness. 
+
+What are useful applications of diffusion models? Given that the internet already stores a bewildering array of real images, it is
+reasonable to ask whether the world needs synthetic examples, however realistic.
+However, in some domains representative artificial data is valuable.
+In medical imaging,
+for example, synthetically generated data may help address scarcity, class imbalance and privacy concerns
+in educational settings [ 21] .
+Perhaps the biggest attraction of diffusion models lies in their use within larger systems.
+A diffusion model for image generation may be viewed as a representation of the hidden, or latent,
+distribution of real-world images.
+By conditioning or guiding the image generation according to user-specified requirements, it is then possible to tailor the output to meet certain goals [ 2, 10, 17, 45] .
+For example, diffusion forms part of several systems with
+text-to-image capabilities, including
+Open AI’s
+DALL-E 2 [ 31] , Stability.ai’s Dreamstudio [ 32] and Google’s Imagen [ 34] .
+In-painting and overwriting unwanted pixels is also possible [ 44, 29] . 
+
+Stable diffusion may also be exploited within ChatGPT-style large language models; an example is
+Stability.ai’s
+StableLM-3B-4E1T [ 39] . 
+
+How computationally expensive is it to train and employ a diffusion model? For the simple low-resolution examples in section 2, using a pretrained network to produce new images
+is feasible on a standard desktop machine.
+However, high resolution image generation with a state-of-the-art
+pretrained diffusion model is
+a “high resource intensive and slow task that prohibits interactive experience for the users and results in huge computational cost on expensive GPUs” [ 1] .
+The size of many diffusion based models also raises storage issues: “generating high-resolution images with diffusion models is often infeasible on
+consumer-grade GPUs due to the the excessive memory requirements” [ 29] . 
+
+Training is greater challenge.
+For the examples in section 2we trained the network for 500 epochs in
+under 35 minutes on a single
+NVIDIA GeForce RTX 3090 GPU.
+It is reported in [ 40] that
+training the model in [ 7] consumes 150-1000 days of NVIDIA V100 GPU time.
+StableLM-3B-4E1T [ 39] is a 3 Billion parameter language model trained on 1 Trillion tokens of diverse English and code datasets; a 7 Billion parameter version was later released.
+Developing smaller-scale versions of such models, or applying the models to compressed latent spaces, is therefore an active area [ 32, 43] . 
+
+In terms of power usage when a trained model is deployed, Luccioni et al. [ 24] estimated that
+“the most carbon-intensive image generation model (stable-diffusion-xl-base-1.0) generates 1,594
+grams of CO2 for 1,000 inferences, which is roughly the equivalent to 4.1 miles driven by an average gasoline-powered passenger vehicle.” 
+
+Is it a coincidence that
+( 4) and
+( 19)
+look similar to a numerical discretization of a stochastic differential equation? It is natural to compare
+( 4) and
+( 19) with the Euler–Maruyama method [ 14] , and indeed there are variations of the forward diffusion model that
+have a direct correspondence with stochastic differential equations [ 15, 25, 29, 37] .
+The reverse process may also be associated with backward stochastic differential equations [ 40] . 
+
+What about the dark side: ethics, privacy, bias and related concerns? Carlini et al. [ 5] showed that diffusion models have a tendency to
+memorize and reproduce training images.
+For tests on
+Stable AI [ 32] and
+Imagen [ 34] they were able to
+“extract over a hundred near-identical
+replicas of training images that range from personally
+identifiable photos to trademarked logos.”
+Somepalli et al. [ 36] also found examples where a diffusion model “blatantly copies” from training data.
+The resulting harms to professional artists are considered in [ 20] ; these include “reputational damage, economic loss, plagiarism and copyright infringement.”
+When we move into the realm of text-to-image algorithms there are many further issues to consider, including fairness, toxicity and trust [ 11] . 
+
+The figures in section 2indicate that the output from a simple diffusion model is
+difficult to predict and hence to interpret.
+In particular, very different results can be generated
+from the same input. Explainable AI is a serious challenge in this setting. 
+
+On a more general note, any machine learning algorithm is likely to reflect the biases, omissions and errors
+in the training set [ 28] .
+See [ 18] for a proposed
+framework for data transparency. 
+
+We also mention that discussions around ethics in this field often assume that AI is, or will become, all-powerful, thereby
+overlooking empirical observations that
+these systems may fail to operate as intended—the so-called *fallacy of AI functionality *[ 30] .
+So, as well as the important question of what tasks *should *AI be used for, we must also ask what tasks *can *AI reliably perform.
+This latter issue is ripe for mathematical and statistical contributions. 
+
+Using generative AI to create content (text, images, music, videos, and so on)
+that is difficult or impossible to discriminate from human generated content may allow fakery and conspiracy theories to undermine societal safety and benefits. This begets novel risks that are already upon us, identified in part by the
+inaugural AI Safety Summit which met at Bletchley Park in November 2023. 1 1 1 [https://www.gov.uk/government/publications/ai-safety-summit-2023-chairs-statement-2-november/chairs-summary-of-the-ai-safety-summit-2023-bletchley-park](https://www.gov.uk/government/publications/ai-safety-summit-2023-chairs-statement-2-november/chairs-summary-of-the-ai-safety-summit-2023-bletchley-park)Arguably, some of the decadal data science focus on ethics and privacy should have been redirected towards the societal risk of fake truths and the widespread inability to discriminate between content; and the introduction of bias. These risks now require an in-depth consideration, as we seek to uncover
+and tackle the full range of possibilities. An understanding of the mathematical foundations of generative AI methods will be a key to ensuring transparency. 
+
+## 7 PDEs
+
+For many applied mathematicians, diffusion is synonymous with certain parabolic PDEs.
+Here we present some speculative material that aims to draw a PDE connection with the process described in section 3. The notion of continuously re-normalizing a diffusion process takes us outside the realm of standard textbook analysis, and opens up some issues that may be of independent interest. Depending on our choice of basic PDE there are several ways to ensure that the norm of some derivative of the solution remains unchanged over time. Here we illustrate this general idea by continuously re-scaling to preserve the norm of the gradient of the solution,
+that is, the total variation, over the domain. 
+
+Consider a real valued field u ⁢ ( x , t ) 𝑢 𝑥 𝑡 u(x,t) italic_u ( italic_x , italic_t ) , where x ∈ Ω 𝑥 Ω x\in\Omega italic_x ∈ roman_Ω , a bounded domain in ℝ d superscript ℝ 𝑑 \mathbb{R}^{d} blackboard_R start_POSTSUPERSCRIPT italic_d end_POSTSUPERSCRIPT with a piecewise smooth boundary, ∂ Ω Ω \partial\Omega ∂ roman_Ω , and time t ≥ 0 𝑡 0 t\geq 0 italic_t ≥ 0 , satisfying 
+
+| | ut=Δ⁢u+r⁢(t)⁢u,x∈Ω,∇u.𝐧=0,x∈∂Ω,formulae-sequenceformulae-sequencesubscript𝑢𝑡Δ𝑢𝑟𝑡𝑢𝑥Ω∇𝑢formulae-sequence𝐧0𝑥Ωu_{t}=\Delta u+r(t)u,\quad x\in\Omega,\quad\nabla u.{\bf n}=0,\quad x\in%
+\partial\Omega,italic_u start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = roman_Δ italic_u + italic_r ( italic_t ) italic_u , italic_x ∈ roman_Ω , ∇ italic_u . bold_n = 0 , italic_x ∈ ∂ roman_Ω , | | (20) | 
+|---|---|---|---|
+| | ut=Δ⁢u+r⁢(t)⁢u,x∈Ω,∇u.𝐧=0,x∈∂Ω | | (20) | 
+
+for a suitable given initial condition u ⁢ ( x , 0 ) = u 0 ⁢ ( x ) 𝑢 𝑥 0 subscript 𝑢 0 𝑥 u(x,0)=u_{0}(x) italic_u ( italic_x , 0 ) = italic_u start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ( italic_x ) .
+Here r ⁢ ( t ) > 0 𝑟 𝑡 0 r(t)>0 italic_r ( italic_t ) > 0 is a shadow time-dependent variable (akin to a Lagrange multiplier), which continuously rescales u 𝑢 u italic_u so that the L 2 superscript 𝐿 2 L^{2} italic_L start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT norm of the gradient of u 𝑢 u italic_u is preserved.
+More explicitly, r ⁢ ( t ) 𝑟 𝑡 r(t) italic_r ( italic_t ) must be such that 
+
+| | ∫Ω‖∇u‖2⁢𝑑x:=∫Ω∇u.∇u⁢d⁢x≡R(constant),t≥0.formulae-sequenceassignsubscriptΩsuperscriptnorm∇𝑢2differential-d𝑥subscriptΩ∇𝑢formulae-sequence∇𝑢𝑑𝑥𝑅constant𝑡0\int_{\Omega}||\nabla u||^{2}\,dx:{=}\int_{\Omega}\nabla u.\nabla u\,dx\equiv R%
+\quad\mathrm{(constant)},\ \ t\geq 0.∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT | | ∇ italic_u | | start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_d italic_x := ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT ∇ italic_u . ∇ italic_u italic_d italic_x ≡ italic_R ( roman_constant ) , italic_t ≥ 0 . | | (21) | 
+|---|---|---|---|
+| | ∫Ω‖∇u‖2⁢𝑑x:=∫Ω∇u.∇u⁢d⁢x�� | | (21) | 
+
+Here R > 0 𝑅 0 R>0 italic_R > 0 is determined from the initial condition. 
+
+Taking the gradient of ( 20), and then forming the scalar product with ∇ u ∇ 𝑢 \nabla u ∇ italic_u , and integrating over Ω Ω \Omega roman_Ω , we obtain 
+
+| | 12⁢dd⁢t⁢∫Ω∇u.∇u⁢d⁢x=∫Ω∇u.∇(Δ⁢u)⁡d⁢x+r⁢(t)⁢∫Ω∇u.∇u⁢d⁢x.formulae-sequence12𝑑𝑑𝑡subscriptΩ∇𝑢∇𝑢𝑑𝑥subscriptΩ∇𝑢∇Δ𝑢𝑑𝑥𝑟𝑡subscriptΩ∇𝑢∇𝑢𝑑𝑥\frac{1}{2}\,\frac{d\ }{dt}\int_{\Omega}\nabla u.\nabla u\,dx=\int_{\Omega}{%
+\nabla u.\nabla(\Delta u)}\,dx+r(t)\int_{\Omega}{\nabla u.\nabla u}\,dx.divide start_ARG 1 end_ARG start_ARG 2 end_ARG divide start_ARG italic_d end_ARG start_ARG italic_d italic_t end_ARG ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT ∇ italic_u . ∇ italic_u italic_d italic_x = ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT ∇ italic_u . ∇ ( roman_Δ italic_u ) italic_d italic_x + italic_r ( italic_t ) ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT ∇ italic_u . ∇ italic_u italic_d italic_x . | | 
+|---|---|---|
+| | 12⁢dd⁢t⁢∫Ω∇u.∇u⁢d⁢x=∫Ω∇u.∇ | | 
+
+But, by direct calculation, 
+
+| | ∇.(∇u⁢Δ⁢u)=(Δ⁢u)2+∇u.∇(Δ⁢u).formulae-sequence∇∇𝑢Δ𝑢superscriptΔ𝑢2∇𝑢∇Δ𝑢\nabla.(\nabla u\Delta u)=(\Delta u)^{2}+\nabla u.\nabla(\Delta u).∇ . ( ∇ italic_u roman_Δ italic_u ) = ( roman_Δ italic_u ) start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT + ∇ italic_u . ∇ ( roman_Δ italic_u ) . | | 
+|---|---|---|
+| | ∇.(∇u⁢Δ⁢u)=(Δ⁢u)2+∇u.∇(Δ⁢u).for | | 
+
+So, using the divergence theorem [ 26] together with the no-flux boundary condition, in order to ensure that R 𝑅 R italic_R is constant we must set 
+
+| | R⁢r⁢(t)=∫Ω(Δ⁢u)2⁢𝑑x≥0.𝑅𝑟𝑡subscriptΩsuperscriptΔ𝑢2differential-d𝑥0R\,r(t)=\int_{\Omega}{(\Delta u)^{2}}\,dx\geq 0.italic_R italic_r ( italic_t ) = ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT ( roman_Δ italic_u ) start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_d italic_x ≥ 0 . | | 
+|---|---|---|
+| | R⁢r⁢(t)=∫Ω(Δ⁢u)2⁢𝑑x≥0.𝑅𝑟��� | | 
+
+Thus we may write ( 20) and ( 21) as the nonlinear integro-differential equation 
+
+| | ut=Δ⁢u+uR⁢∫Ω(Δ⁢u)2⁢𝑑x,x∈Ω,∇u.𝐧=0,x∈∂Ω.formulae-sequenceformulae-sequencesubscript𝑢𝑡Δ𝑢𝑢𝑅subscriptΩsuperscriptΔ𝑢2differential-d𝑥𝑥Ω∇𝑢formulae-sequence𝐧0𝑥Ωu_{t}=\Delta u+\frac{u}{R}\int_{\Omega}{(\Delta u)^{2}}\,dx,\quad x\in\Omega,%
+\quad\nabla u.{\bf n}=0,\quad x\in\partial\Omega.italic_u start_POSTSUBSCRIPT italic_t end_POSTSUBSCRIPT = roman_Δ italic_u + divide start_ARG italic_u end_ARG start_ARG italic_R end_ARG ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT ( roman_Δ italic_u ) start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_d italic_x , italic_x ∈ roman_Ω , ∇ italic_u . bold_n = 0 , italic_x ∈ ∂ roman_Ω . | | (22) | 
+|---|---|---|---|
+| | ut=Δ⁢u+uR⁢∫Ω(Δ⁢u)2⁢𝑑x,x∈Ω,∇u. | | (22) | 
+
+Here, as before, R 𝑅 R italic_R in ( 22) is set by the initial condition: R = ∫ Ω ‖ ∇ u 0 ⁢ ( x ) ‖ 2 ⁢ 𝑑 x . 𝑅 subscript Ω superscript norm ∇ subscript 𝑢 0 𝑥 2 differential-d 𝑥 R=\int_{\Omega}||\nabla u_{0}(x)||^{2}\,dx. italic_R = ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT | | ∇ italic_u start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT ( italic_x ) | | start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_d italic_x . 
+
+For any R > 0 𝑅 0 R>0 italic_R > 0 , the constrained equation, ( 20) and ( 21), has infinitely many possible steady states, each of which is of the form 
+
+| | u=μk⁢ϕk⁢(x)andr=λk,formulae-sequence𝑢subscript𝜇𝑘subscriptitalic-ϕ𝑘𝑥and𝑟subscript𝜆𝑘u=\mu_{k}\phi_{k}(x)\quad{\rm and}\quad r=\lambda_{k},italic_u = italic_μ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ( italic_x ) roman_and italic_r = italic_λ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT , | | 
+|---|---|---|
+| | u=μk⁢ϕk⁢(x)andr=λk,formulae-sequence𝑢sub | | 
+
+where ( ϕ k ⁢ ( x ) , λ k ) subscript italic-ϕ 𝑘 𝑥 subscript 𝜆 𝑘 (\phi_{k}(x),\lambda_{k}) ( italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ( italic_x ) , italic_λ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ) is the k 𝑘 k italic_k th ( k = 0 , 1 , 2 , … 𝑘 0 1 2 … k=0,1,2,... italic_k = 0 , 1 , 2 , … ) eigenfunction-eigenvalue pair for the Laplacian on Ω Ω \Omega roman_Ω with no-flux boundary conditions. However, μ k subscript 𝜇 𝑘 \mu_{k} italic_μ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT must satisfy 
+
+| | μk2=R∫Ω‖∇ϕk‖2⁢𝑑x,superscriptsubscript𝜇𝑘2𝑅subscriptΩsuperscriptnorm∇subscriptitalic-ϕ𝑘2differential-d𝑥\mu_{k}^{2}=\frac{R}{\int_{\Omega}||\nabla\phi_{k}||^{2}\,dx},italic_μ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT = divide start_ARG italic_R end_ARG start_ARG ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT | | ∇ italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT | | start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_d italic_x end_ARG , | | 
+|---|---|---|
+| | μk2=R∫Ω‖∇ϕk‖2⁢𝑑x,superscriptsubscr | | 
+
+and so k ≥ 1 𝑘 1 k\geq 1 italic_k ≥ 1 , since the simplest eigenfunction satisfies ‖ ∇ ϕ 0 ‖ ≡ 0 norm ∇ subscript italic-ϕ 0 0 ||\nabla\phi_{0}||\equiv 0 | | ∇ italic_ϕ start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT | | ≡ 0 . 
+
+Now consider small perturbations around the k 𝑘 k italic_k th steady state. We set 
+
+| | u𝑢\displaystyle uitalic_u | =\displaystyle== | μk⁢(ϕk⁢(x)+ϵ⁢eσ⁢t⁢v⁢(x))+O⁢(ϵ2),subscript𝜇𝑘subscriptitalic-ϕ𝑘𝑥italic-ϵsuperscript𝑒𝜎𝑡𝑣𝑥𝑂superscriptitalic-ϵ2\displaystyle\mu_{k}\left(\phi_{k}(x)+\epsilon e^{\sigma t}v(x)\right)+O(%
+\epsilon^{2}),italic_μ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ( italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ( italic_x ) + italic_ϵ italic_e start_POSTSUPERSCRIPT italic_σ italic_t end_POSTSUPERSCRIPT italic_v ( italic_x ) ) + italic_O ( italic_ϵ start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT ) , | | 
+|---|---|---|---|---|---|---|---|---|---|
+| | u𝑢\displaystyle uitalic_u | =\displaystyle== | μk⁢(ϕk⁢(x)+ϵ⁢eσ⁢t⁢v⁢(x))+O⁢(ϵ2) | | 
+| | r⁢(t)𝑟𝑡\displaystyle r(t)italic_r ( italic | =\displaystyle== | λk+ϵ⁢β⁢eσ⁢t+O⁢(ϵ2),subscript𝜆𝑘i | | 
+
+for some v ⁢ ( x ) 𝑣 𝑥 v(x) italic_v ( italic_x ) and constants ( σ , β ) 𝜎 𝛽 (\sigma,\beta) ( italic_σ , italic_β ) to be determined. Substituting these expressions into ( 20), to O ⁢ ( ϵ ) 𝑂 italic-ϵ O(\epsilon) italic_O ( italic_ϵ ) we obtain 
+
+| | 0=Δ⁢v+(λk−σ)⁢v+β⁢ϕk,x∈Ω,∇v.𝐧=0,x∈∂Ω.formulae-sequenceformulae-sequence0Δ𝑣subscript𝜆𝑘𝜎𝑣𝛽subscriptitalic-ϕ𝑘𝑥Ω∇𝑣formulae-sequence𝐧0𝑥Ω0=\Delta v+(\lambda_{k}-\sigma)v+\beta\phi_{k},\quad x\in\Omega,\quad\nabla v.%
+{\bf n}=0,\quad x\in\partial\Omega.0 = roman_Δ italic_v + ( italic_λ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT - italic_σ ) italic_v + italic_β italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT , italic_x ∈ roman_Ω , ∇ italic_v . bold_n = 0 , italic_x ∈ ∂ roman_Ω . | | (23) | 
+|---|---|---|---|
+| | 0=Δ⁢v+(λk−σ)⁢v+β⁢ϕk,x∈Ω,∇v.𝐧= | | (23) | 
+
+Now setting v = ϕ k ~ 𝑣 subscript italic-ϕ ~ 𝑘 v=\phi_{\tilde{k}} italic_v = italic_ϕ start_POSTSUBSCRIPT over~ start_ARG italic_k end_ARG end_POSTSUBSCRIPT , for k ≠ k ~ 𝑘 ~ 𝑘 k\neq\tilde{k} italic_k ≠ over~ start_ARG italic_k end_ARG (since the eigenfunctions form an orthonormal basis for the solution space), ( 23) yields 
+
+| | 0=(λk−λk~−σ)⁢ϕk~+β⁢ϕk,x∈Ω,formulae-sequence0subscript𝜆𝑘subscript𝜆~𝑘𝜎subscriptitalic-ϕ~𝑘𝛽subscriptitalic-ϕ𝑘𝑥Ω0=(\lambda_{k}-\lambda_{\tilde{k}}-\sigma)\phi_{\tilde{k}}+\beta\phi_{k},\quad
+x%
+\in\Omega,0 = ( italic_λ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT - italic_λ start_POSTSUBSCRIPT over~ start_ARG italic_k end_ARG end_POSTSUBSCRIPT - italic_σ ) italic_ϕ start_POSTSUBSCRIPT over~ start_ARG italic_k end_ARG end_POSTSUBSCRIPT + italic_β italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT , italic_x ∈ roman_Ω , | | 
+|---|---|---|
+| | 0=(λk−λk~−σ)⁢ϕk~+β⁢ϕk,x∈Ω,formula | | 
+
+so that 
+
+| | σ=λk−λk~⁢and⁢β=0.𝜎subscript𝜆𝑘subscript𝜆~𝑘and𝛽0\sigma=\lambda_{k}-\lambda_{\tilde{k}}\ {\rm and}\ \beta=0.italic_σ = italic_λ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT - italic_λ start_POSTSUBSCRIPT over~ start_ARG italic_k end_ARG end_POSTSUBSCRIPT roman_and italic_β = 0 . | | 
+|---|---|---|
+| | σ=λk−λk~⁢and⁢β=0.𝜎subscript𝜆𝑘su | | 
+
+The condition on σ 𝜎 \sigma italic_σ implies that each steady state is stable with respect to perturbations in all higher eigenmodes, where k < k ~ 𝑘 ~ 𝑘 k<\tilde{k} italic_k < over~ start_ARG italic_k end_ARG , yet is unstable with respect to any perturbations in lower eigenmodes, k > k ~ 𝑘 ~ 𝑘 k>\tilde{k} italic_k > over~ start_ARG italic_k end_ARG .
+Thus over a long time the solution must decay to the the first eigenmode, μ 1 ⁢ ϕ 1 ⁢ ( x ) subscript 𝜇 1 subscript italic-ϕ 1 𝑥 \mu_{1}\phi_{1}(x) italic_μ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT italic_ϕ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT ( italic_x ) . 
+
+This is borne out in the numerical experiment shown in Figure 7. Here, for a one dimensional domain Ω = [ 0 , 1 ] Ω 0 1 \Omega=[0,1] roman_Ω = [ 0 , 1 ] , we have ϕ k ⁢ ( x ) = 2 ⁢ cos ⁡ k ⁢ π ⁢ x subscript italic-ϕ 𝑘 𝑥 2 𝑘 𝜋 𝑥 \phi_{k}(x)=\sqrt{2}\cos k\pi x italic_ϕ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT ( italic_x ) = square-root start_ARG 2 end_ARG roman_cos italic_k italic_π italic_x and λ k = k 2 ⁢ π 2 subscript 𝜆 𝑘 superscript 𝑘 2 superscript 𝜋 2 \lambda_{k}=k^{2}\pi^{2} italic_λ start_POSTSUBSCRIPT italic_k end_POSTSUBSCRIPT = italic_k start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_π start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT . 
+
+![Refer to caption](extracted/5311195/pippa2.png)Figure 7 : Numerical solution profiles of ( 20) and ( 21) where d = 1 𝑑 1 d=1 italic_d = 1 and Ω = [ 0 , 1 ] Ω 0 1 \Omega=[0,1] roman_Ω = [ 0 , 1 ] , shown at successive times on a log \log roman_log timescale ( t = 𝑡 absent t= italic_t = 1.5 (blue), 15 (yellow), 150 (green), and 1500 (red)), where any ϕ 0 subscript italic-ϕ 0 \phi_{0} italic_ϕ start_POSTSUBSCRIPT 0 end_POSTSUBSCRIPT component has been set to zero. In this case each profile has ∫ Ω ‖ ∇ u ‖ 2 ⁢ 𝑑 x ≡ R ≈ 11.15 subscript Ω superscript norm ∇ 𝑢 2 differential-d 𝑥 𝑅 11.15 \int_{\Omega}||\nabla u||^{2}\,dx\equiv R\approx 11.15 ∫ start_POSTSUBSCRIPT roman_Ω end_POSTSUBSCRIPT | | ∇ italic_u | | start_POSTSUPERSCRIPT 2 end_POSTSUPERSCRIPT italic_d italic_x ≡ italic_R ≈ 11.15 . The ϕ 1 subscript italic-ϕ 1 \phi_{1} italic_ϕ start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT mode dominates at larger times. 
+
+This framework and others in physics (see for example [ 41, 42] ) suggests a number of ways that generative AI might exploit, or be
+explained by, PDE theory. The central challenge is being able to run the processes in reverse in order to generate plausible content from randomness. 
+
+Of course in the example above the parabolicity of the forward dynamic evolution, ( 20) and ( 21), means that, formally, the backward equation is ill-posed, there being no global solution guaranteed, with both discontinuities and point masses possibly occurring as time moves backwards. Hence any backward approximation should require some mollification, perhaps via a numerical solution that leverages finite resolution and norm preserving properties. 
+
+In general one should also wish to consider (i) how these norm-preserving (re-scaling) diffusion systems work when they are subject to stochastic forcing over a finite time, and (ii) how such processes might be run backwards in seeking to recover or approximate the initial conditions under various Markovian assumptions. 
+
+## Data Statement
+
+Code for the experiments presented here will be made available upon publication. 
+
+
+---
+
+Title: What are Diffusion Models? - GeeksforGeeks
+
+# What are Diffusion Models?
+
+Last Updated : 14 Apr, 2026 
+
+Diffusion models are a type of generative AI that create data like images or audio by starting from random noise and gradually refining it into meaningful output. They learn this process by adding noise to real data during training and then reversing it step by step. This allows them to generate realistic and high-quality samples from scratch. 
+
+![diffusion_model](https://media.geeksforgeeks.org/wp-content/uploads/20260411155255025417/diffusion_model.webp)Diffusion Model 
+
+Diffusion models are generative models that create realistic data by learning to remove noise from random inputs. 
+
+## Key Components
+
+## Architecture of Diffusion Models
+
+Diffusion models are built on a two-stage probabilistic framework that transforms data into noise and then learns to reverse this process to generate new samples. 
+
+### 1. Forward Diffusion Process (Noise Addition)
+
+The forward process is a fixed (non-learnable) [Markov chain](https://www.geeksforgeeks.org/machine-learning/markov-chain/)that gradually adds [Gaussian noise](https://www.geeksforgeeks.org/electronics-engineering/gaussian-noise/)to the data over multiple timesteps until it becomes pure noise. At each step, a small amount of noise is added: 
+
+> x_t = \sqrt{\bar{\alpha}_t} , x_0 + \sqrt{1 - \bar{\alpha}_t} , \epsilon]
+
+****where ****
+
+![fd](https://media.geeksforgeeks.org/wp-content/uploads/20260305115631270221/fd.webp)Forward Diffusion Process 
+
+The process follows the Markov property, meaning each step depends only on the previous step. As the number of steps T increases, the data distribution converges to pure Gaussian noise. 
+
+### 2. Reverse Diffusion Process (Denoising)
+
+The reverse process is the core learning component, where a neural network learns to remove noise step-by-step. It models the reverse transition: 
+
+> p_\theta(x_{t-1} | x_t) = \mathcal{N}(x_{t-1}; \mu_\theta(x_t, t), \sigma_\theta(x_t, t))
+
+where, 
+
+![image456hu](https://media.geeksforgeeks.org/wp-content/uploads/20260323154926075722/image456hu.webp)Reverse Diffusion Process 
+
+Instead of directly predicting x t-1 , the model typically predicts the noise \epsilon added at each step. This simplifies training and leads to better stability. 
+
+## How Diffusion Models Work
+
+Diffusion models generate realistic data by learning how to gradually convert random noise into structured data through a sequence of small, manageable denoising steps. 
+
+### 1. Forward Process (Diffusion / Noise Addition)
+
+The forward process is the first stage where clean data is slowly corrupted by adding Gaussian noise over many steps. 
+
+Starting with original data x 0 noise is added step by step: 
+
+> x_t = \sqrt{1 - \beta_t}\, x_{t-1} + \sqrt{\beta_t}\, \epsilon
+
+where \beta_{t} controls how much noise is added at step t and \epsilon \sim \mathcal{N}(0, I) is random Gaussian noise. 
+
+### 2. Reverse Process (Learning to Denoise)
+
+In this step, the model learns to reverse the noise added during the forward process by gradually denoising the data to recover meaningful structure. 
+
+The reverse process is modeled as: 
+
+> p_{\theta}(x_{t-1} \mid x_t)
+
+The denoising step can be written as: 
+
+> x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \beta_t}} \epsilon_\theta(x_t, t) \right)
+
+where \epsilon_{\theta}(x_{t},t) is the neural network that predicts the noise present in x_{t} . 
+
+### 3: Training Objective (Loss Function)
+
+During training, the model learns to predict the noise added at each step by comparing its predictions with the actual noise. 
+
+The objective function is: 
+
+> L(\theta) = \mathbb{E}_{t, x_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(x_t, t) \|^2 \right]
+
+It represents the Mean Squared Error (MSE) between the actual noise and the predicted noise, derived from the variational inference objective (ELBO). 
+
+### 4. Sampling and Data Generation
+
+After training, the model generates new data by starting from random noise and gradually refining it into meaningful structure. 
+
+## Step By Step Implementation
+
+Here, we implement a diffusion model to understand how noise is added, learned and removed to generate new data. 
+
+### Step 1: Install Necessary Libraries
+
+Import all the necessary libraries required for building and training the diffusion model. 
+
+Python `import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision
+from torchvision import transforms
+from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import numpy as np`
+
+### Step 2: Beta Schedule and Noise Schedule
+
+Define a linear noise schedule that controls how much noise is added at each timestep and compute related parameters like \alpha_{t} and cumulative products used in the diffusion process. 
+
+Python `def linear_beta_schedule(timesteps):
+ beta_start = 0.0001
+ beta_end = 0.02
+ return torch.linspace(beta_start, beta_end, timesteps)
+
+T = 200
+betas = linear_beta_schedule(T)
+
+alphas = 1. - betas
+alphas_cumprod = torch.cumprod(alphas, axis=0)`
+
+### Step 3: Forward Diffusion Process
+
+Here we define a function that adds noise to the original image at a given timestep using precomputed parameters, returning both the noisy image and the noise added for training. 
+
+Python `def forward_diffusion_sample(x_0, t, noise=None):
+ """
+ Add noise to the image x_0 at timestep t
+ """
+ if noise is None:
+ noise = torch.randn_like(x_0)
+ sqrt_alphas_cumprod = torch.sqrt(alphas_cumprod[t])[:, None, None, None]
+ sqrt_one_minus_alphas_cumprod = torch.sqrt(1 - alphas_cumprod[t])[:, None, None, None]
+ return sqrt_alphas_cumprod * x_0 + sqrt_one_minus_alphas_cumprod * noise, noise`
+
+### Step 4: Neural Network (U Net or simple CNN)
+
+Here, a simple convolutional neural network is built to take a noisy image as input and predict the noise present in it, which is then used for the denoising process. 
+
+Python `class SimpleModel(nn.Module):
+ def __init__(self):
+ super().__init__()
+ self.net = nn.Sequential(
+ nn.Conv2d(1, 32, 3, padding=1), nn.ReLU(),
+ nn.Conv2d(32, 32, 3, padding=1), nn.ReLU(),
+ nn.Conv2d(32, 1, 3, padding=1),
+ )
+
+ def forward(self, x, t):
+ return self.net(x)`
+
+### Step 5: Load Data and Train the Model
+
+Prepares the dataset and trains the model to learn noise prediction. 
+
+Python `def get_data():
+ transform = transforms.Compose([
+ transforms.ToTensor(), 
+ lambda x: x * 2 - 1 
+ ])
+ dataset = MNIST(root="./data", train=True, download=True, transform=transform)
+ dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
+ return dataloader
+
+def train(model, dataloader, optimizer, epochs=5):
+ for epoch in range(epochs):
+ for step, (x, _) in enumerate(dataloader):
+ x = x.to(device)
+ t = torch.randint(0, T, (x.shape[0],), device=device).long()
+ x_noisy, noise = forward_diffusion_sample(x, t)
+ noise_pred = model(x_noisy, t)
+ loss = F.mse_loss(noise_pred, noise)
+
+ optimizer.zero_grad()
+ loss.backward()
+ optimizer.step()
+
+ print(f"Epoch {epoch}: Loss {loss.item():.4f}")`
+
+### Step 6: Sampling (Generating New Images)
+
+This step generates new images by starting from random noise and gradually denoising it using the trained model. 
+
+Python `@torch.no_grad()
+def sample(model, image_size, num_samples):
+ model.eval()
+ x = torch.randn((num_samples, 1, image_size, image_size), device=device)
+ for t in reversed(range(T)):
+ t_tensor = torch.full((num_samples,), t, device=device, dtype=torch.long)
+ pred_noise = model(x, t_tensor)
+ alpha = alphas[t]
+ alpha_bar = alphas_cumprod[t]
+ beta = betas[t]
+ if t > 0:
+ noise = torch.randn_like(x)
+ else:
+ noise = 0
+ x = (1 / torch.sqrt(alpha)) * (
+ x - (beta / torch.sqrt(1 - alpha_bar)) * pred_noise
+ ) + torch.sqrt(beta) * noise
+ return x`
+
+### Step 7: Running the Model
+
+Initializes the model and optimizer, trains the diffusion model on the dataset and then generates and visualizes new image samples produced by the model. 
+
+Python `device = "cuda" if torch.cuda.is_available() else "cpu"
+model = SimpleModel().to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+dataloader = get_data()
+
+train(model, dataloader, optimizer)
+
+samples = sample(model, 28, 16)
+grid = torchvision.utils.make_grid(samples.cpu(), nrow=4, normalize=True)
+plt.imshow(grid.permute(1, 2, 0))
+plt.axis("off")
+plt.show()`
+
+****Output: ****
+
+![Output](https://media.geeksforgeeks.org/wp-content/uploads/20250804192217759351/Output.webp)Output Plot > Download the source code from here
+
+## Applications
+
+## Advantages
+
+## Limitations
+
+Comment Article Tags: Article Tags: [Blogathon](https://www.geeksforgeeks.org/category/blogathon/)[Artificial Intelligence](https://www.geeksforgeeks.org/category/ai-ml-ds/artificial-intelligence/)[AI-ML-DS](https://www.geeksforgeeks.org/category/ai-ml-ds/)[Generative AI](https://www.geeksforgeeks.org/tag/generative-ai/)[Data Science Blogathon 2024](https://www.geeksforgeeks.org/tag/data-science-blogathon-2024/)+1 More
+
+
+---
+
+Title: What are Diffusion Models? | Lil'Log
+[Updated on 2021-09-19: Highly recommend this blog post on [score-based generative modeling](https://yang-song.github.io/blog/2021/score/)by Yang Song (author of several key papers in the references)]. 
+[Updated on 2022-08-27: Added classifier-free guidance, GLIDE, unCLIPand Imagen. 
+[Updated on 2022-08-31: Added latent diffusion model. 
+[Updated on 2024-04-13: Added progressive distillation, consistency models, and the Model Architecture section. 
+
+So far, I’ve written about three types of generative models, [GAN](https://lilianweng.github.io/posts/2017-08-20-gan/), [VAE](https://lilianweng.github.io/posts/2018-08-12-vae/), and [Flow-based](https://lilianweng.github.io/posts/2018-10-13-flow-models/)models. They have shown great success in generating high-quality samples, but each has some limitations of its own. GAN models are known for potentially unstable training and less diversity in generation due to their adversarial training nature. VAE relies on a surrogate loss. Flow models have to use specialized architectures to construct reversible transform. 
+
+Diffusion models are inspired by non-equilibrium thermodynamics. They define a Markov chain of diffusion steps to slowly add random noise to data and then learn to reverse the diffusion process to construct desired data samples from the noise. Unlike VAE or flow models, diffusion models are learned with a fixed procedure and the latent variable has high dimensionality (same as the original data). 
+
+![](generative-overview.png)Overview of different types of generative models. 
+
+# What are Diffusion Models?#
+
+Several diffusion-based generative models have been proposed with similar ideas underneath, including *diffusion probabilistic models *( [Sohl-Dickstein et al., 2015](https://arxiv.org/abs/1503.03585)), *noise-conditioned score network *( **NCSN **; [Yang & Ermon, 2019](https://arxiv.org/abs/1907.05600)), and *denoising diffusion probabilistic models *( **DDPM **; [Ho et al. 2020](https://arxiv.org/abs/2006.11239)). 
+
+## Forward diffusion process#
+
+Given a data point sampled from a real data distribution $\mathbf{x}_0 \sim q(\mathbf{x})$, let us define a *forward diffusion process *in which we add small amount of Gaussian noise to the sample in $T$ steps, producing a sequence of noisy samples $\mathbf{x}_1, \dots, \mathbf{x}_T$. The step sizes are controlled by a variance schedule $\{\beta_t \in (0, 1)\}_{t=1}^T$. 
+
+$$
+q(\mathbf{x}_t \vert \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_t; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t\mathbf{I}) \quad
+q(\mathbf{x}_{1:T} \vert \mathbf{x}_0) = \prod^T_{t=1} q(\mathbf{x}_t \vert \mathbf{x}_{t-1})
+$$ 
+
+The data sample $\mathbf{x}_0$ gradually loses its distinguishable features as the step $t$ becomes larger. Eventually when $T \to \infty$, $\mathbf{x}_T$ is equivalent to an isotropic Gaussian distribution. 
+
+![](DDPM.png)The Markov chain of forward (reverse) diffusion process of generating a sample by slowly adding (removing) noise. (Image source: [Ho et al. 2020](https://arxiv.org/abs/2006.11239)with a few additional annotations) 
+
+A nice property of the above process is that we can sample $\mathbf{x}_t$ at any arbitrary time step $t$ in a closed form using [reparameterization trick](https://lilianweng.github.io/posts/2018-08-12-vae/#reparameterization-trick). Let $\alpha_t = 1 - \beta_t$ and $\bar{\alpha}_t = \prod_{i=1}^t \alpha_i$: 
+
+$$
+\begin{aligned}
+\mathbf{x}_t 
+&= \sqrt{\alpha_t}\mathbf{x}_{t-1} + \sqrt{1 - \alpha_t}\boldsymbol{\epsilon}_{t-1} & \text{ ;where } \boldsymbol{\epsilon}_{t-1}, \boldsymbol{\epsilon}_{t-2}, \dots \sim \mathcal{N}(\mathbf{0}, \mathbf{I}) \\
+&= \sqrt{\alpha_t \alpha_{t-1}} \mathbf{x}_{t-2} + \sqrt{1 - \alpha_t \alpha_{t-1}} \bar{\boldsymbol{\epsilon}}_{t-2} & \text{ ;where } \bar{\boldsymbol{\epsilon}}_{t-2} \text{ merges two Gaussians (*).} \\
+&= \dots \\
+&= \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon} \\
+q(\mathbf{x}_t \vert \mathbf{x}_0) &= \mathcal{N}(\mathbf{x}_t; \sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t)\mathbf{I})
+\end{aligned}
+$$ 
+
+(*) Recall that when we merge two Gaussians with different variance, $\mathcal{N}(\mathbf{0}, \sigma_1^2\mathbf{I})$ and $\mathcal{N}(\mathbf{0}, \sigma_2^2\mathbf{I})$, the new distribution is $\mathcal{N}(\mathbf{0}, (\sigma_1^2 + \sigma_2^2)\mathbf{I})$. Here the merged standard deviation is $\sqrt{(1 - \alpha_t) + \alpha_t (1-\alpha_{t-1})} = \sqrt{1 - \alpha_t\alpha_{t-1}}$. 
+
+Usually, we can afford a larger update step when the sample gets noisier, so $\beta_1 < \beta_2 < \dots < \beta_T$ and therefore $\bar{\alpha}_1 > \dots > \bar{\alpha}_T$. 
+
+### Connection with stochastic gradient Langevin dynamics#
+
+Langevin dynamics is a concept from physics, developed for statistically modeling molecular systems. Combined with stochastic gradient descent, *stochastic gradient Langevin dynamics *( [Welling & Teh 2011](https://www.stats.ox.ac.uk/~teh/research/compstats/WelTeh2011a.pdf)) can produce samples from a probability density $p(\mathbf{x})$ using only the gradients $\nabla_\mathbf{x} \log p(\mathbf{x})$ in a Markov chain of updates: 
+
+$$
+\mathbf{x}_t = \mathbf{x}_{t-1} + \frac{\delta}{2} \nabla_\mathbf{x} \log p(\mathbf{x}_{t-1}) + \sqrt{\delta} \boldsymbol{\epsilon}_t
+,\quad\text{where }
+\boldsymbol{\epsilon}_t \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
+$$ 
+
+where $\delta$ is the step size. When $T \to \infty, \epsilon \to 0$, $\mathbf{x}_T$ equals to the true probability density $p(\mathbf{x})$. 
+
+Compared to standard SGD, stochastic gradient Langevin dynamics injects Gaussian noise into the parameter updates to avoid collapses into local minima. 
+
+## Reverse diffusion process#
+
+If we can reverse the above process and sample from $q(\mathbf{x}_{t-1} \vert \mathbf{x}_t)$, we will be able to recreate the true sample from a Gaussian noise input, $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$. Note that if $\beta_t$ is small enough, $q(\mathbf{x}_{t-1} \vert \mathbf{x}_t)$ will also be Gaussian. Unfortunately, we cannot easily estimate $q(\mathbf{x}_{t-1} \vert \mathbf{x}_t)$ because it needs to use the entire dataset and therefore we need to learn a model $p_\theta$ to approximate these conditional probabilities in order to run the *reverse diffusion process *. 
+
+$$
+p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod^T_{t=1} p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t) \quad
+p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t))
+$$ ![](diffusion-example.png)An example of training a diffusion model for modeling a 2D swiss roll data. (Image source: [Sohl-Dickstein et al., 2015](https://arxiv.org/abs/1503.03585)) 
+
+It is noteworthy that the reverse conditional probability is tractable when conditioned on $\mathbf{x}_0$: 
+
+$$
+q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t-1}; \color{blue}{\tilde{\boldsymbol{\mu}}}(\mathbf{x}_t, \mathbf{x}_0), \color{red}{\tilde{\beta}_t} \mathbf{I})
+$$ 
+
+Using Bayes’ rule, we have: 
+
+$$
+\begin{aligned}
+q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0) 
+&= q(\mathbf{x}_t \vert \mathbf{x}_{t-1}, \mathbf{x}_0) \frac{ q(\mathbf{x}_{t-1} \vert \mathbf{x}_0) }{ q(\mathbf{x}_t \vert \mathbf{x}_0) } \\
+&\propto \exp \Big(-\frac{1}{2} \big(\frac{(\mathbf{x}_t - \sqrt{\alpha_t} \mathbf{x}_{t-1})^2}{\beta_t} + \frac{(\mathbf{x}_{t-1} - \sqrt{\bar{\alpha}_{t-1}} \mathbf{x}_0)^2}{1-\bar{\alpha}_{t-1}} - \frac{(\mathbf{x}_t - \sqrt{\bar{\alpha}_t} \mathbf{x}_0)^2}{1-\bar{\alpha}_t} \big) \Big) \\
+&= \exp \Big(-\frac{1}{2} \big(\frac{\mathbf{x}_t^2 - 2\sqrt{\alpha_t} \mathbf{x}_t \color{blue}{\mathbf{x}_{t-1}} \color{black}{+ \alpha_t} \color{red}{\mathbf{x}_{t-1}^2} }{\beta_t} + \frac{ \color{red}{\mathbf{x}_{t-1}^2} \color{black}{- 2 \sqrt{\bar{\alpha}_{t-1}} \mathbf{x}_0} \color{blue}{\mathbf{x}_{t-1}} \color{black}{+ \bar{\alpha}_{t-1} \mathbf{x}_0^2} }{1-\bar{\alpha}_{t-1}} - \frac{(\mathbf{x}_t - \sqrt{\bar{\alpha}_t} \mathbf{x}_0)^2}{1-\bar{\alpha}_t} \big) \Big) \\
+&= \exp\Big( -\frac{1}{2} \big( \color{red}{(\frac{\alpha_t}{\beta_t} + \frac{1}{1 - \bar{\alpha}_{t-1}})} \mathbf{x}_{t-1}^2 - \color{blue}{(\frac{2\sqrt{\alpha_t}}{\beta_t} \mathbf{x}_t + \frac{2\sqrt{\bar{\alpha}_{t-1}}}{1 - \bar{\alpha}_{t-1}} \mathbf{x}_0)} \mathbf{x}_{t-1} \color{black}{ + C(\mathbf{x}_t, \mathbf{x}_0) \big) \Big)}
+\end{aligned}
+$$ 
+
+where $C(\mathbf{x}_t, \mathbf{x}_0)$ is some function not involving $\mathbf{x}_{t-1}$ and details are omitted. Following the standard Gaussian density function, the mean and variance can be parameterized as follows (recall that $\alpha_t = 1 - \beta_t$ and $\bar{\alpha}_t = \prod_{i=1}^t \alpha_i$): 
+
+$$
+\begin{aligned}
+\tilde{\beta}_t 
+&= 1/(\frac{\alpha_t}{\beta_t} + \frac{1}{1 - \bar{\alpha}_{t-1}}) 
+= 1/(\frac{\alpha_t - \bar{\alpha}_t + \beta_t}{\beta_t(1 - \bar{\alpha}_{t-1})})
+= \color{green}{\frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \cdot \beta_t} \\
+\tilde{\boldsymbol{\mu}}_t (\mathbf{x}_t, \mathbf{x}_0)
+&= (\frac{\sqrt{\alpha_t}}{\beta_t} \mathbf{x}_t + \frac{\sqrt{\bar{\alpha}_{t-1} }}{1 - \bar{\alpha}_{t-1}} \mathbf{x}_0)/(\frac{\alpha_t}{\beta_t} + \frac{1}{1 - \bar{\alpha}_{t-1}}) \\
+&= (\frac{\sqrt{\alpha_t}}{\beta_t} \mathbf{x}_t + \frac{\sqrt{\bar{\alpha}_{t-1} }}{1 - \bar{\alpha}_{t-1}} \mathbf{x}_0) \color{green}{\frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \cdot \beta_t} \\
+&= \frac{\sqrt{\alpha_t}(1 - \bar{\alpha}_{t-1})}{1 - \bar{\alpha}_t} \mathbf{x}_t + \frac{\sqrt{\bar{\alpha}_{t-1}}\beta_t}{1 - \bar{\alpha}_t} \mathbf{x}_0\\
+\end{aligned}
+$$ 
+
+Thanks to the nice property, we can represent $\mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_t}}(\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon}_t)$ and plug it into the above equation and obtain: 
+
+$$
+\begin{aligned}
+\tilde{\boldsymbol{\mu}}_t
+&= \frac{\sqrt{\alpha_t}(1 - \bar{\alpha}_{t-1})}{1 - \bar{\alpha}_t} \mathbf{x}_t + \frac{\sqrt{\bar{\alpha}_{t-1}}\beta_t}{1 - \bar{\alpha}_t} \frac{1}{\sqrt{\bar{\alpha}_t}}(\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon}_t) \\
+&= \color{cyan}{\frac{1}{\sqrt{\alpha_t}} \Big( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \Big)}
+\end{aligned}
+$$ 
+
+As demonstrated in Fig. 2., such a setup is very similar to [VAE](https://lilianweng.github.io/posts/2018-08-12-vae/)and thus we can use the variational lower bound to optimize the negative log-likelihood. 
+
+$$
+\begin{aligned}
+- \log p_\theta(\mathbf{x}_0) 
+&\leq - \log p_\theta(\mathbf{x}_0) + D_\text{KL}(q(\mathbf{x}_{1:T}\vert\mathbf{x}_0) \| p_\theta(\mathbf{x}_{1:T}\vert\mathbf{x}_0) ) & \small{\text{; KL is non-negative}}\\
+&= - \log p_\theta(\mathbf{x}_0) + \mathbb{E}_{\mathbf{x}_{1:T}\sim q(\mathbf{x}_{1:T} \vert \mathbf{x}_0)} \Big[ \log\frac{q(\mathbf{x}_{1:T}\vert\mathbf{x}_0)}{p_\theta(\mathbf{x}_{0:T}) / p_\theta(\mathbf{x}_0)} \Big] \\
+&= - \log p_\theta(\mathbf{x}_0) + \mathbb{E}_q \Big[ \log\frac{q(\mathbf{x}_{1:T}\vert\mathbf{x}_0)}{p_\theta(\mathbf{x}_{0:T})} + \log p_\theta(\mathbf{x}_0) \Big] \\
+&= \mathbb{E}_q \Big[ \log \frac{q(\mathbf{x}_{1:T}\vert\mathbf{x}_0)}{p_\theta(\mathbf{x}_{0:T})} \Big] \\
+\text{Let }L_\text{VLB} 
+&= \mathbb{E}_{q(\mathbf{x}_{0:T})} \Big[ \log \frac{q(\mathbf{x}_{1:T}\vert\mathbf{x}_0)}{p_\theta(\mathbf{x}_{0:T})} \Big] \geq - \mathbb{E}_{q(\mathbf{x}_0)} \log p_\theta(\mathbf{x}_0)
+\end{aligned}
+$$ 
+
+It is also straightforward to get the same result using Jensen’s inequality. Say we want to minimize the cross entropy as the learning objective, 
+
+$$
+\begin{aligned}
+L_\text{CE}
+&= - \mathbb{E}_{q(\mathbf{x}_0)} \log p_\theta(\mathbf{x}_0) \\
+&= - \mathbb{E}_{q(\mathbf{x}_0)} \log \Big( \int p_\theta(\mathbf{x}_{0:T}) d\mathbf{x}_{1:T} \Big) \\
+&= - \mathbb{E}_{q(\mathbf{x}_0)} \log \Big( \int q(\mathbf{x}_{1:T} \vert \mathbf{x}_0) \frac{p_\theta(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} \vert \mathbf{x}_{0})} d\mathbf{x}_{1:T} \Big) \\
+&= - \mathbb{E}_{q(\mathbf{x}_0)} \log \Big( \mathbb{E}_{q(\mathbf{x}_{1:T} \vert \mathbf{x}_0)} \frac{p_\theta(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} \vert \mathbf{x}_{0})} \Big) \\
+&\leq - \mathbb{E}_{q(\mathbf{x}_{0:T})} \log \frac{p_\theta(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} \vert \mathbf{x}_{0})} \\
+&= \mathbb{E}_{q(\mathbf{x}_{0:T})}\Big[\log \frac{q(\mathbf{x}_{1:T} \vert \mathbf{x}_{0})}{p_\theta(\mathbf{x}_{0:T})} \Big] = L_\text{VLB}
+\end{aligned}
+$$ 
+
+To convert each term in the equation to be analytically computable, the objective can be further rewritten to be a combination of several KL-divergence and entropy terms (See the detailed step-by-step process in Appendix B in [Sohl-Dickstein et al., 2015](https://arxiv.org/abs/1503.03585)): 
+
+$$
+\begin{aligned}
+L_\text{VLB} 
+&= \mathbb{E}_{q(\mathbf{x}_{0:T})} \Big[ \log\frac{q(\mathbf{x}_{1:T}\vert\mathbf{x}_0)}{p_\theta(\mathbf{x}_{0:T})} \Big] \\
+&= \mathbb{E}_q \Big[ \log\frac{\prod_{t=1}^T q(\mathbf{x}_t\vert\mathbf{x}_{t-1})}{ p_\theta(\mathbf{x}_T) \prod_{t=1}^T p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t) } \Big] \\
+&= \mathbb{E}_q \Big[ -\log p_\theta(\mathbf{x}_T) + \sum_{t=1}^T \log \frac{q(\mathbf{x}_t\vert\mathbf{x}_{t-1})}{p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t)} \Big] \\
+&= \mathbb{E}_q \Big[ -\log p_\theta(\mathbf{x}_T) + \sum_{t=2}^T \log \frac{q(\mathbf{x}_t\vert\mathbf{x}_{t-1})}{p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t)} + \log\frac{q(\mathbf{x}_1 \vert \mathbf{x}_0)}{p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1)} \Big] \\
+&= \mathbb{E}_q \Big[ -\log p_\theta(\mathbf{x}_T) + \sum_{t=2}^T \log \Big( \frac{q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0)}{p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t)}\cdot \frac{q(\mathbf{x}_t \vert \mathbf{x}_0)}{q(\mathbf{x}_{t-1}\vert\mathbf{x}_0)} \Big) + \log \frac{q(\mathbf{x}_1 \vert \mathbf{x}_0)}{p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1)} \Big] \\
+&= \mathbb{E}_q \Big[ -\log p_\theta(\mathbf{x}_T) + \sum_{t=2}^T \log \frac{q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0)}{p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t)} + \sum_{t=2}^T \log \frac{q(\mathbf{x}_t \vert \mathbf{x}_0)}{q(\mathbf{x}_{t-1} \vert \mathbf{x}_0)} + \log\frac{q(\mathbf{x}_1 \vert \mathbf{x}_0)}{p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1)} \Big] \\
+&= \mathbb{E}_q \Big[ -\log p_\theta(\mathbf{x}_T) + \sum_{t=2}^T \log \frac{q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0)}{p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t)} + \log\frac{q(\mathbf{x}_T \vert \mathbf{x}_0)}{q(\mathbf{x}_1 \vert \mathbf{x}_0)} + \log \frac{q(\mathbf{x}_1 \vert \mathbf{x}_0)}{p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1)} \Big]\\
+&= \mathbb{E}_q \Big[ \log\frac{q(\mathbf{x}_T \vert \mathbf{x}_0)}{p_\theta(\mathbf{x}_T)} + \sum_{t=2}^T \log \frac{q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0)}{p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t)} - \log p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1) \Big] \\
+&= \mathbb{E}_q [\underbrace{D_\text{KL}(q(\mathbf{x}_T \vert \mathbf{x}_0) \parallel p_\theta(\mathbf{x}_T))}_{L_T} + \sum_{t=2}^T \underbrace{D_\text{KL}(q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0) \parallel p_\theta(\mathbf{x}_{t-1} \vert\mathbf{x}_t))}_{L_{t-1}} \underbrace{- \log p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1)}_{L_0} ]
+\end{aligned}
+$$ 
+
+Let’s label each component in the variational lower bound loss separately: 
+
+$$
+\begin{aligned}
+L_\text{VLB} &= L_T + L_{T-1} + \dots + L_0 \\
+\text{where } L_T &= D_\text{KL}(q(\mathbf{x}_T \vert \mathbf{x}_0) \parallel p_\theta(\mathbf{x}_T)) \\
+L_t &= D_\text{KL}(q(\mathbf{x}_t \vert \mathbf{x}_{t+1}, \mathbf{x}_0) \parallel p_\theta(\mathbf{x}_t \vert\mathbf{x}_{t+1})) \text{ for }1 \leq t \leq T-1 \\
+L_0 &= - \log p_\theta(\mathbf{x}_0 \vert \mathbf{x}_1)
+\end{aligned}
+$$ 
+
+Every KL term in $L_\text{VLB}$ (except for $L_0$) compares two Gaussian distributions and therefore they can be computed in [closed form](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence#Multivariate_normal_distributions). $L_T$ is constant and can be ignored during training because $q$ has no learnable parameters and $\mathbf{x}_T$ is a Gaussian noise. [Ho et al. 2020](https://arxiv.org/abs/2006.11239)models $L_0$ using a separate discrete decoder derived from $\mathcal{N}(\mathbf{x}_0; \boldsymbol{\mu}_\theta(\mathbf{x}_1, 1), \boldsymbol{\Sigma}_\theta(\mathbf{x}_1, 1))$. 
+
+## Parameterization of $L_t$ for Training Loss#
+
+Recall that we need to learn a neural network to approximate the conditioned probability distributions in the reverse diffusion process, $p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t))$. We would like to train $\boldsymbol{\mu}_\theta$ to predict $\tilde{\boldsymbol{\mu}}_t = \frac{1}{\sqrt{\alpha_t}} \Big( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \Big)$. Because $\mathbf{x}_t$ is available as input at training time, we can reparameterize the Gaussian noise term instead to make it predict $\boldsymbol{\epsilon}_t$ from the input $\mathbf{x}_t$ at time step $t$: 
+
+$$
+\begin{aligned}
+\boldsymbol{\mu}_\theta(\mathbf{x}_t, t) &= \color{cyan}{\frac{1}{\sqrt{\alpha_t}} \Big( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \Big)} \\
+\text{Thus }\mathbf{x}_{t-1} &= \mathcal{N}(\mathbf{x}_{t-1}; \frac{1}{\sqrt{\alpha_t}} \Big( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \Big), \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t))
+\end{aligned}
+$$ 
+
+The loss term $L_t$ is parameterized to minimize the difference from $\tilde{\boldsymbol{\mu}}$ : 
+
+$$
+\begin{aligned}
+L_t 
+&= \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}} \Big[\frac{1}{2 \| \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t) \|^2_2} \| \color{blue}{\tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0)} - \color{green}{\boldsymbol{\mu}_\theta(\mathbf{x}_t, t)} \|^2 \Big] \\
+&= \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}} \Big[\frac{1}{2 \|\boldsymbol{\Sigma}_\theta \|^2_2} \| \color{blue}{\frac{1}{\sqrt{\alpha_t}} \Big( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \Big)} - \color{green}{\frac{1}{\sqrt{\alpha_t}} \Big( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\boldsymbol{\epsilon}}_\theta(\mathbf{x}_t, t) \Big)} \|^2 \Big] \\
+&= \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}} \Big[\frac{ (1 - \alpha_t)^2 }{2 \alpha_t (1 - \bar{\alpha}_t) \| \boldsymbol{\Sigma}_\theta \|^2_2} \|\boldsymbol{\epsilon}_t - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2 \Big] \\
+&= \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}} \Big[\frac{ (1 - \alpha_t)^2 }{2 \alpha_t (1 - \bar{\alpha}_t) \| \boldsymbol{\Sigma}_\theta \|^2_2} \|\boldsymbol{\epsilon}_t - \boldsymbol{\epsilon}_\theta(\sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon}_t, t)\|^2 \Big] 
+\end{aligned}
+$$ 
+
+### Simplification#
+
+Empirically, [Ho et al. (2020)](https://arxiv.org/abs/2006.11239)found that training the diffusion model works better with a simplified objective that ignores the weighting term: 
+
+$$
+\begin{aligned}
+L_t^\text{simple}
+&= \mathbb{E}_{t \sim [1, T], \mathbf{x}_0, \boldsymbol{\epsilon}_t} \Big[\|\boldsymbol{\epsilon}_t - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2 \Big] \\
+&= \mathbb{E}_{t \sim [1, T], \mathbf{x}_0, \boldsymbol{\epsilon}_t} \Big[\|\boldsymbol{\epsilon}_t - \boldsymbol{\epsilon}_\theta(\sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon}_t, t)\|^2 \Big]
+\end{aligned}
+$$ 
+
+The final simple objective is: 
+
+$$
+L_\text{simple} = L_t^\text{simple} + C
+$$ 
+
+where $C$ is a constant not depending on $\theta$. 
+
+![](DDPM-algo.png)The training and sampling algorithms in DDPM (Image source: [Ho et al. 2020](https://arxiv.org/abs/2006.11239)) 
+
+### Connection with noise-conditioned score networks (NCSN)#
+
+[Song & Ermon (2019)](https://arxiv.org/abs/1907.05600)proposed a score-based generative modeling method where samples are produced via Langevin dynamicsusing gradients of the data distribution estimated with score matching. The score of each sample $\mathbf{x}$’s density probability is defined as its gradient $\nabla_{\mathbf{x}} \log q(\mathbf{x})$. A score network $\mathbf{s}_\theta: \mathbb{R}^D \to \mathbb{R}^D$ is trained to estimate it, $\mathbf{s}_\theta(\mathbf{x}) \approx \nabla_{\mathbf{x}} \log q(\mathbf{x})$. 
+
+To make it scalable with high-dimensional data in the deep learning setting, they proposed to use either *denoising score matching *( [Vincent, 2011](http://www.iro.umontreal.ca/~vincentp/Publications/smdae_techreport.pdf)) or *sliced score matching *(use random projections; [Song et al., 2019](https://arxiv.org/abs/1905.07088)). Denosing score matching adds a pre-specified small noise to the data $q(\tilde{\mathbf{x}} \vert \mathbf{x})$ and estimates $q(\tilde{\mathbf{x}})$ with score matching. 
+
+Recall that Langevin dynamics can sample data points from a probability density distribution using only the score $\nabla_{\mathbf{x}} \log q(\mathbf{x})$ in an iterative process. 
+
+However, according to the manifold hypothesis, most of the data is expected to concentrate in a low dimensional manifold, even though the observed data might look only arbitrarily high-dimensional. It brings a negative effect on score estimation since the data points cannot cover the whole space. In regions where data density is low, the score estimation is less reliable. After adding a small Gaussian noise to make the perturbed data distribution cover the full space $\mathbb{R}^D$, the training of the score estimator network becomes more stable. [Song & Ermon (2019)](https://arxiv.org/abs/1907.05600)improved it by perturbing the data with the noise of *different levels *and train a noise-conditioned score network to *jointly *estimate the scores of all the perturbed data at different noise levels. 
+
+The schedule of increasing noise levels resembles the forward diffusion process. If we use the diffusion process annotation, the score approximates $\mathbf{s}_\theta(\mathbf{x}_t, t) \approx \nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t)$. Given a Gaussian distribution $\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \sigma^2 \mathbf{I})$, we can write the derivative of the logarithm of its density function as $\nabla_{\mathbf{x}}\log p(\mathbf{x}) = \nabla_{\mathbf{x}} \Big(-\frac{1}{2\sigma^2}(\mathbf{x} - \boldsymbol{\mu})^2 \Big) = - \frac{\mathbf{x} - \boldsymbol{\mu}}{\sigma^2} = - \frac{\boldsymbol{\epsilon}}{\sigma}$ where $\boldsymbol{\epsilon} \sim \mathcal{N}(\boldsymbol{0}, \mathbf{I})$. Recallthat $q(\mathbf{x}_t \vert \mathbf{x}_0) \sim \mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t)\mathbf{I})$ and therefore, 
+
+$$
+\mathbf{s}_\theta(\mathbf{x}_t, t) 
+\approx \nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t)
+= \mathbb{E}_{q(\mathbf{x}_0)} [\nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t \vert \mathbf{x}_0)]
+= \mathbb{E}_{q(\mathbf{x}_0)} \Big[ - \frac{\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)}{\sqrt{1 - \bar{\alpha}_t}} \Big]
+= - \frac{\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)}{\sqrt{1 - \bar{\alpha}_t}}
+$$ 
+
+## Parameterization of $\beta_t$#
+
+The forward variances are set to be a sequence of linearly increasing constants in [Ho et al. (2020)](https://arxiv.org/abs/2006.11239), from $\beta_1=10^{-4}$ to $\beta_T=0.02$. They are relatively small compared to the normalized image pixel values between $[-1, 1]$. Diffusion models in their experiments showed high-quality samples but still could not achieve competitive model log-likelihood as other generative models. 
+
+[Nichol & Dhariwal (2021)](https://arxiv.org/abs/2102.09672)proposed several improvement techniques to help diffusion models to obtain lower NLL. One of the improvements is to use a cosine-based variance schedule. The choice of the scheduling function can be arbitrary, as long as it provides a near-linear drop in the middle of the training process and subtle changes around $t=0$ and $t=T$. 
+
+$$
+\beta_t = \text{clip}(1-\frac{\bar{\alpha}_t}{\bar{\alpha}_{t-1}}, 0.999) \quad\bar{\alpha}_t = \frac{f(t)}{f(0)}\quad\text{where }f(t)=\cos\Big(\frac{t/T+s}{1+s}\cdot\frac{\pi}{2}\Big)^2
+$$ 
+
+where the small offset $s$ is to prevent $\beta_t$ from being too small when close to $t=0$. 
+
+![](diffusion-beta.png)Comparison of linear and cosine-based scheduling of $\beta\_t$ during training. (Image source: [Nichol & Dhariwal, 2021](https://arxiv.org/abs/2102.09672)) 
+
+## Parameterization of reverse process variance $\boldsymbol{\Sigma}_\theta$#
+
+[Ho et al. (2020)](https://arxiv.org/abs/2006.11239)chose to fix $\beta_t$ as constants instead of making them learnable and set $\boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t) = \sigma^2_t \mathbf{I}$ , where $\sigma_t$ is not learned but set to $\beta_t$ or $\tilde{\beta}_t = \frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \cdot \beta_t$. Because they found that learning a diagonal variance $\boldsymbol{\Sigma}_\theta$ leads to unstable training and poorer sample quality. 
+
+[Nichol & Dhariwal (2021)](https://arxiv.org/abs/2102.09672)proposed to learn $\boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t)$ as an interpolation between $\beta_t$ and $\tilde{\beta}_t$ by model predicting a mixing vector $\mathbf{v}$ : 
+
+$$
+\boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t) = \exp(\mathbf{v} \log \beta_t + (1-\mathbf{v}) \log \tilde{\beta}_t)
+$$ 
+
+However, the simple objective $L_\text{simple}$ does not depend on $\boldsymbol{\Sigma}_\theta$ . To add the dependency, they constructed a hybrid objective $L_\text{hybrid} = L_\text{simple} + \lambda L_\text{VLB}$ where $\lambda=0.001$ is small and stop gradient on $\boldsymbol{\mu}_\theta$ in the $L_\text{VLB}$ term such that $L_\text{VLB}$ only guides the learning of $\boldsymbol{\Sigma}_\theta$. Empirically they observed that $L_\text{VLB}$ is pretty challenging to optimize likely due to noisy gradients, so they proposed to use a time-averaging smoothed version of $L_\text{VLB}$ with importance sampling. 
+
+![](improved-DDPM-nll.png)Comparison of negative log-likelihood of improved DDPM with other likelihood-based generative models. NLL is reported in the unit of bits/dim. (Image source: [Nichol & Dhariwal, 2021](https://arxiv.org/abs/2102.09672)) 
+
+# Conditioned Generation#
+
+While training generative models on images with conditioning information such as ImageNet dataset, it is common to generate samples conditioned on class labels or a piece of descriptive text. 
+
+## Classifier Guided Diffusion#
+
+To explicit incorporate class information into the diffusion process, [Dhariwal & Nichol (2021)](https://arxiv.org/abs/2105.05233)trained a classifier $f_\phi(y \vert \mathbf{x}_t, t)$ on noisy image $\mathbf{x}_t$ and use gradients $\nabla_\mathbf{x} \log f_\phi(y \vert \mathbf{x}_t)$ to guide the diffusion sampling process toward the conditioning information $y$ (e.g. a target class label) by altering the noise prediction. Recallthat $\nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t) = - \frac{1}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$ and we can write the score function for the joint distribution $q(\mathbf{x}_t, y)$ as following, 
+
+$$
+\begin{aligned}
+\nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t, y)
+&= \nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t) + \nabla_{\mathbf{x}_t} \log q(y \vert \mathbf{x}_t) \\
+&\approx - \frac{1}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) + \nabla_{\mathbf{x}_t} \log f_\phi(y \vert \mathbf{x}_t) \\
+&= - \frac{1}{\sqrt{1 - \bar{\alpha}_t}} (\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) - \sqrt{1 - \bar{\alpha}_t} \nabla_{\mathbf{x}_t} \log f_\phi(y \vert \mathbf{x}_t))
+\end{aligned}
+$$ 
+
+Thus, a new classifier-guided predictor $\bar{\boldsymbol{\epsilon}}_\theta$ would take the form as following, 
+
+$$
+\bar{\boldsymbol{\epsilon}}_\theta(\mathbf{x}_t, t) = \boldsymbol{\epsilon}_\theta(x_t, t) - \sqrt{1 - \bar{\alpha}_t} \nabla_{\mathbf{x}_t} \log f_\phi(y \vert \mathbf{x}_t)
+$$ 
+
+To control the strength of the classifier guidance, we can add a weight $w$ to the delta part, 
+
+$$
+\bar{\boldsymbol{\epsilon}}_\theta(\mathbf{x}_t, t) = \boldsymbol{\epsilon}_\theta(x_t, t) - \sqrt{1 - \bar{\alpha}_t} \; w \nabla_{\mathbf{x}_t} \log f_\phi(y \vert \mathbf{x}_t)
+$$ 
+
+The resulting *ablated diffusion model *( **ADM **) and the one with additional classifier guidance ( **ADM-G **) are able to achieve better results than SOTA generative models (e.g. BigGAN). 
+
+![](conditioned-DDPM.png)The algorithms use guidance from a classifier to run conditioned generation with DDPM and DDIM. (Image source: [Dhariwal & Nichol, 2021](https://arxiv.org/abs/2105.05233)]) 
+
+Additionally with some modifications on the U-Net architecture, [Dhariwal & Nichol (2021)](https://arxiv.org/abs/2105.05233)showed performance better than GAN with diffusion models. The architecture modifications include larger model depth/width, more attention heads, multi-resolution attention, BigGAN residual blocks for up/downsampling, residual connection rescale by $1/\sqrt{2}$ and adaptive group normalization (AdaGN). 
+
+## Classifier-Free Guidance#
+
+Without an independent classifier $f_\phi$, it is still possible to run conditional diffusion steps by incorporating the scores from a conditional and an unconditional diffusion model ( [Ho & Salimans, 2021](https://openreview.net/forum?id=qw8AKxfYbI)). Let unconditional denoising diffusion model $p_\theta(\mathbf{x})$ parameterized through a score estimator $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$ and the conditional model $p_\theta(\mathbf{x} \vert y)$ parameterized through $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y)$. These two models can be learned via a single neural network. Precisely, a conditional diffusion model $p_\theta(\mathbf{x} \vert y)$ is trained on paired data $(\mathbf{x}, y)$, where the conditioning information $y$ gets discarded periodically at random such that the model knows how to generate images unconditionally as well, i.e. $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) = \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y=\varnothing)$. 
+
+The gradient of an implicit classifier can be represented with conditional and unconditional score estimators. Once plugged into the classifier-guided modified score, the score contains no dependency on a separate classifier. 
+
+$$
+\begin{aligned}
+\nabla_{\mathbf{x}_t} \log p(y \vert \mathbf{x}_t)
+&= \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \vert y) - \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t) \\
+&= - \frac{1}{\sqrt{1 - \bar{\alpha}_t}}\Big( \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y) - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \Big) \\
+\bar{\boldsymbol{\epsilon}}_\theta(\mathbf{x}_t, t, y)
+&= \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y) - \sqrt{1 - \bar{\alpha}_t} \; w \nabla_{\mathbf{x}_t} \log p(y \vert \mathbf{x}_t) \\
+&= \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y) + w \big(\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y) - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \big) \\
+&= (w+1) \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t, y) - w \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)
+\end{aligned}
+$$ 
+
+Their experiments showed that classifier-free guidance can achieve a good balance between FID (distinguish between synthetic and generated images) and IS (quality and diversity). 
+
+The guided diffusion model, GLIDE ( [Nichol, Dhariwal & Ramesh, et al. 2022](https://arxiv.org/abs/2112.10741)), explored both guiding strategies, CLIP guidance and classifier-free guidance, and found that the latter is more preferred. They hypothesized that it is because CLIP guidance exploits the model with adversarial examples towards the CLIP model, rather than optimize the better matched images generation. 
+
+# Speed up Diffusion Models#
+
+It is very slow to generate a sample from DDPM by following the Markov chain of the reverse diffusion process, as $T$ can be up to one or a few thousand steps. One data point from [Song et al. (2020)](https://arxiv.org/abs/2010.02502): “For example, it takes around 20 hours to sample 50k images of size 32 × 32 from a DDPM, but less than a minute to do so from a GAN on an Nvidia 2080 Ti GPU.” 
+
+## Fewer Sampling Steps & Distillation#
+
+One simple way is to run a strided sampling schedule ( [Nichol & Dhariwal, 2021](https://arxiv.org/abs/2102.09672)) by taking the sampling update every $\lceil T/S \rceil$ steps to reduce the process from $T$ to $S$ steps. The new sampling schedule for generation is $\{\tau_1, \dots, \tau_S\}$ where $\tau_1 < \tau_2 < \dots <\tau_S \in [1, T]$ and $S < T$. 
+
+For another approach, let’s rewrite $q_\sigma(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0)$ to be parameterized by a desired standard deviation $\sigma_t$ according to the nice property: 
+
+$$
+\begin{aligned}
+\mathbf{x}_{t-1} 
+&= \sqrt{\bar{\alpha}_{t-1}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{t-1}}\boldsymbol{\epsilon}_{t-1} & \\
+&= \sqrt{\bar{\alpha}_{t-1}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{t-1} - \sigma_t^2} \boldsymbol{\epsilon}_t + \sigma_t\boldsymbol{\epsilon} & \\
+&= \sqrt{\bar{\alpha}_{t-1}} \Big( \frac{\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \epsilon^{(t)}_\theta(\mathbf{x}_t)}{\sqrt{\bar{\alpha}_t}} \Big) + \sqrt{1 - \bar{\alpha}_{t-1} - \sigma_t^2} \epsilon^{(t)}_\theta(\mathbf{x}_t) + \sigma_t\boldsymbol{\epsilon} \\
+q_\sigma(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0)
+&= \mathcal{N}(\mathbf{x}_{t-1}; \sqrt{\bar{\alpha}_{t-1}} \Big( \frac{\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \epsilon^{(t)}_\theta(\mathbf{x}_t)}{\sqrt{\bar{\alpha}_t}} \Big) + \sqrt{1 - \bar{\alpha}_{t-1} - \sigma_t^2} \epsilon^{(t)}_\theta(\mathbf{x}_t), \sigma_t^2 \mathbf{I})
+\end{aligned}
+$$ 
+
+where the model $\epsilon^{(t)}_\theta(.)$ predicts the $\epsilon_t$ from $\mathbf{x}_t$. 
+
+Recall that in $q(\mathbf{x}_{t-1} \vert \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t-1}; \tilde{\boldsymbol{\mu}}(\mathbf{x}_t, \mathbf{x}_0), \tilde{\beta}_t \mathbf{I})$, therefore we have: 
+
+$$
+\tilde{\beta}_t = \sigma_t^2 = \frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \cdot \beta_t
+$$ 
+
+Let $\sigma_t^2 = \eta \cdot \tilde{\beta}_t$ such that we can adjust $\eta \in \mathbb{R}^+$ as a hyperparameter to control the sampling stochasticity. The special case of $\eta = 0$ makes the sampling process *deterministic *. Such a model is named the *denoising diffusion implicit model *( **DDIM **; [Song et al., 2020](https://arxiv.org/abs/2010.02502)). DDIM has the same marginal noise distribution but deterministically maps noise back to the original data samples. 
+
+During generation, we don’t have to follow the whole chain $t=1,\dots,T$, but rather a subset of steps. Let’s denote $s < t$ as two steps in this accelerated trajectory. The DDIM update step is: 
+
+$$
+q_{\sigma, s < t}(\mathbf{x}_s \vert \mathbf{x}_t, \mathbf{x}_0)
+= \mathcal{N}(\mathbf{x}_s; \sqrt{\bar{\alpha}_s} \Big( \frac{\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \epsilon^{(t)}_\theta(\mathbf{x}_t)}{\sqrt{\bar{\alpha}_t}} \Big) + \sqrt{1 - \bar{\alpha}_s - \sigma_t^2} \epsilon^{(t)}_\theta(\mathbf{x}_t), \sigma_t^2 \mathbf{I})
+$$ 
+
+While all the models are trained with $T=1000$ diffusion steps in the experiments, they observed that DDIM ($\eta=0$) can produce the best quality samples when $S$ is small, while DDPM ($\eta=1$) performs much worse on small $S$. DDPM does perform better when we can afford to run the full reverse Markov diffusion steps ($S=T=1000$). With DDIM, it is possible to train the diffusion model up to any arbitrary number of forward steps but only sample from a subset of steps in the generative process. 
+
+![](DDIM-results.png)FID scores on CIFAR10 and CelebA datasets by diffusion models of different settings, including $\color{cyan}{\text{DDIM}}$ ($\eta=0$) and $\color{orange}{\text{DDPM}}$ ($\hat{\sigma}$). (Image source: [Song et al., 2020](https://arxiv.org/abs/2010.02502)) 
+
+Compared to DDPM, DDIM is able to: 
+
+![](progressive-distillation.png)Progressive distillation can reduce the diffusion sampling steps by half in each iteration. (Image source: [Salimans & Ho, 2022](https://arxiv.org/abs/2202.00512)) 
+
+**Progressive Distillation **( [Salimans & Ho, 2022](https://arxiv.org/abs/2202.00512)) is a method for distilling trained deterministic samplers into new models of halved sampling steps. The student model is initialized from the teacher model and denoises towards a target where one student DDIM step matches 2 teacher steps, instead of using the original sample $\mathbf{x}_0$ as the denoise target. In every progressive distillation iteration, we can half the sampling steps. 
+
+![](progressive-distillation-algo.png)Comparison of Algorithm 1 (diffusion model training) and Algorithm 2 (progressive distillation) side-by-side, where the relative changes in progressive distillation are highlighted in green. 
+(Image source: [Salimans & Ho, 2022](https://arxiv.org/abs/2202.00512)) 
+
+**Consistency Models **( [Song et al. 2023](https://arxiv.org/abs/2303.01469)) learns to map any intermediate noisy data points $\mathbf{x}_t, t > 0$ on the diffusion sampling trajectory back to its origin $\mathbf{x}_0$ directly. It is named as *consistency *model because of its *self-consistency *property as any data points on the same trajectory is mapped to the same origin. 
+
+![](consistency-models.png)Consistency models learn to map any data point on the trajectory back to its origin. (Image source: [Song et al., 2023](https://arxiv.org/abs/2303.01469)) 
+
+Given a trajectory $\{\mathbf{x}_t \vert t \in [\epsilon, T]\}$ , the *consistency function *$f$ is defined as $f: (\mathbf{x}_t, t) \mapsto \mathbf{x}_\epsilon$ and the equation $f(\mathbf{x}_t, t) = f(\mathbf{x}_{t’}, t’) = \mathbf{x}_\epsilon$ holds true for all $t, t’ \in [\epsilon, T]$. When $t=\epsilon$, $f$ is an identify function. The model can be parameterized as follows, where $c_\text{skip}(t)$ and $c_\text{out}(t)$ functions are designed in a way that $c_\text{skip}(\epsilon) = 1, c_\text{out}(\epsilon) = 0$: 
+
+$$
+f_\theta(\mathbf{x}, t) = c_\text{skip}(t)\mathbf{x} + c_\text{out}(t) F_\theta(\mathbf{x}, t)
+$$ 
+
+It is possible for the consistency model to generate samples in a single step, while still maintaining the flexibility of trading computation for better quality following a multi-step sampling process. 
+
+The paper introduced two ways to train consistency models: 
+
+$$
+\mathcal{L}^N_\text{CT} (\theta, \theta^-; \phi) = \mathbb{E}
+[\lambda(t_n)d(f_\theta(\mathbf{x} + t_{n+1} \mathbf{z},\;t_{n+1}), f_{\theta^-}(\mathbf{x} + t_n \mathbf{z},\;t_n)]
+\text{ where }\mathbf{z} \in \mathcal{N}(\mathbf{0}, \mathbf{I})
+$$ 
+
+According to the experiments in the paper, they found, 
+
+![](consistency-models-exp.png)Comparison of consistency models' performance under different configurations. The best configuration for CD is LPIPS distance metric, Heun ODE solver, and $N=18$. (Image source: [Song et al., 2023](https://arxiv.org/abs/2303.01469)) 
+
+## Latent Variable Space#
+
+*Latent diffusion model *( **LDM **; [Rombach & Blattmann, et al. 2022](https://arxiv.org/abs/2112.10752)) runs the diffusion process in the latent space instead of pixel space, making training cost lower and inference speed faster. It is motivated by the observation that most bits of an image contribute to perceptual details and the semantic and conceptual composition still remains after aggressive compression. LDM loosely decomposes the perceptual compression and semantic compression with generative modeling learning by first trimming off pixel-level redundancy with autoencoder and then manipulating / generating semantic concepts with diffusion process on learned latent. 
+
+![](image-distortion-rate.png)The plot for tradeoff between compression rate and distortion, illustrating two-stage compressions - perceptual and semantic compression. (Image source: [Rombach & Blattmann, et al. 2022](https://arxiv.org/abs/2112.10752)) 
+
+The perceptual compression process relies on an autoencoder model. An encoder $\mathcal{E}$ is used to compress the input image $\mathbf{x} \in \mathbb{R}^{H \times W \times 3}$ to a smaller 2D latent vector $\mathbf{z} = \mathcal{E}(\mathbf{x}) \in \mathbb{R}^{h \times w \times c}$ , where the downsampling rate $f=H/h=W/w=2^m, m \in \mathbb{N}$. Then an decoder $\mathcal{D}$ reconstructs the images from the latent vector, $\tilde{\mathbf{x}} = \mathcal{D}(\mathbf{z})$. The paper explored two types of regularization in autoencoder training to avoid arbitrarily high-variance in the latent spaces. 
+
+The diffusion and denoising processes happen on the latent vector $\mathbf{z}$. The denoising model is a time-conditioned U-Net, augmented with the cross-attention mechanism to handle flexible conditioning information for image generation (e.g. class labels, semantic maps, blurred variants of an image). The design is equivalent to fuse representation of different modality into the model with a cross-attention mechanism. Each type of conditioning information is paired with a domain-specific encoder $\tau_\theta$ to project the conditioning input $y$ to an intermediate representation that can be mapped into cross-attention component, $\tau_\theta(y) \in \mathbb{R}^{M \times d_\tau}$: 
+
+$$
+\begin{aligned}
+&\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\Big(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d}}\Big) \cdot \mathbf{V} \\
+&\text{where }\mathbf{Q} = \mathbf{W}^{(i)}_Q \cdot \varphi_i(\mathbf{z}_i),\;
+\mathbf{K} = \mathbf{W}^{(i)}_K \cdot \tau_\theta(y),\;
+\mathbf{V} = \mathbf{W}^{(i)}_V \cdot \tau_\theta(y) \\
+&\text{and }
+\mathbf{W}^{(i)}_Q \in \mathbb{R}^{d \times d^i_\epsilon},\;
+\mathbf{W}^{(i)}_K, \mathbf{W}^{(i)}_V \in \mathbb{R}^{d \times d_\tau},\;
+\varphi_i(\mathbf{z}_i) \in \mathbb{R}^{N \times d^i_\epsilon},\;
+\tau_\theta(y) \in \mathbb{R}^{M \times d_\tau}
+\end{aligned}
+$$ ![](latent-diffusion-arch.png)The architecture of the latent diffusion model (LDM). (Image source: [Rombach & Blattmann, et al. 2022](https://arxiv.org/abs/2112.10752)) 
+
+# Scale up Generation Resolution and Quality#
+
+To generate high-quality images at high resolution, [Ho et al. (2021)](https://arxiv.org/abs/2106.15282)proposed to use a pipeline of multiple diffusion models at increasing resolutions. *Noise conditioning augmentation *between pipeline models is crucial to the final image quality, which is to apply strong data augmentation to the conditioning input $\mathbf{z}$ of each super-resolution model $p_\theta(\mathbf{x} \vert \mathbf{z})$. The conditioning noise helps reduce compounding error in the pipeline setup. *U-net *is a common choice of model architecture in diffusion modeling for high-resolution image generation. 
+
+![](cascaded-diffusion.png)A cascaded pipeline of multiple diffusion models at increasing resolutions. (Image source: [Ho et al. 2021](https://arxiv.org/abs/2106.15282)]) 
+
+They found the most effective noise is to apply Gaussian noise at low resolution and Gaussian blur at high resolution. In addition, they also explored two forms of conditioning augmentation that require small modification to the training process. Note that conditioning noise is only applied to training but not at inference. 
+
+The two-stage diffusion model **unCLIP **( [Ramesh et al. 2022](https://arxiv.org/abs/2204.06125)) heavily utilizes the CLIP text encoder to produce text-guided images at high quality. Given a pretrained CLIP model $\mathbf{c}$ and paired training data for the diffusion model, $(\mathbf{x}, y)$, where $x$ is an image and $y$ is the corresponding caption, we can compute the CLIP text and image embedding, $\mathbf{c}^t(y)$ and $\mathbf{c}^i(\mathbf{x})$, respectively. The unCLIP learns two models in parallel: 
+
+These two models enable conditional generation, because 
+
+$$
+\underbrace{P(\mathbf{x} \vert y) = P(\mathbf{x}, \mathbf{c}^i \vert y)}_{\mathbf{c}^i\text{ is deterministic given }\mathbf{x}} = P(\mathbf{x} \vert \mathbf{c}^i, y)P(\mathbf{c}^i \vert y)
+$$ ![](unCLIP.png)The architecture of unCLIP. (Image source: [Ramesh et al. 2022](https://arxiv.org/abs/2204.06125)]) 
+
+unCLIP follows a two-stage image generation process: 
+
+Instead of CLIP model, **Imagen **( [Saharia et al. 2022](https://arxiv.org/abs/2205.11487)) uses a pre-trained large LM (i.e. a frozen T5-XXL text encoder) to encode text for image generation. There is a general trend that larger model size can lead to better image quality and text-image alignment. They found that T5-XXL and CLIP text encoder achieve similar performance on MS-COCO, but human evaluation prefers T5-XXL on DrawBench (a collection of prompts covering 11 categories). 
+
+When applying classifier-free guidance, increasing $w$ may lead to better image-text alignment but worse image fidelity. They found that it is due to train-test mismatch, that is to say, because training data $\mathbf{x}$ stays within the range $[-1, 1]$, the test data should be so too. Two thresholding strategies are introduced: 
+
+Imagen modifies several designs in U-net to make it *efficient U-Net *. 
+
+They found that noise conditioning augmentation, dynamic thresholding and efficient U-Net are critical for image quality, but scaling text encoder size is more important than U-Net size. 
+
+# Model Architecture#
+
+There are two common backbone architecture choices for diffusion models: U-Net and Transformer. 
+
+**U-Net **( [Ronneberger, et al. 2015](https://arxiv.org/abs/1505.04597)) consists of a downsampling stack and an upsampling stack. 
+
+![](U-net.png)The U-net architecture. Each blue square is a feature map with the number of channels labeled on top and the height x width dimension labeled on the left bottom side. The gray arrows mark the shortcut connections. (Image source: [Ronneberger, 2015](https://arxiv.org/abs/1505.04597)) 
+
+To enable image generation conditioned on additional images for composition info like Canny edges, Hough lines, user scribbles, human post skeletons, segmentation maps, depths and normals, **ControlNet **( [Zhang et al. 2023](https://arxiv.org/abs/2302.05543)introduces architectural changes via adding a “sandwiched” zero convolution layers of a trainable copy of the original model weights into each encoder layer of the U-Net. Precisely, given a neural network block $\mathcal{F}_\theta(.)$, ControlNet does the following: 
+
+![](ControlNet.png)The ControlNet architecture. (Image source: [Zhang et al. 2023](https://arxiv.org/abs/2302.05543)) 
+
+**Diffusion Transformer **( **DiT **; [Peebles & Xie, 2023](https://arxiv.org/abs/2212.09748)) for diffusion modeling operates on latent patches, using the same design space of LDM(Latent Diffusion Model)]. DiT has the following setup: 
+
+![](DiT.png)The Diffusion Transformer (DiT) architecture. 
+(Image source: [Peebles & Xie, 2023](https://arxiv.org/abs/2212.09748)) 
+
+Transformer architecture can be easily scaled up and it is well known for that. This is one of the biggest benefits of DiT as its performance scales up with more compute and larger DiT models are more compute efficient according to the experiments. 
+
+# Quick Summary#
+
+# Citation#
+
+Cited as: 
+
+> Weng, Lilian. (Jul 2021). What are diffusion models? Lil’Log. https://lilianweng.github.io/posts/2021-07-11-diffusion-models/.
+
+Or 
+
+```
+@article{weng2021diffusion,
+ title = "What are diffusion models?",
+ author = "Weng, Lilian",
+ journal = "lilianweng.github.io",
+ year = "2021",
+ month = "Jul",
+ url = "https://lilianweng.github.io/posts/2021-07-11-diffusion-models/"
+}
+```
+
+# References#
+
+[1] Jascha Sohl-Dickstein et al. [“Deep Unsupervised Learning using Nonequilibrium Thermodynamics.”](https://arxiv.org/abs/1503.03585)ICML 2015. 
+
+[2] Max Welling & Yee Whye Teh. [“Bayesian learning via stochastic gradient langevin dynamics.”](https://www.stats.ox.ac.uk/~teh/research/compstats/WelTeh2011a.pdf)ICML 2011. 
+
+[3] Yang Song & Stefano Ermon. [“Generative modeling by estimating gradients of the data distribution.”](https://arxiv.org/abs/1907.05600)NeurIPS 2019. 
+
+[4] Yang Song & Stefano Ermon. [“Improved techniques for training score-based generative models.”](https://arxiv.org/abs/2006.09011)NeuriPS 2020. 
+
+[5] Jonathan Ho et al. [“Denoising diffusion probabilistic models.”](https://arxiv.org/abs/2006.11239)arxiv Preprint arxiv:2006.11239 (2020). [ [code](https://github.com/hojonathanho/diffusion)] 
+
+[6] Jiaming Song et al. [“Denoising diffusion implicit models.”](https://arxiv.org/abs/2010.02502)arxiv Preprint arxiv:2010.02502 (2020). [ [code](https://github.com/ermongroup/ddim)] 
+
+[7] Alex Nichol & Prafulla Dhariwal. [“Improved denoising diffusion probabilistic models”](https://arxiv.org/abs/2102.09672)arxiv Preprint arxiv:2102.09672 (2021). [ [code](https://github.com/openai/improved-diffusion)] 
+
+[8] Prafula Dhariwal & Alex Nichol. [“Diffusion Models Beat GANs on Image Synthesis.”](https://arxiv.org/abs/2105.05233)arxiv Preprint arxiv:2105.05233 (2021). [ [code](https://github.com/openai/guided-diffusion)] 
+
+[9] Jonathan Ho & Tim Salimans. [“Classifier-Free Diffusion Guidance.”](https://arxiv.org/abs/2207.12598)NeurIPS 2021 Workshop on Deep Generative Models and Downstream Applications. 
+
+[10] Yang Song, et al. [“Score-Based Generative Modeling through Stochastic Differential Equations.”](https://openreview.net/forum?id=PxTIG12RRHS)ICLR 2021. 
+
+[11] Alex Nichol, Prafulla Dhariwal & Aditya Ramesh, et al. [“GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models.”](https://arxiv.org/abs/2112.10741)ICML 2022. 
+
+[12] Jonathan Ho, et al. [“Cascaded diffusion models for high fidelity image generation.”](https://arxiv.org/abs/2106.15282)J. Mach. Learn. Res. 23 (2022): 47-1. 
+
+[13] Aditya Ramesh et al. [“Hierarchical Text-Conditional Image Generation with CLIP Latents.”](https://arxiv.org/abs/2204.06125)arxiv Preprint arxiv:2204.06125 (2022). 
+
+[14] Chitwan Saharia & William Chan, et al. [“Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding.”](https://arxiv.org/abs/2205.11487)arxiv Preprint arxiv:2205.11487 (2022). 
+
+[15] Rombach & Blattmann, et al. [“High-Resolution Image Synthesis with Latent Diffusion Models.”](https://arxiv.org/abs/2112.10752)CVPR 2022. [code](https://github.com/CompVis/latent-diffusion)
+
+[16] Song et al. [“Consistency Models”](https://arxiv.org/abs/2303.01469)arxiv Preprint arxiv:2303.01469 (2023) 
+
+[17] Salimans & Ho. [“Progressive Distillation for Fast Sampling of Diffusion Models”](https://arxiv.org/abs/2202.00512)ICLR 2022. 
+
+[18] Ronneberger, et al. [“U-Net: Convolutional Networks for Biomedical Image Segmentation”](https://arxiv.org/abs/1505.04597)MICCAI 2015. 
+
+[19] Peebles & Xie. [“Scalable diffusion models with transformers.”](https://arxiv.org/abs/2212.09748)ICCV 2023. 
+
+[20] Zhang et al. [“Adding Conditional Control to Text-to-Image Diffusion Models.”](https://arxiv.org/abs/2302.05543)arxiv Preprint arxiv:2302.05543 (2023).

@@ -1,0 +1,333 @@
+Title: Hooks at a Glance - React
+**Definition:** h React with Hooks:
+
+Quick Start
+Tutorial
+react: Hooks
+
+Hooks are a new addition in React 16.
+
+**Key Points:** These new documentation pages teach React with Hooks:
+
+Quick Start
+Tutorial
+react: Hooks
+
+Hooks are a new addition in React 16. Hooks are functions that let you “hook into” React state and lifecycle features from function components. First, we’ll extract this logic into a custom Hook called useFriendStatus:
+import React, { useState, useEffect } from 'react';
+
+function useFriendStatus(friendID) { const [isOnline, setIsOnline] = useState(null);
+
+ function handleStatusChange(status) {
+ setIsOnline(status.
+
+```python
+import React, { useState } from 'react';
+function Example() {
+  // Declare a new state variable, which we'll call "count"  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+```javascript
+function ExampleWithManyStates() {
+  // Declare multiple state variables!
+  const [age, setAge] = useState(42);
+  const [fruit, setFruit] = useState('banana');
+  const [todos, setTodos] = useState([{ text: 'Learn Hooks' }]);
+  // ...
+}
+```
+
+```python
+import React, { useState, useEffect } from 'react';
+function Example() {
+  const [count, setCount] = useState(0);
+
+  // Similar to componentDidMount and componentDidUpdate:  useEffect(() => {    // Update the document title using the browser API    document.title = `You clicked ${count} times`;  });
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+## ✌️ Rules of Hooks
+Hooks are JavaScript functions, but they impose two additional rules:
+Only call Hooks at the top level. Don’t call Hooks inside loops, conditions, or nested functions.
+Only call Hooks from React function components. Don’t call Hooks from regular JavaScript functions. (There is just one other valid place to call Hooks — your own custom Hooks. We’ll learn about them in a moment.)
+We provide a linter plugin to enforce these rules automatically. We understand these rules might seem limiting or confusing at first, but they are essential to making Hooks work well.
+Detailed Explanation
+You can learn more about these rules on a dedicated page: Rules of Hooks.
+
+
+## 💡 Building Your Own Hooks
+Sometimes, we want to reuse some stateful logic between components. Traditionally, there were two popular solutions to this problem: higher-order components and render props. Custom Hooks let you do this, but without adding more components to your tree.
+Earlier on this page, we introduced a FriendStatus component that calls the useState and useEffect Hooks to subscribe to a friend’s online status. Let’s say we also want to reuse this subscription logic in another component.
+First, we’ll extract this logic into a custom Hook called useFriendStatus:
+import React, { useState, useEffect } from 'react';
+
+function useFriendStatus(friendID) {  const [isOnline, setIsOnline] = useState(null);
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+
+  useEffect(() => {
+    ChatAPI.subscribeToFriendStatus(friendID, handleStatusChange);
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(friendID, handleStatusChange);
+    };
+  });
+
+  return isOnline;
+}
+It takes friendID as an argument, and returns whether our friend is online.
+Now we can use it from both components:
+function FriendStatus(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+  if (isOnline === null) {
+    return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
+}
+function FriendListItem(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+  return (
+    <li style={{ color: isOnline ? 'green' : 'black' }}>
+      {props.friend.name}
+    </li>
+  );
+}
+The state of each component is completely independent. Hooks are a way to reuse stateful logic, not state itself. In fact, each call to a Hook has a completely isolated state — so you can even use the same custom Hook twice in one component.
+Custom Hooks are more of a convention than a feature. If a function’s name starts with ”use” and it calls other Hooks, we say it is a custom Hook. The useSomething naming convention is how our linter plugin is able to find bugs in the code using Hooks.
+You can write custom Hooks that cover a wide range of use cases like form handling, animation, declarative subscriptions, timers, and probably many more we haven’t considered. We are excited to see what custom Hooks the React community will come up with.
+Detailed Explanation
+You can learn more about custom Hooks on a dedicated page: Building Your Own Hooks.
+
+
+## 🔌 Other Hooks
+There are a few less commonly used built-in Hooks that you might find useful. For example, useContext lets you subscribe to React context without introducing nesting:
+function Example() {
+  const locale = useContext(LocaleContext);  const theme = useContext(ThemeContext);  // ...
+}
+And useReducer lets you manage local state of complex components with a reducer:
+function Todos() {
+  const [todos, dispatch] = useReducer(todosReducer);  // ...
+Detailed Explanation
+You can learn more about all the built-in Hooks on a dedicated page: Hooks API Reference.
+
+
+
+
+---
+
+Title: Built-in React Hooks
+**Definition:** ance Hooks  A common way to optimize re-rendering performance is to skip unnecessary work.
+
+**Key Points:** This page lists all built-in Hooks in React. Context Hooks  Context lets a component receive information from distant parents without passing it as props. Other Hooks  These Hooks are mostly useful to library authors and aren’t commonly used in the application code.
+
+API ReferenceCopy pageCopyBuilt-in React HooksHooks let you use different React features from your components. You can either use the built-in Hooks or combine them to build your own. This page lists all built-in Hooks in React.  State Hooks  State lets a component “remember” information like user input. For example, a form component can use state to store the input value, while an image gallery component can use state to store the selected image index. To add state to a component, use one of these Hooks:  useState declares a state variable that you can update directly. useReducer declares a state variable with the update logic inside a reducer function. function ImageGallery() {
+ const [index, setIndex] = useState(0);
+ // ...  Context Hooks  Context lets a component receive information from distant parents without passing it as props. For example, your app’s top-level component can pass the current UI theme to all components below, no matter how deep.  useContext reads and subscribes to a context. function Button() {
+ const theme = useContext(ThemeContext);
+ // ...  Ref Hooks  Refs let a component hold some information that isn’t used for rendering, like a DOM node or a timeout ID. Unlike with state, updating a ref does not re-render your component. Refs are an “escape hatch” from the React paradigm. They are useful when you need to work with non-React systems, such as the built-in browser APIs.  useRef declares a ref. You can hold any value in it, but most often it’s used to hold a DOM node. useImperativeHandle lets you customize the ref exposed by your component. This is rarely used. function Form() {
+ const inputRef = useRef(null);
+ // ...  Effect Hooks  Effects let a component connect to and synchronize with external systems. This includes dealing with network, browser DOM, animations, widgets written using a different UI library, and other non-React code.  useEffect connects a component to an external system. function ChatRoom({ roomId }) {
+ useEffect(() => {
+ const connection = createConnection(roomId);
+ connection.connect();
+ return () => connection.disconnect();
+ }, [roomId]);
+ // ... Effects are an “escape hatch” from the React paradigm. Don’t use Effects to orchestrate the data flow of your application. If you’re not interacting with an external system, you might not need an Effect. There are two rarely used variations of useEffect with differences in timing:  useLayoutEffect fires before the browser repaints the screen. You can measure layout here. useInsertionEffect fires before React makes changes to the DOM. Libraries can insert dynamic CSS here.  You can also separate events from Effects:  useEffectEvent creates a non-reactive event to fire from any Effect hook.   Performance Hooks  A common way to optimize re-rendering performance is to skip unnecessary work. For example, you can tell React to reuse a cached calculation or to skip a re-render if the data has not changed since the previous render. To skip calculations and unnecessary re-rendering, use one of these Hooks:  useMemo lets you cache the result of an expensive calculation. useCallback lets you cache a function definition before passing it down to an optimized component. function TodoList({ todos, tab, theme }) {
+ const visibleTodos = useMemo(() => filterTodos(todos, tab), [todos, tab]);
+ // ...
+} Sometimes, you can’t skip re-rendering because the screen actually needs to update. In that case, you can improve performance by separating blocking updates that must be synchronous (like typing into an input) from non-blocking updates which don’t need to block the user interface (like updating a chart). To prioritize rendering, use one of these Hooks:  useTransition lets you mark a state transition as non-blocking and allow other updates to interrupt it. useDeferredValue lets you defer updating a non-critical part of the UI and let other parts update first.   Other Hooks  These Hooks are mostly useful to library authors and aren’t commonly used in the application code.  useDebugValue lets you customize the label React DevTools displays for your custom Hook. useId lets a component associate a unique ID with itself. Typically used with accessibility APIs. useSyncExternalStore lets a component subscribe to an external store.   useActionState allows you to manage state of actions.   Your own Hooks  You can also define your own custom Hooks as JavaScript functions.PreviousOverviewNextuseActionState
+
+---
+
+Title: React Hooks - W3Schools
+**Definition:** What is a Hook?
+
+Hooks are functions that let you "hook into" React state and lifecycle features from functional components.
+
+**Key Points:** Hook Rules
+
+There are 3 rules for hooks:
+
+Hooks can only be called inside React function components. Hooks cannot be conditional
+
+Note: Hooks will not work in React class components. We'll go into more detail in the Custom Hooks section.
+
+```python
+import { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+
+function FavoriteColor() {
+  const [color, setColor] = useState("red");
+
+  return (
+    <>
+      <h1>My favorite color is {color}!</h1>
+      <button
+        type="button"
+        onClick={() => setColor("blue")}
+      >Blue</button>
+      <button
+        type="button"
+        onClick={() => setColor("red")}
+      >Red</button>
+      <button
+        type="button"
+        onClick={() => setColor("pink")}
+      >Pink</button>
+      <button
+        type="button"
+        onClick={() => setColor("green")}
+      >Green</button>
+    </>
+  );
+}
+
+createRoot(document.getElementById('root')).render(
+  <FavoriteColor />
+);
+```
+
+## React Hooks
+What is Hooks?
+React useState
+React useEffect
+React useContext
+React useRef
+React useReducer
+React useCallback
+React useMemo
+React Custom Hooks
+
+
+## React Hooks
+❮ Previous
+Next ❯
+Hooks allow functions to have access to state and other React features without using classes.
+They provide a more direct API to React concepts like props, state, context, refs, and lifecycle.
+
+
+## React Tutorial
+React Home
+React Intro
+React Get Started
+React First App
+React Render HTML
+React Upgrade
+React ES6
+React ES6
+  ES6 Classes
+  ES6 Arrow Functions
+  ES6 Variables
+  ES6 Array map()
+  ES6 Destructuring
+  ES6 Spread Operator
+  ES6 Modules
+  ES6 Ternary Operator
+  ES6 Template Strings
+React JSX Intro
+React JSX Expressions
+React JSX Attributes
+React JSX If Statements
+React Components
+React Class
+React Props
+React Props Destructuring
+React Props Children
+React Events
+React Conditionals
+React Lists
+React Forms
+React Forms Submit
+React Textarea
+React Select
+React Multiple Inputs
+React Checkbox
+React Radio
+React Portals
+React Suspense
+React CSS Styling
+React CSS Modules
+React CSS-in-JS
+React Router
+React Transitions
+React Forward Ref
+React HOC
+React Sass
+
+
+## React Exercises
+React Compiler
+React Quiz
+React Exercises
+React Syllabus
+React Study Plan
+React Server
+React Interview Prep
+React Bootcamp
+
+
+## Custom Hooks
+If you have stateful logic that needs to be reused in several components, you can build your own custom Hooks.
+We'll go into more detail in the Custom Hooks section.
+❮ Previous
+Next ❯
+★
+
+      +1
+    
+  
+
+  
+  
+    
+    Sign in to track progress
+  
+    
+  
+
+
+
+.w3s-pathfinder.-teaser {
+  background-color: transparent!important;
+}
+.track-progress-btn-wrapper {
+  display: flex;
+  justify-content: center;
+}
+a.track-progress-btn {
+  position: absolute;
+  padding: 8px 20px;
+  border: 1px solid #ddd;
+  top:-65px;
+  background-color: #fff;
+  color: #333;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+}
+@media screen and (max-width: 600px) {
+  a.track-progress-btn {
+    top: 6px;
+    width: 100%;
+  }
+}
+
+

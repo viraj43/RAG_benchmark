@@ -1,0 +1,1973 @@
+Title: Implementing Credential-Based Authentication with NextAuth.js in Next.js - DEV Community
+![DEV Community](https://media2.dev.to/dynamic/image/quality=100/https://dev-to-uploads.s3.amazonaws.com/uploads/logos/resized_logo_UQww2soKuUsjaOGNB38o.png)
+
+## DEV Community
+
+![](https://assets.dev.to/assets/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg)
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![Rajat Sharma](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2777927%2F9ac52971-bb0d-4217-8dee-caddd698034a.png)
+
+Posted on Jan 28, 2025
+• Edited on Mar 28, 2025
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+# Implementing Credential-Based Authentication with NextAuth.js in Next.js
+
+## Implementing Credential-Based Authentication with NextAuth.js in Next.js
+
+Authentication is crucial in controlling user access to web applications. While OAuth providers like Google and GitHub are popular, email/password-based authentication is still one of the most widely-used and secure methods. In this article, we will dive deep into how to implement credential-based authentication using **NextAuth.js** in a **Next.js** app. We’ll break down each step clearly, so you can follow along and implement this functionality in your own projects.
+
+### What is NextAuth.js?
+
+[NextAuth.js](https://next-auth.js.org/) is an authentication library designed for Next.js applications. It simplifies handling authentication, including support for third-party providers (OAuth) like Google, GitHub, and Facebook. In this article, however, we’ll focus on using **Credential Providers** for email and password-based authentication.
+
+### What is the Credentials Provider?
+
+The **Credentials Provider** in NextAuth.js allows you to authenticate users using custom credentials (e.g., email and password), giving you full control over how users log in and how their credentials are validated.
+
+#### Why use the Credentials Provider?
+
+Let’s walk through the code setup and explain each step.
+
+### Step 1: Configure NextAuth.js with the Credentials Provider
+
+The **NextAuthOptions** configuration object tells NextAuth.js how to handle the authentication process. Below is the full code snippet for setting it up:
+
+`import { NextAuthOptions } from "next-auth";
+import CredentialProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { dbConnect } from "@/lib/dbConnect";
+import UserModel from "@/model/User";
+export const authOptions: NextAuthOptions = {
+providers: [
+CredentialProvider({
+id: "credentials", // Unique identifier for the provider
+name: "Credentials", // Display name in the UI
+credentials: {
+email: { label: "Email", type: "text" },
+password: { label: "Password", type: "password" },
+},
+async authorize(credentials: any): Promise<any> {
+await dbConnect(); // Connect to the database
+try {
+const user = await UserModel.findOne({
+$or: [
+{ email: credentials.identifier },
+{ username: credentials.identifier },
+],
+});
+if (!user) {
+throw new Error("No user found with this email or username");
+}
+if (!user.isVerified) {
+throw new Error("Please verify your account before logging in");
+}
+const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
+if (isPasswordCorrect) {
+return user; // Successfully authenticated
+} else {
+throw new Error("Incorrect password");
+}
+} catch (err: any) {
+throw new Error(err);
+}
+},
+}),
+],
+callbacks: {
+async jwt({ token, user }) {
+if (user) {
+token._id = user._id?.toString();
+token.isVerified = user?.isVerified;
+token.username = user?.username;
+token.isAcceptingMessages = user?.isAcceptingMessages;
+}
+return token;
+},
+async session({ session, token }) {
+if (token) {
+session.user._id = token._id?.toString();
+session.user.isVerified = token?.isVerified;
+session.user.username = token?.username;
+session.user.isAcceptingMessages = token?.isAcceptingMessages;
+}
+return session;
+},
+},
+pages: {
+signIn: "/sign-in", // Custom sign-in page
+error: "/sign-in", // Custom error page
+},
+session: {
+strategy: "jwt", // Use JWT for session management
+},
+secret: process.env.NEXTAUTH_SECRET, // Secret key to secure sessions and JWT tokens
+};`
+
+### Explanation of the Code
+
+**Providers**: The Credentials Provider is used here to define the fields needed for login (email and password).
+
+**Callbacks**:
+
+**Pages**:
+
+### Step 2: Create the API Route to Handle Authentication
+
+Next, we need an API route to handle authentication logic. This is where the actual NextAuth.js authentication mechanism is invoked.
+
+`// pages/api/auth/[...nextauth].ts
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/authOptions"; // Import the authOptions configuration
+export default NextAuth(authOptions); // Use the configuration to handle authentication requests`
+
+This file simply imports the `authOptions` from your configuration file and passes it to `NextAuth()`. The API route will automatically handle requests like logging in, managing sessions, and handling authentication errors.
+
+`authOptions`
+`NextAuth()`
+
+### Step 3: File Structure
+
+To keep things organized, we can structure the project like this:
+
+`/lib
+/authOptions.ts // Configuration for NextAuth.js
+/model
+/User.ts // User model for querying the database
+/pages
+/api
+/auth
+[...nextauth].ts // NextAuth API route`
+
+### Step 4: How to Handle the Route in Next.js 13+
+
+With the **App Router** (Next.js 13+), the code should look like this:
+
+`// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/authOptions"; // Import the configuration
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST }; // Handle both GET and POST requests`
+
+This setup allows the route to handle both **GET** requests (e.g., fetching session info) and **POST** requests (e.g., logging in).
+
+### Conclusion
+
+By following this guide, you should now be able to implement credential-based authentication using NextAuth.js in your Next.js application. With the flexibility of the **Credentials Provider**, you have full control over the authentication process, from user verification to password comparison.
+
+If you found this tutorial helpful, feel free to share it with others on Dev.to, and don’t hesitate to ask any questions in the comments. Happy coding!
+
+Let me know if you'd like me to modify or add anything further!
+
+## Top comments (0)
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](#).
+
+Hide child comments as well
+
+Confirm
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2777927%2F9ac52971-bb0d-4217-8dee-caddd698034a.png)
+
+### Trending on [DEV Community](https://dev.to) Hot
+
+![Kernel Pryanic profile image](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3885989%2Fc3c3a13d-f9e6-44d2-b765-4f6a2708757a.png)
+![FrancisTRᴅᴇᴠ (っ◔◡◔)っ profile image](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3711376%2F746cce1f-2c09-40fc-9742-387af1855b6d.gif)
+![Gavin Cettolo profile image](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3353748%2Fe37c0e94-b63c-4a02-88bc-ad4e130a2ee5.jpg)
+
+💎 DEV Diamond Sponsors
+
+Thank you to our Diamond Sponsors for supporting the DEV Community
+
+![Google AI - Official AI Model and Platform Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fxjlyhbdqehj3akhz166w.png)
+
+Google AI is the official AI Model and Platform Partner of DEV
+
+![Neon - Official Database Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fbnl88cil6afxzmgwrgtt.png)
+
+Neon is the official database partner of DEV
+
+![Algolia - Official Search Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv30ephnolfvnlwgwm0yz.png)
+
+Algolia is the official search partner of DEV
+
+[DEV Community](/) — A space to discuss and keep up software development and manage your software career
+
+Built on [Forem](https://www.forem.com) — the [open source](https://dev.to/t/opensource) software that powers [DEV](https://dev.to) and other inclusive communities.
+
+Made with love and [Ruby on Rails](https://dev.to/t/rails). DEV Community © 2016 - 2026.
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+---
+
+Title: NextAuth.js 2025: Secure Authentication for Next.js Apps
+✨ We just launched [Fimo.ai](https://fimo.ai/) - an AI Website Builder to create websites in minutes - [Try it now](https://fimo.ai/) ✨
+
+* + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Create APIs
+
+    Design REST and GraphQL Content Delivery APIs to connect to any frontend.](/create-apis)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Layout.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Content Management
+
+    Craft experiences and easily manage editing, publishing, and translation.](/content-management)
+  + [Personalize your CMS to meet your project's unique requirements.](/customization)
+  + [Work together easily on code and content.](/collaboration)
+  + [Host your projects on robust, secure servers in minutes.](/hosting)
+  + [Implement robust security measures to protect your information.](/security)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![sparkle_fill_d74ee2b638.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi AI
+
+    Automate Content Modeling, Translations & more](/ai)
+  + [PaaS hosting for Strapi projects.](/cloud)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Buildings.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Enterprise Edition
+
+    A self hosted, Enterprise-ready Edition.](/enterprise)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![ShoppingCart.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi Market
+
+    Marketplace of plugins and integrations.](https://market.strapi.io/)
+  + [Discover all the features available in Strapi today.](/features)
+* + [Manage your brand narrative.](/solutions/corporate-website-cms)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code (2).svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Backend Framework
+
+    Build, customize, and scale backends.](/solutions/app-builder-backend-framework)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![DeviceMobile.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Mobile Apps
+
+    One CMS, any devices.](/solutions/mobile-cms)
+  + [Level up your eCommerce experiences](/solutions/ecommerce-cms)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Developers
+
+    Integrate Strapi with your favorite tools](/for-developers)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Feather.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Content Managers
+
+    Manage Content Autonomously](/for-content-teams)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Briefcase.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Business leaders
+
+    Unlock the benefit of structured content](/for-business-teams)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![medal-fill.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Digital Agencies
+
+    Accelerate project delivery and provide a Client-Friendly Content Editing](/headless-cms-for-web-agencies)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Coins.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Financial Services
+
+    Build trustful relations with your customers](/financial-services)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![HeadCircuit.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Tech and Business Services
+
+    Stand out with exceptional B2B content.](/tech-business-services)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Megaphone.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Telco, Media, and Gaming
+
+    Create and manage content on any platform](/telco-media-gaming)
+* [Developers](/community)
+
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Article.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Blog
+
+    Latest Strapi news & updates](/blog)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Handshake.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Partners
+
+    Find official partner or become one](/partners)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Confetti.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Case studies
+
+    Discover who uses Strapi](/user-stories)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Open Source
+
+    Contribute & collaborate on GitHub](https://github.com/strapi/strapi)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![ChatsCircle.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Forum
+
+    Discuss, ask questions and find answers](https://forum.strapi.io/)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![ChatsCircle.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Discord
+
+    Discuss, ask question and find answers](https://discord.strapi.io/)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Play.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Video Tutorials
+
+    Discuss, ask question and find answers](https://www.youtube.com/strapi)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Calendar.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Events
+
+    Upcoming and On-demand Events](/events)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Vector (6).svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi Goodies
+
+    Discover the latest Strapi goodies](https://shop.strapi.io/en)
+* [Docs](https://docs.strapi.io/)
+* [Pricing](/pricing-cms)
+* [Cloud](https://cloud.strapi.io/)
+
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Cloud.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Discover Strapi Cloud
+
+    PaaS hosting for Strapi projects](/cloud)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![SignIn.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Login to Strapi Cloud
+
+    Login or Sign up for Strapi Cloud.](https://cloud.strapi.io/login)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Book.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi Cloud Docs
+
+    Strapi Cloud hosting technical documentation](https://docs.strapi.io/cloud/intro)
+
+## Looking for our logo ?
+
+![strapi-logo-figma-lines.png]()
+
+[Download Logo Pack](https://www.strapi.io/hubfs/New%20logos/Strapi%20logo%20kit.zip)
+
+[See more Strapi assets](https://handbook.strapi.io/strapi-brand-book-2022)
+
+* [Latest articles](/blog)
+* [Company](/blog/categories/company)
+* [Engineering](/blog/categories/engineering)
+* [Tutorials](/blog/categories/tutorials?type=v4)
+* [Ecosystem](/blog/categories/ecosystem)
+
+* Last updated: September 18, 2025(Strapi 5 era)
+* 14 min read
+
+# The Web Developer’s Guide to NextAuth.js
+
+[Authentication and Authorization](/blog/tag/authentication-and-authorization)[Next.js](/blog/tag/nextjs)[Vercel](/blog/tag/vercel)[GitHub](/blog/tag/github)
+
+![T02DG925U-U039QKS8JVC-87b1021e7476-192.jpeg]()
+
+[Paul Bratslavsky](/user/paul-bratslavsky)
+
+September 18, 2025
+
+[![tweet selection](/_next/static/images/44ead644c7e54312afbe05acfcde038c.svg)](/blog/nextauth-js-secure-authentication-next-js-guide#)
+
+![The Web Developer’s Guide to NextAuth.js.png]()
+
+The alert hits at 2 a.m.—[customer data](https://strapi.io/blog/build-customer-digital-experience) is leaking through a forgotten debug route. While you scramble to patch the hole, the real culprit surfaces: a home-grown login system rushed out to meet a deadline.
+
+Every developer knows the trade-off—ship fast or engineer bullet-proof authentication—yet building OAuth flows, rotating refresh tokens, and hardening session cookies can consume entire sprints.
+
+NextAuth.js changes this equation. With a single API route and a few provider declarations, you can wire Google, GitHub, or a custom OIDC service in hours rather than weeks of configuration.
+
+Teams still wrestling with custom auth watch features stall; those who implement NextAuth.js push to production the same day—and sleep through the night.
+
+**In brief:**
+
+* NextAuth.js provides a single API route solution for implementing complete authentication in Next.js applications, eliminating weeks of development time.
+* The toolkit handles complex security concerns automatically, including OAuth flows, session management, and token rotation.
+* Developers can integrate multiple authentication providers (Google, GitHub, custom OIDC) using consistent configuration patterns.
+* NextAuth.js scales seamlessly with your application, offering both stateless JWT and database-backed session strategies without code rewrites.
+
+## **What Is NextAuth.js?**
+
+[NextAuth.js](https://next-auth.js.org/) is an open-source [authentication toolkit](https://strapi.io/blog/top-user-authentication-tools-for-developers) built specifically for Next.js applications. Instead of scattering login code across pages and API routes, you drop a single auth endpoint into your project and configure it with the providers you need.
+
+The library handles OAuth handshakes, session storage, refresh tokens, and secure cookies, freeing you to focus on product logic rather than security plumbing.
+
+The design aligns with Next.js conventions, so `getServerSession` and client hooks work out of the box. You never have to leave the [React component](https://strapi.io/blog/how-to-build-a-modern-blog-with-react-19-and-strapi-5) model you already know.
+
+While the broader community has embraced NextAuth.js as a popular authentication solution for Next.js projects, the official Next.js documentation does not designate it as the default or link to it as the recommended path for authentication.
+
+NextAuth.js exposes a unified API across more than fifty built-in providers. Whether you configure Google, GitHub, or a custom OIDC issuer, the same options object structure applies.
+
+The library absorbs provider quirks—like Google's refresh-token rotation or GitHub's private-email flow—so you skip weeks of manual edge-case handling.
+
+The architecture is serverless-first. Your auth route deploys as a lightweight function on Vercel, Netlify, or AWS Lambda, scaling instantly when traffic spikes and dropping to zero when it's quiet.
+
+[Stateless JWT sessions](https://strapi.io/blog/introduction-to-jwt-and-cookie-storage) align perfectly with these ephemeral executions, eliminating the sticky-session headaches that plague traditional servers. Real-world implementations show the payoff: spinning up auth quickly on existing serverless apps and pairing it with serverless Redis for low-latency session storage.
+
+If you deploy to long-running servers, some tools can detect the runtime and apply appropriate secure defaults. This can enhance predictability, portability, and developer experience, though cost efficiency and scalability depend on the deployment environment and configuration.
+
+## **Key Next.js Authentication Features**
+
+Spending days untangling OAuth flows or racing to patch security gaps pulls you away from shipping features. This toolkit solves authentication complexity by consolidating it into four core features that integrate directly into your Next.js application.
+
+### **Universal Provider Integration**
+
+You can enable Google, GitHub, Apple, Facebook—or any of the 50-plus built-in options—with the same configuration pattern.
+
+A single `providers` array gives every service the exact callback, state, and CSRF handling it expects, eliminating platform-specific implementation logic. Need a custom provider? Drop in any OpenID Connect endpoint and treat it the same as first-party providers through the unified OAuth interface.
+
+The system handles each platform's specific quirks automatically. Google's token refresh rules change by grant type, and some providers refuse to issue refresh tokens at all.
+
+The library abstracts these inconsistencies away, automatically renewing or re-authenticating when tokens expire. This creates a consistent sign-in experience for users and a predictable API for developers.
+
+### **Adaptive Session Management**
+
+The [JWT versus database session debate](https://strapi.io/blog/jwt-vs-oauth) becomes irrelevant—you can switch strategies with one configuration option. Set `strategy: "jwt"` for stateless, signed tokens that scale horizontally with serverless deployments.
+
+Prefer traditional storage? Point the system at Postgres, MySQL, or MongoDB and it manages session tables automatically. Both approaches include secure defaults like HttpOnly cookies, rolling expiration, and session invalidation, preventing race conditions and session fixation without additional code.
+
+### **Built-in Security Framework**
+
+Every authentication flow represents a potential breach point. The toolkit addresses most vulnerabilities before you write code: signed JWTs ensure token integrity, CSRF tokens protect every sign-in request, and signed, secure cookies prevent XSS from leaking session data.
+
+Built-in defenses against replay attacks, clickjacking, and OAuth state tampering are enabled by default. When you need custom behavior—adding role claims or rotating secrets—the callback system extends the pipeline without disabling security guardrails.
+
+### **Progressive Data Architecture**
+
+Early-stage projects can launch without a database by using JWT sessions. As your application grows, switch to persistent storage using maintained adapters for Prisma, TypeORM, or MongoDB.
+
+The schema is fully customizable, allowing you to add tenant IDs, onboarding flags, or domain-specific fields without modifying core library code. This migration path means your authentication layer evolves with your stack—no rewrites, no vendor lock-in, and no complex data migrations.
+
+### **Seamless Next.js Integration**
+
+NextAuth.js works with both routing paradigms that Next.js supports today. Whether your project uses the classic Pages Router or the new App Router, you configure authentication the same way—an API endpoint plus a few helpers—so migrations never derail feature work.
+
+Pages Router setup lives in the conventional `/pages/api/auth/[...nextauth].js` file. After installing the package you export a configured handler:
+
+```
+// pages/api/auth/[...nextauth].js// pages/api/auth/[...nextauth].jsimport NextAuth from "next-auth" import  NextAuth from "next-auth"import GitHubProvider from "next-auth/providers/github" import  GitHubProvider from "next-auth/providers/github" export default NextAuth({export  default  NextAuth({ providers: [ providers: [ GitHubProvider({ GitHubProvider({ clientId: process.env.GITHUB_ID, clientId: process.env. GITHUB_ID, clientSecret: process.env.GITHUB_SECRET, clientSecret: process.env. GITHUB_SECRET, }), }), ], ],})})
+```
+
+When you need the session server-side—think SSR dashboards or secure API routes—you use `getServerSession` as the Next.js docs outline:
+
+```
+// pages/admin.js// pages/admin.jsimport { getServerSession } from "next-auth/next" import { getServerSession } from "next-auth/next"import { authOptions } from "./api/auth/[...nextauth]" import { authOptions } from "./api/auth/[...nextauth]" export async function getServerSideProps(ctx) {export  async  function  getServerSideProps(ctx) { const session = await getServerSession(ctx.req, ctx.res, authOptions)  const  session =  await  getServerSession(ctx.req, ctx.res, authOptions) if (!session) { if (!session) { return { redirect: { destination: "/api/auth/signin", permanent: false } }  return { redirect: { destination: "/api/auth/signin", permanent: false } } } } return { props: { session } }  return { props: { session } }}}
+```
+
+Move the same codebase to the App Router and nothing breaks. You swap the API route for a route handler under `/app/api/auth/[...nextauth]/route.js`, and the system exposes typed `GET` and `POST` methods that work with the new file-system conventions:
+
+```
+// app/api/auth/[...nextauth]/route.js// app/api/auth/[...nextauth]/route.jsimport NextAuth from "next-auth" import  NextAuth from "next-auth"import GoogleProvider from "next-auth/providers/google" import  GoogleProvider from "next-auth/providers/google" export const { handlers: { GET, POST }, auth } = NextAuth({export  const { handlers: { GET, POST }, auth } =  NextAuth({ providers: [ providers: [ GoogleProvider({ GoogleProvider({ clientId: process.env.GOOGLE_ID, clientId: process.env. GOOGLE_ID, clientSecret: process.env.GOOGLE_SECRET, clientSecret: process.env. GOOGLE_SECRET, }), }), ], ],})})
+```
+
+On the server you now call `auth()` instead of `getServerSession`, but the mental model—"ask the system for the current session inside a request"—remains unchanged.
+
+By matching both router APIs, the toolkit shields you from Next.js version churn while letting you adopt incremental upgrades at your own pace.
+
+### **Edge-Based Access Control**
+
+Route protection belongs as close to the request entry point as possible, and middleware gives you that guardrail. With the built-in `withAuth` helper you turn a single file into a bouncer that checks every incoming request before any page code or database query runs:
+
+```
+// middleware.js (project root)// middleware.js (project root)import { withAuth } from "next-auth/middleware" import { withAuth } from "next-auth/middleware" export default withAuth({export  default  withAuth({ callbacks: { callbacks: { authorized: ({ token }) => !!token, // Logged-in users only  authorized: ({ token }) => !!token, // Logged-in users only }, },})}) export const config = {export  const  config = { matcher: ["/dashboard/:path*", "/api/private/:path*"], matcher: ["/dashboard/:path*", "/api/private/:path*"],}}
+```
+
+Because middleware runs at the edge, unauthorized users are rejected early, saving bandwidth and server compute. Need fine-grained rules? Enrich your JWT during the `jwt` callback, then gate on it:
+
+```
+authorized: ({ token }) => token?.role === "admin" authorized: ({ token }) => token?.role ===  "admin"
+```
+
+That single condition now shields every admin page, eliminating repetitive checks scattered across components. You can mix and match matchers—`/tenant/:slug*` for [multi-tenant SaaS](https://strapi.io/blog/6-saas-apis), `/reports/**` for premium features—and still rely on one central policy.
+
+Performance overhead stays low because the middleware logic is tiny and stateless. It evaluates once per request, leverages the same caching as other edge functions, and never loads your React bundle just to say "no."
+
+The result is consistent, auditable security with minimal code duplication—a practical win for both developer sanity and user safety.
+
+## **How to Build Your Authentication System**
+
+Implementing authentication means building something essential that users expect to work perfectly. This practical guide takes you from installation to granular route protection, focusing on shipping features instead of wrestling with login flows.
+
+### **Initial Setup and Configuration**
+
+Start by installing the core package:
+
+```
+npm install next-auth npm  install next-auth
+```
+
+Create a `.env.local` file and add a strong secret:
+
+```
+NEXTAUTH_SECRET=$(openssl rand -base64 32) NEXTAUTH_SECRET =$(openssl  rand -base64  32)GOOGLE_ID=... GOOGLE_ID =...GOOGLE_SECRET=... GOOGLE_SECRET =...GITHUB_ID=... GITHUB_ID =...GITHUB_SECRET=... GITHUB_SECRET =...
+```
+
+Never commit this file—losing the secret invalidates all existing sessions.
+
+Add a single API route. In the Pages Router it lives at `pages/api/auth/[...nextauth].js`; in the App Router it moves to `app/api/auth/[...nextauth]/route.js`. This one file controls every sign-in option:
+
+```
+// pages/api/auth/[...nextauth].js// pages/api/auth/[...nextauth].jsimport NextAuth from "next-auth"; import  NextAuth from "next-auth";import GoogleProvider from "next-auth/providers/google"; import  GoogleProvider from "next-auth/providers/google";import GitHubProvider from "next-auth/providers/github"; import  GitHubProvider from "next-auth/providers/github"; export default NextAuth({export  default  NextAuth({ providers: [ providers: [ GoogleProvider({ GoogleProvider({ clientId: process.env.GOOGLE_ID, clientId: process.env. GOOGLE_ID, clientSecret: process.env.GOOGLE_SECRET, clientSecret: process.env. GOOGLE_SECRET, }), }), GitHubProvider({ GitHubProvider({ clientId: process.env.GITHUB_ID, clientId: process.env. GITHUB_ID, clientSecret: process.env.GITHUB_SECRET, clientSecret: process.env. GITHUB_SECRET, }), }), ], ], session: { strategy: "jwt" }, session: { strategy: "jwt" },});});
+```
+
+Visit `/api/auth/signin` and you have a functioning multi-provider [login page—no](https://strapi.io/blog/epic-next-js-15-tutorial-part-4-how-to-handle-login-and-authentication-in-next-js) HTML, cookies, or cryptography required. From here you can layer in callbacks, custom pages, or a database adapter as needed.
+
+### **Choosing Your Authentication Strategy**
+
+The right strategy depends on who's signing in and what they expect. OAuth providers like Google, GitHub, and Apple work best when your users already trust a third-party identity. You inherit secure passwords, 2FA, and account recovery with a couple of client IDs.
+
+The trade-off is reliance on external APIs and the occasional provider quirk—Google's refresh-token rules, GitHub's optional email, and so on. The system smooths most of these wrinkles, supplying provider presets and a common callback shape.
+
+Credentials give you full control over UX and data through traditional email/password flows, but also full responsibility for hashing, resets, and breach prevention. Use this when brand continuity outweighs maintenance cost. The Credentials provider template lets you drop in your own database check without exposing passwords in the browser:
+
+```
+import CredentialsProvider from "next-auth/providers/credentials"; import  CredentialsProvider from "next-auth/providers/credentials"; CredentialsProvider({CredentialsProvider({ name: "Email", name: "Email", credentials: { credentials: { email: { label: "Email", type: "email" }, email: { label: "Email", type: "email" }, password: { label: "Password", type: "password" }, password: { label: "Password", type: "password" }, }, }, async authorize({ email, password }) { async  authorize({ email, password }) { const user = await db.users.verify(email, password);  const  user =  await db.users. verify(email, password); return user ?? null;  return  user ??  null; }, },});});
+```
+
+Passwordless authentication through magic links provides the lowest friction for casual apps, but relies on email deliverability and is less familiar to enterprise security teams. You configure it much like OAuth, swapping client secrets for SMTP credentials.
+
+The system happily mixes strategies: let paying customers authenticate with Google while internal staff use credentials. If a single person signs in with multiple methods, account linking callbacks give you the hooks to merge identities.
+
+### **Protecting Your Application**
+
+With authentication working, the next task is keeping private data private. Start with these essential patterns:
+
+1. **Protect a client-side page:**
+
+```
+// pages/dashboard.jsx// pages/dashboard.jsximport { useSession, signIn } from "next-auth/react"; import { useSession, signIn } from "next-auth/react"; export default function Dashboard() {export  default  function  Dashboard() { const { data: session } = useSession();  const { data: session } =  useSession(); if (!session) return signIn(); // redirects to /signin  if (!session) return  signIn(); // redirects to /signin return <h1>Welcome, {session.user.name}h1>;  return < h1>Welcome, {session.user.name} h1>;}}
+```
+
+1. **Guard a server-side function:**
+
+```
+// pages/api/admin/stats.js// pages/api/admin/stats.jsimport { getServerSession } from "next-auth"; import { getServerSession } from "next-auth";import authOptions from "../auth/[...nextauth]"; import  authOptions from "../auth/[...nextauth]"; export default async function handler(req, res) {export  default  async  function  handler(req, res) { const session = await getServerSession(req, res, authOptions);  const  session =  await  getServerSession(req, res, authOptions); if (!session || session.user.role !== "admin") { if (! session || session.user.role !==  "admin") { return res.status(403).end("Forbidden");  return res. status(403). end("Forbidden"); } } // return stats... // return stats...}}
+```
+
+1. **Enforce rules globally with middleware (App Router):**
+
+```
+// middleware.ts// middleware.tsimport { NextResponse } from "next/server"; import { NextResponse } from "next/server";import { getToken } from "next-auth/jwt"; import { getToken } from "next-auth/jwt"; export async function middleware(req) {export  async  function  middleware(req) { const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });  const  token =  await  getToken({ req, secret: process.env. NEXTAUTH_SECRET }); const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");  const  isAdminRoute = req.nextUrl.pathname. startsWith("/admin");  if (!token && isAdminRoute) { if (! token && isAdminRoute) { return NextResponse.redirect(new URL("/signin", req.url));  return NextResponse. redirect(new  URL("/signin", req.url)); } } if (token && isAdminRoute && token.role !== "admin") { if (token &&  isAdminRoute && token.role !==  "admin") { return NextResponse.rewrite(new URL("/403", req.url));  return NextResponse. rewrite(new  URL("/403", req.url)); } } return NextResponse.next();  return NextResponse. next();}} export const config = { matcher: ["/admin/:path*"] }; export  const  config = { matcher: ["/admin/:path*"] };
+```
+
+Middleware runs at the edge, so you intercept unauthorized requests before they hit your API, cutting latency and avoiding repeated checks across pages.
+
+**Common pitfalls to avoid:**
+
+* **Skipping API routes.** Your React components might be locked down, yet an unprotected JSON endpoint leaks the same data. Always verify `getServerSession` or JWT claims on the server.
+* **Forgetting role checks.** Authentication isn't authorization; confirm the user is allowed to perform the action, not merely logged in.
+* **Over-scoping tokens.** Include only the claims you need—team IDs, roles—not entire profiles.
+
+By layering client checks, server validation, and edge middleware, you create defense in depth without duplicating logic. The result: a secure app that scales from personal projects to multi-tenant SaaS while keeping your authentication code in one well-documented place.
+
+## **Advanced NextAuth.js Patterns for Production Apps**
+
+Once the basics are running, you'll quickly bump into real-world requirements—extra claims in the token, audit trails, or a corporate identity provider that isn't on the presets list. These patterns push your implementation past "works on my laptop" and into hardened production setups.
+
+### **Customizing Sessions and JWTs**
+
+Most SaaS projects need more than a user's email. You might need to inject a `role`, a `teamId`, or even feature flags into every session. The system exposes two intervention points—`jwt` and `session` callbacks—that let you shape both the token you store and the object you return to the client:
+
+```
+// app/api/auth/[...nextauth]/route.js// app/api/auth/[...nextauth]/route.jsexport const authOptions = {export  const  authOptions = { session: { strategy: "jwt" }, session: { strategy: "jwt" }, callbacks: { callbacks: { async jwt({ token, user }) { async  jwt({ token, user }) { if (user) { if (user) { token.role = user.role // add role token.role = user.role // add role token.teamId = user.teamId // add team context token.teamId = user.teamId // add team context } }  return token  return  token }, }, async session({ session, token }) { async  session({ session, token }) { session.user.role = token.role session.user.role = token.role session.user.teamId = token.teamId session.user.teamId = token.teamId  return session  return  session }, }, }, },}}
+```
+
+The token stays signed by default, so claims can be verified for integrity, but sensitive claims may be visible to the client unless you use a database session strategy, which keeps them server-side and hidden.
+
+Switch `strategy` to `"database"` later without rewriting callback logic—a clean escape hatch when scaling beyond stateless limits. Keep your `NEXTAUTH_SECRET` strong and constant across deploys to avoid invalidating existing JWTs.
+
+### **Callbacks and Events for Fine-Grained Control**
+
+Callbacks run **inside** the authentication flow and can block, modify, or enrich it, while events fire **after** the flow completes—perfect for non-blocking side effects. The execution order is roughly: `signIn → redirect → jwt → session`. Stash data early (in `signIn` or `jwt`) and rely on it later (in `session`).
+
+Common patterns you'll reach for include:
+
+* **Audit logging**: use the `signIn` event to push a record to your logging pipeline
+* **Analytics**: fire the `session` event to increment active-user metrics without delaying the response
+* **Webhooks**: trigger external workflows (send a Slack greeting) on `createUser`
+
+```
+export const authOptions = {export  const  authOptions = { events: { events: { async signIn({ user }) { async  signIn({ user }) { log.info("Login", { id: user.id }) log. info("Login", { id: user.id }) }, }, async createUser({ user }) { async  createUser({ user }) { await fetch(process.env.WEBHOOK_URL, { await  fetch(process.env. WEBHOOK_URL, { method: "POST", method: "POST", body: JSON.stringify({ id: user.id, email: user.email }), body: JSON. stringify({ id: user.id, email: user.email }), }) }) }, }, }, }, callbacks: { callbacks: { async signIn({ user }) { async  signIn({ user }) { // Block unverified corporate emails // Block unverified corporate emails return user.email.endsWith("@corp.com")  return user.email. endsWith("@corp.com") }, }, }, },}}
+```
+
+Events run after the response returns, so they won't slow down the user. The documentation provides the most up-to-date reference for callback signatures.
+
+### **Extending Beyond Defaults**
+
+Eventually you'll meet a requirement that isn't covered by the built-ins: authenticating against a private OIDC server, swapping Prisma for a legacy Mongo cluster, or segregating tenants in a multi-region database. The system treats all of these as first-class extensions, not hacks.
+
+Custom provider example:
+
+```
+import { OAuthConfig } from "next-auth" import { OAuthConfig } from "next-auth" export const MyEnterpriseProvider = (): OAuthConfig => ({export  const  MyEnterpriseProvider = ():  OAuthConfig => ({ id: "my-enterprise", id: "my-enterprise", name: "Enterprise SSO", name: "Enterprise SSO", type: "oauth", type: "oauth", authorization: "https://enterprise.com/oauth/authorize", authorization: "https://enterprise.com/oauth/authorize", token: "https://enterprise.com/oauth/token", token: "https://enterprise.com/oauth/token", userinfo: "https://enterprise.com/oauth/userinfo", userinfo: "https://enterprise.com/oauth/userinfo", clientId: process.env.ENTERPRISE_ID, clientId: process.env. ENTERPRISE_ID, clientSecret: process.env.ENTERPRISE_SECRET, clientSecret: process.env. ENTERPRISE_SECRET, profile(profile) { profile(profile) { return { id: profile.uid, email: profile.email }  return { id: profile.uid, email: profile.email } }, },})})
+```
+
+Wire it into the `providers` array and you're done—no need to fork the library. The same plug-and-play philosophy applies to database adapters; switch from SQLite to Postgres by installing the relevant adapter and updating one line of config.
+
+For multi-tenant apps, prefix session tables with the tenant ID or embed it in the JWT, then filter queries accordingly.
+
+With these patterns, you can adapt the authentication layer to almost any enterprise or startup constraint without surrendering the maintainability that drew you to it in the first place.
+
+## **The Developer and User Experience Payoff**
+
+Implementing NextAuth.js delivers immediate returns for both development teams and end users. The practical benefits extend from code simplicity to production performance, creating value across the entire application lifecycle.
+
+### **Accelerated Development Workflow**
+
+When you integrate this authentication solution, the first thing you notice is how little code you write. A single API route handles all provider logic, callbacks, and session management. Google or GitHub login becomes copy-paste configuration—you're done. What used to take weeks now takes an afternoon.
+
+Provider SDK changes ship through library updates, eliminating the maintenance grind. The time you reclaim goes to product features, portfolio pieces, or hitting deadlines without weekend panic.
+
+### **Enhanced User Onboarding Experience**
+
+Your users get a smoother first impression. Built-in pages and hooks make social sign-in a single click. Credential forms include real-time feedback. Sessions hydrate instantly through the `SessionProvider`, eliminating the flash of unauthenticated content that plagues custom solutions.
+
+Protected pages load without awkward redirects, reinforcing the polished feel modern users expect.
+
+### **Cost-Effective Scaling Performance**
+
+Cost worries surface when traffic spikes, but the serverless-first architecture handles that moment gracefully. Deployed as serverless functions on Vercel, each auth request spins up only when needed and bills by the millisecond.
+
+Pair with stateless JWT sessions and serverless stores like Upstash Redis, and you pay for usage instead of idle containers. Automatic scaling and community patches give you predictable costs and confidence that security fixes land without frantic hot-patches.
+
+## **NextAuth.js + Strapi: Your Complete Full-Stack Foundation**
+
+Authentication solves user identity, but you still need content management and API endpoints. [NextAuth.js and Strapi](https://strapi.io/blog/Strapi-JWT-Authentication-Next.js) integrate seamlessly through standard JWT tokens. When users authenticate, the system generates a JWT that includes custom claims like `role` or `teamId`. Forward this token in the `Authorization` header to authenticate [Strapi API](https://docs.strapi.io/cms/api/content-api) requests automatically.
+
+This approach maintains consistent user context across your stack. The same token that secures your Next.js routes also authenticates your Strapi endpoints. Role-based permissions work identically in both systems, eliminating duplicate access control logic.
+
+The result: one authentication flow, unified permissions, and immediate [API access](https://strapi.io/blog/evolution-of-apis-from-pre-rest-era-to-modern-restful-and-beyond). NextAuth.js handles user sessions while Strapi manages your content and data layer. This combination lets you build features instead of authentication infrastructure.
+
+[![tweet selection](/_next/static/images/44ead644c7e54312afbe05acfcde038c.svg)](/blog/nextauth-js-secure-authentication-next-js-guide#)
+
+![T02DG925U-U039QKS8JVC-87b1021e7476-192.jpeg]()
+
+[Paul Bratslavsky](/user/paul-bratslavsky)
+
+Developer Advocate
+
+---
+
+Title: NextAuth.js for client-side authentication in Next.js | LogRocket Blog
+[###### Advisory boards aren’t only for executives. Join the LogRocket Content Advisory Board today →](https://lp.logrocket.com/blg/content-advisory-board-signup)
+
+[![LogRocket blog logo](https://blog.logrocket.com/wp-content/themes/logrocket/assets/logrocket-logo.png)](https://logrocket.com) 
+
+* [Blog](https://blog.logrocket.com/)
+  + [Dev](https://blog.logrocket.com/dev)
+  + [Product Management](https://blog.logrocket.com/product-management)
+  + [UX Design](https://blog.logrocket.com/ux-design)
+  + [Podcast](https://podrocket.logrocket.com)
+  + [Product Leadership](https://stories.logrocket.com/)
+* [Features](https://logrocket.com/features)
+* [Solutions](#)
+  + [Solve User-Reported Issues](https://logrocket.com/solutions/solve-user-issues)
+  + [Surface User Struggle](https://logrocket.com/solutions/surface-user-struggle)
+  + [Optimize Conversion and Adoption](https://logrocket.com/solutions/optimize-conversion-adoption)
+
+* [Start Monitoring for Free](https://app.logrocket.com/)
+* [Sign In](https://app.logrocket.com/)
+
+Ejiro Asiuwhu
+
+   
+
+Jun 14, 2024 ⋅ 19 min read
+
+# How to use Auth.js for client-side authentication in Next.js
+
+[![](https://secure.gravatar.com/avatar/906691552736d48cc13f5ae5fbb567c3e6c8b8496c4d24ce65b38126995f5ae1?s=50&d=mm&r=g)](https://blog.logrocket.com/author/ejiroasiuwhu/) 
+
+[Ejiro Asiuwhu](https://blog.logrocket.com/author/ejiroasiuwhu/) Software engineer with a drive for building highly scalable and performant web applications. Heavily interested in module federation, micro frontends, state machines, TDD, and system designs. Big on web performance and optimization, advanced component design patterns, a11y, SSR, SSG, ISR, and state management. Expert at crafting highly reusable TypeScript-heavy component libraries.
+
+![](https://blog.logrocket.com/wp-content/uploads/2023/04/logrocket-logo-1.png)
+
+## See how LogRocket's Galileo AI surfaces the most severe issues for you
+
+### No signup required
+
+Check it out
+
+***Editor’s note:*** *This article was last updated by* [*Chinwike Maduabuchi*](https://blog.logrocket.com/author/chinwikemaduabuchi/) *on 14 June 2024 according to changes in the Auth.js v5 release and to include information about authenticating with magic links.*
+
+![How To Use Auth.js For Client-Side Authentication In Next.js](https://blog.logrocket.com/wp-content/uploads/2024/06/auth-js-client-side-authentication-next-js.png)
+
+Authentication is an important and sensitive feature in applications where a user’s credentials, such as username, email, and password, are used to verify their identity.
+
+In this article, we’ll set up a client-side authentication that doesn’t require a password in Next.js using the Auth.js library. Our app, which we will build using React Hooks and functional components, will allow users to log in using their GitHub account or magic links. Upon successful signup, we will have access to the user’s data (profile picture and email) from their social media accounts. You’ll also learn how to protect routes with middleware.
+
+### 🚀 Sign up for The Replay newsletter
+
+[**The Replay**](https://blog.logrocket.com/the-replay-archive/) is a weekly newsletter for dev and engineering leaders.
+
+Delivered once a week, it's your curated guide to the most important conversations around frontend dev, emerging AI tools, and the state of modern software.
+
+## What is Auth.js?
+
+[Auth.js](https://authjs.dev/?_gl=1*1o92p9s*_gcl_au*MTA2Mjg0OTE5MS4xNzE5MjUwODIy), previously known as NextAuth.js, is a secure and flexible authentication library designed to sync with a large list of OAuth services and offer full support for passwordless sign-in.
+
+Auth.js can be used with or without a database, and it has default support for popular databases such as MySQL, MongoDB, PostgreSQL, and MariaDB. It can be used without a database by syncing with services like OAuth and [JSON Web Tokens](https://blog.logrocket.com/jwt-authentication-best-practices/).
+
+### How does Auth.js work?
+
+With a library like Auth.js, you don’t need to be an expert in identity protocol like you would if you were to [use OAuth to build secured Next.js applications](https://blog.logrocket.com/implement-oauth-2-0-node-js/). Although Auth.js has password authentication built-in with its Credentials provider, they strongly advise against storing sensitive data like a user’s password because of security risks.
+
+Auth.js has a client-side API you can use to interact with sessions in your app. The session data returned from the Providers contains a user payload, which can be displayed to the user upon successful login.
+
+The session data returned to the client looks like this:
+
+```
+{ expires: '2055-12-07T09:56:01.450Z'; user: { email: '[email protected]'; image: 'https://avatars2.githubusercontent.com/u/45228014?v=4'; name: 'Ejiro Asiuwhu'; } } 
+```
+
+The payload doesn’t contain any sensitive data. The session payload or data is meant for presentation purposes — that is, it’s meant to be displayed to the user.
+
+Auth.js also provides the `useSession` React Hook, which can be used to check user login status. Meanwhile, Auth.js provides a REST API that is used by the React app. To learn more about what the REST API NextAuth exposes, check out the [official docs](https://next-auth.js.org/getting-started/rest-api).
+
+## Requirements
+
+* Node.js installed on your local machine
+* A basic understanding of React and Next.js 14
+
+## Creating the Next.js starter application
+
+To get started, create a new Next.js application by running the following command:
+
+```
+npx create-next-app@latest 
+```
+
+You will be prompted to go through a series of questions; your selections should be the same as the ones from the image below:
+
+Now, change the directory into the project folder and launch the development server:
+
+```
+npm run dev # or yarn run dev 
+```
+
+By default, the project will run on port `3000`. Launch your browser and navigate to `http://localhost:3000`. You should end up with this:
+
+## Setting up authentication with Auth.js
+
+Now that we have the Next.js starter application, we’re ready to learn how to authenticate a Next.js app with Auth.js.
+
+This Auth.js client-side authentication tutorial will cover the following:
+
+* Configuring Auth.js
+* Authenticating with GitHub OAuth
+* Authenticating with magic links
+* Querying the current user session
+* Dealing with callbacks in Auth.js
+
+Here is the [repository for the demo](https://github.com/Chinwike1/authjs-v5) shown in this tutorial.
+
+### Installing Auth.js
+
+Auth.js v5 is currently in beta, so use the beta suffix as seen in the command below to install it:
+
+```
+npm install next-auth@beta # or pnpm add next-auth@beta 
+```
+
+Our demo app will allow users to sign in using Auth.js’ GitHub and Email providers. Let’s begin by correctly configuring Auth.js in our project.
+
+## Configuring Auth.js
+
+To correctly set up Auth.js, you’ll first need to set up the configuration file and expose the required Auth.js endpoints that handle the authentication flow. In v5, Auth.js moved the configuration file, `auth.ts`, to the project’s root to avoid exporting your configuration from one file and passing it around as `authOptions` throughout your application.
+
+Because we have a `src` directory, we’ll create the Auth.js config file at that point like so:
+
+```
+// ./src/auth.ts import NextAuth from 'next-auth' import Github from 'next-auth/providers/github' import type { NextAuthConfig } from 'next-auth' export const { handlers, auth } = NextAuth({ providers: [Github], debug: process.env.NODE_ENV === 'development', } satisfies NextAuthConfig) 
+```
+
+The code above configures Auth.js for authentication using GitHub as the provider. It exports the `handlers` and `auth` objects, which are set up to handle authentication flows, and enables `debug` mode during development. The configuration is also validated against the `NextAuthConfig` type for type safety.
+
+Next, we need to create a [catch-all dynamic route](https://nextjs.org/docs/pages/building-your-application/routing/dynamic-routes#catch-all-segments) that will respond to all the relevant Auth.js API routes — like `/signIn` and `/signOut` — so that our application can interact with our chosen OAuth provider using the [OAuth 2](https://oauth.net/2) protocol. From your `app` directory, create the following file: `/api/[…nextauth]/route.ts`:
+
+```
+// src/app/api/[...nextauth]/route.ts import { handlers } from '@/auth' export const { GET, POST } = handlers 
+```
+
+The handler is exported under the aliases `GET` and `POST`, indicating that it will manage both types of HTTP requests for authentication routes. We cannot authenticate users at this stage because we haven’t set our Auth.js secret key or obtained our GitHub credentials. Let’s explore how to configure environment variables in Auth.js to resolve this.
+
+## Environment variables in Auth.js
+
+Before you ship your Auth.js app to production with any one of the available providers, some environment variables must be present in your application. It is also important to note that in Auth.js v5, the library automatically picks up environment variables prefixed with `AUTH_` and uses them in the server configuration.
+
+---
+
+[![](https://blog.logrocket.com/wp-content/uploads/2023/07/Screen-Shot-2023-07-06-at-7.44.15-AM.png)
+
+## Over 200k developers use LogRocket to create better digital experiences
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/08/rocket-button-icon.png)Learn more →](https://lp.logrocket.com/blg/learn-more)
+
+---
+
+The first required env variable is `AUTH_SECRET`, which Auth.js uses to sign and verify JWTs (JSON Web Tokens) and encrypt session data. Ideally, this variable’s value should be a long, random string, kept secure and never exposed publicly.
+
+You can use the Node.js built-in crypto module or the OpenSSL command available on all Linux/Mac OS X systems [to generate a secret](https://next-auth.js.org/configuration/options#secret):
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" or openssl rand -base64 32 
+```
+
+This generates a secure, random, 32-byte value encoded as a hexadecimal string. Set this string as the value of the `AUTH_SECRET` environment variable in your `.env.local` file:
+
+```
+# .env.local AUTH_SECRET= 
+```
+
+Note: If you don’t provide an `AUTH_SECRET` variable, Auth.js will automatically generate one for you when the server starts. However, this dynamically generated secret won’t persist across server restarts.
+
+This means all your signed tokens and sessions will become invalid every time your server restarts, as they will fail the verification against the new secret. Therefore, it is strongly recommended that you provide your own `AUTH_SECRET` variable for consistent session and token management in production environments.
+
+If you’re using an OAuth provider like GitHub or Google, your provider will provide you with a Client ID and Client Secret that you will need to set as environment variables. The Client IDs and Client Secrets should be named `AUTH_[PROVIDER]_ID` and `AUTH_[PROVIDER]_SECRET`. To find your GitHub credentials, [follow this guide](https://authjs.dev/guides/configuring-github#registering-your-app) from the Auth.js docs.
+
+Your `.env.local` file should now look like this:
+
+```
+# .env.local AUTH_SECRET= AUTH_GITHUB_ID= AUTH_GITHUB_SECRET= 
+```
+
+And that’s all it takes to set up a barebones GitHub authentication with Auth.js! The steps are similar for other OAuth providers but make sure to read the Auth.js documentation for each particular provider as a guide.
+
+If you navigate to the default Auth.js login screen at `http://localhost:3000/api/auth/signin`, you’ll see a button to sign in with GitHub:
+
+You can also import the `signIn` function from the `next-auth/react` package into any client component and manually initiate the sign-in process from a button:
+
+```
+"use client" import { signIn } from 'next-auth/react' export default function GitHubButton() { return (  ) } 
+```
+
+## Checking the user login state
+
+Auth.js v5 has streamlined the process for querying a user’s session by unifying APIs such as `getServerSession`, `getSession`, `withAuth`, and `getToken` into a single, universal `auth()` call. We already encountered this function when we exported it from the Auth.js configuration file:
+
+```
+export const { handlers, auth } = NextAuth({ … }); 
+```
+
+Below is a table from the Auth.js documentation demonstrating how to use the new `auth()` method in various environments. The consensus is that `useSession` should be used within React Client Components and the `auth()` call in other scenarios:
+
+### Configuring the `SessionProvider`
+
+Before we can fetch the session data on the client using `useSesstion`, we first need to give our application access to that data. Auth.js provides a `SessionProvider` component we can configure and wrap around our application to achieve this.
+
+Note: Only the `useSession` Hook needs the `SessionProvider` to access a session’s data. However, we will configure the `SessionProvider` first before exploring the `auth()` call to check the user login state and obtain session information.
+
+Let’s start by updating the `layout.tsx` file with the code snippet below:
+
+```
+import type { Metadata } from 'next' import { Inter } from 'next/font/google' import { Toaster } from '@/components/ui/sonner' import './globals.css' import { auth } from '@/auth' import { SessionProvider } from 'next-auth/react'; const inter = Inter({ subsets: ['latin'] }) export const metadata: Metadata = { title: 'Create Next App', description: 'Generated by create next app', } export default async function RootLayout({ children, }: Readonly<{ children: React.ReactNode }>) { const session = await auth() return (    {children}     ) } 
+```
+
+In the above code snippet, we imported the `SessionProvider` component from the `next-auth/react` package and the `auth` function from Auth.js. We will use them to provide session state to all components in your application, allowing you to access a session’s data.
+
+If you’ve followed the steps so far, you’ll notice something strange: an error occurs. This is because:
+
+* [The NextAuth `SessionProvider` component](https://next-auth.js.org/getting-started/client#sessionprovider) is a client component that uses [the Context API](https://blog.logrocket.com/react-context-api-deep-dive-examples/). That’s why it is exported from `next-auth/react` and not `next-auth`
+* [Next.js 14 uses Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components#using-server-components-in-nextjs) by default, meaning the Context API is unavailable as it only works on the client:  
+   ![React Context Error](https://blog.logrocket.com/wp-content/uploads/2023/06/react-context-error.png)
+
+We can solve this error by flagging the `SessionProvider` as a [Client Component](https://nextjs.org/docs/app/building-your-application/rendering/client-components#using-client-components-in-nextjs) and then exporting it. Create an `AuthProvider.tsx` file and input the code below:
+
+```
+"use client"; //tells Next.js to render this component on the client export { SessionProvider as AuthProvider } from 'next-auth/react' 
+```
+
+Instead of importing `SessionProvider` directly from Auth.js, we will use the client-compatible version we just created. Here’s the updated code for the `layout.tsx` file:
+
+```
+import { AuthProvider } from '@/components/AuthProvider' /* other imports */ export default async function RootLayout({ children, }: Readonly<{ children: React.ReactNode }>) { const session = await auth() return (...); //previous code here remains unchanged } 
+```
+
+### Using the `useSession` Hook
+
+Having configured the `SessionProvider`, let’s use the `useSession` Hook to fetch the logged-in user’s info and display that data in the application.
+
+Create a `UserSession.tsx` file with the following code:
+
+```
+'use client' import { useSession, signIn, signOut } from 'next-auth/react' import { Button } from './ui/button' import { usePathname } from 'next/navigation' import { cn } from '@/lib/utils' export default function UserSession() { const { data: session } = useSession() const pathname = usePathname() return ( 
+
+{session && ( <>
+
+## You're signed in as:
+
+
+
+```
+ {JSON.stringify(session.user?.email)} 
+```
+
+> )} {!session && pathname !== '/signin' && (  )}
+
+ ) }
+```
+
+In the above code snippet, we imported the next-auth hooks `signOut` and `useSession`:
+
+* The `signOut` Hook destroys the activate session and logs the user out
+* The `useSession` Hook provides us with the details of the logged-in user
+
+We can now render this component under the form to show the login status of the user:
+
+In summary, we used `useSession` to check if a session exists and conditionally render the sign-in and sign-out links. Note that we also use the “use client” directive here, or else the same error will occur, as shown in the image below:
+
+### Querying the session on the server
+
+As mentioned earlier, the `auth` call can be used in React Server Components, route handlers, and any server environment to query the user’s session:
+
+```
+import { auth } from '@/auth' export default async function MyServerComponent({ children, }: Readonly<{ children: React.ReactNode }>) { const session = await auth() return (
+
+My email is ${session.user?.email}
+
+) } 
+```
+
+## Magic link authentication with Auth.js
+
+Passwordless authentication methods like magic links have become increasingly popular as a secure alternative to passwords and usernames. Auth.js makes this easy to implement with the Email Provider.
+
+Using magic links in Auth.js requires configuring a database to securely store and manage the unique tokens sent to users for authentication. The database ensures that tokens are valid, not reused, and can be easily revoked if necessary.
+
+While a database is required for token management, the session management strategy is different and can still be set to `jwt`. This approach allows for stateless sessions, reducing database load, and improving scalability.
+
+Let’s start by setting the Auth.js session strategy to `jwt`:
+
+```
+import NextAuth from 'next-auth' import Github from 'next-auth/providers/github' import type { NextAuthConfig } from 'next-auth' export const { handlers, auth } = NextAuth({ providers: [Github], session: { strategy: 'jwt', // how long (seconds) a user's session is valid before expiring maxAge: 432000, // 5days }, } satisfies NextAuthConfig) 
+```
+
+Now let’s set up a database. Auth.js has adapters for various databases including SQL, Postgres, MongoDB, and more. We’ll adopt the [MongoDB adapter](https://authjs.dev/getting-started/adapters/mongodb) for this example. You can follow [this post’s](https://www.mongodb.com/docs/atlas/getting-started/) Atlas UI guide to create a MongoDB database in the cloud. After you do so, grab your database connection string and save it as `MONGO_URI` in your env file.
+
+Next, install MongoDB and its Auth.js adapter with the command below:
+
+```
+npm install @auth/mongodb-adapter mongodb 
+```
+
+The MongoDB adapter does not handle connections automatically, so you will have to make sure that you pass the adapter a `MongoClient` that is already connected. In the `src` folder, create a new file at `lib/mongo-client.ts` with the following code from their docs:
+
+```
+// src/lib/mongo-client.ts import { MongoClient } from 'mongodb' if (!process.env.MONGODB_URI) { throw new Error('Invalid/Missing environment variable: "MONGODB_URI"') } const uri = process.env.MONGODB_URI const options = {} let client let clientPromise: Promise declare global { var _mongoClientPromise: Promise } if (process.env.NODE_ENV === 'development') { // In development mode, use a global variable so that the value // is preserved across module reloads caused by HMR (Hot Module Replacement). if (!global._mongoClientPromise) { client = new MongoClient(uri, options) global._mongoClientPromise = client.connect() } clientPromise = global._mongoClientPromise } else { // In production mode, it's best to not use a global variable. client = new MongoClient(uri, options) clientPromise = client.connect() } // Export a module-scoped MongoClient promise. By doing this in a // separate module, the client can be shared across functions. export default clientPromise 
+```
+
+Now we’re ready to use the email provider for authentication.
+
+### How magic links work in Auth.js
+
+A 24-hour lifespan verification token is attached to the login email sent to the email address provided. If the token is used within the valid time, an account is created for the user under the **Users** database collection and they are signed in.
+
+When using magic link authentication in Auth.js, the `signIn` callback is triggered twice. It is first triggered when the user requests a verification (before they receive their magic link), and second, when they activate the link in the sign-in email. During the first trigger, a `verificationRequest` Boolean is attached to the email parameter of the `signIn` callback. In the second trigger, this Boolean is not present.
+
+This distinction is important because it allows us to determine when to save the user to the database or validate against a blocked list before sending a magic link. We’ll explore this further in a later section.
+
+### Sending magic links with the Resend provider
+
+Auth.js has a Resend integration via the Resend provider that makes setting up magic link auth extremely fast. Start by [creating a Resend account](https://resend.com/signup) and registering a new API key for your app.
+
+Next, add this API key to your `.env.local` file under `AUTH_RESEND_KEY`. Auth.js will automatically recognize this variable.
+
+Update your `auth.ts` file with the code below:
+
+```
+import NextAuth from 'next-auth' import Github from 'next-auth/providers/github' import Resend from 'next-auth/providers/resend' import type { NextAuthConfig } from 'next-auth' import { MongoDBAdapter } from '@auth/mongodb-adapter' import clientPromise from './src/lib/mongo-client' export const { handlers, auth, signIn } = NextAuth({ adapter: MongoDBAdapter(clientPromise), providers: [ Github, Resend({ from: '[email protected]', }), ], session: { strategy: 'jwt', // how long (seconds) a user's session is valid before expiring maxAge: 432000, // 5days }, } satisfies NextAuthConfig) 
+```
+
+This setup allows you to send pre-made test emails exclusively to your email address, using the free `[email protected]` domain.
+
+And that’s all! Magic link authentication should now work in your app. To initiate this authentication flow, I’ve created a simple form using [Shadcn](https://blog.logrocket.com/shadcn-ui-adoption-guide/) and [React Hook Form](https://blog.logrocket.com/react-hook-form-complete-guide/) in the demo repository. Here is a snippet:
+
+```
+'use client' import { Button } from '@/components/ui/button' import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, } from '@/components/ui/form' import { Input } from '@/components/ui/input' import { signIn } from 'next-auth/react' import { useTransition } from 'react' import { useForm } from 'react-hook-form' import { toast } from 'sonner' export default function Home() { const form = useForm() const [isPending, startTransition] = useTransition() async function sendMagicLink(data: { email: string }) { startTransition(async () => { try { const signInResult = await signIn('resend', { email: data.email.toLowerCase(), redirect: false, callbackUrl: '/protected', }) if (signInResult?.ok && !signInResult.error) { toast('Email delivered', { description: 'Check your inbox and spam', action: { label: 'Close', onClick: () => true, }, }) return } } catch (error: any) { toast('Oops, we encountered an error', { description: 'Sorry, we encountered a problem sending the email', action: { label: 'Close', onClick: () => true, }, }) } }) } return (     ) } 
+```
+
+Notice the logic in the `sendMagicLink` function and how the `callbackUrl` parameter of the `signIn` function is used to redirect the user to a `/protected` route — which we’ll create soon — after successfully signing in:
+
+[![Successful Signin](https://blog.logrocket.com/wp-content/uploads/2024/03/successful-signin.png)](https://blog.logrocket.com/auth-js-client-side-authentication-next-js/attachment/successful-signin/)
+
+[![Successful Signin Message Via Email](https://blog.logrocket.com/wp-content/uploads/2024/03/email-successful-signin.png)](https://blog.logrocket.com/auth-js-client-side-authentication-next-js/attachment/email-successful-signin/)
+
+### Customizing magic link emails in Auth.js
+
+More often than not, you will want full autonomy over the look of your email and the logic in control of sending out the magic link emails. Auth.js gives you full customizability over this using the `sendVerificationRequest` function present in the `EmailProvider` options:
+
+```
+import EmailProvider from "next-auth/providers/email"; ... providers: [ EmailProvider({ server: process.env.EMAIL_SERVER, from: process.env.EMAIL_FROM, sendVerificationRequest({ identifier: email, url, provider: { server, from }, }) { /* your function */ }, }), ] 
+```
+
+For an example codebase that demonstrates the implementation of custom magic links with Auth.js v5, [this repository](https://github.com/Chinwike1/dentist-direct/blob/test/auth.ts) and [Shadcn’s taxonomy](https://github.com/shadcn-ui/taxonomy) are valuable resources.
+
+## Creating a custom login page in Auth.js
+
+So far in our code, we’ve created a custom login form for the magic link authentication. But currently, the GitHub authentication is only accessible at `/api/auth/signin`. Now, let’s create a custom login page for the app and move our magic link form into this custom page. We’ll also add a custom **Sign in with GitHub** button.
+
+To do that, you need to modify the `auth.ts` file with Auth’s `pages` option:
+
+```
+... export const authOptions: NextAuthOptions = { providers: [ ... ], pages: { signIn: "/signin", }, } ... 
+```
+
+Here, you overrode the `signIn` value of the default login page and set it to `/signin`. Moving forward, this is the page Auth.js will use for user authentication. It will redirect users to this page when authentication is required.
+
+Now, you need to make the page. Create a `signin/page.tsx` file in the `app` directory and add the code snippet below:
+
+```
+'use client' import { signIn } from 'next-auth/react' import { Button } from '@/components/ui/button' import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, } from '@/components/ui/form' import { Input } from '@/components/ui/input' import { useTransition } from 'react' import { useForm } from 'react-hook-form' import { toast } from 'sonner' import UserSession from '@/components/Usersession' import Link from 'next/link' export default function SignInPage() { const form = useForm() const [isPending, startTransition] = useTransition() async function sendMagicLink(data: { email: string }) { startTransition(async () => { try { const signInResult = await signIn('resend', { email: data.email.toLowerCase(), redirect: false, callbackUrl: '/protected', }) console.log('signInResult: ', signInResult) if (signInResult?.ok && !signInResult.error) { toast('Email delivered', { description: 'Check your inbox and spam', action: { label: 'Close', onClick: () => true, }, }) return } } catch (error: any) { toast('Oops, we encountered an error', { description: 'Sorry, we encountered a problem sending the email', action: { label: 'Close', onClick: () => true, }, }) } }) } return (       ) } 
+```
+
+With that, anyone who tries to log in will be redirected to the custom login page below:
+
+## Auth.js callbacks
+
+Callbacks in Auth.js are asynchronous functions that you can use to control what happens when an action is performed, such as user sign-in, redirects, session creation, or JWT generation.
+
+These callbacks allow you to implement access controls, integrate with external databases or APIs, and customize the behavior of the authentication flow.
+
+Auth.js provides several callbacks that you can configure in your application:
+
+### `signIn` callback
+
+The `signIn` callback is used to control whether a user is allowed to sign in or not. It receives parameters such as `user`, `account`, `profile`, `email`, and `credentials`, depending on the authentication provider used. You can use this callback to implement custom logic for allowing or denying user sign-in based on specific conditions.
+
+Here’s an example demonstrating how to use the `signIn` callback to check if the email address is already in the database and, if not, save it to the database after a successful sign-in:
+
+```
+import NextAuth from 'next-auth' import Github from 'next-auth/providers/github' import Resend from 'next-auth/providers/resend' import type { NextAuthConfig } from 'next-auth' import { MongoDBAdapter } from '@auth/mongodb-adapter' import clientPromise from './lib/mongo-client' import User from 'your-mongodb-model' export const { handlers, auth } = NextAuth({ adapter: MongoDBAdapter(clientPromise), providers: [ Github, Resend({ from: '[email protected]', }), ], callbacks: { async signIn({ user, account, profile, email, credentials }) { await connectToDatabase('your-database') // grab the submitted email address const { email: user_email } = user // signIn was triggered from the verification email if (account?.provider === 'email' && !email?.verificationRequest) { try { const userExists = await User.findOne({ email: user_email }) if (!userExists) { // save user to database } catch (error) { console.error(error) } } return true }, session: { strategy: 'jwt', // how long (seconds) a user's session is valid before expiring maxAge: 432000, // 5days }, } satisfies NextAuthConfig) 
+```
+
+### `redirect` callback
+
+The `redirect` callback is called anytime the user is redirected to a callback URL (e.g., on sign-in or sign-out). By default, Auth.js only allows URLs on the same origin as the site. You can use this callback to customize this behavior and allow or deny specific redirect URLs.
+
+Here’s the default implementation of the `redirect` callback:
+
+```
+callbacks: { async redirect({ url, baseUrl }) { // Allows relative callback URLs if (url.startsWith("/")) return `${baseUrl}${url}` // Allows callback URLs on the same origin else if (new URL(url).origin === baseUrl) return url return baseUrl } } 
+```
+
+### `jwt` callback
+
+The `jwt` callback is called whenever a JSON Web Token is created (e.g., at sign-in) or updated (e.g., whenever a session is accessed on the client). This callback allows you to customize the contents of the JWT by adding or modifying claims.
+
+Here’s an example of the `jwt` callback that persists an OAuth access token and user ID in the JWT:
+
+```
+callbacks: { async jwt({ token, account, profile }) { // Persist the OAuth access_token and user id to the token right after sign-in if (account) { token.accessToken = account.access_token token.id = profile.id } return token } } 
+```
+
+### `session` callback
+
+The `session` callback is called whenever a session is checked, such as when using `getSession`, `useSession`, or `/api/auth/session`. By default, Auth.js only returns a subset of the token for security reasons. If you want to make something available to the client that you added to the token (like `access_token` and `user.id` from the `jwt` callback), you need to explicitly forward it in this callback.
+
+Here’s an example of the `session` callback that sends the access token and user ID to the client:
+
+```
+callbacks: { async session({ session, token }) { // Send properties to the client, like an access_token and user id from a provider. session.accessToken = token.accessToken session.user.id = token.id return session } } 
+```
+
+## Creating protected routes with Auth.js
+
+The Next.js Server Components architecture provides two primary methods for protecting routes in your application:
+
+* Protecting routes in Server Components
+* Protecting routes with middleware
+
+Let’s explore these in detail.
+
+### Protecting routes in Server Components
+
+Protecting routes in Server Components is recommended because server-side protection ensures that sensitive data and functionality are safeguarded before reaching the client, preventing unauthorized access through direct API calls.
+
+In our example, we’ll protect the `/protected` route. Unauthenticated users that access this route will be redirected to the `/signin` route we created earlier. Create a `page.tsx` file and a `layout.tsx` file in `app/protected/` with the following content:
+
+```
+// app/protected/page.tsx import Link from 'next/link'; export default function ProtectedPage() { return (
+
+## Protected Page
+
+Back Home
+
+); } // app/protected/layout.tsx import { auth } from '@/auth'; import { redirect } from 'next/navigation'; export default async function ProtectedLayout({ children, }: { children: React.ReactNode; }) { const session = await auth(); if (!session) { redirect('/signin'); } return {children}; } 
+```
+
+The code above checks if a user session exists. If there is no session, it uses Next.js’ `redirect` function to redirect the user to the sign-in page. If there is a session, the user gets access to the page. This ensures that only logged-in users can access the protected route.
+
+### Protecting routes with middleware
+
+The Next.js framework includes a middleware feature that allows you to run some logic before processing a request, similar to middleware in backend frameworks. This middleware can be used for many purposes, including login, request validation, and authentication checks.
+
+We’ll move the auth check logic in `protected/layout.tsx` into middleware. Auth.js supports middleware, providing direct access to the current session, and allowing us to manipulate it as needed.
+
+To use middleware in Next.js, create a `middleware.ts` file at the root of your application or in the `src` directory, and update it with the following code:
+
+```
+export { auth as middleware } from "@/auth" export const config = { matcher: [ // apply middleware to all routes excluding API routes, static asset routes, image optimization routes, and the favicon '/((?!api|_next/static|_next/image|favicon.ico).*)', ], }; 
+```
+
+Notice the `config` object where we define the routes we want Next.js middleware functionality to apply to. The `matcher` property dictates the paths — and subpaths — to which the middleware function should be applied.
+
+But if you open your app now, you’ll notice that it crashed with the error `Error: The edge runtime does not support Node.js 'crypto' module`, and a stack trace pointing to MongoDB and the mongodb-adapter package:
+
+```
+Import trace for requested module: ./node_modules/.pnpm/@[email protected][email protected]/node_modules/@auth/mongodb-adapter/index.js 
+```
+
+This is because the Edge runtime does not support certain Node.js modules, including `crypto`. To tackle this, we’ll need to export an `auth` instance from our middleware file that doesn’t have a database adapter attached to it. We can do this by creating an `auth.config.ts` file that will hold an instance of the `NextAuthConfig` interface:
+
+```
+// src/auth.config.ts import type { NextAuthConfig } from 'next-auth' export const authConfig = { providers: [], } satisfies NextAuthConfig 
+```
+
+We can then initialize it in our middleware like so to effectively protect the `/protected` route:
+
+```
+// src/middleware.ts import NextAuth from 'next-auth'; import { authConfig } from '@/auth.config'; const { auth } = NextAuth(authConfig); export default auth((req) => { const { nextUrl } = req; // req.auth is provided by Auth.js console.log('req.auth.user: ' + req.auth?.user?.email); // set isAuthenticated to true if req.auth is a truthy value. otherwise set to false. const isAuthenticated = !!req.auth; // use boolean value to determine if the requested route is a protected route const isProtectedRoute = ['/protected', '/your-protected-route'].includes(nextUrl.pathname); // redirect to signin if route is a protected route and user is not authenticated if (isProtectedRoute && !isAuthenticated) return Response.redirect(new URL('/signin', nextUrl)); }); export const config = { matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'], }; 
+```
+
+And now the `/protected` route is protected from unauthenticated users. `auth.config.ts` should be an extension of your NextAuth config in `auth.ts` so we’ll import this object and spread it into the NextAuth config:
+
+```
+// src/auth.ts import NextAuth from 'next-auth'; import type { NextAuthConfig } from 'next-auth'; import { authConfig } from './auth.config'; import { MongoDBAdapter } from '@auth/mongodb-adapter'; import clientPromise from './lib/mongo-client'; import Github from 'next-auth/providers/github'; import Resend from 'next-auth/providers/resend'; export const { handlers, auth } = NextAuth({ ...authConfig, // providers array below overwrites array in auth.config.ts providers: [ Github, Resend({ from: '[email protected]', }), ], adapter: MongoDBAdapter(clientPromise), callbacks: { async signIn({ user, account, profile, email, credentials }) { return true; }, }, pages: { signIn: '/signin', }, session: { strategy: 'jwt', // how long (seconds) a user's session is valid before expiring maxAge: 432000, // 5 days }, } satisfies NextAuthConfig); 
+```
+
+The middleware code works similarly to the strategy we used in the `auth()` call in `layout.tsx`. The key advantage here is that the logic for protecting routes is now centralized and not scattered across several `layout.tsx` files.
+
+## Conclusion
+
+In this article, we explored the process of setting up client-side authentication in a Next.js application using the Auth.js library. Auth.js, formerly known as NextAuth.js, offers a secure and flexible authentication solution that supports OAuth providers and passwordless sign-in methods like GitHub and magic links.
+
+By following this guide, you should hopefully now be able to implement a secure authentication system in your Next.js applications.
+
+Happy coding!
+
+## [LogRocket](https://lp.logrocket.com/blg/nextjs-signup): Full visibility into production Next.js apps
+
+Debugging Next applications can be difficult, especially when users experience issues that are difficult to reproduce. If you’re interested in monitoring and tracking state, automatically surfacing JavaScript errors, and tracking slow network requests and component load time, [try LogRocket](https://lp.logrocket.com/blg/nextjs-signup).
+
+[LogRocket](https://lp.logrocket.com/blg/nextjs-signup) captures console logs, errors, network requests, and pixel-perfect DOM recordings from user sessions and lets you replay them as users saw it, eliminating guesswork around why bugs happen — compatible with all frameworks.
+
+[LogRocket's Galileo AI](https://lp.logrocket.com/blg/nextjs-signup) watches sessions for you, instantly identifying and explaining user struggles with automated monitoring of your entire product experience.
+
+The LogRocket Redux middleware package adds an extra layer of visibility into your user sessions. LogRocket logs all actions and state from your Redux stores.
+
+ [![](https://files.readme.io/27c94e7-Image_2017-06-05_at_9.46.04_PM.png)](https://lp.logrocket.com/blg/nextjs-signup)   [![LogRocket Dashboard Free Trial Banner](https://blog.logrocket.com/wp-content/uploads/2017/03/1d0cd-1s_rmyo6nbrasp-xtvbaxfg.png)](https://lp.logrocket.com/blg/nextjs-signup) 
+
+Modernize how you debug your Next.js apps — [start monitoring for free](https://lp.logrocket.com/blg/nextjs-signup).
+
+* [#nextjs](https://blog.logrocket.com/tag/nextjs/)
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/06/footer-cta-dots-left.png) ![](https://blog.logrocket.com/wp-content/uploads/2022/06/footer-cta-dots-right.png)
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/09/logrocket-logo-frontend-analytics.png)
+
+## Stop guessing about your digital experience with LogRocket
+
+[Get started for free](https://lp.logrocket.com/blg/signup)
+
+#### Recent posts:
+
+[![I replaced my entire test suite with AI agents Here's what actually broke](https://blog.logrocket.com/wp-content/uploads/2026/04/I-replaced-my-entire-test-suite-with-AI-agents-Heres-what-actually-broke.png)
+
+#### I replaced my entire test suite with AI agents: Here’s what actually broke](https://blog.logrocket.com/replaced-test-suite-ai-agents/)
+
+AI-generated tests can speed up React testing, but they also create hidden risks. Here’s what broke in a real app.re
+
+[![](https://blog.logrocket.com/wp-content/uploads/2025/02/Chizaram-Ken-profile-picture-150x150.jpg)](https://blog.logrocket.com/author/emmanuelodioko/)  [Chizaram Ken](https://blog.logrocket.com/author/emmanuelodioko/)
+
+Apr 10, 2026 ⋅ 9 min read
+
+[![](https://blog.logrocket.com/wp-content/uploads/2026/04/The-DX-shift-no-one-noticed-Web-interoperability.png)
+
+#### The DX shift no one noticed: Web interoperability](https://blog.logrocket.com/dx-shift-web-interoperability/)
+
+Why the future of DX might come from the web platform itself, not more tools or frameworks.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2020/03/anna-monus-150x150.jpg)](https://blog.logrocket.com/author/annamonus/)  [Anna Monus](https://blog.logrocket.com/author/annamonus/)
+
+Apr 8, 2026 ⋅ 7 min read
+
+[![](https://blog.logrocket.com/wp-content/uploads/2026/04/Claude-code-.png)
+
+#### I let Claude review my PRs: What it caught and missed](https://blog.logrocket.com/claude-pr-review-caught-vs-missed/)
+
+A hands-on test of Claude Code Review across real PRs, breaking down what it flagged, what slipped through, and how the pipeline actually performs in practice.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/01/ikeh-akinyemi-150x150.jpeg)](https://blog.logrocket.com/author/ikehakinyemi/)  [Ikeh Akinyemi](https://blog.logrocket.com/author/ikehakinyemi/)
+
+Apr 7, 2026 ⋅ 4 min read
+
+[![The lost art of CSS art](https://blog.logrocket.com/wp-content/uploads/2026/04/The-lost-art-of-CSS-art.png)
+
+#### Why CSS art disappeared from frontend culture](https://blog.logrocket.com/css-art-frontend-culture/)
+
+CSS art once made frontend feel playful and accessible. Here’s why it faded as the web became more practical and prestige-driven.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/02/oscar-jite-orimiono-150x150.png)](https://blog.logrocket.com/author/oscarjiteorimiono/)  [Oscar Jite-Orimiono](https://blog.logrocket.com/author/oscarjiteorimiono/)
+
+Apr 7, 2026 ⋅ 6 min read
+
+[View all posts](https://blog.logrocket.com/)
+
+Would you be interested in joining LogRocket's developer community?
+
+Join LogRocket’s Content Advisory Board. You’ll help inform the type of content we create and get access to exclusive meetups, social accreditation, and swag.
+
+[Sign up now](https://lp.logrocket.com/blg/content-advisory-board-signup)
+
+ 
+
+---
+
+Title: Getting Started | NextAuth.js
+🎉 NextAuth.js is now part of [Better Auth](https://better-auth.com)!
+
+Version: v4
+
+# Getting Started
+
+The example code below describes how to add authentication to a Next.js app.
+
+## New Project[​](#new-project "Direct link to heading")
+
+The easiest way to get started is to clone the [example app](https://github.com/nextauthjs/next-auth-example) and follow the instructions in README.md. You can try out a live demo at <https://next-auth-example.vercel.app/>
+
+## Existing Project[​](#existing-project "Direct link to heading")
+
+### Install NextAuth[​](#install-nextauth "Direct link to heading")
+
+* npm
+* yarn
+* pnpm
+
+```
+npm install next-auth npm install next-auth npm  install next-auth
+```
+
+```
+yarn add next-auth yarn add next-auth yarn  add next-auth
+```
+
+```
+pnpm add next-auth pnpm add next-auth pnpm  add next-auth
+```
+
+info
+
+If you are using TypeScript, NextAuth.js comes with its types definitions within the package. To learn more about TypeScript for `next-auth`, check out the [TypeScript documentation](/getting-started/typescript)
+
+### Add API route[​](#add-api-route "Direct link to heading")
+
+To add NextAuth.js to a project create a file called `[...nextauth].js` in `pages/api/auth`. This contains the dynamic route handler for NextAuth.js which will also contain all of your global NextAuth.js configurations.
+
+If you're using [Next.js 13.2](https://nextjs.org/blog/next-13-2#custom-route-handlers) or above with the new App Router (`app/`), you can initialize the configuration using the new [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) by following our [guide](https://next-auth.js.org/configuration/initialization#route-handlers-app).
+
+pages/api/auth/[...nextauth].js
+
+```
+import NextAuth from "next-auth" import NextAuth from "next-auth" import  NextAuth  from  "next-auth" import GithubProvider from "next-auth/providers/github" import GithubProvider from "next-auth/providers/github" import  GithubProvider  from  "next-auth/providers/github"   export const authOptions = {export const authOptions = { export  const  authOptions =  { // Configure one or more authentication providers  // Configure one or more authentication providers  // Configure one or more authentication providers  providers: [ providers: [ providers:  [ GithubProvider({ GithubProvider({ GithubProvider({ clientId: process.env.GITHUB_ID,  clientId: process.env.GITHUB_ID,  clientId:  process. env. GITHUB_ID,  clientSecret: process.env.GITHUB_SECRET,  clientSecret: process.env.GITHUB_SECRET,  clientSecret:  process. env. GITHUB_SECRET,  }),  }),  }),  // ...add more providers here  // ...add more providers here  // ...add more providers here  ],  ],  ], } } }   export default NextAuth(authOptions) export default NextAuth(authOptions) export  default  NextAuth(authOptions)
+```
+
+All requests to `/api/auth/*` (`signIn`, `callback`, `signOut`, etc.) will automatically be handled by NextAuth.js.
+
+**Further Reading**:
+
+* See the [options documentation](/configuration/options) for more details on how to configure providers, databases and other options.
+* Read more about how to add authentication providers [here](/providers).
+
+#### Configure Shared session state[​](#configure-shared-session-state "Direct link to heading")
+
+To be able to use `useSession` first you'll need to expose the session context, , at the top level of your application:
+
+pages/\_app.jsx
+
+```
+import { SessionProvider } from "next-auth/react" import { SessionProvider } from "next-auth/react" import  { SessionProvider  }  from  "next-auth/react"   export default function App({export default function App({ export  default  function  App({ Component,  Component,  Component,  pageProps: { session, ...pageProps },  pageProps: { session, ...pageProps },  pageProps:  { session,  ... pageProps }, }) {}) {})  { return ( return ( return  ( <SessionProvider session={session}>  <SessionProvider session={session}>  < SessionProvider  session ={session}>  <Component {...pageProps} />  <Component {...pageProps} />  < Component  {... pageProps}  />  SessionProvider>  SessionProvider>   SessionProvider>  )  )  ) } } }
+```
+
+Instances of `useSession` will then have access to the session data and status. The  also takes care of keeping the session updated and synced between browser tabs and windows.
+
+tip
+
+Check out the [client documentation](/getting-started/client) to see how you can improve the user experience and page performance by using the NextAuth.js client. If you are using the Next.js App Router, please note that  requires a client component and therefore cannot be put inside the root layout. For more details, check out the [Next.js documentation](https://nextjs.org/docs/app/getting-started/layouts-and-pages).
+
+### Frontend - Add React Hook[​](#frontend---add-react-hook "Direct link to heading")
+
+The [`useSession()`](/getting-started/client#usesession) React Hook in the NextAuth.js client is the easiest way to check if someone is signed in.
+
+components/login-btn.jsx
+
+```
+import { useSession, signIn, signOut } from "next-auth/react" import { useSession, signIn, signOut } from "next-auth/react" import  { useSession,  signIn,  signOut }  from  "next-auth/react"   export default function Component() {export default function Component() { export  default  function  Component()  { const { data: session } = useSession()  const { data: session } = useSession()  const  { data:  session }  =  useSession()  if (session) { if (session) { if  (session)  { return ( return ( return  ( <>  <>  <>  Signed in as {session.user.email} <br />  Signed in as {session.user.email} <br />  Signed in as {session. user. email}  < br  />  <button onClick={() => signOut()}>Sign outbutton>  <button onClick={() => signOut()}>Sign outbutton>  < button  onClick ={()  =>  signOut()}> Sign out button>  >  >  >  )  )  )  }  }  }  return ( return ( return  ( <>  <>  <>  Not signed in <br />  Not signed in <br />  Not signed in < br  />  <button onClick={() => signIn()}>Sign inbutton>  <button onClick={() => signIn()}>Sign inbutton>  < button  onClick ={()  =>  signIn()}> Sign in button>  >  >  >  )  )  ) } } }
+```
+
+You can use the `useSession` hook from anywhere in your application (e.g. in a header component).
+
+### Backend - API Route[​](#backend---api-route "Direct link to heading")
+
+To protect an API Route, you can use the [`getServerSession()`](/configuration/nextjs#unstable_getserversession) method.
+
+pages/api/restricted.js
+
+```
+import { getServerSession } from "next-auth/next" import { getServerSession } from "next-auth/next" import  { getServerSession }  from  "next-auth/next" import { authOptions } from "./auth/[...nextauth]" import { authOptions } from "./auth/[...nextauth]" import  { authOptions }  from  "./auth/[...nextauth]"   export default async (req, res) => {export default async (req, res) => { export  default  async  (req,  res)  =>  { const session = await getServerSession(req, res, authOptions)  const session = await getServerSession(req, res, authOptions)  const  session =  await  getServerSession(req,  res,  authOptions)    if (session) { if (session) { if  (session)  { res.send({ res.send({ res. send({ content:  content:  content:  "This is protected content. You can access this content because you are signed in.",  "This is protected content. You can access this content because you are signed in.",  "This is protected content. You can access this content because you are signed in.",  })  })  })  } else { } else { }  else  { res.send({ res.send({ res. send({ error: "You must be signed in to view the protected content on this page.",  error: "You must be signed in to view the protected content on this page.",  error:  "You must be signed in to view the protected content on this page.",  })  })  })  }  }  } } } }
+```
+
+### Extensibility[​](#extensibility "Direct link to heading")
+
+#### Using NextAuth.js Callbacks[​](#using-nextauthjs-callbacks "Direct link to heading")
+
+NextAuth.js allows you to hook into various parts of the authentication flow via our [built-in callbacks](/configuration/callbacks).
+
+For example, to pass a value from the sign-in to the frontend, client-side, you can use a combination of the [`session`](/configuration/callbacks#session-callback) and [`jwt`](/configuration/callbacks#jwt-callback) callback like so:
+
+pages/api/auth/[...nextauth].js
+
+```
+...... callbacks: { callbacks:  { async jwt({ token, account }) { async  jwt({ token,  account })  { // Persist the OAuth access_token to the token right after signin  // Persist the OAuth access_token to the token right after signin  if (account) { if  (account)  { token.accessToken = account.access_token  token. accessToken  =  account. access_token  }  }  return token  return  token },  },  async session({ session, token, user }) { async  session({ session,  token,  user })  { // Send properties to the client, like an access_token from a provider.  // Send properties to the client, like an access_token from a provider.  session.accessToken = token.accessToken  session. accessToken  =  token. accessToken  return session  return  session }  } } } ... ...
+```
+
+Now whenever you call [`getSession`](/getting-started/client#getsession) or [`useSession`](/getting-started/client#usesession), the data object which is returned will include the `accessToken` value.
+
+components/accessToken.jsx
+
+```
+import { useSession, signIn, signOut } from "next-auth/react" import { useSession, signIn, signOut } from "next-auth/react" import  { useSession,  signIn,  signOut }  from  "next-auth/react"   export default function Component() {export default function Component() { export  default  function  Component()  { const { data } = useSession()  const { data } = useSession()  const  { data }  =  useSession()  const { accessToken } = data  const { accessToken } = data  const  { accessToken }  =  data   return <div>Access Token: {accessToken}div>  return <div>Access Token: {accessToken}div>  return  < div>Access Token: {accessToken} div> } } }
+```
+
+## Configuring callback URL (OAuth only)[​](#configuring-callback-url-oauth-only "Direct link to heading")
+
+If you are using an OAuth provider either through one of our [built-in providers](/configuration/providers/oauth) or through a [custom provider](/configuration/providers/oauth#using-a-custom-provider), you'll need to configure a callback URL in your provider's settings. Each provider has a "Configuration" section that should give you pointers on how to do that.
+
+Follow [these steps](/configuration/providers/oauth#how-to) to learn how to integrate with an OAuth provider.
+
+## Deploying to production[​](#deploying-to-production "Direct link to heading")
+
+When deploying your site set the `NEXTAUTH_URL` environment variable to the canonical URL of the website.
+
+```
+NEXTAUTH_URL=https://example.comNEXTAUTH_URL=https://example.com
+```
+
+tip
+
+In production, this needs to be set as an environment variable on the service you use to deploy your app.
+
+To set environment variables on Vercel, you can use the [dashboard](https://vercel.com/dashboard) or the `vercel env pull` [command](https://vercel.com/docs/build-step#development-environment-variables).
+
+For more information please check out our [deployment page](/deployment).
+
+* [New Project](#new-project)
+* [Existing Project](#existing-project)
+  + [Install NextAuth](#install-nextauth)
+  + [Add API route](#add-api-route)
+  + [Frontend - Add React Hook](#frontend---add-react-hook)
+  + [Backend - API Route](#backend---api-route)
+  + [Extensibility](#extensibility)
+* [Configuring callback URL (OAuth only)](#configuring-callback-url-oauth-only)
+* [Deploying to production](#deploying-to-production)
+
+# This page crashed.
+
+'requestAnimationFrame' is not defined
+
+ 
+
+---
+
+Title: Next.js authentication with Auth.js (formerly NextAuth) and Contentful | Contentful
+⚡ How Full Stack Marketers survive the Great Content Collapse →
+
+![Contentful](https://images.ctfassets.net/jtqsy5pye0zd/6wNuQ2xMvbw134rccObi0q/bf61badc6d6d9780609e541713f0bba6/Contentful_Logo_2.5_Dark.svg)
+![Contentful](https://images.ctfassets.net/jtqsy5pye0zd/6wNuQ2xMvbw134rccObi0q/bf61badc6d6d9780609e541713f0bba6/Contentful_Logo_2.5_Dark.svg)
+![Contentful](https://images.ctfassets.net/jtqsy5pye0zd/6wNuQ2xMvbw134rccObi0q/bf61badc6d6d9780609e541713f0bba6/Contentful_Logo_2.5_Dark.svg)
+
+Products
+
+![platform](https://images-www.contentful.com/jtqsy5pye0zd/2kBw8p3aEx4W428GerLYgD/fc9b05761209d57b81de8ba79031962a/Platform.svg)
+
+Deliver intelligent experiences from one source
+
+![products-personalization](https://images-www.contentful.com/jtqsy5pye0zd/3EWGsGMzf3JsBKZGxbjLp1/cc5f0e0776800dac45224a635edc3c2e/Personalization.svg)
+
+Easily create highly personalized experiences
+
+![ai](https://images-www.contentful.com/jtqsy5pye0zd/5N6DDjzsaWgwnKHLAiLIic/bda10b4a3ecb66ec94ad5112e4bc971c/AI_Actions.svg)
+
+Automate and streamline content workflows
+
+![analytics](https://images-www.contentful.com/jtqsy5pye0zd/35viwhcZ6Wf9j72Qp8wVDp/065cbf40c6925884eab902ce02cb40d9/Analytics.svg)
+
+Agentic analytics directly in your workflow
+
+![studio](https://images-www.contentful.com/jtqsy5pye0zd/0gCA7GNBK55zf1OqZXs3P/95899d1453560143038a32c819c5d95c/Studio.svg)
+
+Visually assemble experiences at scale
+
+![ecosystem](https://images-www.contentful.com/jtqsy5pye0zd/1Eakd1Dx7SPBq5k9xmX8x9/f667e589237352371788bc46ba977aaa/Ecosystem.svg)
+
+Scale with enterprise solutions & partnerships
+
+![marketplace](https://images-www.contentful.com/jtqsy5pye0zd/4OMLMYcrsGJH3BCJZXvUvi/338e3082e86a45540984961fac792544/Marketplace.svg)
+
+Apps and integrations to extend Contentful
+
+![ai-suggestions](https://images.ctfassets.net/jtqsy5pye0zd/2egxCdPULinwlWTJZCku6/73de992ce30f5b5618cdd01cf758c5ef/ai-suggestions.svg)
+
+Personalize and experiment with confidence
+
+![segmentation](https://images.ctfassets.net/jtqsy5pye0zd/fDrS7XqniM4gD3JWpaS8P/617d16558f0bb55908c00bf34821c6bb/segmentation.svg)
+
+Define your audience in seconds
+
+![experimentation](https://images.ctfassets.net/jtqsy5pye0zd/6QXtqz8p44A6HoTS1dl0DN/8339a2c4bbd89fe23137d054a9310078/experimentation.svg)
+
+Learn what resonates in real-time
+
+![insights](https://images-www.contentful.com/jtqsy5pye0zd/1tUfvtPJPxc9gTeAEmg3we/4d866143baf72d8d664e46845f2a5504/Insights.svg)
+
+Analyze content performance on-the-fly
+
+![data-connections](https://images.ctfassets.net/jtqsy5pye0zd/6EvjJNduly4sO6Z67P0BjD/857bd43c2521afc7c1f7fa502c47d387/data-connections.svg)
+
+Bring your data all together in one place
+
+![front-end-hosting](https://images-www.contentful.com/jtqsy5pye0zd/Zp9VbIlpQrRonv6NAa6jw/24e14abe3c4ec25675576a612b67c380/Front-end_Hosting_icon.svg)
+
+Launch and scale rich sites faster than ever
+
+![localization-and-translation](https://images-www.contentful.com/jtqsy5pye0zd/6evzd8czPLRww0nmN8y7Gh/17ce00eeb26e9ac8c7ba5168ce478736/Localization_and_Translation.svg)
+
+Reach more markets without the overhead
+
+![automations-and-workflows](https://images-www.contentful.com/jtqsy5pye0zd/2LMBHiNhmF6UtZItLiFv8r/67235f04235949fda66302369313a3c0/Automations_and_Workflows.svg)
+
+Eliminate busywork with AI
+
+![Whats New (Nav) CIS 2025 (mobile)](https://images-www.contentful.com/jtqsy5pye0zd/3WXvhjB72li7cg948Y4Zbg/287954da1432fa743ac38079647f88e0/Whats_New_CIS_2025_-_mobile__1_.png?w=256&q=55&fm=webp)
+![Whats New (Nav) CIS 2025](https://images-www.contentful.com/jtqsy5pye0zd/6wTSMkdm6WTZTr5M6By1ad/ecac43c086665f10dae433505cc4d483/Whats_New_CIS_2025__1_.png?w=1320&q=60&fm=webp)
+
+From Analytics to AI, see the latest Contentful releases in action.
+
+Deliver personalized, relevant experiences at scale
+
+Solutions
+
+![personalization](https://images.ctfassets.net/jtqsy5pye0zd/1Ao7ZoorunGfWeCoSq6Xq3/9169be2b15c435fea3b0573fe8719443/Menu_item_Use_Cases_-_Personalization.svg)
+
+Increase ROI with AI-native personalization
+
+![composable-commerce](https://images.ctfassets.net/jtqsy5pye0zd/718MYYqWXT1JkOpBeeRxYN/9180d5fc3c49a01883546515c2b024b0/Menu_item_Use_Cases_-_Composable_commerce.svg)
+
+Boost revenue with composable commerce
+
+![websites](https://images.ctfassets.net/jtqsy5pye0zd/duKY9GvDbfJH7HeRg4L5R/2b7a334d5af5abda6895c68cb6274b9f/Menu_item_Use_Cases_-_Websites.svg)
+
+Future-proof your website, extend your reach
+
+![multi-brand](https://images.ctfassets.net/jtqsy5pye0zd/2PE9sBbCeMvm0WxRZU5TWN/9ef6d1ff802908a5fe31a49708993a76/Menu_item_Use_Cases_-_Multi-brand_experiences.svg)
+
+Elevated experiences without constraints
+
+![seo-search-graph](https://images.ctfassets.net/jtqsy5pye0zd/FfauR7wQW8DYPB5OMXSob/83dd16aba17f00d0f2761563487a23dd/Menu_item_Use_Cases_-_SEO.svg)
+
+Create SEO-friendly experiences with ease
+
+![knowledge-base](https://images.ctfassets.net/jtqsy5pye0zd/6eG3zgZZOVmIwbOEE2IYTr/7b336e18606daae5a8651a6d41df533a/Menu_item_Use_Cases_-_Knowledge_base.svg)
+
+FAQs, intranets & more
+
+![growth-marketing](https://images.ctfassets.net/jtqsy5pye0zd/77wzxpmNRAmjW4S4CDubsT/03198c719358bd17d66e107f235607f6/growth-marketing.svg)
+
+Turn new customers into brand loyalists
+
+![web](https://images.ctfassets.net/jtqsy5pye0zd/1I58KpTYh2WWFsnzwFsd2X/6888aba2a26c872722c013dab610f41d/web.svg)
+
+Build, collaborate, and deliver faster
+
+![product](https://images.ctfassets.net/jtqsy5pye0zd/5x257MAPqlfR3w2m57Xuo/1e6251b7471fc50febf19fdfa666eb7f/product.svg)
+
+Free developers to focus on what they do best
+
+![content](https://images.ctfassets.net/jtqsy5pye0zd/6aXhgMHQLkyuGVUZq99BJ5/6f3a76655cb492ee116fd55c30551051/content.svg)
+
+Streamline content creation and collaboration
+
+![enterprise](https://images.ctfassets.net/jtqsy5pye0zd/6RQMMDpMLWWnYRYfJex5uw/2f804b27a56133c7fe2747bc4fa614ec/Menu_item_Scale_-_Enterprise.svg)
+
+Drive business revenue at scale
+
+![Navigation Mobile - Feature - Why Choose Contentful 2x 1](https://images-www.contentful.com/jtqsy5pye0zd/5snKdIlUPrxoHMSPHdtnEf/d41603b3c50ee937fd16cecd4e9decdb/Why_Contentful_Nav_Mobile.png?w=256&q=55&fm=webp)
+![Navigation Desktop - Feature - Why Choose Contentful 2x 1](https://images-www.contentful.com/jtqsy5pye0zd/6J1dAiMubomcKVfHV8mlV1/b06b6e40c50e4c59c04445e374925886/Why_Contentful_Nav.png?w=1320&q=60&fm=webp)
+
+Deliver personalized, relevant experiences at scale
+
+Resources
+
+![monitor-programming-book](https://images.ctfassets.net/jtqsy5pye0zd/3oMwMBn56USNqfhbdPNSP4/d3d194a697898cd082eaa44ac6510c54/Menu_item_Resources_-_Resource_Center.svg)
+
+White-papers, ebooks and videos
+
+![presentation-board-graph](https://images.ctfassets.net/jtqsy5pye0zd/5kma8lqGvud5NObak5Eq27/3145d846e11adf1f374bdc02f2c3647e/Menu_item_Resources_-_Customer_Case_Studies.svg)
+
+Success stories with Contentful
+
+![monitor-page](https://images.ctfassets.net/jtqsy5pye0zd/p2Rxrk9jU8qcdQbbivUZo/751aee2e3f0c0f1fb14a263909dfc0b2/Menu_item_Resources_-_Blog.svg)
+
+Get the latest from Contentful
+
+![calendar-add-1](https://images.ctfassets.net/jtqsy5pye0zd/2tN6QBtGZzdvIPpA9c4fTX/11f9f898f266bf37398984f80d558f02/Menu_item_Resources_-_Events.svg)
+
+Let's meet up
+
+![messages-bubble-question](https://images.ctfassets.net/jtqsy5pye0zd/UXvJzHdroi3Mi3QhRqhe2/3d3dc4cb6cac081977ff172db66a5bfb/Menu_item_Resources_-_Help_Center.svg)
+
+We've got your back
+
+![study-owl](https://images.ctfassets.net/jtqsy5pye0zd/2GNQe1V0DasQP8EjBbZeKc/811dd95dbff3a89ca6f99d925ca99020/Menu_item_Resources_-_Learning_Center.svg)
+
+Live training, courses and certification
+
+![resources-promo-mobile](https://images-www.contentful.com/jtqsy5pye0zd/3duyWqTPPHbB0Ea9RP15ZM/78f5fec5f347325cfbb32c4650459fa7/resources-promo-mobile.png?w=256&q=55&fm=webp)
+![resources-promo-desktop](https://images-www.contentful.com/jtqsy5pye0zd/5EtyVlvYTTeW7qypE7Gq2y/472ae032006384166150aac2bcd6ab25/resources-promo-desktop.png?w=1320&q=60&fm=webp)
+
+Our teams are here to help you get more value out of Contentful.
+
+Developers
+
+![paginate-filter-text](https://images.ctfassets.net/jtqsy5pye0zd/5LImy2UsM10qOsHxCNDkmM/d9fbb7031f9a5060ddc6b7ed4839f7b0/Menu_item_Developer_-_Docs.svg)
+
+How to build with Contentful
+
+![holy-code](https://images.ctfassets.net/jtqsy5pye0zd/3Ubxgl7z2tmwVPqIIVlzwY/4f7468f2bb5edbf1025673be8ea35f98/Menu_item_Developer_-_Dev_Showcase.svg)
+
+Awesome projects from the community
+
+![programming-browser](https://images.ctfassets.net/jtqsy5pye0zd/2c8G2bgSZK4kqZQ8oWNIsY/fb6de5918cd648d4ea0bbb01b63c6bea/Menu_item_Developer_-_Dev_Blog.svg)
+
+Dev news, tips and how-tos
+
+![navigation-changelog](https://images.ctfassets.net/jtqsy5pye0zd/3CspOujizwyI9elsInkh47/762515be69ee2e00d36a33368d6cc4e5/Menu_item_Developer_-_Changelog.svg)
+
+Stay up to date
+
+![dev-promo-mobile](https://images-www.contentful.com/jtqsy5pye0zd/4bTzxV8a2TIgy7RG15mdIx/46ba757d615a7569c7ac504b21e5b0b4/dev-promo-mobile.png?w=256&q=55&fm=webp)
+![dev-promo-desktop](https://images-www.contentful.com/jtqsy5pye0zd/25DnAKyOI4leHH4su7ivjL/8bacdf618d529dd57289dd3e571d68dd/dev-promo-desktop.png?w=1320&q=60&fm=webp)
+
+Get under the hood and see what’s possible with Contentful.
+
+Partners
+
+![people-network](https://images.ctfassets.net/jtqsy5pye0zd/4T2LtnsYOJEwCUzJjoRgpy/9334fbf5680e43a3cf5c6a96feb8ca1d/Menu_item_Partners_-_Overview.svg)
+
+Your growing support system
+
+![search-light-bulb](https://images.ctfassets.net/jtqsy5pye0zd/5lat4LwN9tAHCsFapI8JwF/20023f6857a33fd5657da9ac9eeed76f/search-light-bulb.svg)
+
+Build faster with leading innovators
+
+![search-document](https://images.ctfassets.net/jtqsy5pye0zd/13CSVLhjsbjHKRyp0OVjtZ/9fa75945e973d04098de70c06c3eb2a8/search-document.svg)
+
+Extend Contentful with trusted tools
+
+![person-check](https://images.ctfassets.net/jtqsy5pye0zd/52SxYPwAIf3hfrgvzK7c8r/2e7fa9d612234490436055bfe6ee4435/Menu_item_Partners_-_Find_a_Partner.svg)
+
+Join our rewarding partner program
+
+![multiple-circle](https://images.ctfassets.net/jtqsy5pye0zd/ku4afcqGPlF5LDdhZGtSN/999d0c9734b5df6adf8d1c18179bdd9c/Menu_item_Partners_-_Partner_Portal.svg)
+
+Full toolkit for partners
+
+Pricing
+
+Blog
+
+Guides
+
+Next.js authentication with Auth.js (formerly NextAuth) and Contentful
+
+# Next.js authentication with Auth.js (formerly NextAuth) and Contentful
+
+Updated on January 8, 2025
+
+![Authentication with auth.js](https://images-www.contentful.com/fo9twyrwpveg/3vXIVVzoDwyd8Tn9CJEmX7/0652dabf36a00d24ecb97557f7075cd0/authentication-with-auth-js_.png?w=1320&q=60&fm=webp)
+![](https://images-www.contentful.com/fo9twyrwpveg/2g0xAKjtYGLzCGiFhTu0T0/79630ada46e11713004d0fee8e9a391a/T02917R46-UJVQYN1HQ-02a487f76aef-512.jpg?w=256&q=55&fm=webp)
+
+David Fateh
+
+Software Engineer, Contentful
+
+![](https://images.ctfassets.net/fo9twyrwpveg/2e5N7zSjP2wD7Cp49FEr1j/bcc030f3e38bcd5aa05c1249641fc1d4/envelope-open.svg)
+
+Inspiration for your inbox
+
+Subscribe and stay up-to-date on best practices for delivering modern digital experiences.
+
+Next.js has become increasingly popular in recent years due in part to its ability to address common challenges for developers when building React applications. It extends React's capabilities by adding tools to speed up the development of full-stack applications, such as server side rendering (SSR) and API routes, for building backend functionality directly within the framework.
+
+One thing Next.js doesn't include out of the box is authentication, and you'll need to choose and implement a third-party library such as Auth.js if you require authentication in your app.
+
+This article shows you how to use Auth.js to add authentication to your app using Contentful to store your user data (so you don't need to write a back end). It includes full explanations and code examples showing how you can use Next.js, Auth.js, and Contentful as the foundation of your projects.
+
+## What is Auth.js (formerly NextAuth)?
+
+One of the first priorities when building a user-facing app will be authentication, which verifies identity (this is different from authorization, which determines what a user can do within your application). [Auth.js](https://authjs.dev/) provides a full, prebuilt authentication solution for Next.js apps. It provides built-in support for providers such as Google, GitHub, and Facebook, allowing you to quickly add social logins. It's also easy to add email- and password-type login flow too, giving you control over your implementation without having to write any of your own authentication code.
+
+Auth.js provides various functions such as auth, which allows you to create secure authentication flows without complex setup. Its modular design allows you to customize how data is handled within your application, making it useful for an array of different scenarios from basic login to more advanced authentication.
+
+## Contentful provides a back end for almost anything, including user data
+
+In the following example, you are going to connect Auth.js and [Contentful](/) to be able to store users directly in Contentful.
+
+But first, you might be thinking, why would you want to store user data in Contentful? And the answer is really simple: you get a storage back end and a user-friendly, graphical admin panel right from the start — all without writing any code or having to deal with hosting.
+
+Once you have authentication in Contentful, you can add functionality so users can create, edit, or delete content that is tied to their account; for example, a user could sign up and then start creating blog posts or product listings with all of that content linked to their unique Auth.js ID in a [Contentful space](/help/getting-started/spaces-and-organizations/).
+
+### How storing users’ content in Contentful works
+
+Auth.js (NextAuth) will act as an authentication layer. It manages the process using providers like Google or Facebook (or custom credentials with email), and then it verifies the user's identity and establishes a session for that user.
+
+Once Auth.js authenticates the user, the user's information can be used to relate content they create to their account. On login, Auth.js provides session information that can be used to retrieve the authenticated users data. For example, when a user logs in, the app fetches their email and other stored details from Contentful to personalize the experience or tie actions (like content creation) to their account.
+
+![Diagram illustrating Auth.js managing authentication with providers, storing user data in Contentful, and providing session details for app personalization](https://images-www.contentful.com/fo9twyrwpveg/3VcSWB6ATjZndEWDx1mEqd/fbb6cb5b31f5d473c3517303898d862b/image3.png?w=1320&q=60&fm=webp)
+
+*Flow diagram showing how Auth.js verifies user identity with providers like Google, stores user data in Contentful, and enables apps to fetch user content for personalized experiences.*
+
+## Next.js + Auth.js: Full tutorial with code example
+
+All the code used in this post is available in the link [here](https://github.com/contentful/auth-next-example), and if you get stuck, don't hesitate to ask for help in our community [Discord](/discord/).
+
+**Requirements:** To follow the example, you will need [Node.js installed](https://nodejs.org/en), a Contentful account with a [CMA token](/help/personal-access-tokens/#how-to-get-a-personal-access-token-the-web-app/), and a [Next.js](/nextjs-starter/) app where you want to add authentication. To avoid storing passwords, this tutorial will only consist of adding a social login that supports Google, but other authentication providers can be added later.
+
+### Step 1. Create the user store in Contentful
+
+When you [sign up for a Contentful account](/sign-up/), a blank space is created to hold your data. If you prefer to do things in a separate space, [add a new space](/help/spaces/) to use with this project.
+
+To store the users and make sure the following code example works, create a new [Content type](/help/content-types/) in your space in the [Contentful web app](/help/getting-started/contentful-web-app-overview/) by clicking on the content model. Your new Content type should be named `Reports`:
+
+`Reports`
+![Create the user store in Contentful](https://images-www.contentful.com/fo9twyrwpveg/4dWXOPKPyjrjkJT3JPxnDw/86a06f3e8befeaa882aaf1793f263b89/image2__1_.png?w=1320&q=60&fm=webp)
+
+Choose the “Text” type:
+
+![Add new field](https://images-www.contentful.com/fo9twyrwpveg/3rkFg05KsrM4WEBIkpHpAg/5f1f29969efec6edb8bb6feb4c14f01e/image10.png?w=1320&q=60&fm=webp)
+
+Add a new field named `email`, as it's the minimum that Auth.js requires for social login (and will also act as the unique ID for each user) then add another field called `reportText`. After adding, make sure you save the content type. As you build out your app, you can add other fields to store user information.
+
+`email`
+`reportText`
+![Add a new field named email](https://images-www.contentful.com/fo9twyrwpveg/68LC6hoDiRoKeCAHFUJnjZ/58084d529e22569df624bc79fe152bd8/image9.png?w=1320&q=60&fm=webp)
+
+### Step 2: Create and configure a Next.js project with Auth.js
+
+To set up a new project, start with the [Auth.js example project](https://github.com/nextauthjs/next-auth-example) and install the necessary dependencies. While Next.js does support [TypeScript](/developers/docs/javascript/tutorials/typescript-in-javascript-client-library/), the code in this tutorial will stick with plain JavaScript.
+
+The next step is to configure your environment variables. Use the following command in the terminal to copy the contents of the existing env file to a new file called `env.local`:
+
+`env.local`
+
+`cp .env.local.example .env.local`
+
+`cp .env.local.example .env.local`
+
+You will also need to generate a secret to secure Auth.js by running:
+
+`openssl rand -hex 32`
+
+`openssl rand -hex 32`
+
+And copying and pasting the generated value into the `AUTH_SECRET` in `.env.local`.
+
+`AUTH_SECRET`
+`.env.local`
+
+Auth.js already provides some configurations in the example project, so you'll only need to add the following Contentful-specific environmental variables to `.env.local`:
+
+`.env.local`
+
+`CF_SPACE_ID={your value here}`
+
+`CF_SPACE_ID={your value here}`
+
+`CF_CMA_TOKEN={your value here}`  
+  
+You can find your Contentful space ID by selecting “API keys” from the settings dropdown menu:
+
+`CF_CMA_TOKEN={your value here}`
+![API keys](https://images-www.contentful.com/fo9twyrwpveg/4uWWo9Nx5WWzGGTsO0QAbd/ed232141e8e120e78ccdc4538ae9f450/image4__1_.png?w=1320&q=60&fm=webp)
+
+Then choose a name and create your API keys, which will then be accessible in your newly created space:
+
+![Test space](https://images-www.contentful.com/fo9twyrwpveg/5dpmz2cyHynI7eg8m9X6Nl/2f1f576ed78f30151aefb1d5f89c4b9f/image8.png?w=1320&q=60&fm=webp)
+
+For the CMA token, you can select that from the same dropdown menu and then click “Create personal access token” from the top right, giving it a name. Once it’s created, you can paste it into the `env.local` file:
+
+`env.local`
+![CMA tokens](https://images-www.contentful.com/fo9twyrwpveg/7TRqqdEDp4Wb1ZAROghjz/cb369b4620eb79e0a334526a6248dfa1/image1__2_.png?w=1320&q=60&fm=webp)
+
+Next, replace the `export const` code block in the `auth.ts` file with the following (leave the rest of the file as is):
+
+`export const`
+`auth.ts`
+
+
+The above code modifies the default `auth.ts` file (which initializes Auth.js) to read the `AUTH_SECRET` value from the env file, and enables the Google authentication provider.
+
+`auth.ts`
+`AUTH_SECRET`
+
+### Step 3: Get the Google authentication provider API credentials
+
+Next, you need to get the `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` for setting up the Google provider in Auth.js. To get these values, you will need to go to [Google Cloud Console](https://console.developers.google.com/apis/credentials) and get an `OAuth2.0` [client ID and client secret](https://support.google.com/cloud/answer/6158849?hl=en).
+
+`AUTH_GOOGLE_ID`
+`AUTH_GOOGLE_SECRET`
+`OAuth2.0`
+
+When creating the credentials in the Google Cloud Console, make sure that in authorized JavaScript origins you add `http://localhost:3000`, and in authorized redirect URIs you add `http://localhost:3000/auth/callback/google`, as these are the URIs to your Next.js when you run it locally.
+
+`http://localhost:3000`
+`http://localhost:3000/auth/callback/google`
+![Get the Google authentication provider API credentials ](https://images-www.contentful.com/fo9twyrwpveg/7eUA5XDdG7NllZhhE8itlJ/0d73ba2718c73810f3ffd26ef772f819/image7.png?w=1320&q=60&fm=webp)
+
+Once you've created your client ID and secret, add them to your `.env.local` file as the `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` values.
+
+`.env.local`
+`AUTH_GOOGLE_ID`
+`AUTH_GOOGLE_SECRET`
+
+### Step 4: Add a login form
+
+You can use the default login form that Auth.js provides by appending the following to `app/auth/nextauth/route.ts`:
+
+`app/auth/nextauth/route.ts`
+
+
+You can test your app by running:
+
+`npm run dev`
+
+`npm run dev`
+
+And then opening <http://localhost:3000> in your web browser.
+
+If you now click the “Sign In” button in the top right:
+
+![Add a login form](https://images-www.contentful.com/fo9twyrwpveg/4NQ9IqZdbal8sw8KEfzZc4/54dbb177421509e6a2ff991c8f37185b/image6.png?w=1320&q=60&fm=webp)
+
+You should see something very similar to the screen below:
+
+![Sign in with Google](https://images-www.contentful.com/fo9twyrwpveg/64ne41xlgcHZCXyckFGpUd/10eabd5bd714b79ccf3d091abf54bc8b/image5.png?w=1320&q=60&fm=webp)
+
+### Step 5: Auth.js session details with app directory
+
+The example already has you covered with getting the session details, and once you log in, you should be redirected to home with a view showing you the user’s session information. The code is under `app/page.tsx`:
+
+`app/page.tsx`
+
+
+Here, the `auth` function is imported in from the Auth.js library, then the session details are asynchronously awaited so they can be displayed.
+
+`auth`
+
+### Step 6: Create the Contentful connection
+
+The next step is to use the `contentful-management` package to connect your app with Contentful for storing user content. Create a `contentful.js` file in the root folder of your project and add the following code:
+
+`contentful-management`
+`contentful.js`
+
+
+This code initializes the Contentful management API client so you can interact with your Contentful space. The `space` and `accessToken` are set to specify the target space and authenticate the API calls, as read from the `.env.local` file.
+
+`space`
+`accessToken`
+`.env.local`
+
+Next, append the following code to `contentful.js`. It creates a function to add reports to your report store. This function will take an email and `reportText` and store them.
+
+`contentful.js`
+`reportText`
+
+
+The final step of the connection is to add a form to the `page.tsx` file, create a component called `ReportForm.jsx` with the following code:
+
+`page.tsx`
+`ReportForm.jsx`
+
+
+### Step 7: Finishing up
+
+Now that the connection between the app and Contentful is set up, you just need to import the `ReportForm` component into the `page.tsx` component and pass the email from the session. Notice that the user must be authenticated to be able to see and use the form.
+
+`ReportForm`
+`page.tsx`
+
+
+Now, when a user authenticates through Google, they will be able to use this form to enter reports, which will be saved in Contentful and linked to them by email.
+
+## A working Next.js app, with authentication, and not a single line of backend code
+
+If you have used the Auth.js example, you should have a login/signup flow already working. You can verify that the flow is working by navigating to `/api/auth/signin` and doing a signup. You should get redirected to the index.
+
+`/api/auth/signin`
+
+If you were working on an existing project, the flow should also be working. Now your Auth.js project should be storing reports in Contentful, but you might need to change some more things than shown in the post. You can now add more [authentication providers](https://next-auth.js.org/v3/configuration/providers#available-providers) to broaden your audience.
+
+## Next steps: Make it an app
+
+And there you have it. You now know how to add Auth.js (NextAuth) to your app and use Contentful as your admin panel for content. By combining a library like Auth.js for your authentication needs and Contentful for storing your users’ content with an intuitive interface, you can speed up your development workflow and concentrate on more important features.
+
+This is of course just the beginning! Now that you have an app that can authenticate users (and a full management admin panel supplied by Contentful) you can start building the rest of your app. You don't even need to worry about the back end — it's already there. Contentful lets you model any content type, create and manage content, and deploy to GraphQL and REST APIs backed by a high-speed global CDN.
+
+![Contentful logo](https://images-www.contentful.com/fo9twyrwpveg/4cQNbrcGC0ciV1tZSD6ewi/584e539b08ce20d28d694f206c63d490/Favicon-01.svg)
+
+Sign up for a free Contentful account
+
+Use your favorite tech stack, language, and framework of your choice.
+
+![](https://images.ctfassets.net/fo9twyrwpveg/2e5N7zSjP2wD7Cp49FEr1j/bcc030f3e38bcd5aa05c1249641fc1d4/envelope-open.svg)
+
+Inspiration for your inbox
+
+Subscribe and stay up-to-date on best practices for delivering modern digital experiences.
+
+### Meet the authors
+
+![David Fateh](https://images-www.contentful.com/fo9twyrwpveg/2g0xAKjtYGLzCGiFhTu0T0/79630ada46e11713004d0fee8e9a391a/T02917R46-UJVQYN1HQ-02a487f76aef-512.jpg?w=1200&q=65&fm=webp)
+
+#### David Fateh
+
+Software Engineer
+
+Contentful
+
+David Fateh is a software engineer with a penchant for web development. He helped build the Contentful App Framework and now works with developers that want to take advantage of it.
+
+## Related articles
+
+![Person in blue sweater using phone, with A/B testing icons and purple design elements on light purple background](https://images-www.contentful.com/fo9twyrwpveg/3d0ri1Ry3otigW6hzvKTek/b64d7ea6ccf80591519b572ab9b8b845/B_Testing_with_Best_Practices.png?w=1320&q=60&fm=webp)
+
+Ultimate starter guide to A/B testing with best practices
+
+May 13, 2025
+
+![How to use React PropTypes for runtime type checking, reducing bugs, and improving code reliability.
+](https://images-www.contentful.com/fo9twyrwpveg/4Ps9cm1gmtqZAqtGMT262n/5bb7e9222d41fb8966933337b9c84414/React_PropTypes.png?w=1320&q=60&fm=webp)
+
+How to use PropTypes in React
+
+March 3, 2025
+
+![An explanation of what React’s Suspense feature is, including practical examples of how to use it for lazy loading of components and data fetching.
+](https://images-www.contentful.com/fo9twyrwpveg/1za9WFMd9sct2fcFeqaJ8R/b4bcace7d272143c33519acd919297e9/What_is_React_Suspense_and_how_to_use_it.png?w=1320&q=60&fm=webp)
+
+React Suspense explained: How to use it for lazy loading and data fetching
+
+April 25, 2024
+
+![Contentful Logo 2.5 Dark](https://images-www.contentful.com/fo9twyrwpveg/OzuoZJxKgQooeO7nD8PVu/13223440bedfaceb8560d3dd873d3783/Favicon-01.svg)
+
+Ready to start building?
+
+Put everything you learned into action. Create and publish your content with Contentful — no credit card required.
+
+What is Contentful?
+
+Use Cases
+
+What is a headless CMS?
+
+What is composable content?
+
+What's New
+
+Documentation
+
+Training
+
+Professional services
+
+System status
+
+FAQS
+
+Help Center
+
+Developer Showcase
+
+About us
+
+Careers
+
+Leadership
+
+Blog
+
+Events
+
+Newsroom
+
+Contact
+
+Support
+
+Partners
+
+Join research panel
+
+What is Contentful?
+
+Use Cases
+
+What is a headless CMS?
+
+What is composable content?
+
+What's New
+
+Documentation
+
+Training
+
+Professional services
+
+System status
+
+FAQS
+
+Help Center
+
+Developer Showcase
+
+About us
+
+Careers
+
+Leadership
+
+Blog
+
+Events
+
+Newsroom
+
+Contact
+
+Support
+
+Partners
+
+Join research panel
+
+Imprint/Legal
+
+Privacy
+
+Your Privacy Choices
+
+Security
+
+Log in
+
+Accessibility Statement
+
+Site Map
+
+Cookie Preferences
+
+© 2026 Contentful. All rights reserved.

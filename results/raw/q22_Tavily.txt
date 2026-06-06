@@ -1,0 +1,1587 @@
+Title: The complete guide to Kubernetes autoscaling | Blog — Northflank
+[Log in](https://app.northflank.com/login)
+
+[Get started](https://app.northflank.com/signup)
+
+
+
+[← Back to Blog](/blog)
+
+![Header image for blog post: The complete guide to Kubernetes autoscaling](https://assets.northflank.com/kubernetes_autoscaling_1_1de63c269e.png?auto=avif&quality=100&width=937)
+
+![Will Stewart](https://assets.northflank.com/1721998433153_6080827d1a.jpeg?auto=avif&width=100)
+
+By[Will Stewart](/author/will-stewart)
+
+Published 16th June 2025
+
+# The complete guide to Kubernetes autoscaling
+
+Kubernetes autoscaling automatically adjusts compute resources to match application demand. This guide covers everything from basic concepts to advanced patterns, with practical examples for implementing autoscaling in production environments.
+
+## 📖 TL;DR
+
+**Key takeaways:**
+
+* Kubernetes autoscaling includes HPA (horizontal), VPA (vertical), and Cluster Autoscaler
+* Works for ALL workloads: web apps, APIs, data processing, GPUs
+* Can reduce costs by 50-70% while maintaining performance
+* [Northflank](http://northflank.com/) simplifies configuration with visual controls and automated metric collection
+* Custom metrics enable business-specific scaling (queue depth, latency, connections)
+
+## What is Kubernetes autoscaling?
+
+Kubernetes autoscaling dynamically adjusts resources based on real-time demand. Unlike traditional static provisioning where you guess capacity needs, autoscaling responds to actual usage patterns, scaling up during peaks and down during quiet periods.
+
+| Workload Type | Scaling trigger | Example | Northflank advantage |
+| --- | --- | --- | --- |
+| **Web Apps** | Request rate | E-commerce during sales | RPS-based scaling |
+| **APIs** | Latency/connections | Payment gateways | Custom metrics support |
+| **Data Processing** | Queue depth | ETL pipelines | Prometheus integration |
+| **ML/GPU** | GPU utilization | Model training | Resource-aware scaling |
+| **Microservices** | Service-specific | Order processing | Per-service configs |
+
+### Real-world scenarios where autoscaling is essential
+
+**🛍️ E-commerce flash sales**: An online retailer experiences 20x normal traffic during Black Friday. Without autoscaling, they'd need to provision for peak capacity year-round. With Northflank's autoscaling, their platform automatically scales from 5 to 100 instances during the sale, then back down afterward.
+
+**📹 Social media viral content**: A social platform's video service typically handles 1,000 requests/second. When content goes viral, traffic spikes to 50,000 requests/second within minutes. Autoscaling prevents service degradation by rapidly adding capacity.
+
+**🏦 Financial services batch processing**: A bank processes transactions in nightly batches. Data volume varies from 1GB on weekends to 100GB at month-end. Autoscaling provisions resources only when needed, reducing costs by 80% compared to static provisioning.
+
+## What are the types of autoscaling in Kubernetes?
+
+### Horizontal Pod Autoscaler (HPA)
+
+HPA scales the number of pod replicas based on metrics. It's ideal for stateless applications where adding instances directly increases capacity.
+
+**Basic HPA configuration:**
+
+```
+apiVersion: autoscaling/v2 kind: HorizontalPodAutoscaler metadata: name: webapp-hpa spec: scaleTargetRef: apiVersion: apps/v1 kind: Deployment name: webapp minReplicas: 2 maxReplicas: 50 metrics: - type: Resource resource: name: cpu target: type: Utilization averageUtilization: 70
+```
+
+**Northflank's simplified approach:** Instead of YAML, Northflank provides toggle controls where you:
+
+* Enable horizontal autoscaling with one click
+* Set min/max instances with sliders
+* Configure CPU, memory, and RPS thresholds
+* View real-time scaling events in the dashboard
+
+### Vertical Pod Autoscaler (VPA)
+
+VPA adjusts resource requests and limits for pods, right-sizing containers based on actual usage.
+
+**VPA configuration example:**
+
+```
+apiVersion: autoscaling.k8s.io/v1 kind: VerticalPodAutoscaler metadata: name: webapp-vpa spec: targetRef: apiVersion: apps/v1 kind: Deployment name: webapp updatePolicy: updateMode: "Auto" resourcePolicy: containerPolicies: - containerName: webapp minAllowed: cpu: 100m memory: 128Mi maxAllowed: cpu: 2 memory: 2Gi
+```
+
+### Cluster Autoscaler
+
+Manages the cluster itself by adding or removing nodes based on pod scheduling needs.
+
+**Key behaviors:**
+
+* Adds nodes when pods can't be scheduled
+* Removes underutilized nodes after grace period
+* Respects pod disruption budgets
+* Considers node pools and instance types
+
+### Custom metrics autoscaling with Northflank
+
+Northflank's custom metrics support enables scaling based on application-specific indicators:
+
+```
+# Expose custom metrics in your app from prometheus_client import Gauge, generate_latest queue_depth = Gauge('message_queue_depth', 'Pending messages') @app.route('/metrics') def metrics(): queue_depth.set(get_queue_size()) return Response(generate_latest(), mimetype='text/plain')
+```
+
+Then in Northflank:
+
+1. Specify your Prometheus endpoint and port
+2. Select metric type (Gauge or Counter)
+3. Set threshold values
+4. Northflank handles the rest, no adapter configuration needed
+
+## Why Northflank for Kubernetes autoscaling
+
+Northflank transforms complex Kubernetes autoscaling into a straightforward process. Instead of wrestling with YAML configurations and manual metric setup, Northflank provides an intuitive interface that makes autoscaling accessible to teams of all sizes. The platform handles the underlying complexity while giving you powerful features like custom metrics, multi-threshold scaling, and real-time monitoring, all without the operational overhead of managing Kubernetes directly.
+
+## How does autoscaling work in Kubernetes?
+
+### The control loop explained
+
+Every 15 seconds, the autoscaling control loop:
+
+1. **Collects metrics** from all pods in the deployment
+2. **Calculates average** utilization across instances
+3. **Determines required replicas** using the formula:
+
+   ```
+   required = ceil[current * (actualMetric / targetMetric)]
+   ```
+4. **Applies scaling decision** based on policies
+
+### Scaling behavior and policies
+
+**Scale-up characteristics:**
+
+* Immediate response to threshold breach
+* Can scale multiple instances at once
+* No cooldown period by default
+
+**Scale-down characteristics:**
+
+* 5-minute stabilization window
+* Gradual reduction to prevent flapping
+* Selects highest replica count from window
+
+### Multi-metric coordination
+
+When using multiple metrics (CPU, memory, RPS), the autoscaler:
+
+* Calculates required replicas for each metric independently
+* Selects the highest requirement
+* Ensures no metric is under-provisioned
+
+Northflank makes this seamless, enable any combination of metrics and the platform coordinates scaling decisions automatically.
+
+## Benefits of autoscaling
+
+### ✅ Cost optimization
+
+Static provisioning wastes resources during low-demand periods. Autoscaling delivers significant savings:
+
+* **Development environments**: 70-80% reduction (scale to zero when unused)
+* **Production services**: 50-60% reduction (right-sized for actual load)
+* **Batch processing**: 80-90% reduction (resources only when processing)
+
+### ✅ Performance consistency
+
+Autoscaling maintains performance KPIs during demand variations:
+
+* Response times stay consistent during traffic spikes
+* Queue processing times remain predictable
+* User experience doesn't degrade under load
+
+### ✅ Operational efficiency
+
+Teams save significant time by eliminating manual scaling tasks:
+
+* No midnight interventions for traffic spikes
+* Automatic response to seasonal patterns
+* Focus on features, not infrastructure
+
+Northflank amplifies these benefits with visual monitoring and one-click configuration changes that would typically require complex YAML editing and kubectl commands.
+
+## Advanced autoscaling patterns
+
+### Predictive scaling
+
+Combine reactive autoscaling with scheduled scaling for predictable patterns:
+
+```
+# Morning scale-up for business hours apiVersion: batch/v1 kind: CronJob metadata: name: morning-scaleup spec: schedule: "0 7 * * MON-FRI" jobTemplate: spec: template: spec: containers: - name: scaler image: bitnami/kubectl command: ["kubectl", "patch", "hpa", "webapp-hpa", "--patch", '{"spec":{"minReplicas":10}}']
+```
+
+### Blue-green deployments with autoscaling
+
+Northflank's deployment strategies work seamlessly with autoscaling:
+
+1. Deploy new version with same autoscaling config
+2. Gradually shift traffic while both scale independently
+3. Complete cutover with zero downtime
+
+### Geographic scaling patterns
+
+For global applications, implement region-aware autoscaling:
+
+* Scale regions independently based on local demand
+* Use Northflank's multi-region support
+* Configure different thresholds per region
+
+## Northflank's autoscaling advantages
+
+### Simplified configuration
+
+Traditional Kubernetes autoscaling requires:
+
+* Installing metrics servers
+* Configuring RBAC permissions
+* Writing YAML manifests
+* Setting up Prometheus adapters
+* Managing metric aggregation
+
+Northflank provides:
+
+* **Visual configuration**: Sliders and toggles instead of YAML
+* **Automatic metric collection**: No manual setup required
+* **Integrated monitoring**: See metrics and scaling events together
+* **Custom metrics support**: Prometheus endpoints work immediately
+* **Multi-metric coordination**: CPU, memory, and RPS in one interface
+
+### How to set up Kubernetes autoscaling
+
+![1.png](https://assets.northflank.com/1_476d79cd92.png) Here's how a Northflank user configures autoscaling:
+
+1. Navigate to your service's Resources page
+2. Expand "Advanced resource options"
+3. Toggle "Enable horizontal autoscaling"
+4. Set your parameters:
+   * Minimum instances: 2
+   * Maximum instances: 20
+   * CPU threshold: 70%
+   * Memory threshold: 80%
+   * RPS threshold: 1000
+
+That's it. No YAML, no kubectl, no manual metric server configuration.
+
+### Monitoring and observability
+
+Northflank provides integrated monitoring that shows:
+
+* Current instance count with scaling history
+* Real-time metrics for all configured thresholds
+* Scaling event logs with reasons
+* Cost tracking as instances scale
+
+## 💭 FAQs
+
+**Q: Is autoscaling only for GPU/ML workloads?** A: No! Autoscaling works for any workload: web apps, APIs, batch jobs, microservices. Northflank supports autoscaling for all deployment types.
+
+**Q: How quickly does autoscaling respond?** A: Metrics are checked every 15 seconds. Scale-up can happen immediately, while scale-down uses a 5-minute window to prevent flapping.
+
+**Q: Can I use custom metrics with Northflank?** A: Yes! Expose any metric via Prometheus format, and Northflank will use it for scaling decisions. Common examples include queue depth, active connections, or business metrics.
+
+**Q: What happens during deployment updates?** A: Northflank maintains autoscaling configuration during updates. New pods inherit the same scaling rules, ensuring consistent behavior.
+
+**Q: How do I test autoscaling?** A: Use load testing tools to simulate traffic. Monitor the Northflank dashboard to see scaling in action. Start with conservative thresholds and adjust based on observations.
+
+**Q: Can I combine different types of autoscaling?** A: Yes, but carefully. HPA and VPA can conflict if not configured properly. Northflank's platform handles HPA elegantly, and you can use VPA recommendations to set initial resource requests.
+
+## Final thoughts
+
+Kubernetes changes transforms how we manage application resources, moving from static provisioning to dynamic, demand-based allocation. While the underlying technology is powerful, complexity has traditionally limited adoption.
+
+Northflank changes this by making enterprise-grade autoscaling accessible to teams of all sizes. Through intuitive interfaces, automatic metric collection, and integrated monitoring, Northflank removes the operational burden while delivering the full benefits of Kubernetes autoscaling.
+
+Whether you're scaling web applications during traffic spikes, optimizing batch processing costs, or managing complex microservices architectures, autoscaling ensures optimal resource utilization. Start with basic CPU-based scaling, monitor real-world behavior through Northflank's dashboards, and gradually introduce custom metrics as your needs evolve.
+
+The future of infrastructure is adaptive, not static.
+
+With Northflank's approach to Kubernetes autoscaling, that future is accessible today, no infrastructure expertise required.
+
+[Try Northflank for free, today.](https://app.northflank.com/t/cristinabuneas-team)
+
+Share this article with your network
+
+Related posts
+
+[![](https://assets.northflank.com/github_actions_alternatives_95739a4be5.png?auto=avif&fit=crop&quality=90&width=820&height=461)](/blog/github-actions-alternatives)
+
+[![Daniel Adeboye](https://assets.northflank.com/DSC_2767_4_8736cb6b04.jpg?auto=avif&width=100)
+
+Daniel Adeboye•27th April 2026
+
+## Best GitHub Actions alternatives in 2026
+
+Best GitHub Actions alternatives in 2026: Northflank, CircleCI, GitLab CI, Buildkite, Travis CI, and Harness compared by capability, hosting model, and use case.](/blog/github-actions-alternatives)
+
+[CI/CD Tools](/blog/tag/ci-cd-tools)
+
+[CI/CD for Kubernetes](/blog/tag/ci-cd-for-kubernetes)
+
+[Continuous Integration](/blog/tag/continuous-integration)
+
+[Kubernetes](/blog/tag/kubernetes)
+
+[![](https://assets.northflank.com/vmware_alternatives_14b295ab88.png?auto=avif&fit=crop&quality=90&width=820&height=461)](/blog/best-vmware-alternatives-in-2026)
+
+[![Will Stewart](https://assets.northflank.com/1721998433153_6080827d1a.jpeg?auto=avif&width=100)
+
+Will Stewart•27th April 2026
+
+## Best VMware alternatives in 2026
+
+Best VMware alternatives in 2026: Proxmox VE, Hyper-V, Nutanix AHV, and OpenStack compared, plus how Northflank helps teams move to container-based infrastructure.](/blog/best-vmware-alternatives-in-2026)
+
+[Kubernetes](/blog/tag/kubernetes)
+
+[Kubernetes management](/blog/tag/kubernetes-management)
+
+Also from the blog
+
+* [10 best Elastic Beanstalk alternatives in 2026: Deploy apps without the AWS complexity](/blog/elastic-beanstalk-alternatives)
+* [How to hire your founding salesperson](/blog/how-to-hire-your-founding-sales-person)
+* [What we learned from hosting our first event in SF](/blog/what-we-learned-from-hosting-our-first-event-in-san-francisco)
+* [Top Baseten alternatives for AI/ML model deployment](/blog/baseten-alternatives-for-ai-ml-model-deployment)
+* [Can you use Vercel for backend? What works and when to use something else](/blog/vercel-backend-limitations)
+
+ 
+
+---
+
+Title: The hidden complexities of Kubernetes autoscaling - Nearform
+# The hidden complexities of Kubernetes autoscaling: Beyond the basicsThe hidden complexities of Kubernetes autoscaling: Beyond the basicsThe hidden complexities of Kubernetes autoscaling: Beyond the basics
+
+We look at advanced techniques to optimise autoscaling in Kubernetes for applications with varied needs
+
+![](/_next/image/?url=https%3A%2F%2Fres.cloudinary.com%2Fnearform-website%2Fimage%2Fupload%2Ff_auto%2Cq_auto%2Cw_1920%2Ch_1080%2Fs5_blue.jpg&w=3840&q=75)
+![avatar](/icon-white.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+![avatar](/icon-dark.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+
+[Horizontal Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) is a powerful feature in Kubernetes, enabling applications to handle varying workloads automatically by dynamically adjusting the number of application instances. Unlike vertical scaling, which adds resources to a single instance, horizontal scaling increases or decreases the number of instances to match the current workload. When traffic or demand spikes, autoscaling can increase replicas to handle the load; when demand drops, it can scale down to save resources.
+
+At its core, it sounds simple: define a minimum and maximum number of replicas, select a metric (like CPU, memory usage or any pod-external metric), set a threshold and let Kubernetes manage the scaling.
+
+But autoscaling isn’t always as straightforward as it seems. Different workloads have unique scaling needs, and bursty traffic patterns or delayed processing can introduce complexities that require a fine-tuned configuration.
+
+Moreover, different applications come with unique needs, and effective autoscaling requires more than a one-size-fits-all approach. Some applications prioritise low latency and need to react instantly to traffic spikes, while others are more concerned with cost efficiency and can tolerate slower scaling. Some require high throughput to handle large volumes of data, while others might focus on stability, minimising fluctuations in resource allocation.
+
+Understanding these diverse requirements is key to building a robust autoscaling configuration. In practice, achieving the right balance between responsiveness, resource efficiency and stability requires fine-tuning, especially when dealing with bursty traffic patterns or workloads with late load ( traffic peak after a traffic decrease ).
+
+In this article, we’ll explore these complexities and look at some advanced techniques to optimise autoscaling in Kubernetes for applications with varied needs — we will focus on a common use case: scaling based on a Kafka topic lag metric.
+
+Apache Kafka is a highly scalable, distributed event streaming platform designed for real-time data pipelines and applications. It acts as a publish/subscribe message broker, enabling producers to send data as records (messages) to topics, while consumers process these records independently. Kafka is optimised for high-throughput, fault tolerance and low-latency communication. This makes it ideal for use cases like log aggregation, stream processing, and event-driven architectures. Its core components include brokers (managing storage and coordination), topics (organising data streams) and partitions (ensuring scalability and parallelism).
+
+## The basics of Kubernetes HPA (KEDA)
+
+Kubernetes Event-Driven Autoscaling (KEDA) extends Kubernetes autoscaling by allowing applications to scale based on external events, such as message queue length or HTTP requests. Instead of just CPU or memory metrics, KEDA scales workloads based on defined triggers, making it perfect for dynamic workloads.
+
+### [Kafka trigger with KEDA](#kafka-trigger-with-keda)
+
+For Kafka, KEDA can scale consumers based on message lag in a topic. This is particularly useful for bursty traffic, where scaling needs to respond directly to spikes in message load.
+
+**Key configurations:**
+
+**Polling interval**: Sets how often KEDA checks the lag. A shorter interval (e.g., ten seconds) enables faster responses to sudden spikes.
+
+**Lag threshold**: Defines when to scale up. For example, if lag exceeds 20 messages, KEDA can add more consumers to clear the queue. Specifically, a lower threshold value will trigger scaling up more aggressively, potentially adding more replicas to handle the workload, while a higher threshold value results in fewer replicas being added; this is because the HPA calculates the number of replicas based on the following formula (desiredMetricValue in the formula is our threshold here in this scenario, for more info check the [HPA K8S doc](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details))
+
+`desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]`
+
+Now, let’s see what a KEDA Kafka trigger looks like:
+
+`apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+ name: kafka-consumer-scaler
+spec:
+ scaleTargetRef:
+ name: kafka-consumer-deployment
+ pollingInterval: 10
+ cooldownPeriod: 300
+ minReplicaCount: 1
+ maxReplicaCount: 10
+ triggers:
+ - type: kafka
+ metadata:
+ bootstrapServers: '<YOUR_KAFKA_BROKER>:9092'
+ consumerGroup: <YOUR_CONSUMER_GROUP>
+ topic: <YOUR_TOPIC_NAME>
+ lagThreshold: "20"
+ allowIdleConsumers: "false"
+ authenticationRef:
+ name: keda-kafka-credentials`
+
+So, at this point, we’ve covered all the basics and we already have a number of parameters to tune:
+
+Min replicas
+
+Max replicas (this should be at most set to the number of partitions in your topic, strictly related to the Kafka examples)
+
+Polling interval
+
+Lag threshold
+
+Some potential pitfalls with Kafka trigger YAML config are improper polling intervals or allowing for idle consumers which leads to having more consumers than partitions.
+
+## Beyond the basics
+
+At this point, the question is: “Why would the basics not be enough?”
+
+While basic autoscaling covers foundational metrics and thresholds, real-world scenarios with Kafka require a more nuanced approach. Kafka lag, for example, can be misleading — it’s often subject to false positives. You might see a spike in lag one moment, but find it drops to zero the next. If your autoscaler is too reactive to these temporary spikes, you could end up over-scaling, adding unnecessary replicas and increasing costs.
+
+Another important consideration is Kafka rebalancing. Every time the consumer group scales up or down, Kafka initiates a rebalancing event to assign partitions to consumers. While essential, rebalancing can be disruptive, as it pauses message processing momentarily to redistribute load. This process is often described as a “stop-the-world” event because it can cause a temporary halt, impacting latency and throughput — we will cover some Kafka Rebalancing tips later in this article.
+
+To address these challenges, you need a carefully tuned configuration that balances responsiveness with stability. Now let’s dive into strategies to **reduce rebalancing frequency** and optimise autoscaling to better handle bursty traffic, while avoiding costly and disruptive over-scaling.
+
+The Horizontal Pod Autoscaler (HPA) in Kubernetes offers advanced configurations that go beyond basic scaling settings. Understanding these defaults and how they affect your autoscaling strategy is crucial for fine-tuning performance.
+
+### [HPA defaults](#hpa-defaults)
+
+**Stabilisation window**: This setting controls how long the HPA waits before scaling down after a scale-up event. Basically, a scaling decision is done by taking the highest value for the metric in the stabilisation window for scaling down, and taking the lowest value for the metric in the stabilisation window for scaling up.
+
+**Behaviour settings**: The HPA also supports `scaleUp` (adding replicas) and `scaleDown` (removing replicas) behaviours, which allow you to define how aggressively the autoscaler should respond to changes in load. For example, you can set how many replicas can be added per minute or limit the percentage of pods that can be removed during scaling down.
+
+`scaleUp`
+`scaleDown`
+
+By default, the scale down is:
+
+`# Default scaling behavior
+behavior:
+ scaleDown:
+ stabilizationWindowSeconds: 300
+ policies:
+ - type: Percent
+ value: 100
+ periodSeconds: 15
+ scaleUp:
+ stabilizationWindowSeconds: 0
+ policies:
+ - type: Percent
+ value: 100
+ periodSeconds: 15
+ - type: Pods
+ value: 4
+ periodSeconds: 15
+ selectPolicy: Max`
+
+Default autoscaling behaviour from [K8S Horizontal Pod Autoscaling Default Behavior](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#default-behavior):
+
+*“For scaling down the stabilization window is 300 seconds. There is only a single policy for scaling down which allows a 100% of the currently running replicas to be removed which means the scaling target can be scaled down to the minimum allowed replicas. For scaling up there is no stabilization window. When the metrics indicate that the target should be scaled up the target is scaled up immediately. There are 2 policies where 4 pods or a 100% of the currently running replicas may at most be added every 15 seconds till the HPA reaches its steady state.”*
+
+Kubernetes’ advanced scaling behaviour is documented [here](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior), in case you need to go deep.
+
+These advanced configurations can be added to the KEDA **ScaledObject** definitions, which KEDA uses to create and manage the underlying HPA objects. This integration allows you to take advantage of Kubernetes’ powerful scaling capabilities while leveraging KEDA’s event-driven model.
+
+By fine-tuning these settings within your KEDA configuration, you can optimise how your application responds to changing workloads, minimising unnecessary scaling events and maintaining stability during periods of high demand.
+
+## Kafka trigger with default behaviour
+
+Using the default settings for Horizontal Pod Autoscaler (HPA) with Kafka triggers can lead to excessive scaling events, both up and down.
+
+Each time the scaling threshold is breached, whether due to a temporary spike in lag or a rapid drop, the autoscaler may quickly add or remove replicas. This behaviour often results in repeated scaling events within a short timeframe, which can negatively impact system stability and increase Kafka rebalancing overhead. The scale up/down stabilisation window values highly impact the scaling frequency.
+
+Every scaling event triggers a Kafka rebalancing process, which is essentially a redistribution of partitions among the consumers in the group. This rebalancing is often referred to as a "stop-the-world" event because it momentarily halts message processing, impacting overall throughput and latency. During rebalancing, the system must pause to ensure that each consumer is assigned its new set of partitions before resuming message consumption, which can lead to delays and increased lag during high-demand periods. Thus, minimising scaling events and optimising the rebalancing process is crucial for maintaining system stability and performance in Kafka environments.
+
+As promised, here’s a tip on optimising Kafka rebalancing: utilise [**Cooperative Sticky Rebalancing**](https://www.confluent.io/blog/incremental-cooperative-rebalancing-in-kafka/). This approach is designed to minimise disruption during the rebalancing process, allowing consumers to maintain their partition assignments as much as possible while avoiding stop-the-world events.
+
+The Cooperative Sticky Rebalancing algorithm is:
+
+**Incremental** because the final desired state of rebalancing is reached in stages. A globally balanced final state does not have to be reached at the end of each round of rebalancing. A small number of consecutive rebalancing rounds can be used for the group of Kafka clients to converge to the desired state of balanced resources. In addition, you can configure a grace period to allow a departing member to return and regain the previously assigned resources.
+
+**Cooperative** because each process in the group is asked to voluntarily release resources that need to be redistributed. These resources are then made available for rescheduling, given that the client that was asked to release them does so on time.
+
+This is how the amount of consumer replicas (number of runtime servers dequeuing from a Kafka topic) can change if not tuned correctly. In the example images below, you can see how an HPA with Kafka trigger with default values behaves and how you could tune it (remember, this always depends on your workload needs).
+
+![Alt text here](https://res.cloudinary.com/nearform-website/image/upload/v1759150572/Screenshot_2024-11-08_alle_12.10.28.png)
+
+![Alt text here](https://res.cloudinary.com/nearform-website/image/upload/v1759150572/Screenshot_2024-11-08_alle_12.10.28.png)
+
+That flapping behaviour (scaling up and down often), causes too much Kafka rebalancing and blocks the consumers until the lag metric does not get stable, in this example there are four scaling up events and one scale down event with default HPA behaviour (image above) and there is a single one scale up event for HPA with advanced behaviour (image below).
+
+![Alt text here](https://res.cloudinary.com/nearform-website/image/upload/v1759150623/Screenshot_2024-11-08_alle_12.10.37.png)
+
+![Alt text here](https://res.cloudinary.com/nearform-website/image/upload/v1759150623/Screenshot_2024-11-08_alle_12.10.37.png)
+
+For this specific workload, every message processed can take minutes. So the cooperative sticky partitioning strategy suited very well to avoid the stuck behaviour and together with adjusting stabilisation windows for both scale up and down the performance improved a lot.
+
+For this specific scenario, I have set the scaling behaviour as follows:
+
+Lag threshold
+
+`horizontalPodAutoscalerConfig:
+ behavior:
+ scaleDown:
+ stabilizationWindowSeconds: 600
+ policies:
+ - type: Percent
+ value: 30
+ periodSeconds: 60
+ scaleUp:
+ stabilizationWindowSeconds: 300
+ policies:
+ - type: Percent
+ value: 100
+ periodSeconds: 60
+ - type: Pods
+ value: 4
+ periodSeconds: 60
+ selectPolicy: Max`
+
+Scale up with a five-minute stabilisation window to avoid false positive spike signals
+
+Scale-up acceleration is a bit slower than the default behaviour, so even if we got a false positive, we at least are scaling up slowly
+
+Scale down with a ten-minute stabilisation window, this allows us to get the lag near 0 before scaling down, so it speeds up the throughput on the last piece of the spike
+
+Scale down 30% of the pods per minute, the default behaviour immediately scales down to min replicas — this allows us to catch late load spikes, if there are any
+
+After adjusting the scaling parameters in our Kubernetes setup, we achieved a significant improvement in performance, resulting in better throughput for our system. Specifically, the time to complete AI analysis reports on images and videos was reduced from several hours to just half an hour, demonstrating the effectiveness of our optimisations.
+
+## Conclusion
+
+Tuning workload parameters is essential for effective autoscaling with Kafka and Kubernetes. While default behaviours can work well in straightforward cases, they often fall short for more dynamic workloads, especially those with spiky traffic or variable message-processing times. To create a configuration that meets your application’s unique demands, consider the following actionable steps:
+
+**Review your workload characteristics**: Analyse traffic patterns, message-processing times, and resource usage to identify specific scaling challenges.
+
+**Gradually adjust HPA settings**: Start by fine-tuning parameters such as min/max replicas, polling intervals, lag thresholds and stabilisation windows. Monitor the impact of each adjustment before making further changes.
+
+**Explore advanced strategies**: Implement techniques like cooperative sticky partitioning algorithm or queue-based scaling for enhanced stability in more complex environments.
+
+While these steps can significantly improve autoscaling behaviour, it’s important to recognise that there’s no one-size-fits-all setup. Every environment and workload comes with unique requirements, so continual tuning, testing and measuring are critical to achieving optimal performance. By understanding the intricacies of your workload and iteratively fine-tuning your configuration, you can maintain a balance between resource efficiency and responsiveness, ensuring stable, cost-effective and reliable scaling.
+
+## FAQ and pitfalls
+
+To help address common challenges, here’s a quick FAQ:
+
+**What happens if the polling interval is too short?** A short polling interval can lead to excessive API calls and potentially overwhelm the Kubernetes API server. It may also cause frequent scaling events, reducing stability.
+
+**How do you determine optimal stabilisation window settings?** Start with a value that reflects your workload’s typical processing time. Gradually adjust and monitor how the system responds to spikes and drops in traffic to find a balance that avoids flapping.
+
+By proactively addressing these considerations, you can mitigate common issues and further enhance the effectiveness of your autoscaling configuration.
+
+## Extended insights: Practical advice
+
+Please find some general guidance here:
+
+| **Scenario** | **Stabilisation** **window seconds** | **Cooldown** p**eriod** | **Max** **replica** **count** | **Min** **replica** **count** | **Polling** **interval** |
+| --- | --- | --- | --- | --- | --- |
+| **Scale quickly** **(low inertia)** | Low value | Minimal value | High | Low | Low value |
+| **Scale slowly (high inertia)** | Increased value | Higher value | Moderate | Higher | Increased interval |
+| **Known peak times** | Moderate to high | Moderate | High | Adjusted for average load | Moderate |
+| **Initial load** | Low | Low | High | Moderate | Low |
+| **Consistently high load** | Moderate | Less relevant | Very high | High | Moderate to high |
+
+Table by RedHat article [here](https://developers.redhat.com/articles/2023/12/29/autoscaling-kafka-workloads-custom-metrics-autoscaler#kafka_scaler_configuration).
+
+Another useful resource for helping you to tune your HPA is available [here](https://github.com/kubernetes/enhancements/blob/master/keps/sig-autoscaling/853-configurable-hpa-scale-velocity/README.md#user-stories).
+
+![Three green rectangular blocks.](/_next/image/?url=https%3A%2F%2Fres.cloudinary.com%2Fnearform-website%2Fimage%2Fupload%2Foption-c.png&w=3840&q=75)
+
+### An introduction to cross-cloud access in managed Kubernetes clusters
+
+![Three blue, computer generated, rectangular blocks have been laid next to one another.](/_next/image/?url=https%3A%2F%2Fres.cloudinary.com%2Fnearform-website%2Fimage%2Fupload%2Fblog-opa-policy-based-testing-of-helm-charts.png&w=3840&q=75)
+
+### OPA policy-based testing of Helm charts
+
+Insight, imagination and expertly engineered solutions to accelerate and sustain progress.
+
+![Nearform Logo](/N_.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+
+Nearform is an independent team of data & AI experts, engineers, and designers who build intelligent digital solutions and capability at pace.
+
+![LinkedIn](/linkedin-logo.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+![X (Twitter)](/x-logo.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+![Instagram](/instagram-logo.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+![YouTube](/youtube-logo.svg?dpl=dpl_7ZJXPXpo5Lz7BWPSEEeFGApYYdtR)
+
+### Company
+
+### Updates
+
+### Developers
+
+### Follow
+
+---
+
+Title: Autoscaling Workloads | Kubernetes
+# Autoscaling Workloads
+
+# Autoscaling Workloads
+
+In Kubernetes, you can *scale* a workload depending on the current demand of resources.
+This allows your cluster to react to changes in resource demand more elastically and efficiently.
+
+When you scale a workload, you can either increase or decrease the number of replicas managed by
+the workload, or adjust the resources available to the replicas in-place.
+
+The first approach is referred to as *horizontal scaling*, while the second is referred to as
+*vertical scaling*.
+
+There are manual and automatic ways to scale your workloads, depending on your use case.
+
+## Scaling workloads manually
+
+Kubernetes supports *manual scaling* of workloads. Horizontal scaling can be done
+using the `kubectl` CLI.
+For vertical scaling, you need to *patch* the resource definition of your workload.
+
+`kubectl`
+
+See below for examples of both strategies.
+
+## Scaling workloads automatically
+
+Kubernetes also supports *automatic scaling* of workloads, which is the focus of this page.
+
+The concept of *Autoscaling* in Kubernetes refers to the ability to automatically update an
+object that manages a set of Pods (for example a
+[Deployment](/docs/concepts/workloads/controllers/deployment/ "Manages a replicated application on your cluster.")).
+
+### Scaling workloads horizontally
+
+In Kubernetes, you can automatically scale a workload horizontally using a [HorizontalPodAutoscaler](/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/) (HPA).
+
+It is implemented as a Kubernetes API resource and a [controller](/docs/concepts/architecture/controller/ "A control loop that watches the shared state of the cluster through the apiserver and makes changes attempting to move the current state towards the desired state.")
+and periodically adjusts the number of [replicas](/docs/reference/glossary/?all=true#term-replica "Replicas are copies of pods, ensuring availability, scalability, and fault tolerance by maintaining identical instances.")
+in a workload to match observed resource utilization such as CPU or memory usage.
+
+There is a [walkthrough tutorial](/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/) of configuring a HorizontalPodAutoscaler for a Deployment.
+
+### Scaling workloads vertically
+
+`Kubernetes v1.25 [stable]`
+
+You can automatically scale a workload vertically using a [VerticalPodAutoscaler](/docs/concepts/workloads/autoscaling/vertical-pod-autoscale/) (VPA).
+Unlike the HPA, the VPA doesn't come with Kubernetes by default, but is a an add-on that you or a cluster administrator may need to deploy before you can use it.
+
+Once installed, it allows you to create [CustomResourceDefinitions](/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/ "Custom code that defines a resource to add to your Kubernetes API server without building a complete custom server.")
+(CRDs) for your workloads which define *how* and *when* to scale the resources of the managed replicas.
+
+#### Note:
+
+#### In-place pod vertical scaling
+
+`Kubernetes v1.35 [stable]`
+
+As of Kubernetes 1.36, VPA does not support resizing pods in-place,
+but this integration is being worked on.
+For manually resizing pods in-place, see [Resize Container Resources In-Place](/docs/tasks/configure-pod-container/resize-container-resources/).
+
+### Autoscaling based on cluster size
+
+For workloads that need to be scaled based on the size of the cluster (for example
+`cluster-dns` or other system components), you can use the
+[*Cluster Proportional Autoscaler*](https://github.com/kubernetes-sigs/cluster-proportional-autoscaler).
+Just like the VPA, it is not part of the Kubernetes core, but hosted as its
+own project on GitHub.
+
+`cluster-dns`
+
+The Cluster Proportional Autoscaler watches the number of schedulable [nodes](/docs/concepts/architecture/nodes/ "A node is a worker machine in Kubernetes.")
+and cores and scales the number of replicas of the target workload accordingly.
+
+If the number of replicas should stay the same, you can scale your workloads vertically according to the cluster size using
+the [*Cluster Proportional Vertical Autoscaler*](https://github.com/kubernetes-sigs/cluster-proportional-vertical-autoscaler).
+The project is **currently in beta** and can be found on GitHub.
+
+While the Cluster Proportional Autoscaler scales the number of replicas of a workload,
+the Cluster Proportional Vertical Autoscaler adjusts the resource requests for a workload
+(for example a Deployment or DaemonSet) based on the number of nodes and/or cores in the cluster.
+
+### Event driven Autoscaling
+
+It is also possible to scale workloads based on events, for example using the
+[*Kubernetes Event Driven Autoscaler* (**KEDA**)](https://keda.sh/).
+
+KEDA is a CNCF-graduated project enabling you to scale your workloads based on the number
+of events to be processed, for example the amount of messages in a queue. There exists
+a wide range of adapters for different event sources to choose from.
+
+### Autoscaling based on schedules
+
+Another strategy for scaling your workloads is to **schedule** the scaling operations, for example in order to
+reduce resource consumption during off-peak hours.
+
+Similar to event driven autoscaling, such behavior can be achieved using KEDA in conjunction with
+its [`Cron` scaler](https://keda.sh/docs/latest/scalers/cron/).
+The `Cron` scaler allows you to define schedules (and time zones) for scaling your workloads in or out.
+
+`Cron`
+`Cron`
+
+## Scaling cluster infrastructure
+
+If scaling workloads isn't enough to meet your needs, you can also scale your cluster infrastructure itself.
+
+Scaling the cluster infrastructure normally means adding or removing [nodes](/docs/concepts/architecture/nodes/ "A node is a worker machine in Kubernetes.").
+Read [Node autoscaling](/docs/concepts/cluster-administration/node-autoscaling/)
+for more information.
+
+## What's next
+
+## Feedback
+
+Was this page helpful?
+
+Thanks for the feedback. If you have a specific, answerable question about how to use Kubernetes, ask it on
+[Stack Overflow](https://stackoverflow.com/questions/tagged/kubernetes).
+Open an issue in the [GitHub Repository](https://www.github.com/kubernetes/website/) if you want to
+[report a problem](https://github.com/kubernetes/website/issues/new?title=Issue%20with%20k8s.io)
+or
+[suggest an improvement](https://github.com/kubernetes/website/issues/new?title=Improvement%20for%20k8s.io).
+
+© 2026 The Kubernetes Authors | Documentation Distributed under [CC BY 4.0](https://git.k8s.io/website/LICENSE)
+
+© 2026 The Linux Foundation ®. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our [Trademark Usage page](https://www.linuxfoundation.org/trademark-usage)
+
+ICP license: 京ICP备17074266号-3
+
+---
+
+Title: Horizontal Pod Autoscaling - Kubernetes
+# Horizontal Pod Autoscaling
+
+# Horizontal Pod Autoscaling
+
+In Kubernetes, a *HorizontalPodAutoscaler* automatically updates a workload resource (such as
+a [Deployment](/docs/concepts/workloads/controllers/deployment/ "Manages a replicated application on your cluster.") or
+[StatefulSet](/docs/concepts/workloads/controllers/statefulset/ "A StatefulSet manages deployment and scaling of a set of Pods, with durable storage and persistent identifiers for each Pod.")), with the
+aim of automatically scaling capacity to match demand.
+
+Horizontal scaling means that the response to increased load is to deploy more
+[Pods](/docs/concepts/workloads/pods/ "A Pod represents a set of running containers in your cluster.").
+This is different from *vertical* scaling, which for Kubernetes would mean
+assigning more resources (for example: memory or CPU) to the Pods that are already
+running for the workload.
+
+If the load decreases, and the number of Pods is above the configured minimum,
+the HorizontalPodAutoscaler instructs the workload resource (the Deployment, StatefulSet,
+or other similar resource) to scale back down.
+
+Horizontal pod autoscaling does not apply to objects that can't be scaled (for example:
+a [DaemonSet](/docs/concepts/workloads/controllers/daemonset "Ensures a copy of a Pod is running across a set of nodes in a cluster.").)
+
+The HorizontalPodAutoscaler is implemented as a Kubernetes API resource and a
+[controller](/docs/concepts/architecture/controller/ "A control loop that watches the shared state of the cluster through the apiserver and makes changes attempting to move the current state towards the desired state.").
+The resource determines the behavior of the controller.
+The horizontal pod autoscaling controller, running within the Kubernetes
+[control plane](/docs/reference/glossary/?all=true#term-control-plane "The container orchestration layer that exposes the API and interfaces to define, deploy, and manage the lifecycle of containers."), periodically adjusts the
+desired scale of its target (for example, a Deployment) to match observed metrics such as average
+CPU utilization, average memory utilization, or any other custom metric you specify.
+
+There is [walkthrough example](/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/) of using
+horizontal pod autoscaling.
+
+## How does a HorizontalPodAutoscaler work?
+
+Figure 1. HorizontalPodAutoscaler controls the scale of a Deployment and its ReplicaSet
+
+Kubernetes implements horizontal pod autoscaling as a control loop that runs intermittently
+(it is not a continuous process). The interval is set by the
+`--horizontal-pod-autoscaler-sync-period` parameter to the
+[`kube-controller-manager`](/docs/reference/command-line-tools-reference/kube-controller-manager/)
+(and the default interval is 15 seconds).
+
+`--horizontal-pod-autoscaler-sync-period`
+`kube-controller-manager`
+
+Once during each period, the controller manager queries the resource utilization against the
+metrics specified in each HorizontalPodAutoscaler definition. The controller manager
+finds the target resource defined by the `scaleTargetRef`,
+then selects the pods based on the target resource's `.spec.selector` labels,
+and obtains the metrics from either the resource metrics API (for per-pod resource metrics),
+or the custom metrics API (for all other metrics).
+
+`scaleTargetRef`
+`.spec.selector`
+
+For per-pod resource metrics (like CPU), the controller fetches the metrics
+from the resource metrics API for each Pod targeted by the HorizontalPodAutoscaler.
+Then, if a target utilization value is set, the controller calculates the utilization
+value as a percentage of the equivalent
+[resource request](/docs/concepts/configuration/manage-resources-containers/#requests-and-limits)
+on the containers in each Pod. If a target raw value is set, the raw metric values are used directly.
+The controller then takes the mean of the utilization or the raw value (depending on the type
+of target specified) across all targeted Pods, and produces a ratio used to scale
+the number of desired replicas.
+
+Please note that if some of the Pod's containers do not have the relevant resource request set,
+CPU utilization for the Pod will not be defined and the autoscaler will
+not take any action for that metric. See the [algorithm details](#algorithm-details) section below
+for more information about how the autoscaling algorithm works.
+
+For per-pod custom metrics, the controller functions similarly to per-pod resource metrics,
+except that it works with raw values, not utilization values.
+
+For object metrics and external metrics, a single metric is fetched, which describes
+the object in question. This metric is compared to the target
+value, to produce a ratio as above. In the `autoscaling/v2` API
+version, this value can optionally be divided by the number of Pods before the
+comparison is made.
+
+`autoscaling/v2`
+
+The common use for HorizontalPodAutoscaler is to configure it to fetch metrics from
+[aggregated APIs](/docs/concepts/extend-kubernetes/api-extension/apiserver-aggregation/ "The aggregation layer lets you install additional Kubernetes-style APIs in your cluster.")
+(`metrics.k8s.io`, `custom.metrics.k8s.io`, or `external.metrics.k8s.io`). The `metrics.k8s.io` API is
+usually provided by an add-on named Metrics Server, which needs to be launched separately.
+For more information about resource metrics, see
+[Metrics Server](/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-server).
+
+`metrics.k8s.io`
+`custom.metrics.k8s.io`
+`external.metrics.k8s.io`
+`metrics.k8s.io`
+
+[Support for metrics APIs](#support-for-metrics-apis) explains the stability guarantees and support status for these
+different APIs.
+
+The HorizontalPodAutoscaler controller accesses corresponding workload resources that support scaling (such as Deployments
+and StatefulSet). These resources each have a subresource named `scale`, an interface that allows you to dynamically set the
+number of replicas and examine each of their current states.
+For general information about subresources in the Kubernetes API, see
+[Kubernetes API Concepts](/docs/reference/using-api/api-concepts/).
+
+`scale`
+
+### Algorithm details
+
+From the most basic perspective, the HorizontalPodAutoscaler controller
+operates on the ratio between desired metric value and current metric
+value:
+
+For example, if the current metric value is `200m`, and the desired value
+is `100m`, the number of replicas will be doubled, since
+\( { 200.0 \div 100.0 } = 2.0 \).  
+If the current value is instead `50m`, you'll halve the number of
+replicas, since \( { 50.0 \div 100.0 } = 0.5 \). The control plane skips any scaling
+action if the ratio is sufficiently close to 1.0 (within a
+[configurable tolerance](#tolerance), 0.1 by default).
+
+`200m`
+`100m`
+`50m`
+
+When a `targetAverageValue` or `targetAverageUtilization` is specified,
+the `currentMetricValue` is computed by taking the average of the given
+metric across all Pods in the HorizontalPodAutoscaler's scale target.
+
+`targetAverageValue`
+`targetAverageUtilization`
+`currentMetricValue`
+
+Before checking the tolerance and deciding on the final values, the control
+plane also considers whether any metrics are missing, and how many Pods
+are [`Ready`](/docs/concepts/workloads/pods/pod-lifecycle/#pod-conditions).
+For per-pod resource metrics, all Pods with a deletion timestamp set
+(objects with a deletion timestamp are in the process of being shut
+down / removed) are ignored, and all failed Pods are discarded.
+For external and object metrics, the replica count is based on the
+number of Running and Ready Pods; terminating Pods that are still Ready
+continue to count toward that total.
+
+`Ready`
+
+If a particular Pod is missing metrics, it is set aside for later; Pods
+with missing metrics will be used to adjust the final scaling amount.
+
+When scaling on CPU, if any pod has yet to become ready (it's still
+initializing, or possibly is unhealthy) *or* the most recent metric point for
+the pod was before it became ready, that pod is set aside as well.
+
+Due to technical constraints, the HorizontalPodAutoscaler controller
+cannot exactly determine the first time a pod becomes ready when
+determining whether to set aside certain CPU metrics. Instead, it
+considers a Pod "not yet ready" if it's unready and transitioned to
+ready within a short, configurable window of time since it started.
+This value is configured with the `--horizontal-pod-autoscaler-initial-readiness-delay`
+command line option, and its default is 30 seconds.
+Once a pod has become ready, it considers any transition to
+ready to be the first if it occurred within a longer, configurable time
+since it started. This value is configured with the
+`--horizontal-pod-autoscaler-cpu-initialization-period` command line option,
+and its default is 5 minutes.
+
+`--horizontal-pod-autoscaler-initial-readiness-delay`
+`--horizontal-pod-autoscaler-cpu-initialization-period`
+
+The \( currentMetricValue \over desiredMetricValue \) base scale ratio is then
+calculated, using the remaining pods not set aside or discarded from above.
+
+If there were any missing metrics, the control plane recomputes the average more
+conservatively, assuming those pods were consuming 100% of the desired
+value in case of a scale down, and 0% in case of a scale up. This dampens
+the magnitude of any potential scale.
+
+Furthermore, if any not-yet-ready pods were present, and the workload would have
+scaled up without factoring in missing metrics or not-yet-ready pods,
+the controller conservatively assumes that the not-yet-ready pods are consuming 0%
+of the desired metric, further dampening the magnitude of a scale up.
+
+After factoring in the not-yet-ready pods and missing metrics, the
+controller recalculates the usage ratio. If the new ratio reverses the scale
+direction, or is within the tolerance, the controller doesn't take any scaling
+action. In other cases, the new ratio is used to decide any change to the
+number of Pods.
+
+Note that the *original* value for the average utilization is reported
+back via the HorizontalPodAutoscaler status, without factoring in the
+not-yet-ready pods or missing metrics, even when the new usage ratio is
+used.
+
+If multiple metrics are specified in a HorizontalPodAutoscaler, this
+calculation is done for each metric, and then the largest of the desired
+replica counts is chosen. If any of these metrics cannot be converted
+into a desired replica count (e.g. due to an error fetching the metrics
+from the metrics APIs) and a scale down is suggested by the metrics which
+can be fetched, scaling is skipped. This means that the HPA is still capable
+of scaling up if one or more metrics give a `desiredReplicas` greater than
+the current value.
+
+`desiredReplicas`
+
+Finally, right before HPA scales the target, the scale recommendation is recorded. The
+controller considers all recommendations within a configurable window choosing the
+highest recommendation from within that window. You can configure this value using the
+`--horizontal-pod-autoscaler-downscale-stabilization` command line option, which defaults to 5 minutes.
+This means that scaledowns will occur gradually, smoothing out the impact of rapidly
+fluctuating metric values.
+
+`--horizontal-pod-autoscaler-downscale-stabilization`
+
+## Pod readiness and autoscaling metrics
+
+The HorizontalPodAutoscaler (HPA) controller includes two command line options that influence how CPU metrics are collected from Pods during startup:
+
+`--horizontal-pod-autoscaler-cpu-initialization-period`
+
+This defines the time window after a Pod starts during which its **CPU usage is ignored** unless:
+- The Pod is in a `Ready` state **and**
+- The metric sample was taken entirely during the period it was `Ready`.
+
+`Ready`
+`Ready`
+
+This command line option helps **exclude misleading high CPU usage** from initializing Pods (for example: Java apps warming up) in HPA scaling decisions.
+
+`--horizontal-pod-autoscaler-initial-readiness-delay`
+
+This defines a short delay period after a Pod starts during which the HPA controller treats Pods that are currently `Unready` as still initializing, **even if they have previously transitioned to `Ready` briefly**.
+
+`Unready`
+`Ready`
+
+It is designed to:
+- Avoid including Pods that rapidly fluctuate between `Ready` and `Unready` during startup.
+- Ensure stability in the initial readiness signal before HPA considers their metrics valid.
+
+`Ready`
+`Unready`
+
+You can only set these command line options cluster-wide.
+
+### Key behaviors for pod readiness
+
+`Ready`
+`Ready`
+`Ready`
+`Unready`
+`Ready`
+
+### Good practice for pod readiness
+
+`startupProbe`
+`readinessProbe`
+`Ready`
+`initialDelaySeconds`
+
+And ideally also set `--horizontal-pod-autoscaler-cpu-initialization-period` to **cover the startup duration**.
+
+`--horizontal-pod-autoscaler-cpu-initialization-period`
+
+## API object
+
+The HorizontalPodAutoscaler is an API kind in the Kubernetes
+`autoscaling` API group. The current stable version can be found in
+the `autoscaling/v2` API version which includes support for scaling on
+memory and custom metrics. The new fields introduced in
+`autoscaling/v2` are preserved as annotations when working with
+`autoscaling/v1`.
+
+`autoscaling`
+`autoscaling/v2`
+`autoscaling/v2`
+`autoscaling/v1`
+
+When you create a HorizontalPodAutoscaler API object, make sure the name specified is a valid
+[DNS subdomain name](/docs/concepts/overview/working-with-objects/names/#dns-subdomain-names).
+More details about the API object can be found at
+[HorizontalPodAutoscaler Object](/docs/reference/generated/kubernetes-api/v1.36/#horizontalpodautoscaler-v2-autoscaling).
+
+## Stability of workload scale
+
+When managing the scale of a group of replicas using the HorizontalPodAutoscaler,
+it is possible that the number of replicas keeps fluctuating frequently due to the
+dynamic nature of the metrics evaluated. This is sometimes referred to as *thrashing*,
+or *flapping*. It's similar to the concept of *hysteresis* in cybernetics.
+
+## Autoscaling during rolling update
+
+Kubernetes lets you perform a rolling update on a Deployment. In that
+case, the Deployment manages the underlying ReplicaSets for you.
+When you configure autoscaling for a Deployment, you bind a
+HorizontalPodAutoscaler to a single Deployment. The HorizontalPodAutoscaler
+manages the `replicas` field of the Deployment. The deployment controller is responsible
+for setting the `replicas` of the underlying ReplicaSets so that they add up to a suitable
+number during the rollout and also afterwards.
+
+`replicas`
+`replicas`
+
+If you perform a rolling update of a StatefulSet that has an autoscaled number of
+replicas, the StatefulSet directly manages its set of Pods (there is no intermediate resource
+similar to ReplicaSet).
+
+## Support for resource metrics
+
+Any HPA target can be scaled based on the resource usage of the pods in the scaling target.
+When defining the pod specification the resource requests like `cpu` and `memory` should
+be specified. This is used to determine the resource utilization and used by the HPA controller
+to scale the target up or down. To use resource utilization based scaling specify a metric source
+like this:
+
+`cpu`
+`memory`
+`type: Resource
+resource:
+ name: cpu
+ target:
+ type: Utilization
+ averageUtilization: 60`
+
+With this metric the HPA controller will keep the average utilization of the pods in the scaling
+target at 60%. Utilization is the ratio between the current usage of resource to the requested
+resources of the pod. See [Algorithm](#algorithm-details) for more details about how the utilization
+is calculated and averaged.
+
+#### Note:
+
+### Container resource metrics
+
+`Kubernetes v1.30 [stable]`
+
+The HorizontalPodAutoscaler API also supports a container metric source where the HPA can track the
+resource usage of individual containers across a set of Pods, in order to scale the target resource.
+This lets you configure scaling thresholds for the containers that matter most in a particular Pod.
+For example, if you have a web application and a sidecar container that provides logging, you can scale based on the resource
+use of the web application, ignoring the sidecar container and its resource use.
+
+If you revise the target resource to have a new Pod specification with a different set of containers,
+you should revise the HPA spec if that newly added container should also be used for
+scaling. If the specified container in the metric source is not present or only present in a subset
+of the pods then those pods are ignored and the recommendation is recalculated. See [Algorithm](#algorithm-details)
+for more details about the calculation. To use container resources for autoscaling define a metric
+source as follows:
+
+`type: ContainerResource
+containerResource:
+ name: cpu
+ container: application
+ target:
+ type: Utilization
+ averageUtilization: 60`
+
+In the above example the HPA controller scales the target such that the average utilization of the cpu
+in the `application` container of all the pods is 60%.
+
+`application`
+
+#### Note:
+
+If you change the name of a container that a HorizontalPodAutoscaler is tracking, you can
+make that change in a specific order to ensure scaling remains available and effective
+whilst the change is being applied. Before you update the resource that defines the container
+(such as a Deployment), you should update the associated HPA to track both the new and
+old container names. This way, the HPA is able to calculate a scaling recommendation
+throughout the update process.
+
+Once you have rolled out the container name change to the workload resource, tidy up by removing
+the old container name from the HPA specification.
+
+## Scaling on custom metrics
+
+`Kubernetes v1.23 [stable]`
+
+(the `autoscaling/v2beta2` API version previously provided this ability as a beta feature)
+
+`autoscaling/v2beta2`
+
+Provided that you use the `autoscaling/v2` API version, you can configure a HorizontalPodAutoscaler
+to scale based on a custom metric (that is not built in to Kubernetes or any Kubernetes component).
+The HorizontalPodAutoscaler controller then queries for these custom metrics from the Kubernetes
+API.
+
+`autoscaling/v2`
+
+See [Support for metrics APIs](#support-for-metrics-apis) for the requirements.
+
+## Scaling on multiple metrics
+
+`Kubernetes v1.23 [stable]`
+
+(the `autoscaling/v2beta2` API version previously provided this ability as a beta feature)
+
+`autoscaling/v2beta2`
+
+Provided that you use the `autoscaling/v2` API version, you can specify multiple metrics for a
+HorizontalPodAutoscaler to scale on. Then, the HorizontalPodAutoscaler controller evaluates each metric,
+and proposes a new scale based on that metric. The HorizontalPodAutoscaler takes the maximum scale
+recommended for each metric and sets the workload to that size (provided that this isn't larger than the
+overall maximum that you configured).
+
+`autoscaling/v2`
+
+## Support for metrics APIs
+
+By default, the HorizontalPodAutoscaler controller retrieves metrics from a series of APIs.
+In order for it to access these APIs, cluster administrators must ensure that:
+
+The [API aggregation layer](/docs/tasks/extend-kubernetes/configure-aggregation-layer/) is enabled.
+
+The corresponding APIs are registered:
+
+For resource metrics, this is the `metrics.k8s.io` [API](/docs/reference/external-api/metrics.v1beta1/),
+generally provided by [metrics-server](https://github.com/kubernetes-sigs/metrics-server).
+It can be launched as a cluster add-on.
+
+`metrics.k8s.io`
+
+For custom metrics, this is the `custom.metrics.k8s.io` [API](/docs/reference/external-api/custom-metrics.v1beta2/).
+It's provided by "adapter" API servers provided by metrics solution vendors.
+Check with your metrics pipeline to see if there is a Kubernetes metrics adapter available.
+
+`custom.metrics.k8s.io`
+
+For external metrics, this is the `external.metrics.k8s.io` [API](/docs/reference/external-api/external-metrics.v1beta1/).
+It may be provided by the custom metrics adapters provided above.
+
+`external.metrics.k8s.io`
+
+For more information on these different metrics paths and how they differ please see the relevant design proposals for
+[the HPA V2](https://git.k8s.io/design-proposals-archive/autoscaling/hpa-v2.md),
+[custom.metrics.k8s.io](https://git.k8s.io/design-proposals-archive/instrumentation/custom-metrics-api.md)
+and [external.metrics.k8s.io](https://git.k8s.io/design-proposals-archive/instrumentation/external-metrics-api.md).
+
+For examples of how to use them see
+[the walkthrough for using custom metrics](/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#autoscaling-on-multiple-metrics-and-custom-metrics)
+and [the walkthrough for using external metrics](/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#autoscaling-on-metrics-not-related-to-kubernetes-objects).
+
+## Configurable scaling behavior
+
+`Kubernetes v1.23 [stable]`
+
+(the `autoscaling/v2beta2` API version previously provided this ability as a beta feature)
+
+`autoscaling/v2beta2`
+
+If you use the `v2` HorizontalPodAutoscaler API, you can use the `behavior` field
+(see the [API reference](/docs/reference/kubernetes-api/workload-resources/horizontal-pod-autoscaler-v2/#HorizontalPodAutoscalerSpec))
+to configure separate scale-up and scale-down behaviors.
+You specify these behaviors by setting `scaleUp` and / or `scaleDown`
+under the `behavior` field.
+
+`v2`
+`behavior`
+`scaleUp`
+`scaleDown`
+`behavior`
+
+Scaling policies let you control the rate of change of replicas while scaling.
+Also two settings can be used to prevent [flapping](#flapping): you can specify a
+*stabilization window* for smoothing replica counts, and a tolerance to ignore
+minor metric fluctuations below a specified threshold.
+
+### Scaling policies
+
+One or more scaling policies can be specified in the `behavior` section of the spec.
+When multiple policies are specified the policy which allows the highest amount of
+change is the policy which is selected by default. The following example shows this behavior
+while scaling down:
+
+`behavior`
+`behavior:
+ scaleDown:
+ policies:
+ - type: Pods
+ value: 4
+ periodSeconds: 60
+ - type: Percent
+ value: 10
+ periodSeconds: 60`
+
+`periodSeconds` indicates the length of time in the past for which the policy must hold true.
+The maximum value that you can set for `periodSeconds` is 1800 (half an hour).
+The first policy *(Pods)* allows at most 4 replicas to be scaled down in one minute. The second policy
+*(Percent)* allows at most 10% of the current replicas to be scaled down in one minute.
+
+`periodSeconds`
+`periodSeconds`
+
+Since by default the policy which allows the highest amount of change is selected, the second policy will
+only be used when the number of pod replicas is more than 40. With 40 or less replicas, the first policy will be applied.
+For instance if there are 80 replicas and the target has to be scaled down to 10 replicas
+then during the first step 8 replicas will be reduced. In the next iteration when the number
+of replicas is 72, 10% of the pods is 7.2 but the number is rounded up to 8. On each loop of
+the autoscaler controller the number of pods to be change is re-calculated based on the number
+of current replicas. When the number of replicas falls below 40 the first policy *(Pods)* is applied
+and 4 replicas will be reduced at a time.
+
+The policy selection can be changed by specifying the `selectPolicy` field for a scaling
+direction. By setting the value to `Min` which would select the policy which allows the
+smallest change in the replica count. Setting the value to `Disabled` completely disables
+scaling in that direction.
+
+`selectPolicy`
+`Min`
+`Disabled`
+
+### Stabilization window
+
+The stabilization window is used to restrict the [flapping](#flapping) of
+replica count when the metrics used for scaling keep fluctuating. The autoscaling algorithm
+uses this window to infer a previous desired state and avoid unwanted changes to workload
+scale.
+
+For example, in the following example snippet, a stabilization window is specified for `scaleDown`.
+
+`scaleDown`
+`behavior:
+ scaleDown:
+ stabilizationWindowSeconds: 300`
+
+When the metrics indicate that the target should be scaled down the algorithm looks
+into previously computed desired states, and uses the highest value from the specified
+interval. In the above example, all desired states from the past 5 minutes will be considered.
+
+This approximates a rolling maximum, and avoids having the scaling algorithm frequently
+remove Pods only to trigger recreating an equivalent Pod just moments later.
+
+### Tolerance
+
+`Kubernetes v1.35 [beta]`
+
+The `tolerance` field configures a threshold for metric variations, preventing the
+autoscaler from scaling for changes below that value.
+
+`tolerance`
+
+This tolerance is defined as the amount of variation around the desired metric value under
+which no scaling will occur. For example, consider a HorizontalPodAutoscaler configured
+with a target memory consumption of 100MiB and a scale-up tolerance of 5%:
+
+`behavior:
+ scaleUp:
+ tolerance: 0.05 # 5% tolerance for scale up`
+
+With this configuration, the HPA algorithm will only consider scaling up if the memory
+consumption is higher than 105MiB (that is: 5% above the target).
+
+If you don't set this field, the HPA applies the default cluster-wide tolerance of 10%. This
+default can be updated for both scale-up and scale-down using the
+[kube-controller-manager](/docs/reference/command-line-tools-reference/kube-controller-manager/)
+`--horizontal-pod-autoscaler-tolerance` command line argument. (You can't use the Kubernetes API
+to configure this default value.)
+
+`--horizontal-pod-autoscaler-tolerance`
+
+### Default behavior
+
+To use the custom scaling not all fields have to be specified. Only values which need to be
+customized can be specified. These custom values are merged with default values. The default values
+match the existing behavior in the HPA algorithm.
+
+`behavior:
+ scaleDown:
+ stabilizationWindowSeconds: 300
+ policies:
+ - type: Percent
+ value: 100
+ periodSeconds: 15
+ scaleUp:
+ stabilizationWindowSeconds: 0
+ policies:
+ - type: Percent
+ value: 100
+ periodSeconds: 15
+ - type: Pods
+ value: 4
+ periodSeconds: 15
+ selectPolicy: Max`
+
+For scaling down the stabilization window is *300* seconds (or the value of the
+`--horizontal-pod-autoscaler-downscale-stabilization` command line option, if provided). There is only a single policy
+for scaling down which allows a 100% of the currently running replicas to be removed which
+means the scaling target can be scaled down to the minimum allowed replicas.
+For scaling up there is no stabilization window. When the metrics indicate that the target should be
+scaled up the target is scaled up immediately. There are 2 policies where 4 pods or a 100% of the currently
+running replicas may at most be added every 15 seconds till the HPA reaches its steady state.
+
+`--horizontal-pod-autoscaler-downscale-stabilization`
+
+### Example: change downscale stabilization window
+
+To provide a custom downscale stabilization window of 1 minute, the following
+behavior would be added to the HPA:
+
+`behavior:
+ scaleDown:
+ stabilizationWindowSeconds: 60`
+
+### Example: limit scale down rate
+
+To limit the rate at which pods are removed by the HPA to 10% per minute, the
+following behavior would be added to the HPA:
+
+`behavior:
+ scaleDown:
+ policies:
+ - type: Percent
+ value: 10
+ periodSeconds: 60`
+
+To ensure that no more than 5 Pods are removed per minute, you can add a second scale-down
+policy with a fixed size of 5, and set `selectPolicy` to minimum. Setting `selectPolicy` to `Min` means
+that the autoscaler chooses the policy that affects the smallest number of Pods:
+
+`selectPolicy`
+`selectPolicy`
+`Min`
+`behavior:
+ scaleDown:
+ policies:
+ - type: Percent
+ value: 10
+ periodSeconds: 60
+ - type: Pods
+ value: 5
+ periodSeconds: 60
+ selectPolicy: Min`
+
+### Example: disable scale down
+
+The `selectPolicy` value of `Disabled` turns off scaling the given direction.
+So to prevent downscaling the following policy would be used:
+
+`selectPolicy`
+`Disabled`
+`behavior:
+ scaleDown:
+ selectPolicy: Disabled`
+
+## Support for HorizontalPodAutoscaler in kubectl
+
+HorizontalPodAutoscaler, like every API resource, is supported in a standard way by `kubectl`.
+You can create a new autoscaler using `kubectl create` command.
+You can list autoscalers by `kubectl get hpa` or get detailed description by `kubectl describe hpa`.
+Finally, you can delete an autoscaler using `kubectl delete hpa`.
+
+`kubectl`
+`kubectl create`
+`kubectl get hpa`
+`kubectl describe hpa`
+`kubectl delete hpa`
+
+In addition, there is a special `kubectl autoscale` command for creating a HorizontalPodAutoscaler object.
+For instance, executing `kubectl autoscale rs foo --min=2 --max=5 --cpu=80%`
+will create an autoscaler for ReplicaSet *foo*, with target CPU utilization set to `80%`
+and the number of replicas between 2 and 5.
+
+`kubectl autoscale`
+`kubectl autoscale rs foo --min=2 --max=5 --cpu=80%`
+`80%`
+
+## Implicit maintenance-mode deactivation
+
+You can implicitly deactivate the HPA for a target without the
+need to change the HPA configuration itself. If the target's desired replica count
+is set to 0, and the HPA's minimum replica count is greater than 0, the HPA
+stops adjusting the target (and sets the `ScalingActive` Condition on itself
+to `false`) until you reactivate it by manually adjusting the target's desired
+replica count or HPA's minimum replica count.
+
+`ScalingActive`
+`false`
+
+### Migrating Deployments and StatefulSets to horizontal autoscaling
+
+When an HPA is enabled, it is recommended that the value of `spec.replicas` of
+the Deployment and / or StatefulSet be removed from their
+[manifest(s)](/docs/reference/glossary/?all=true#term-manifest "A serialized specification of one or more Kubernetes API objects."). If this isn't done, any time
+a change to that object is applied, for example via `kubectl apply -f deployment.yaml`, this will instruct Kubernetes to scale the current number of Pods
+to the value of the `spec.replicas` key. This may not be
+desired and could be troublesome when an HPA is active, resulting in thrashing or flapping behavior.
+
+`spec.replicas`
+`kubectl apply -f deployment.yaml`
+`spec.replicas`
+
+Keep in mind that the removal of `spec.replicas` may incur a one-time
+degradation of Pod counts as the default value of this key is 1 (reference
+[Deployment Replicas](/docs/concepts/workloads/controllers/deployment/#replicas)).
+Upon the update, all Pods except 1 will begin their termination procedures. Any
+deployment application afterwards will behave as normal and respect a rolling
+update configuration as desired. You can avoid this degradation by choosing one of the following two
+methods based on how you are modifying your deployments:
+
+`spec.replicas`
+
+1. `kubectl apply edit-last-applied deployment/<deployment_name>`
+2. In the editor, remove `spec.replicas`. When you save and exit the editor, `kubectl`
+   applies the update. No changes to Pod counts happen at this step.
+3. You can now remove `spec.replicas` from the manifest. If you use source code management,
+   also commit your changes or take whatever other steps for revising the source code
+   are appropriate for how you track updates.
+4. From here on out you can run `kubectl apply -f deployment.yaml`
+
+`kubectl apply edit-last-applied deployment/<deployment_name>`
+`spec.replicas`
+`kubectl`
+`spec.replicas`
+`kubectl apply -f deployment.yaml`
+
+When using the [Server-Side Apply](/docs/reference/using-api/server-side-apply/)
+you can follow the [transferring ownership](/docs/reference/using-api/server-side-apply/#transferring-ownership)
+guidelines, which cover this exact use case.
+
+When using the [Server-Side Apply](/docs/reference/using-api/server-side-apply/)
+you can follow the [transferring ownership](/docs/reference/using-api/server-side-apply/#transferring-ownership)
+guidelines, which cover this exact use case.
+
+## What's next
+
+If you configure autoscaling in your cluster, you may also want to consider using
+[node autoscaling](/docs/concepts/cluster-administration/node-autoscaling/)
+to ensure you are running the right number of nodes.
+You can also read more about [*vertical* Pod autoscaling](/docs/concepts/workloads/autoscaling/vertical-pod-autoscale/).
+
+For more information on HorizontalPodAutoscaler:
+
+`kubectl autoscale`
+
+## Feedback
+
+Was this page helpful?
+
+Thanks for the feedback. If you have a specific, answerable question about how to use Kubernetes, ask it on
+[Stack Overflow](https://stackoverflow.com/questions/tagged/kubernetes).
+Open an issue in the [GitHub Repository](https://www.github.com/kubernetes/website/) if you want to
+[report a problem](https://github.com/kubernetes/website/issues/new?title=Issue%20with%20k8s.io)
+or
+[suggest an improvement](https://github.com/kubernetes/website/issues/new?title=Improvement%20for%20k8s.io).
+
+© 2026 The Kubernetes Authors | Documentation Distributed under [CC BY 4.0](https://git.k8s.io/website/LICENSE)
+
+© 2026 The Linux Foundation ®. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our [Trademark Usage page](https://www.linuxfoundation.org/trademark-usage)
+
+ICP license: 京ICP备17074266号-3
+
+---
+
+Title: Kubernetes Autoscaling Guide | IBM
+![A still image from the IBM webMethods Hybrid Integration launch video representing the product’s composable architecture and the AI features that help unify app, API and B2B integration, and event automation and MFTs, into a single experience.](https://assets.ibm.com/is/image/ibm/3_dco_native-prospecting-wmhi_control_pane-1200x1200?ts=1774539323225&dpr=off "Abstract 3D data visualization in blue and yellow")
+
+# Kubernetes autoscaling guide
+
+In the world of cloud-native architecture, scalability is the difference between a seamless user experience and a failed server. At its core, Kubernetes autoscaling is about optimization. It ensures that you have exactly enough power to handle the load without overprovisioning (and paying for) idle resources.
+
+Before a Kubernetes cluster can scale, it needs to understand the size of the task. Every workload defines two key parameters:
+
+Resource requests: The minimum CPU and memory usage of a pod is guaranteed
+
+Limits: The hard ceiling to prevent a single pod from consuming all compute resources
+
+Autoscaling isn’t magic. It relies on a constant loop maintained by the control plane. The Kubernetes API monitors resource metrics in real-time. When the metrics server reports that usage has crossed a defined threshold, the scheduler decides whether to deploy new pods or provision new nodes.
+
+## Pod-level scaling
+
+Once the resource requests are defined, the next step is determining how the workloads should respond to increased demand. Kubernetes offers two primary mechanisms for pod-level scaling: horizontal scaling (adding more pods) and vertical scaling (increasing pod resources).
+
+**Horizontal Pod Autoscaler (HPA)**
+
+The Horizontal Pod Autoscaler is the most common scaling method. It functions like a thermostat: when the “room” (the entire application) gets too hot, it turns on more “fans” (pods).
+
+How it works: The HPA controller constantly queries the metrics server to monitor CPU usage or memory consumption.
+
+The logic: It compares current resource metrics with the thresholds defined in the YAML configuration file.
+
+Key parameters:
+
+**Vertical Pod Autoscaler (VPA)**
+
+While HPA adds more pods, the Vertical Pod Autoscaler (VPA) focuses on optimizing the resources of individual pods.
+
+It helps ensure that each pod receives an appropriate amount of CPU and memory, avoiding both overprovisioning and under‑allocation.
+
+VPA monitors resource consumption over time. If a pod consistently reaches its limits, the VPA can recommend—or automatically apply—updated resource settings.
+
+**The source of truth: Metrics**
+
+HPA and VPA both rely on data to make informed scaling decisions.
+
+Metrics server: The standard cluster-wide aggregator for core resource metrics.
+
+Custom and external metrics: For more complex scaling (for example, scaling based on the number of messages in a queue or real-time web traffic), you can use external metrics provided by various tools.
+
+In most Kubernetes autoscaling strategies, it’s recommended not to use HPA and VPA on the same metric, such as CPU usage. Otherwise, they might work against each other—one adding pods while the other tries to make them larger.
+
+## Cluster level scaling
+
+While pod-level scaling manages the “workers”, the cluster autoscaler is responsible for managing the “factory” itself. Even a well-configured HPA reaches its limits when the worker nodes run out of compute resources. When the scheduler cannot place new pods because all CPU and GPU resources are allocated, the cluster places those pods in a pending state.
+
+At this stage, the cluster autoscaler interfaces directly with the cloud provider to provision new nodes as needed. By adding these nodes in real-time, the cluster autoscaler ensures that application performance remains steady, as the Kubernetes cluster grows to meet demand.
+
+Efficiency is a two‑way street in any system. A truly optimization-focused cluster does not just grow; it must also know how to shrink. The cluster autoscaler constantly monitors resource usage across the fleet to identify underutilized nodes. If a node’s resource consumption falls below a defined threshold, the cluster autoscaler initiates a graceful scale-down process. This process involves evicting running pods and relocating them to more used nodes to maximize resource efficiency.
+
+To ensure that this process does not break your service, it strictly respects pod disruption budgets, ensuring that functionality and high availability are not sacrificed just to save on costs. This delicate balance of lifecycle management transforms a static infrastructure into an elastic, self-healing infrastructure.
+
+## Advanced and event-driven scaling
+
+Standard Kubernetes autoscaling is traditionally reactive, relying on internal resource metrics such as CPU usage to determine when to scale. For modern stateless applications, this reactive model often introduces delays that impact performance.
+
+KEDA (Kubernetes event-driven autoscaling) introduces a more adaptive scaling model. It acts as a specialized bridge between the Kubernetes API and external data sources. It enables workloads to scale based on external metrics such as Kafka message counts, increases in database records or predefined schedules.
+
+The true power of an event-driven approach lies in its ability to scale to zero. Unlike the standard HPA, which typically keeps at least one running pod, KEDA can completely shut down all pods when there is no work to do. It can then instantly “activate” the cluster when a new event arrives. This approach provides a level of optimization that traditional resource allocation simply cannot match.
+
+By delivering external signals directly to the control plane, KEDA enables the scheduler to make scaling decisions based on real workload demand. Rather than reacting to resource consumption, it responds to the underlying business logic. For developers building AI-native agents or complex data pipelines, this approach ensures that compute resources run only when they deliver measurable value.
+
+## Use cases
+
+While understanding the individual components of Kubernetes autoscaling is essential, seeing them work together reveals their true value. In an enterprise setting, these tools are orchestrated to address challenges ranging from extreme traffic volatility to the management of high-cost compute resources.
+
+**The sales surge in e-commerce**
+
+For a large-scale retail platform, a marketing event or flash sale can trigger a sudden spike in real-time traffic. In these situations, the Horizontal Pod Autoscaler (HPA) is the first line of defense. As CPU usage crosses the defined threshold, the HPA rapidly increases the number of pod replicas.
+
+When the traffic is so heavy that the existing worker nodes reach their limits, the cluster autoscaler immediately communicates with the cloud provider to provision new nodes.
+
+This mechanism ensures that the traffic surge does not result in latency or downtime, preserving a seamless user experience during critical revenue-generating hours.
+
+**Intelligence-on-demand**
+
+Enterprises running AI-native frameworks, such as financial document analysis or synthetic data generation—often encounter bursty workloads that require massive compute and GPU resources for short periods. Rather than keeping these resources idle, the enterprise uses KEDA to trigger scaling based on the length of a processing queue. When a batch of documents is uploaded, KEDA signals the control plane to scale the workload from 0–50 pods.
+
+When the task is complete, the scale‑down process evicts pods and removes nodes. This approach ensures that the company pays for high‑performance hardware only when it is delivering value.
+
+**The cost-optimized development environment**
+
+In a global enterprise with hundreds of developers, maintaining always-on staging environments is a massive drain on resource allocation. By combining the Vertical Pod Autoscaler (VPA) with cluster autoscaling, the organization can achieve meaningful optimization. During business hours, VPA ensures that individual pods have appropriate resource requests to keep development tools responsive.
+
+During off-peak hours, as developers log off and resource consumption drops, the cluster autoscaler identifies underutilized nodes and consolidates the remaining pods. This automated lifecycle management allows the enterprise to significantly reduce its monthly cloud bill without manual intervention from DevOps teams.
+
+Implementing Kubernetes autoscaling is a key step in moving from manual management to cloud-native automation. By shifting from static resource allocation to dynamic, real-time adjustments, enterprises can ensure that resource usage aligns with actual demand. Whether scaling nodes for a global launch or optimizing pods for background tasks, the objective is to build an environment that responds intelligently to workload changes.
+
+The heart of this intelligence lies in Kubernetes metrics. By using the metrics server and integrating custom metrics through the Kubernetes API, the control plane gains the visibility required to trigger scale-up actions at the right moment. Within YAML configurations, defining clear metadata and organizing workloads into isolated namespaces helps ensure that scaling decisions remain precise and secure across all cluster nodes.
+
+Ultimately, Kubernetes autoscaling is about balancing performance and efficiency. By adopting these strategies, enterprises reduce the risk of overprovisioning and move toward an infrastructure that is as agile and responsive as the applications it supports.
+
+## Author
+
+AI Advocate | Technical Content Author
+
+Discover how advanced observability closes Kubernetes monitoring gaps, delivering end-to-end visibility, clear root cause analysis and real-time insight across dynamic microservices.
+
+## Resources
+
+Get started quickly with IBM Cloud® Kubernetes Service and deploy containerized applications at scale. This step-by-step guide walks you through the essentials, from preparing your account to deploying your first cluster and app.
+
+Unlock the full potential of your business with a flexible, secure and resilient hybrid cloud. IBM’s open hybrid cloud approach enables you to build and manage workloads without vendor lock-in, ensuring flexibility and performance across your IT landscape.
+
+Serverless computing enables developers to build and run application code without provisioning or managing servers or backend infrastructure.
+
+Learn the essentials of YAML and how it simplifies Kubernetes configuration. This guide covers the key structures and tips to write effective YAML files for managing your Kubernetes deployments.
+
+Learn how containers revolutionize the way businesses develop, deploy and manage applications. Discover why this technology is a game-changer for scalability, security and efficiency in today’s IT landscape.
+
+Red Hat OpenShift on IBM Cloud® is a fully managed OpenShift Container Platform (OCP).
+
+Container solutions run and scale-up containerized workloads with security, open source innovation and rapid deployment.
+
+Unlock new capabilities and drive business agility with IBM’s cloud consulting services. Discover how to co-create solutions, accelerate digital transformation and optimize performance through hybrid cloud strategies and expert partnerships.
+
+Get started with a fully managed Red Hat® OpenShift® platform or explore the flexibility of the IBM Cloud® Kubernetes ecosystem. Accelerate your development and deployment process with scalable, secure solutions tailored to your needs.

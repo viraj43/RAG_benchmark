@@ -1,0 +1,376 @@
+Title: systemd
+Key Highlights:
+systemd is a system and service manager for Linux operating systems. When run as first process on
+boot (as PID 1), it acts as init system that brings up and maintains userspace services. Separate
+instances are started for logged-in users to start their services.
+[...]
+**systemd**is usually not invoked directly by the user, but is installed as the`/sbin/init`symlink and started during early boot. The user manager instances are
+started automatically through theuser@.service(5)service.
+[...]
+When run as a system instance, systemd interprets the
+configuration file`system.conf`and the files
+in`system.conf.d`directories; when run as a
+user instance, systemd interprets the configuration file`user.conf`and the files in`user.conf.d`directories. Seesystemd-system.conf(5)for more information.
+[...]
+**systemd**contains native implementations of various tasks that need to be
+executed as part of the boot process. For example, it sets the hostname or configures the loopback
+network device. It also sets up and mounts various API file systems, such as`/sys/`,`/proc/`, and`/dev/`.
+[...]
+systemd provides a dependency system between various entities called "units" of 11 different
+types. Units encapsulate various objects that are relevant for system boot-up and
+[...]
+. The
+majority of units
+[...]
+configured in unit configuration files, whose syntax
+[...]
+basic set of options is
+described insystemd.unit(5
+[...]
+1. Service units, which start and control daemons
+and the processes they consist of. For details, seesystemd.service(5).
+[...]
+systemd knows various kinds of dependencies, including
+positive and negative requirement dependencies (i.e.`Requires=`and`Conflicts=`) as
+well as ordering dependencies (`After=`and`Before=`). NB: ordering and requirement
+[...]
+bar.service
+[...]
+`bar.service`) and
+[...]
+Application programs and units (via dependencies) may
+request state changes of units. In systemd, these requests are
+encapsulated as 'jobs' and maintained in a job queue. Jobs may
+succeed or can fail, their execution is ordered based on the
+ordering dependencies of the units they have been scheduled
+for.
+[...]
+On boot systemd activates the target unit`default.target`whose job is to activate
+on-boot services and other on-boot units by pulling them in via
+dependencies. Usually, the unit name is just an alias (symlink) for
+either`graphical.target`(for fully-featured
+boots into the UI) or`multi-user.target`(for
+limited console-only boots for use in embedded or server
+environments, or similar; a subset of graphical.target). However,
+it is at the discretion of the administrator to configure it as an
+alias to any other target unit. Seesystemd.special(7)for details about these target units.
+[...]
+Processes systemd spawns are placed in individual Linux control groups named after the unit which
+they belong to in the private systemd hierarchy. (seeControl Groups v2for more information
+about control groups, or short "cgroups"). systemd uses this to effectively keep track of
+[...]
+processes. Control group information is maintained in the kernel, and is accessible via the file system
+[...]
+systemd has a minimal transaction system: if a unit is
+requested to start up or shut down it will add it and all its
+dependencies to a temporary transaction. Then, it will verify if
+the transaction is consistent (i.e. whether the ordering of all
+units is cycle-free). If it is not, systemd will try to fix it up,
+and removes non-essential jobs from the transaction that might
+remove the loop. Also, systemd tries to suppress non-essential
+jobs in the transaction that would stop a running service. Finally
+it is checked whether the jobs of the transaction contradict jobs
+that have already been queued, and optionally the transaction is
+aborted then. If all worked out and the transaction is consistent
+and minimized in its impact it is merged with all already
+outstanding jobs and added to the run queue. Effectively this
+means that before executing a requested operation, systemd will
+verify that it makes sense, fixing it if possible, and only
+failing if it really cannot work.
+[...]
+The service manager implements a readiness notification protocol both between the manager and its
+services (i.e. down the stack), and between the manager and a potential supervisor further up the stack
+(the latter could be a machine or container manager, or in case of a per-user service manager the system
+service manager instance). The basic protocol (and the suggested API for it) is described insd\_notify(3).
+[...]
+**systemd**is only very rarely invoked directly, since it is started early and is
+already running by the time users may interact with it. Normally, tools likesystemctl(1)are used to
+give commands to the manager. Since**systemd**is usually not invoked directly, the
+options listed below are mostly useful for debugging and special purposes.
+[...]
+systemd**is
+
+---
+
+Title: System and Service Manager
+Key Highlights:
+systemd is a suite of basic building blocks for a Linux system. It provides a system and service manager that runs as PID 1 and starts the rest of the system.
+[...]
+systemd provides aggressive parallelization capabilities, uses socket and D-Bus activation for starting services, offers on-demand starting of daemons, keeps track of processes using Linux control groups, maintains mount and automount points, and implements an elaborate transactional dependency-based service control logic.
+[...]
+Other parts include a logging daemon, utilities to control basic system configuration like the hostname, date, locale, maintain a list of logged-in users and running containers and virtual machines, system accounts, runtime directories and settings, and daemons to manage simple network configuration, network time synchronization, log forwarding, and name resolution.
+
+---
+
+Title: What Is Systemd? | Baeldung on Linux
+Key Highlights:
+Systemd is a key system and service manager in Linux. In the most recent versions of major Linux distributions, it replaces older managers. In fact, Systemd is the init system that most modern Linux distributions use to boot the system, start services, and manage system processes. It actively manages the initialization and operation of Linux systems, stepping in right after the kernel boots to handle services, daemons, and resources.
+[...]
+Unlike its predecessors, Systemd has a broader scope, serving not just as an init system (PID 1) but also as a comprehensive toolset for system administration. At its core, Systemd organizes system components into units, which include services, sockets, devices, mounts, and more. These units, defined in configuration files (found in /etc/systemd/ or /lib/systemd/), enable administrators to control the system with precision.
+[...]
+Traditional init systems often launched services one after another, waiting for each to complete before moving to the next. This happened even if they didn’t depend on each other. Systemd, however, leverages modern multi-core processors by initiating independent services in parallel. This drastically reduces boot times, especially on systems with many services or complex dependencies.
+[...]
+For example, while the network stack is initializing, Systemd can simultaneously start the SSH daemon, a web server, or mount filesystems, assuming they don’t need to wait for each other. This parallelism is managed automatically based on the relationships defined in unit files, thus, there’s no need for manual scripting to achieve it. Thus, we get a system that feels snappier and gets to a usable state faster. This is valuable to server and similar environments that need quick restarts or desktops where user experience matters.
+[...]
+As a base requirement for parallelization, the Systemd dependency management is critical, since it enables the startup and operation of services based on their interdependencies. Each service or resource is defined as a unit file, which, among other things, specifies what the service depends on, like network connectivity, a specific filesystem, or another service. To that end, it uses directives in the form of key-value pairs like Requires=, Wants=, or After=.
+[...]
+This declarative approach means administrators don’t need to write complex scripts to enforce startup order. Instead, Systemd figures that out based on a few directives. For instance, a database service might need a mounted disk and network access, so Systemd ensures those are ready before starting it. If a dependency fails, Systemd can halt the dependent service or take other defined actions, like restarting it later.
+[...]
+Following, the system also supports reverse dependencies, where stopping one service can trigger stopping others that rely on it. This flexibility extends to optional dependencies (Wants=) versus mandatory ones (Requires=), providing fine-grained control. In particular, by tracking these relationships dynamically, Systemd adapts to changes, such as a USB drive being plugged in without manual intervention. This reduces human error, simplifies configuration, and ensures the system remains stable even under unusual conditions, making it a powerful tool for managing complex, interdependent workloads efficiently.
+[...]
+Systemd organizes everything it manages as units:
+[...]
+- timers
+- mounts
+- sockets
+- services
+[...]
+Each is defined by a unit file. These files are plain text, written in a simple, INI-like syntax, making them easy to read and edit. A typical service unit file might specify several components:
+[...]
+executable to run
+[...]
+units are extensible
+[...]
+default unit without
+[...]
+Socket activation is a Systemd feature that delays starting a service until it’s needed. Instead of launching every daemon at boot and keeping them idle, Systemd can listen on a socket like a network port or file descriptor and only start the associated service when a connection arrives.
+[...]
+For example, a print server might not run until a print job is sent, or a web server might stay dormant until an HTTP request hits port 80. This is defined in a socket unit file paired with a service unit, where the socket unit specifies the listening point and hands off to the service when triggered.
+[...]
+Systemd manages the socket itself, so the service doesn’t need built-in socket-handling code. If the service crashes, Systemd can restart it on the next request. This on-demand approach aligns with modern efficiency goals, making systems more responsive to actual usage patterns rather than assuming everything must be preloaded and ready.
+[...]
+| Startup Method | Starts multiple services at once based on dependencies | Starts services one by one in a fixed order | Uses events to start services, so some can run at the same time | Starts services one by one using scripts |
+[...]
+| Dependency Handling | Automatically manages service order with built-in rules. | Relies on manual script tweaks to set service order, which is time-consuming and error-prone. | Handles dependencies using events. | Uses basic script-based dependency rules, requiring manual configuration. |
+[...]
+| Service Management | Uses systemctl with clear commands like start and stop. | Depends on shell scripts and service commands. | Employs initctl and job files for control (usually less intuitive). | Relies on rc-service and lightweight scripts. |
+[...]
+In conclusion, Systemd continues to redefine how Linux systems initialize and manage services, offering better levels of speed, efficiency, and integration when compared to its predecessors. With features like parallelized service startup, built-in logging, and advanced resource management, it meets the complex demands, whether in the cloud, on containers, or across desktop systems. Its widespread adoption across major distributions like RHEL, Ubuntu, and Fedora speaks to its maturity and reliability.
+
+---
+
+Title: Chapter 10. Managing Services with systemd | System Administrator’s Guide | Red Hat Enterprise Linux | 7 | Red Hat Documentation
+Key Highlights:
+Systemd is a system and service manager for Linux operating systems. It is designed to be backwards compatible with SysV init scripts, and provides a number of features such as parallel startup of system services at boot time, on-demand activation of daemons, or dependency-based service control logic. In Red Hat Enterprise Linux 7, systemd replaces Upstart as the default init system.
+[...]
+Systemd introduces the concept of systemd units. These units are represented by unit configuration files located in one of the directories listed in Table 10.2, “Systemd Unit Files Locations”, and encapsulate information about system services, listening sockets, and other objects that are relevant to the init system. For a complete list of available systemd unit types, see Table 10.1, “Available systemd Unit Types”.
+[...]
+In Red Hat Enterprise Linux 7, the systemd system and service manager provides the following main features:
+[...]
+Socket-based activation — At boot time, systemd creates listening sockets for all system services that support this type of activation, and passes the sockets to these services as soon as they are started. This not only allows systemd to start services in parallel, but also makes it possible to restart a service without losing any message sent to it while it is unavailable: the corresponding socket remains accessible and all messages are queued.
+[...]
+- Bus-based activation — System services that use D-Bus for inter-process communication can be started on-demand the first time a client application attempts to communicate with them. Systemd uses D-Bus service files for bus-based activation.
+[...]
+- Device-based activation — System services that support device-based activation can be started on-demand when a particular type of hardware is plugged in or becomes available. Systemd uses device units for device-based activation.
+[...]
+- Path-based activation — System services that support path-based activation can be started on-demand when a particular file or directory changes its state. Systemd uses path units for path-based activation.
+[...]
+- Mount and automount point management — Systemd monitors and manages mount and automount points. Systemd uses mount units for mount points and automount units for automount points.
+[...]
+- Aggressive parallelization — Because of the use of socket-based activation, systemd can start system services in parallel as soon as all listening sockets are in place. In combination with system services that support on-demand activation, parallel activation significantly reduces the time required to boot the system.
+[...]
+- Transactional unit activation logic — Before activating or deactivating a unit, systemd calculates its dependencies, creates a temporary transaction, and verifies that this transaction is consistent. If a transaction is inconsistent, systemd automatically attempts to correct it and remove non-essential jobs from it before reporting an error.
+[...]
+- Backwards compatibility with SysV init — Systemd supports SysV init scripts as described in the Linux Standard Base Core Specification, which eases the upgrade path to systemd service units.
+[...]
+systemd system
+[...]
+and Upstart. The following are
+[...]
+with regards to the previous major release of the Red Hat Enterprise Linux system
+[...]
+- The`systemctl` utility does not communicate with services that have not been started by systemd. When systemd starts a system service, it stores the ID of its main process in order to keep track of it. The`systemctl` utility then uses this PID to query and manage the service. Consequently, if a user starts a particular daemon directly on the command line,`systemctl` is unable to determine its current status or stop it.
+[...]
+- Systemd stops only running services. Previously, when the shutdown sequence was initiated, Red Hat Enterprise Linux 6 and earlier releases of the system used symbolic links located in the`/etc/rc0.d/` directory to stop all available system services regardless of their status. With systemd, only running services are stopped on shutdown.
+[...]
+System services do not
+[...]
+variables) from the invoking user and their
+[...]
+execution context.
+[...]
+SysV init
+[...]
+systemd reads
+[...]
+information encoded in the Linux Standard Base (LSB) header and interprets it at run time.
+[...]
+Previous versions of Red Hat Enterprise Linux, which were distributed with SysV init or Upstart, used init scripts located in the`/etc/rc.d/init.d/` directory. These init scripts were typically written in Bash, and allowed the system administrator to control the state of services and daemons in their system. In Red Hat Enterprise Linux 7, these init scripts have been replaced with service units.
+[...]
+Service units end with the`.service` file extension and serve a similar purpose as init scripts. To view, start, stop, restart, enable, or disable system services, use the`systemctl` command as described in Table 10.3, “Comparison of the service Utility with systemctl”, Table 10.4, “Comparison of the chkconfig Utility with systemctl”, and further in this section. The`service` and`chkconfig` commands are still available in the system and work as expected, but are only included for compatibility reasons and should be avoided.
+[...]
+in the current
+[...]
+Previous versions of Red Hat Enterprise Linux, which were distributed with SysV init or Upstart, implemented a predefined set of runlevels that represented specific modes of operation. These runlevels were numbered from
+[...]
+0 to 6 and were defined by a selection of system services to be run when a particular runlevel was enabled by the system administrator. In Red Hat Enterprise Linux 7, the concept of runlevels has been
+[...]
+with systemd targets.
+[...]
+Systemd targets are represented by target units. Target units end with the`.target` file extension and their only purpose is to group together other systemd units through a chain of dependencies. For example, the`graphical.target` unit, which is used to start a graphical session, starts system services such as the GNOME Display Manager (`gdm.service`) or Accounts Service (`accounts-daemon.service`) and also activates the`multi-user.target` unit. Similarly, the`multi-user.target` unit starts other essential system services such as NetworkManager (`NetworkManager.service`) or D-Bus (`dbus.service`) and activates another target unit named`basic.target`.
+[...]
+the`systemctl` utility
+[...]
+and in the
+[...]
+runlevel`
+
+---
+
+Title: Understanding and administering systemd
+Key Highlights:
+*Systemd*is a system and service manager for Linux, compatible with SysV and LSB init scripts.*Systemd*provides:
+[...]
+* Aggressive parallelization capabilities
+* Uses socket and D-Bus activation for starting services
+* Offers on-demand starting of daemons, keeps track of processes using Linux cgroups
+* Supports snapshotting and restoring of the system state
+* Maintains mount and automount points
+* Implements an elaborate transactional dependency-based service control logic.
+[...]
+The`systemctl`command is the primary tool to manage*systemd*. It combines the functionality of SysVinit&#8217;s`service`and`chkconfig`commands into a single tool you can use to enable and disable services permanently or only for the current session.
+[...]
+*Systemd*manages so-called***units***, which are representations of system resources and services. This following list shows the unit types that*systemd*can manage:
+[...]
+A service on the system, including instructions for starting, restarting, and stopping the service.
+[...]
+A network socket associated with a service.
+[...]
+A mountpoint managed with*systemd*.
+[...]
+A mountpoint automatically mounted on boot.
+[...]
+on the system.
+[...]
+A synchronization point for other units. Usually used to start enabled services on boot.
+[...]
+A path for path-based activation. For example, you can start services based on the state of a certain path, such as whether it exists or not.
+[...]
+A timer to schedule activation of another unit.
+[...]
+A snapshot of the current*systemd*state. Usually used to rollback after making temporary changes to*systemd*.
+[...]
+Restriction of resources through Linux Control Group nodes (cgroups).
+[...]
+Information from*systemd*bus interfaces. Usually used to manage external system processes.
+[...]
+## Starting, stopping, and querying systemd services
+[...]
+You can perform various management tasks to control*systemd*services using the`systemctl`command. The following is a set of example commands to demonstrate how to use`systemctl`to manage*systemd*services.
+[...]
+The following commands control the`foo`service:
+[...]
+a service to be started on boot
+[...]
+arguments executed when the service starts.
+[...]
+*Systemd*targets serve a similar purpose to SysVinit runlevels but
+[...]
+Each target has
+[...]
+name instead of a number and each serves a specific
+[...]
+.*Systemd
+[...]
+of the services of
+[...]
+The runlevels assigned
+[...]
+specific purpose on vanilla Fedora installs (0
+[...]
+5, and 6) have
+[...]
+1 mapping with a
+[...]
+d*equivalent
+[...]
+service (not reboot
+[...]
+`systemctl status
+[...]
+bozz`
+[...]
+|
+T
+[...]
+a service is
+[...]
+|
+`ls /etc
+[...]
+d/`
+[...]
+`systemctl`or`systemctl list-unit-files
+[...]
+service`or
+`ls /lib/systemd/system/\*.service /etc/systemd/system/\*.service`
+[...]
+|
+Used to list the services that can be started or stopped
+[...]
+Used to list all the services and other units
+[...]
+`systemctl
+[...]
+the service on,
+[...]
+start at next boot, or other trigger.
+[...]
+`chkconfig frobozz off
+[...]
+`systemctl disable frobozz`
+[...]
+Turn the service
+[...]
+reboot, or any other trigger.
+[...]
+`chkconfig frobozz`
+[...]
+|
+`systemctl is-
+[...]
+frobozz`
+[...]
+|
+Used to check whether a service is configured to start or not in the current environment.
+[...]
+|
+`chkconfig
+[...]
+list`
+|
+`systemctl list-unit-files
+[...]
+type=service`or`ls /etc/systemd/system/\*.wants/`
+[...]
+|
+Print a table of services that lists which runlevels each is configured on or off
+[...]
+|
+`chkconfig
+[...]
+grep 5
+[...]
+`systemctl list-dependencies graphical.target`
+[...]
+Print a table of services that will be started when booting into graphical mode
+[...]
+|
+`chkconfig frobozz
+[...]
+`ls /etc/systemd/system/\*.wants/frobozz.service`
+[...]
+|
+Used to list what levels this service is configured on or off
+[...]
+|
+`chkconfig frobozz --add`
+|
+`systemctl daemon-reload`
+|
+Used when you create a new service file or modify any configuration
+|
+[...]
+**|All`/sbin/service`and`/sbin/chkconfig`commands listed
+[...]
+based systems and

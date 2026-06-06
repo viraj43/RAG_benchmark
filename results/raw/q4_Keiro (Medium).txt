@@ -1,0 +1,83 @@
+Title: useEffect vs useSyncExternalStore for browser APIs that ...
+**Key Points:** The React documentation seems to suggest both hooks could be appropriate:
+useEffect docs say:
+
+"An Effect lets you keep your component synchronized with some external system. Here, external system means any piece of code that's not controlled by React, such as: An event subscription using window. Both approaches work identically:
+useEffect approach:
+function useElementSize() {
+  const ref = useRef(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const element = ref.
+
+# useEffect vs useSyncExternalStore for browser APIs that change?
+
+Could not find a valid source for what's better for this usecase, so...
+What't better for listening for browser DOM events and changes? the old fashion useEffect+useState or the new useSyncExternalStore?
+The React documentation seems to suggest both hooks could be appropriate:
+useEffect docs say:
+
+"An Effect lets you keep your component synchronized with some external system... Here, external system means any piece of code that's not controlled by React, such as: An event subscription using window.addEventListener() and window.removeEventListener()."
+
+useSyncExternalStore docs say:
+
+"Another reason to add useSyncExternalStore is when you want to subscribe to some value exposed by the browser that changes over time... This value can change without React's knowledge, so you should read it with useSyncExternalStore."
+
+ResizeObserver fits both descriptions - it's an external system AND a browser API that changes without React's knowledge.
+Both approaches work identically:
+useEffect approach:
+function useElementSize() {
+  const ref = useRef(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      setSize({ width: entries[0].contentRect.width, height: entries[0].contentRect.height });
+    });
+
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  return [ref, size];
+}
+
+useSyncExternalStore approach:
+function useElementSize() {
+  const ref = useRef(null);
+  const cachedSnapshot = useRef({ width: 0, height: 0 });
+
+  const subscribe = useCallback((callback) => {
+    const element = ref.current;
+    if (!element) return () => {};
+    const resizeObserver = new ResizeObserver(callback);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const getSnapshot = useCallback(() => {
+    const element = ref.current;
+    if (!element) return cachedSnapshot.current;
+    
+    const rect = element.getBoundingClientRect();
+    const newSize = { width: rect.width, height: rect.height };
+    
+    // Return cached snapshot if values haven't changed
+    if (cachedSnapshot.current.width === newSize.width && 
+        cachedSnapshot.current.height === newSize.height) {
+      return cachedSnapshot.current;
+    }
+    
+    cachedSnapshot.current = newSize;
+    return newSize;
+  }, []);
+
+  const size = useSyncExternalStore(subscribe, getSnapshot);
+  return [ref, size];
+}
+
+Which is the "React way" for ResizeObserver? Are there performance differences or edge cases where one is better?

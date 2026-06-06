@@ -1,0 +1,1953 @@
+Title: Master Async/Await in JavaScript: Tips and Tricks for Pros - DEV Community
+![DEV Community](https://media2.dev.to/dynamic/image/quality=100/https://dev-to-uploads.s3.amazonaws.com/uploads/logos/resized_logo_UQww2soKuUsjaOGNB38o.png)
+
+## DEV Community
+
+![](https://assets.dev.to/assets/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg)
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![Cover image for Master Async/Await in JavaScript: Tips and Tricks for Pros](https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fq9d4np9ffcaskyffxeuv.png)
+![Subhro](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1218135%2F3b0baa02-4a5f-45fd-8099-198b31cfb97d.jpg)
+
+Posted on Jun 21, 2024
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+# Master Async/Await in JavaScript: Tips and Tricks for Pros
+
+JavaScript has come a long way from its humble beginnings, evolving into a powerful and versatile language. One of its most powerful features, introduced in ECMAScript 2017, is the async/await syntax. This modern approach to handling asynchronous code makes it more readable and easier to debug, which is a boon for developers. In this blog, we'll delve into the basics of async/await and provide a simple example to help you master it like a pro.
+
+## Understanding Asynchronous JavaScript
+
+Before diving into async/await, it's crucial to understand the problem it solves. JavaScript is single-threaded, meaning it can only do one thing at a time. Asynchronous operations, like fetching data from a server or reading a file, can take a while to complete. To avoid blocking the main thread and ensure a smooth user experience, JavaScript uses asynchronous programming.
+
+Initially, callbacks were used to handle asynchronous code. However, callbacks can lead to "callback hell," where nested callbacks become hard to manage and read. Promises were introduced to alleviate this issue, providing a cleaner and more manageable way to handle asynchronous operations. async/await builds on promises, offering an even more intuitive syntax.
+
+#### The Basics of Async/Await
+
+1 **Async Functions**: An async function is a function declared with the async keyword. It always returns a promise. If the function returns a value, the promise will resolve with that value. If the function throws an error, the promise will reject with that error.
+
+`async function fetchData() {
+return "Data fetched";
+}
+fetchData().then(data => console.log(data)); // Output: Data fetched`
+
+2 **Await Keyword**: The await keyword can only be used inside an async function. It pauses the execution of the async function and waits for the promise to resolve or reject. Once resolved, it returns the result. If the promise rejects, await throws the rejected value.
+
+`async function fetchData() {
+let response = await fetch('https://api.example.com/data');
+let data = await response.json();
+return data;
+}
+fetchData().then(data => console.log(data));`
+
+#### A Simple Example
+
+Let's walk through a basic example to see async/await in action. We'll create a function that fetches user data from an API and logs it to the console.
+
+1 **Setting Up the Async Function**  
+First, we'll define our async function and use await to handle the asynchronous operations.
+
+`async function getUserData() {
+try {
+let response = await fetch('https://jsonplaceholder.typicode.com/users/1');
+let user = await response.json();
+console.log(user);
+} catch (error) {
+console.error('Error fetching user data:', error);
+}
+}
+getUserData();`
+
+2 **Handling Errors**  
+Notice the try...catch block. This is essential for handling errors in async functions. If any of the awaited promises reject, the error will be caught, and we can handle it appropriately.
+
+3 **Chaining Async Functions**  
+You can also chain multiple async functions. For instance, let's create another function to fetch posts by the user and log them.
+
+`async function getUserPosts(userId) {
+try {
+let response = await fetch(`https://jsonplaceholder.typicode.com/posts?userId=${userId}`);
+let posts = await response.json();
+console.log(posts);
+} catch (error) {
+console.error('Error fetching user posts:', error);
+}
+}
+async function getUserDataAndPosts() {
+try {
+let user = await getUserData();
+await getUserPosts(user.id);
+} catch (error) {
+console.error('Error fetching data:', error);
+}
+}
+getUserDataAndPosts();`
+
+In this example, getUserDataAndPosts calls getUserData to fetch user data, then calls getUserPosts to fetch the user's posts using the user's ID. This demonstrates how async/await simplifies chaining asynchronous operations, making the code more readable and maintainable.
+
+## Best Practices for Using Async/Await
+
+**Always Use try...catch**: Handle errors gracefully by wrapping your await calls in try...catch blocks.
+
+**Avoid Blocking the Main Thread**: Be cautious with await inside loops. Use Promise.all for parallel execution where possible.
+
+**Use Descriptive Variable Names**: Make your code more readable by using meaningful names for your variables and functions.
+
+**Keep Functions Small and Focused**: Break down complex tasks into smaller, more manageable async functions.
+
+## Conclusion
+
+Mastering async/await can significantly improve your ability to write clean, readable, and maintainable asynchronous code in JavaScript. By understanding the basics and following best practices, you'll be well on your way to becoming a pro in handling asynchronous operations.
+
+## Top comments (0)
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](#).
+
+Hide child comments as well
+
+Confirm
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1218135%2F3b0baa02-4a5f-45fd-8099-198b31cfb97d.jpg)
+
+### More from [Subhro](/msubhro)
+
+💎 DEV Diamond Sponsors
+
+Thank you to our Diamond Sponsors for supporting the DEV Community
+
+![Google AI - Official AI Model and Platform Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fxjlyhbdqehj3akhz166w.png)
+
+Google AI is the official AI Model and Platform Partner of DEV
+
+![Neon - Official Database Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fbnl88cil6afxzmgwrgtt.png)
+
+Neon is the official database partner of DEV
+
+![Algolia - Official Search Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv30ephnolfvnlwgwm0yz.png)
+
+Algolia is the official search partner of DEV
+
+[DEV Community](/) — A space to discuss and keep up software development and manage your software career
+
+Built on [Forem](https://www.forem.com) — the [open source](https://dev.to/t/opensource) software that powers [DEV](https://dev.to) and other inclusive communities.
+
+Made with love and [Ruby on Rails](https://dev.to/t/rails). DEV Community © 2016 - 2026.
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+---
+
+Title: How to Use Async/Await in JavaScript – Explained with Code Examples
+/  [#async/await](/news/tag/asyncawait/)
+
+# How to Use Async/Await in JavaScript – Explained with Code Examples
+
+![Nathan Sebhastian](https://cdn.hashnode.com/res/hashnode/image/upload/v1697815192759/WelAuIZqF.png)
+
+[Nathan Sebhastian](/news/author/nathansebhastian/)
+
+    ![How to Use Async/Await in JavaScript – Explained with Code Examples](https://www.freecodecamp.org/news/content/images/size/w2000/2023/12/js-async-await.png)  
+
+Hello friends! In this article, I'm going to show you how to use the “async/await” special syntax when handling JavaScript Promises.
+
+If you don't know or need a refresher on JavaScript promises, you can read my previous article: [How JavaScript Promises Work – Tutorial for Beginners](https://www.freecodecamp.org/news/javascript-promise-object-explained/).
+
+You'll need to understand JavaScript promises well before learning the async/await syntax.
+
+## How async/await Works
+
+The async/await syntax is a special syntax created to help you work with promise objects. It makes your code cleaner and clearer.
+
+When handling a `Promise`, you need to chain the call to the function or variable that returns a `Promise` using `then/catch` methods.
+
+When you have many promises, you will also need lots of `then` method chains. For example, here's how you might retrieve data using the `fetch()` function:
+
+```
+'https://jsonplaceholder.typicode.com/todos/1'response => responsejson => json consoleerror => error console
+```
+
+In the code above, the `fetch()` function returns a `Promise`, which we handle using the `then()` method. Inside the first `then()` method, we accept the `response` from the request and convert it into an object using the `json()` method.
+
+In the second `then()` method, we receive the returned `json` data from the call to the `json()` method, then log that data to the console.
+
+We also add the `catch()` method to handle any error that might happen when running the request.
+
+The code is really not hard to understand, but we can make it even prettier by removing the `.then()` and `.catch()` chains, which also removes the callback functions.
+
+### The Await Keyword
+
+The `await` keyword basically makes JavaScript wait until the `Promise` object is resolved or rejected. Instead of having to use the callback pattern inside the `then()` method, you can assign the fulfilled promise into a variable like this:
+
+```
+const await'https://jsonplaceholder.typicode.com/todos/1' const await console
+```
+
+The `await` keyword is placed before the call to a function or variable that returns a promise. It makes JavaScript wait for the promise object to settle before running the code in the next line.
+
+Now if you run the code above, you might get an error like this:
+
+```
+SyntaxError: await is only valid in async functions and the top level bodies of modules 
+```
+
+This error occurs because the `await` keyword must be used inside an asynchronous function or a module.
+
+### The Async Keyword
+
+To create an asynchronous function, you need to add the `async` keyword before your function name. Take a look at line 1 in the example below:
+
+```
+asyncfunction runProcess() function runProcess const await'https://jsonplaceholder.typicode.com/todos/1' const await console
+```
+
+Here, we created an asynchronous function called `runProcess()` and put the code that uses the `await` keyword inside it. We can then run the asynchronous function by calling it, just like a regular function.
+
+## How to Handle Errors in Async/Await
+
+To handle an error that might occur from the async/await syntax, you can use the try/catch block to catch any rejection from your promise.
+
+See the example below:
+
+```
+asyncfunction runProcess() function runProcess try const await'https://jsonplaceholder.typicode.com/todos/1' const await console catch console
+```
+
+The try/catch block, put inside the `runProcess()` function, will handle the rejection that comes from the promise objects.
+
+Now we have a complete async/await version of the standard Promise code we created earlier. Here's a comparison between the two:
+
+![Image](https://www.freecodecamp.org/news/content/images/2023/12/PROMISE---ASYNC.png) *Promise vs Async/Await Code Comparison*
+
+In the async/await version, the result of the promise is directly assigned to a variable. In the standard promise version, the result of the promise is passed as an argument to the `.then()` method.
+
+Most developers prefer the async/await version as it looks more straightforward.
+
+## How to Use Async/Await in IIFE and Arrow Functions
+
+An Immediately Invoked Function Expression (IIFE) is a technique used to execute a function immediately as soon as you define it.
+
+Unlike regular functions and variables, IIFEs will be removed from the running process once they are executed.
+
+Aside from the standard function, you can also make an asynchronous IIFE. This is useful when you need to run the asynchronous function only once:
+
+```
+asyncfunction () function try const await'https://jsonplaceholder.typicode.com/todos/1' const await console catch console
+```
+
+You can also use the arrow syntax when creating an asynchronous function as follows:
+
+```
+const async try const await'https://jsonplaceholder.typicode.com/todos/1' const await console catch console
+```
+
+Feel free to use the syntax you want in your code.
+
+## Why Use the async/await Syntax?
+
+The async/await syntax enables you to handle promises without using `.then()` and `.catch()` method chaining, which also removes the need for nested callbacks.
+
+This benefit is significant when you have a complex process after the promise is settled.
+
+Going back to our example above, suppose you have a conditional statement inside the `.then()` method as follows:
+
+```
+'https://jsonplaceholder.typicode.com/todos/1'response => responsejson => json if 1 false else trueerror => error console
+```
+
+Here, you can see that the callback function that accepts the `json` data has an if/else block inside it.
+
+This code is hard to reason with and modify when compared to the async/await version as follows:
+
+```
+asyncfunction () function try const await'https://jsonplaceholder.typicode.com/todos/1' const await if 1 false else true console catch console
+```
+
+By using the async/await syntax, you reduce the need for method chaining and nested callbacks. This impact the readability of your code, especially when you have nested code like if/else and a for loop block.
+
+## Conclusion
+
+Now you've learned how the async/await syntax works. The syntax makes working with promises much easier by removing the need for `.then()` and `.catch()` method chaining, which also removes the need for nested callbacks.
+
+Even though the `await` keyword can only be used inside an `async` function, you can use an IIFE to invoke the async function only once.
+
+If you enjoyed this article and want to take your JavaScript skills to the next level, I recommend you check out my new book *Beginning Modern JavaScript* [here](https://www.amazon.com/dp/B0CQXHMF8G).
+
+The book is designed to be easy to understand and accessible to anyone looking to learn JavaScript. It provides a step-by-step gentle guide that will help you understand how to use JavaScript to create a dynamic application.
+
+Here's my promise: *You will actually feel like you understand what you're doing with JavaScript.*
+
+Until next time!
+
+---
+
+![Nathan Sebhastian](https://cdn.hashnode.com/res/hashnode/image/upload/v1697815192759/WelAuIZqF.png)
+
+[Nathan Sebhastian](/news/author/nathansebhastian/)  
+
+Read [more posts](/news/author/nathansebhastian/).
+
+---
+
+If you read this far, thank the author to show them you care.
+
+Learn to code for free. freeCodeCamp's open source curriculum has helped more than 40,000 people get jobs as developers. [Get started](https://www.freecodecamp.org/learn)
+
+ADVERTISEMENT
+
+ 
+
+---
+
+Title: Async and Await in JavaScript - GeeksforGeeks
+[![geeksforgeeks](https://media.geeksforgeeks.org/gfg-gg-logo.svg)](https://www.geeksforgeeks.org/)
+
+* Interview Prep
+
+* [JS Tutorial](https://www.geeksforgeeks.org/javascript/javascript-tutorial/)
+* [Web Tutorial](https://www.geeksforgeeks.org/web-tech/web-technology/)
+* [A to Z Guide](https://www.geeksforgeeks.org/javascript/javascript-complete-guide/)
+* [Projects](https://www.geeksforgeeks.org/javascript/top-javascript-projects/)
+* [OOP](https://www.geeksforgeeks.org/javascript/introduction-object-oriented-programming-javascript/)
+* [DOM](https://www.geeksforgeeks.org/javascript/dom-document-object-model/)
+* [Set](https://www.geeksforgeeks.org/javascript/javascript-set-reference/)
+* [Map](https://www.geeksforgeeks.org/javascript/javascript-map-reference/)
+* [Math](https://www.geeksforgeeks.org/javascript/javascript-math-reference/)
+* [Number](https://www.geeksforgeeks.org/javascript/javascript-number-reference/)
+* [Boolean](https://www.geeksforgeeks.org/javascript/javascript-boolean-reference/)
+* [Exercise](https://www.geeksforgeeks.org/javascript/practice-javascript-online/)
+
+# Async and Await in JavaScript
+
+Last Updated : 19 Jan, 2026
+
+Async/Await in JavaScript allows you to write asynchronous code in a clean, synchronous-like manner, making it easier to read, understand, and maintain while working with promises.
+
+* async functions always return a Promise.
+* await pauses execution until the Promise is resolved or rejected.
+* Improves readability compared to .then() and .catch() chaining.
+* Makes error handling simpler using try...catch.
+* Ideal for managing complex asynchronous flows in a structured way.
+
+ JavaScript  ````
+ async  function  fetchData()  { try  { // Simulated API response (mock data)  const  response  =  await  Promise. resolve({ json:  async  ()  =>  ({ userId:  1,  id:  1,  title:  "Sample Post",  body:  "This is mock data for async/await demonstration"  })  });  const  data  =  await  response. json();  console. log(data);  }  catch  (error)  { console. error("Error fetching data:",  error);  }} fetchData();
+```` 
+
+### Syntax:
+
+```
+async function functionName() { try { const result = await someAsyncFunction(); console.log(result); } catch (error) { console.error("Error:", error.message); }}
+```
+
+## Async Function
+
+Async functions let us write promise-based code in a synchronous-looking way, improving readability while keeping the execution non-blocking. An async function always returns a Promise—if it returns a non-promise value, JavaScript automatically wraps it in a resolved Promise.
+
+* Makes asynchronous code easier to read and maintain
+* Does not block the main execution thread
+* Always returns a Promise
+* Non-promise return values are auto-wrapped in Promise.resolve()
+* Works seamlessly with await for handling promises
+
+****Syntax:****
+
+```
+async function myFunction() {  return "Hello";}
+```
+
+ javascript  ````
+ const  getData  =  async  ()  =>  { let  data  =  "Hello World";  return  data;} getData(). then(data  =>  console. log(data));
+```` 
+
+## Await Keyword
+
+The await keyword pauses the execution of an async function until a Promise is resolved or rejected. It can only be used inside an async function, making asynchronous code easier to read and manage.
+
+* Used to wait for a Promise to settle.
+* Can only be used inside async functions.
+* Prevents callback and .then() chaining.
+* Makes asynchronous code cleaner and more readable.
+* Supports error handling with try...catch.
+
+ javascript  ````
+ const  getData  =  async  ()  =>  { let  y  =  await  "Hello World";  console. log(y);} console. log(1); getData(); console. log(2);
+```` 
+
+* The async keyword transforms a regular JavaScript function into an asynchronous function, causing it to return a Promise.
+* The await keyword is used inside an async function to pause its execution and wait for a Promise to resolve before continuing.
+
+## Error Handling in Async/Await
+
+JavaScript provides predefined arguments for handling promises: resolve and reject.
+
+* ****resolve:**** Used when an asynchronous task is completed successfully.
+* ****reject:**** Used when an asynchronous task fails, providing the reason for failure.
+
+ JavaScript  ````
+ async  function  fetchData()  { try  { let  response  =  await  fetch('https://api.example.com/data');  let  data  =  await  response. json();  console. log(data);  }  catch  (error)  { console. error('Error fetching data:',  error);  }}
+````
+
+* ****async function fetchData():**** Declares an asynchronous function that always returns a Promise.
+* ****await fetch(...):**** Sends an HTTP request and waits for the response without blocking the main thread.
+* ****await response.json():**** Converts the response body into JavaScript data (JSON format).
+* ****console.log(data):**** Prints the fetched data to the console if the request is successful.
+* ****try...catch:**** Handles errors such as network failure or invalid responses.
+
+Comment
+
+Article Tags:
+
+Article Tags:
+
+[JavaScript](https://www.geeksforgeeks.org/category/web-technologies/javascript/)
+
+[Web Technologies](https://www.geeksforgeeks.org/category/web-technologies/)
+
+[javascript-functions](https://www.geeksforgeeks.org/tag/javascript-functions/)
+
+### Explore
+
+JavaScript Basics
+
++ [Introduction4 min read](https://www.geeksforgeeks.org/javascript/introduction-to-javascript/)
++ [Variables5 min read](https://www.geeksforgeeks.org/javascript/variables-datatypes-javascript/)
++ [Operators4 min read](https://www.geeksforgeeks.org/javascript/javascript-operators/)
++ [Control Statements4 min read](https://www.geeksforgeeks.org/javascript/control-statements-in-javascript/)
+
+Array & String
+
++ [Arrays7 min read](https://www.geeksforgeeks.org/javascript/javascript-arrays/)
++ [Array Methods7 min read](https://www.geeksforgeeks.org/javascript/javascript-array-methods/)
++ [String5 min read](https://www.geeksforgeeks.org/javascript/javascript-strings/)
++ [String Methods9 min read](https://www.geeksforgeeks.org/javascript/javascript-string-methods/)
+
+Function & Object
+
++ [Functions4 min read](https://www.geeksforgeeks.org/javascript/functions-in-javascript/)
++ [Function Expression3 min read](https://www.geeksforgeeks.org/javascript/javascript-function-expression/)
++ [Function Overloading4 min read](https://www.geeksforgeeks.org/javascript/function-overloading-in-javascript/)
++ [Objects4 min read](https://www.geeksforgeeks.org/javascript/objects-in-javascript/)
++ [Constructors4 min read](https://www.geeksforgeeks.org/javascript/javascript-object-constructors/)
+
+OOP
+
++ [OOP3 min read](https://www.geeksforgeeks.org/javascript/introduction-object-oriented-programming-javascript/)
++ [Classes & Objects4 min read](https://www.geeksforgeeks.org/javascript/classes-and-objects-in-javascript/)
++ [Access Modifiers5 min read](https://www.geeksforgeeks.org/javascript/what-are-access-modifiers-in-javascript/)
++ [Constructor7 min read](https://www.geeksforgeeks.org/javascript/js-constructor-method/)
+
+Asynchronous JavaScript
+
++ [Asynchronous2 min read](https://www.geeksforgeeks.org/javascript/asynchronous-javascript/)
++ [Callbacks4 min read](https://www.geeksforgeeks.org/javascript/javascript-callbacks/)
++ [Promises4 min read](https://www.geeksforgeeks.org/javascript/javascript-promise/)
++ [Event Loop3 min read](https://www.geeksforgeeks.org/javascript/what-is-an-event-loop-in-javascript/)
++ [Async Await Fuction3 min read](https://www.geeksforgeeks.org/javascript/async-await-function-in-javascript/)
+
+Exception Handling
+
++ [Error and Exceptional Handling5 min read](https://www.geeksforgeeks.org/javascript/javascript-error-and-exceptional-handling-with-examples/)
++ [Errors Throw & Try to Catch2 min read](https://www.geeksforgeeks.org/javascript/javascript-errors-throw-and-try-to-catch/)
++ [Custom Errors2 min read](https://www.geeksforgeeks.org/javascript/how-to-create-custom-errors-in-javascript/)
++ [TypeError Invalid Array.prototype.sort argument1 min read](https://www.geeksforgeeks.org/javascript/javascript-typeerror-invalid-array-prototype-sort-argument/)
+
+DOM
+
++ [DOM8 min read](https://www.geeksforgeeks.org/javascript/dom-document-object-model/)
++ [DOM Elements3 min read](https://www.geeksforgeeks.org/javascript/how-to-select-dom-elements-in-javascript/)
++ [Custom Events4 min read](https://www.geeksforgeeks.org/javascript/javascript-custom-events/)
++ [Addeventlistener9 min read](https://www.geeksforgeeks.org/javascript/javascript-addeventlistener-with-examples/)
+
+Advanced Topics
+
++ [Closure4 min read](https://www.geeksforgeeks.org/javascript/closure-in-javascript/)
++ [Hoisting6 min read](https://www.geeksforgeeks.org/javascript/javascript-hoisting/)
++ [Scope3 min read](https://www.geeksforgeeks.org/javascript/javascript-scope/)
++ [Higher Order Functions7 min read](https://www.geeksforgeeks.org/javascript/javascript-higher-order-functions/)
++ [Debugging4 min read](https://www.geeksforgeeks.org/javascript/debugging-in-javascript/)
+
+---
+
+Title: Internals of async / await in JavaScript | Akash Hamirwasia
+[![Akash Hamirwasia](/_astro/me.YKeHjBO__Z2hdHoJ.png)](/)
+
+
+
+# Internals of async / await in JavaScript
+
+•7 min read
+
+If you have ever used JavaScript in the past, there is a high chance you have encountered the [async / await](https://javascript.info/async-await) syntax. async / await makes it easy to define asynchronous logic in a synchronous way that our brains can comprehend better. Some of you JavaScript veterans might know that async / await is merely a [syntactic sugar](https://en.wikipedia.org/wiki/Syntactic_sugar) over the existing [Promises API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). This means that we should be able to achieve the functionality of async / await in JavaScript without using `async async` and `await await` keywords albeit with some verbosity. This is exactly what I wanted to explore in this post.
+
+## What are we trying to achieve?
+
+Let’s look at some boilerplate code to understand what we are trying to achieve.
+
+```
+
+
+1
+
+function wait() {
+
+
+
+2
+
+return new Promise((resolve, reject) => {
+
+
+
+3
+
+setTimeout(() => {
+
+
+
+4
+
+resolve('Timeout resolved');
+
+
+
+5
+
+}, 2000);
+
+
+
+6
+
+});
+
+
+
+7
+
+
+
+9
+
+async function main() {
+
+
+
+10
+
+console.log('Entry');
+
+
+
+12
+
+const result = await wait();
+
+
+
+13
+
+console.log(result);
+
+
+
+15
+
+console.log('Exit');
+
+
+
+16
+
+return 'Return';
+
+
+
+17
+
+}
+
+
+
+18
+
+
+
+19
+
+main().then((result) => {
+
+
+
+20
+
+console.log(result);
+
+
+
+21
+
+});
+
+
+```
+
+The output of the above code:
+
+js
+
+```
+
+
+Entry
+
+
+
+// Pauses for 2 seconds
+
+
+
+Timeout resolved
+
+
+
+Exit
+
+
+
+Return
+
+
+```
+
+Given the above code snippet and its respective output, can we re-write the `main() main()` function to **not use** `async async` and `await await` keywords, but still achieve the same output? Conditions being the following:
+
+* **Cannot use Promise chaining within `main() main()`**. This makes the problem trivial and deviates from the original goal. Promise chaining might work in the contrived example above but it does not capture the complete essence of async / await and the problems it solves.
+* **Not changing any function signatures**. Changing function signatures would require updating function calls as well which is complex in a large project with many interdependent functions. So try not to change any function signatures.
+
+Even though I have defined the conditions above, if you feel stuck and don’t see a way forward without breaking the above conditions, do take the liberty to try that approach. Maybe breaking the condition will lead you to an approach that satisfies the above condition. No one is expected to come up with the right solution on their first try(even I didn’t while preparing this 🙂).
+
+## Playground
+
+This blog post is hands-on and I strongly suggest you use the below playground to test out your ideas to implement something like async / await without using `async async` and `await await` keywords. The rest of the post has hints and solutions on how you can achieve this, but feel free to take a moment and try out some code whenever you get an idea to proceed.
+
+Live Code Playground
+
+```
+function wait(){return new Promise((resolve, reject) =>{setTimeout(() =>{resolve('Timeout resolved');}, 2000);});} async function main(){console log('Entry'); const result await wait(); console log(result); console log('Exit'); return 'Return';} main() then(result =>{console log(result);});
+```
+
+## Hint #1: Looking at pausing and resuming a function execution
+
+At a high level, what does async / await do? Well, it **pauses** the execution of the async function whenever it encounters an `await await` statement. And **resumes** the execution when the awaited promise is resolved(or throws an error). A natural question to ask here would be how to go about pausing and resuming a function’s execution. Functions tend to execute to completion right?
+
+Is there a native feature in JavaScript that mimics this behavior? Yes! It’s **Generators**.
+
+[Generators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are a special type of function that can return multiple pieces of data **during** its execution. Traditional functions can return multiple data by using structures like Arrays and Objects, but Generators return data whenever the caller asks for it, and they *pause* execution until they are *asked to continue to generate* and return more data.
+
+I won’t be diving deep into what Generators can do, please use the linked reference. Here’s a code snippet explaining the concept of Generators, try to follow the comments to understand what is happening.
+
+js
+
+```
+
+
+1
+
+function* main() {
+
+
+
+2
+
+console.log('Entry');
+
+
+
+3
+
+
+
+4
+
+const message = yield 'Result 1';
+
+
+
+5
+
+console.log(message);
+
+
+
+6
+
+
+
+7
+
+console.log('Exit');
+
+
+
+8
+
+yield 'Result 2';
+
+
+
+9
+
+
+
+10
+
+return 'Return';
+
+
+
+11
+
+}
+
+
+
+12
+
+
+
+13
+
+const it = main();
+
+
+
+14
+
+/**
+
+
+
+15
+
+* No output in console right now even though main() was called.
+
+
+
+16
+
+* Calling .next() on the object returned by the generator starts the execution.
+
+
+
+17
+
+*/
+
+
+
+18
+
+
+
+19
+
+console.log(it.next());
+
+
+
+20
+
+/**
+
+
+
+21
+
+* Output:
+
+
+
+22
+
+* Entry
+
+
+
+23
+
+* { value: "Result 1", done: false }
+
+
+
+24
+
+*
+
+
+
+25
+
+* The generator has paused the execution at line 4.
+
+
+
+26
+
+* It resumes when .next() is called again.
+
+
+
+27
+
+*/
+
+
+
+28
+
+
+
+29
+
+console.log(it.next('Message Passing'));
+
+
+
+30
+
+/**
+
+
+
+31
+
+* .next() also takes an argument that is made available to the yield
+
+
+
+32
+
+* statement where the generator is paused.
+
+
+
+33
+
+*
+
+
+
+34
+
+* Output:
+
+
+
+35
+
+* Message Passing
+
+
+
+36
+
+* Exit
+
+
+
+37
+
+* { value: "Result 2", done: false }
+
+
+
+38
+
+*/
+
+
+
+39
+
+
+
+40
+
+console.log(it.next());
+
+
+
+41
+
+/**
+
+
+
+42
+
+* Output:
+
+
+
+43
+
+* { value: "Return", done: true }
+
+
+
+44
+
+*/
+
+
+```
+
+Now that you know about Generator functions, I suggest you take a pause and go to the [playground](#playground) to see if you can proceed from here.
+
+## Hint #2: When to resume function execution?
+
+Generators provide a way to pause and resume function execution. Recalling how async / await works, an async function is paused when it encounters `await await` statement. So we can treat the async function as a generator function and place a `yield yield` statement near a promise so that it pauses at this step. Looks something like this:
+
+js
+
+```
+
+
+1
+
+function* main() {
+
+
+
+2
+
+console.log('Entry');
+
+
+
+3
+
+
+
+4
+
+const result = wait();
+
+
+
+5
+
+yield;
+
+
+
+6
+
+console.log(result);
+
+
+
+7
+
+
+
+8
+
+console.log('Exit');
+
+
+
+9
+
+return 'Return';
+
+
+
+10
+
+}
+
+
+
+11
+
+
+
+12
+
+const it = main();
+
+
+
+13
+
+it.next(); // Start the execution, when should it.next() be called again?
+
+
+```
+
+But when should the generator function **resume** its execution? It should resume when the **promise near the yield is resolved.** How can the caller know about the promise when it is within the generator function? Is there a way to expose the promise to the caller so that they can attach a `.then(). then()` callback to it which will call the `.next(). next()` on the generator object to resume execution?
+
+The answer to all the questions above is to simply `yield yield` the promise we want to wait for so that the caller can use this yielded promise and call `.next(). next()` when it is resolved.
+
+js
+
+```
+
+
+1
+
+function* main() {
+
+
+
+2
+
+console.log('Entry');
+
+
+
+3
+
+
+
+4
+
+const result = yield wait();
+
+
+
+5
+
+console.log(result);
+
+
+
+6
+
+
+
+7
+
+console.log('Exit');
+
+
+
+8
+
+return 'Return';
+
+
+
+9
+
+}
+
+
+
+10
+
+
+
+11
+
+const it = main();
+
+
+
+12
+
+it.next().value.then(() => {
+
+
+
+13
+
+it.next();
+
+
+
+14
+
+});
+
+
+```
+
+## Hint #3: Making promise’s resolved data available to the generator
+
+In the previous code snippet, we were able to successfully pause and resume function execution when the promise was resolved. But the generator function does not get the resolved data from the promise. `result result` variable in the `main() main()` function is supposed to have `"Timeout resolved" "Timeout resolved"` as we see when using async / await. But in our implementation, it does not get the data that the promise gives when it is resolved. Is there a way to pass the resolved data of the promise to the generator? After all, the caller has access to resolved data since the generator yields the promise. So can it pass this data back to the generator function when the caller calls `.next(). next()` on the generator object? We have already come across this message-passing behavior above in this post 😉
+
+`.next(). next()` function takes an argument that is made available to the last `yield yield` statement where the generator was paused. So to pass the promise’s resolved data, we simply call `.next(). next()` with the resolved data from the promise.
+
+js
+
+```
+
+
+1
+
+function* main() {
+
+
+
+2
+
+console.log('Entry');
+
+
+
+3
+
+
+
+4
+
+const result = yield wait();
+
+
+
+5
+
+console.log(result);
+
+
+
+6
+
+
+
+7
+
+console.log('Exit');
+
+
+
+8
+
+return 'Return';
+
+
+
+9
+
+}
+
+
+
+10
+
+
+
+11
+
+const it = main();
+
+
+
+12
+
+it.next().value.then((resolvedData) => {
+
+
+
+13
+
+it.next(resolvedData);
+
+
+
+14
+
+});
+
+
+```
+
+With this change, we have a basic implementation of async / await without using `async async` and `await await` keywords. Notice the `main() main()` function and compare it with its async counterpart. They are shockingly similar, right? Instead of using `async function async function`, it is `function * function *`, and instead of `await await`, it uses `yield yield` keyword. **That’s the beauty of this implementation!**
+
+We have come quite far! If you were able to figure out some of these steps on your own then give yourself a pat on the back 💚
+
+## Hint #4: Extending it to work with multiple `yield yield` statements
+
+The next step is to make our implementation work with an arbitrary number of `yield yield` statements. The above snippet only works with one `yield yield` as it calls `.next(). next()` only after the first promise is resolved. But the generator can have an arbitrary number of promises being yielded. Can we write an abstraction that dynamically waits for any yielded promise to be resolved and then calls `.next(). next()`?
+
+This abstraction can be a function(say `run run`) which takes in the generator function. What should `run() run()` return? Again, compared with the async function counterpart, every async function implicitly returns a `Promise Promise`, which gets resolved when the async function has completed execution. We can mimic this behavior by returning a `Promise Promise` from the `run() run()` function, and resolving it only when the generator has **finished** execution.
+
+This is how the code looks like, your implementation might vary.
+
+js
+
+```
+
+
+1
+
+run(main).then((result) => {
+
+
+
+2
+
+console.log(result);
+
+
+
+3
+
+});
+
+
+
+4
+
+
+
+5
+
+function run(fn, ...args) {
+
+
+
+6
+
+const it = fn(...args);
+
+
+
+7
+
+
+
+8
+
+return new Promise((resolve, reject) => {
+
+
+
+9
+
+// TODO: Call it.next() as long as something is there to yield
+
+
+
+10
+
+});
+
+
+
+11
+
+}
+
+
+```
+
+## Hint #5: Calling `.next(). next()` arbitrary number of times
+
+Now, let’s focus on implementing the `run() run()` function. It should call `.next(). next()` on the generator object as long as promises are being yielded. Can we use loops to do this? Would it work as expected when we are using promises? Of course not, we can’t use loops since it will keep calling `.next(). next()` on the generator object without waiting for the promises being yielded to be resolved. Is there a better way to loop which does not have this problem?
+
+It’s Recursion! By using Recursion, we can keep calling `.next(). next()` on the generator object when yielded promises get resolved. What’s the exit condition or the base case for the recursion to end? We want to stop when the generator ends. What does `.next(). next()` return when the generator has reached the end? The `done done` property on the returned object is set to `true true`!
+
+js
+
+```
+
+
+1
+
+function run(fn, ...args) {
+
+
+
+2
+
+const it = fn(...args);
+
+
+
+3
+
+
+
+4
+
+return new Promise((resolve, reject) => {
+
+
+
+5
+
+function step() {
+
+
+
+6
+
+const result = it.next();
+
+
+
+7
+
+
+
+8
+
+// Exit condition
+
+
+
+9
+
+if (result.done) {
+
+
+
+10
+
+return;
+
+
+
+11
+
+}
+
+
+
+12
+
+
+
+13
+
+result.value.then((resolvedValue) => {
+
+
+
+14
+
+step();
+
+
+
+15
+
+});
+
+
+
+16
+
+}
+
+
+
+17
+
+
+
+18
+
+// Call step() to start recursion
+
+
+
+19
+
+step();
+
+
+
+20
+
+});
+
+
+
+21
+
+}
+
+
+```
+
+We are not passing `resolvedValue resolvedValue` from the promise back to the generator. To do this, let’s make the `step() step()` function accept an argument. Also, notice how the promise returned by `run run` is never resolved. Because we don’t call the `resolve() resolve()` function anywhere! When should the promise be resolved? When the generator ends and there’s nothing else to execute. What should the promise resolve with? With whatever the generator function returns, as that matches the behavior of async functions.
+
+js
+
+```
+
+
+1
+
+function run(fn, ...args) {
+
+
+
+2
+
+const it = fn(...args);
+
+
+
+3
+
+
+
+4
+
+return new Promise((resolve, reject) => {
+
+
+
+5
+
+function step(resolvedValue) {
+
+
+
+6
+
+const result = it.next(resolvedValue);
+
+
+
+7
+
+
+
+8
+
+// Exit condition
+
+
+
+9
+
+if (result.done) {
+
+
+
+10
+
+resolve(result.value);
+
+
+
+11
+
+return;
+
+
+
+12
+
+}
+
+
+
+14
+
+result.value.then((resolvedValue) => {
+
+
+
+15
+
+step(resolvedValue);
+
+
+
+16
+
+});
+
+
+
+17
+
+}
+
+
+
+18
+
+
+
+19
+
+// No need to pass anything to start the execution of the generator
+
+
+
+20
+
+step();
+
+
+
+21
+
+});
+
+
+
+22
+
+}
+
+
+```
+
+## There you have it – async / await without `async async` and `await await`!
+
+That completes the implementation of async / await without using `async async` and `await await` keywords. Async functions are represented as generator functions and instead of using `await await` we use `yield yield` statements to wait for promises to get resolved. For a developer using our implementation, it still feels similar to async / await and it doesn’t break the two conditions set at the beginning of this post.
+
+Live Code Playground
+
+```
+function* main(){console log('Entry'); const result yield wait(); console log(result); const result2 yield wait(); console log(result2);// ... console log('Exit'); return 'Return';} run(main) then(result =>{console log(result);}); function run(fn,... args){const it fn(... args); return new Promise((resolve, reject) =>{function step(resolvedValue){const result it next(resolvedValue);// Exit condition if(result done){resolve(result value); return;} result value then(resolvedValue =>{step(resolvedValue);});}// No need to pass anything to start the execution of the generator step();});} function wait(){return new Promise((resolve, reject) =>{setTimeout(() =>{resolve('Timeout resolved');}, 2000);});}
+```
+
+This is exactly what transpilers like Babel do when converting async / await to older versions of JavaScript that did not have this feature natively. If you [see the transpiled code](https://babeljs.io/repl#?browsers=defaults%2C%20not%20ie%2011%2C%20not%20ie_mob%2011&build=&builtIns=false&corejs=false&spec=false&loose=false&code_lz=IYZwngdgxgBAZgV2gFwJYHsLyQCgJQwDeAUDDMAO7CrIxU34DcxAvse4hE0A&debug=false&forceAllTransforms=false&modules=false&shippedProposals=false&circleciRepo=&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=env%2Creact%2Cstage-2&prettier=true&targets=Node-7.3&version=7.22.5&externalPlugins=&assumptions=%7B%7D), you can draw a lot of parallels to our implementation above!
+
+![async / await transpiled code with Babel](/_astro/babel.cRm5ePUX_nXgdt.jpg)
+
+## Next steps
+
+The implementation above only covers the successful path of async / await. Our implementation does not handle error scenarios when a promise gets rejected. I would like to leave this as an exercise to the readers, as this is very similar to the success path, just the functions used are different. Do take a look at the [Generators API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator#instance_methods) to see if there is a way to propagate errors back to a generator similar to the `.next(). next()` function to start with! If you do solve this, share it with me on Twitter, and don’t forget to tag me – [@blenderskool](https://twitter.com/blenderskool).
+
+## Conclusion
+
+When I first came across this implementation, I was awestruck by its beauty and simplicity. I was aware that async / await was a syntactic sugar, but did not know what it looked like under the hood. This post covered exactly this aspect of async / await, and how it ties in with Promises and Generators. I like to unravel abstractions from time to time to get a sense of how things work under the hood. And that is where I find interesting concepts to learn. I hope this post also motivated you to stay curious and learn things practically instead of just following a tutorial 🙌.
+
+[Share this article on Twitter](https://twitter.com/intent/tweet?url=https%3A%2F%2Fakashhamirwasia.com%2Fblog%2Finternals-of-async-await-in-javascript&via=blenderskool&text=Check%20out%20this%20article%20%E2%80%93%20Internals%20of%20async%20%2F%20await%20in%20JavaScript)
+
+  ![](/_astro/thumbnail.C5w35ldF_IjP1k.jpg)
+
+## If you found this article helpful, you will love these too.
+
+### [Expandable tags with Framer Motion and React](/blog/expandable-tags-with-framer-motion-and-react)
+
+•8 min read
+
+![Expandable tags with Framer Motion and React](/_astro/thumbnail.C2crQFpC_ZnMLwY.jpg)
+
+### [Building an expressive API for custom confirm dialogs in React](/blog/building-expressive-confirm-dialog-api-in-react)
+
+•8 min read
+
+![Building an expressive API for custom confirm dialogs in React](/_astro/thumbnail.DmF1F_hp_3wShX.jpg)
+
+### [Building highlighted input field in React](/blog/building-highlighted-input-field-in-react)
+
+•10 min read
+
+![Building highlighted input field in React](/_astro/thumbnail.2DM_OrHz_2b3Hj1.jpg)
+
+---
+
+Title: Async/await
+* [ARعربي](https://ar.javascript.info/async-await)
+* [ENEnglish](https://javascript.info/async-await)
+* [ESEspañol](https://es.javascript.info/async-await)
+* [FAفارسی](https://fa.javascript.info/async-await)
+* [FRFrançais](https://fr.javascript.info/async-await)
+* [IDIndonesia](https://id.javascript.info/async-await)
+
+* [ITItaliano](https://it.javascript.info/async-await)
+* [JA日本語](https://ja.javascript.info/async-await)
+* [KO한국어](https://ko.javascript.info/async-await)
+* [RUРусский](https://learn.javascript.ru/async-await)
+* [TRTürkçe](https://tr.javascript.info/async-await)
+* [UKУкраїнська](https://uk.javascript.info/async-await)
+
+* [UZOʻzbek](https://uz.javascript.info/async-await)
+* [ZH简体中文](https://zh.javascript.info/async-await)
+
+We want to make this open-source project available for people all around the world.
+
+[Help to translate](https://javascript.info/translate) the content of this tutorial to your language!
+
+[![](/img/sitetoolbar__logo_en.svg)![](/img/sitetoolbar__logo_en-white.svg)![](/img/sitetoolbar__logo_small_en.svg)![](/img/sitetoolbar__logo_small_en-white.svg)](/)
+
+[BuyEPUB/PDF](/ebook)
+
+[Tutorial map](/tutorial/map)
+
+1. [Tutorial](/)
+2. [The JavaScript language](/js)
+3. [Promises, async/await](/async)
+
+March 24, 2025
+
+# Async/await
+
+There’s a special syntax to work with promises in a more comfortable fashion, called “async/await”. It’s surprisingly easy to understand and use.
+
+## [Async functions](#async-functions)
+
+Let’s start with the `async` keyword. It can be placed before a function, like this:
+
+```
+async function f() { return 1; }
+```
+
+The word “async” before a function means one simple thing: a function always returns a promise. Other values are wrapped in a resolved promise automatically.
+
+For instance, this function returns a resolved promise with the result of `1`; let’s test it:
+
+```
+async function f() { return 1; } f().then(alert); // 1
+```
+
+…We could explicitly return a promise, which would be the same:
+
+```
+async function f() { return Promise.resolve(1); } f().then(alert); // 1
+```
+
+So, `async` ensures that the function returns a promise, and wraps non-promises in it. Simple enough, right? But not only that. There’s another keyword, `await`, that works only inside `async` functions, and it’s pretty cool.
+
+## [Await](#await)
+
+The syntax:
+
+```
+// works only inside async functions let value = await promise;
+```
+
+The keyword `await` makes JavaScript wait until that promise settles and returns its result.
+
+Here’s an example with a promise that resolves in 1 second:
+
+```
+async function f() { let promise = new Promise((resolve, reject) => { setTimeout(() => resolve("done!"), 1000) }); let result = await promise; // wait until the promise resolves (*) alert(result); // "done!" } f();
+```
+
+The function execution “pauses” at the line `(*)` and resumes when the promise settles, with `result` becoming its result. So the code above shows “done!” in one second.
+
+Let’s emphasize: `await` literally suspends the function execution until the promise settles, and then resumes it with the promise result. That doesn’t cost any CPU resources, because the JavaScript engine can do other jobs in the meantime: execute other scripts, handle events, etc.
+
+It’s just a more elegant syntax of getting the promise result than `promise.then`. And, it’s easier to read and write.
+
+Can’t use `await` in regular functions
+
+If we try to use `await` in a non-async function, there would be a syntax error:
+
+```
+function f() { let promise = Promise.resolve(1); let result = await promise; // Syntax error }
+```
+
+We may get this error if we forget to put `async` before a function. As stated earlier, `await` only works inside an `async` function.
+
+Let’s take the `showAvatar()` example from the chapter [Promises chaining](/promise-chaining) and rewrite it using `async/await`:
+
+1. We’ll need to replace `.then` calls with `await`.
+2. Also we should make the function `async` for them to work.
+
+```
+async function showAvatar() { // read our JSON let response = await fetch('/article/promise-chaining/user.json'); let user = await response.json(); // read github user let githubResponse = await fetch(`https://api.github.com/users/${user.name}`); let githubUser = await githubResponse.json(); // show the avatar let img = document.createElement('img'); img.src = githubUser.avatar_url; img.className = "promise-avatar-example"; document.body.append(img); // wait 3 seconds await new Promise((resolve, reject) => setTimeout(resolve, 3000)); img.remove(); return githubUser; } showAvatar();
+```
+
+Pretty clean and easy to read, right? Much better than before.
+
+Modern browsers allow top-level `await` in modules
+
+In modern browsers, `await` on top level works just fine, when we’re inside a module. We’ll cover modules in article [Modules, introduction](/modules-intro).
+
+For instance:
+
+```
+// we assume this code runs at top level, inside a module let response = await fetch('/article/promise-chaining/user.json'); let user = await response.json(); console.log(user);
+```
+
+If we’re not using modules, or [older browsers](https://caniuse.com/mdn-javascript_operators_await_top_level) must be supported, there’s a universal recipe: wrapping into an anonymous async function.
+
+Like this:
+
+```
+(async () => { let response = await fetch('/article/promise-chaining/user.json'); let user = await response.json(); ... })();
+```
+
+`await` accepts “thenables”
+
+Like `promise.then`, `await` allows us to use thenable objects (those with a callable `then` method). The idea is that a third-party object may not be a promise, but promise-compatible: if it supports `.then`, that’s enough to use it with `await`.
+
+Here’s a demo `Thenable` class; the `await` below accepts its instances:
+
+```
+class Thenable { constructor(num) { this.num = num; } then(resolve, reject) { alert(resolve); // resolve with this.num*2 after 1000ms setTimeout(() => resolve(this.num * 2), 1000); // (*) } } async function f() { // waits for 1 second, then result becomes 2 let result = await new Thenable(1); alert(result); } f();
+```
+
+If `await` gets a non-promise object with `.then`, it calls that method providing the built-in functions `resolve` and `reject` as arguments (just as it does for a regular `Promise` executor). Then `await` waits until one of them is called (in the example above it happens in the line `(*)`) and then proceeds with the result.
+
+Async class methods
+
+To declare an async class method, just prepend it with `async`:
+
+```
+class Waiter { async wait() { return await Promise.resolve(1); } } new Waiter() .wait() .then(alert); // 1 (this is the same as (result => alert(result)))
+```
+
+The meaning is the same: it ensures that the returned value is a promise and enables `await`.
+
+## [Error handling](#error-handling)
+
+If a promise resolves normally, then `await promise` returns the result. But in the case of a rejection, it throws the error, just as if there were a `throw` statement at that line.
+
+This code:
+
+```
+async function f() { await Promise.reject(new Error("Whoops!")); }
+```
+
+…is the same as this:
+
+```
+async function f() { throw new Error("Whoops!"); }
+```
+
+In real situations, the promise may take some time before it rejects. In that case there will be a delay before `await` throws an error.
+
+We can catch that error using `try..catch`, the same way as a regular `throw`:
+
+```
+async function f() { try { let response = await fetch('http://no-such-url'); } catch(err) { alert(err); // TypeError: failed to fetch } } f();
+```
+
+In the case of an error, the control jumps to the `catch` block. We can also wrap multiple lines:
+
+```
+async function f() { try { let response = await fetch('/no-user-here'); let user = await response.json(); } catch(err) { // catches errors both in fetch and response.json alert(err); } } f();
+```
+
+If we don’t have `try..catch`, then the promise generated by the call of the async function `f()` becomes rejected. We can append `.catch` to handle it:
+
+```
+async function f() { let response = await fetch('http://no-such-url'); } // f() becomes a rejected promise f().catch(alert); // TypeError: failed to fetch // (*)
+```
+
+If we forget to add `.catch` there, then we get an unhandled promise error (viewable in the console). We can catch such errors using a global `unhandledrejection` event handler as described in the chapter [Error handling with promises](/promise-error-handling).
+
+`async/await` and `promise.then/catch`
+
+When we use `async/await`, we rarely need `.then`, because `await` handles the waiting for us. And we can use a regular `try..catch` instead of `.catch`. That’s usually (but not always) more convenient.
+
+But at the top level of the code, when we’re outside any `async` function, we’re syntactically unable to use `await`, so it’s a normal practice to add `.then/catch` to handle the final result or falling-through error, like in the line `(*)` of the example above.
+
+`async/await` works well with `Promise.all`
+
+When we need to wait for multiple promises, we can wrap them in `Promise.all` and then `await`:
+
+```
+// wait for the array of results let results = await Promise.all([ fetch(url1), fetch(url2), ... ]);
+```
+
+In the case of an error, it propagates as usual, from the failed promise to `Promise.all`, and then becomes an exception that we can catch using `try..catch` around the call.
+
+## [Summary](#summary)
+
+The `async` keyword before a function has two effects:
+
+1. Makes it always return a promise.
+2. Allows `await` to be used in it.
+
+The `await` keyword before a promise makes JavaScript wait until that promise settles, and then:
+
+1. If it’s an error, an exception is generated — same as if `throw error` were called at that very place.
+2. Otherwise, it returns the result.
+
+Together they provide a great framework to write asynchronous code that is easy to both read and write.
+
+With `async/await` we rarely need to write `promise.then/catch`, but we still shouldn’t forget that they are based on promises, because sometimes (e.g. in the outermost scope) we have to use these methods. Also `Promise.all` is nice when we are waiting for many tasks simultaneously.
+
+## [Tasks](#tasks)
+
+### [Rewrite using async/await](#rewrite-using-async-await)
+
+Rewrite this example code from the chapter [Promises chaining](/promise-chaining) using `async/await` instead of `.then/catch`:
+
+```
+function loadJson(url) { return fetch(url) .then(response => { if (response.status == 200) { return response.json(); } else { throw new Error(response.status); } }); } loadJson('https://javascript.info/no-such-user.json') .catch(alert); // Error: 404
+```
+
+The notes are below the code:
+
+```
+async function loadJson(url) { // (1) let response = await fetch(url); // (2) if (response.status == 200) { let json = await response.json(); // (3) return json; } throw new Error(response.status); } loadJson('https://javascript.info/no-such-user.json') .catch(alert); // Error: 404 (4)
+```
+
+Notes:
+
+1. The function `loadJson` becomes `async`.
+2. All `.then` inside are replaced with `await`.
+3. We can `return response.json()` instead of awaiting for it, like this:
+
+   ```
+   if (response.status == 200) { return response.json(); // (3) }
+   ```
+
+   Then the outer code would have to `await` for that promise to resolve. In our case it doesn’t matter.
+4. The error thrown from `loadJson` is handled by `.catch`. We can’t use `await loadJson(…)` there, because we’re not in an `async` function.
+
+### [Rewrite "rethrow" with async/await](#rewrite-rethrow-with-async-await)
+
+Below you can find the “rethrow” example. Rewrite it using `async/await` instead of `.then/catch`.
+
+And get rid of the recursion in favour of a loop in `demoGithubUser`: with `async/await` that becomes easy to do.
+
+```
+class HttpError extends Error { constructor(response) { super(`${response.status} for ${response.url}`); this.name = 'HttpError'; this.response = response; } } function loadJson(url) { return fetch(url) .then(response => { if (response.status == 200) { return response.json(); } else { throw new HttpError(response); } }); } // Ask for a user name until github returns a valid user function demoGithubUser() { let name = prompt("Enter a name?", "iliakan"); return loadJson(`https://api.github.com/users/${name}`) .then(user => { alert(`Full name: ${user.name}.`); return user; }) .catch(err => { if (err instanceof HttpError && err.response.status == 404) { alert("No such user, please reenter."); return demoGithubUser(); } else { throw err; } }); } demoGithubUser();
+```
+
+There are no tricks here. Just replace `.catch` with `try..catch` inside `demoGithubUser` and add `async/await` where needed:
+
+```
+class HttpError extends Error { constructor(response) { super(`${response.status} for ${response.url}`); this.name = 'HttpError'; this.response = response; } } async function loadJson(url) { let response = await fetch(url); if (response.status == 200) { return response.json(); } else { throw new HttpError(response); } } // Ask for a user name until github returns a valid user async function demoGithubUser() { let user; while(true) { let name = prompt("Enter a name?", "iliakan"); try { user = await loadJson(`https://api.github.com/users/${name}`); break; // no error, exit loop } catch(err) { if (err instanceof HttpError && err.response.status == 404) { // loop continues after the alert alert("No such user, please reenter."); } else { // unknown error, rethrow throw err; } } } alert(`Full name: ${user.name}.`); return user; } demoGithubUser();
+```
+
+### [Call async from non-async](#call-async-from-non-async)
+
+We have a “regular” function called `f`. How can you call the `async` function `wait()` and use its result inside of `f`?
+
+```
+async function wait() { await new Promise(resolve => setTimeout(resolve, 1000)); return 10; } function f() { // ...what should you write here? // we need to call async wait() and wait to get 10 // remember, we can't use "await" }
+```
+
+P.S. The task is technically very simple, but the question is quite common for developers new to async/await.
+
+That’s the case when knowing how it works inside is helpful.
+
+Just treat `async` call as promise and attach `.then` to it:
+
+```
+async function wait() { await new Promise(resolve => setTimeout(resolve, 1000)); return 10; } function f() { // shows 10 after 1 second wait().then(result => alert(result)); } f();
+```
+
+### [Dangerous Promise.all](#dangerous-promise-all)
+
+`Promise.all` is a great way to parallelize multiple operations. It’s especially useful when we need to make parallel requests to multiple services.
+
+However, there’s a hidden danger. We’ll see an example in this task and explore how to avoid it.
+
+Let’s say we have a connection to a remote service, such as a database.
+
+There’re two functions: `connect()` and `disconnect()`.
+
+When connected, we can send requests using `database.query(...)` – an async function which usually returns the result but also may throw an error.
+
+Here’s a simple implementation:
+
+```
+let database; function connect() { database = { async query(isOk) { if (!isOk) throw new Error('Query failed'); } }; } function disconnect() { database = null; } // intended usage: // connect() // ... // database.query(true) to emulate a successful call // database.query(false) to emulate a failed call // ... // disconnect()
+```
+
+Now here’s the problem.
+
+We wrote the code to connect and send 3 queries in parallel (all of them take different time, e.g. 100, 200 and 300ms), then disconnect:
+
+```
+// Helper function to call async function `fn` after `ms` milliseconds function delay(fn, ms) { return new Promise((resolve, reject) => { setTimeout(() => fn().then(resolve, reject), ms); }); } async function run() { connect(); try { await Promise.all([ // these 3 parallel jobs take different time: 100, 200 and 300 ms // we use the `delay` helper to achieve this effect delay(() => database.query(true), 100), delay(() => database.query(false), 200), delay(() => database.query(false), 300) ]); } catch(error) { console.log('Error handled (or was it?)'); } disconnect(); } run();
+```
+
+Two of these queries happen to be unsuccessful, but we’re smart enough to wrap the `Promise.all` call into a `try..catch` block.
+
+However, this doesn’t help! This script actually leads to an uncaught error in console!
+
+Why? How to avoid it?
+
+The root of the problem is that `Promise.all` immediately rejects when one of its promises rejects, but it do nothing to cancel the other promises.
+
+In our case, the second query fails, so `Promise.all` rejects, and the `try...catch` block catches this error.Meanwhile, other promises are *not affected* – they independently continue their execution. In our case, the third query throws an error of its own after a bit of time. And that error is never caught, we can see it in the console.
+
+The problem is especially dangerous in server-side environments, such as Node.js, when an uncaught error may cause the process to crash.
+
+How to fix it?
+
+An ideal solution would be to cancel all unfinished queries when one of them fails. This way we avoid any potential errors.
+
+However, the bad news is that service calls (such as `database.query`) are often implemented by a 3rd-party library which doesn’t support cancellation. Then there’s no way to cancel a call.
+
+As an alternative, we can write our own wrapper function around `Promise.all` which adds a custom `then/catch` handler to each promise to track them: results are gathered and, if an error occurs, all subsequent promises are ignored.
+
+```
+function customPromiseAll(promises) { return new Promise((resolve, reject) => { const results = []; let resultsCount = 0; let hasError = false; // we'll set it to true upon first error promises.forEach((promise, index) => { promise .then(result => { if (hasError) return; // ignore the promise if already errored results[index] = result; resultsCount++; if (resultsCount === promises.length) { resolve(results); // when all results are ready - successs } }) .catch(error => { if (hasError) return; // ignore the promise if already errored hasError = true; // wops, error! reject(error); // fail with rejection }); }); }); }
+```
+
+This approach has an issue of its own – it’s often undesirable to `disconnect()` when queries are still in the process.
+
+It may be important that all queries complete, especially if some of them make important updates.
+
+So we should wait until all promises are settled before going further with the execution and eventually disconnecting.
+
+Here’s another implementation. It behaves similar to `Promise.all` – also resolves with the first error, but waits until all promises are settled.
+
+```
+function customPromiseAllWait(promises) { return new Promise((resolve, reject) => { const results = new Array(promises.length); let settledCount = 0; let firstError = null; promises.forEach((promise, index) => { Promise.resolve(promise) .then(result => { results[index] = result; }) .catch(error => { if (firstError === null) { firstError = error; } }) .finally(() => { settledCount++; if (settledCount === promises.length) { if (firstError !== null) { reject(firstError); } else { resolve(results); } } }); }); }); }
+```
+
+Now `await customPromiseAllWait(...)` will stall the execution until all queries are processed.
+
+This is a more reliable approach, as it guarantees a predictable execution flow.
+
+Lastly, if we’d like to process all errors, we can use either use `Promise.allSettled` or write a wrapper around it to gathers all errors in a single [AggregateError](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError) object and rejects with it.
+
+```
+// wait for all promises to settle // return results if no errors // throw AggregateError with all errors if any function allOrAggregateError(promises) { return Promise.allSettled(promises).then(results => { const errors = []; const values = []; results.forEach((res, i) => { if (res.status === 'fulfilled') { values[i] = res.value; } else { errors.push(res.reason); } }); if (errors.length > 0) { throw new AggregateError(errors, 'One or more promises failed'); } return values; }); }
+```
+
+[Previous lesson](/microtask-queue)[Next lesson](/generators-iterators)
+
+Share
+
+[Tutorial map](/tutorial/map)
+
+## [Comments](#comments)
+
+read this before commenting…
+
+* If you have suggestions what to improve - please [submit a GitHub issue](https://github.com/javascript-tutorial/en.javascript.info/issues/new) or a pull request instead of commenting.
+* If you can't understand something in the article – please elaborate.
+* To insert few words of code, use the  `tag, for several lines – wrap them in  tag, for more than 10 lines – use a sandbox (plnkr, jsbin, codepen…)`
+
+#### Chapter
+
+#### Lesson navigation
+
+Share
+
+[Edit on GitHub](https://github.com/javascript-tutorial/en.javascript.info/blob/master/1-js/11-async/08-async-await)
+
+* © 2007—2026  Ilya Kantor
+* [about the project](/about)
+* [contact us](/about#contact-us)
+* [terms of usage](/terms)
+* [privacy policy](/privacy)

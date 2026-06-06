@@ -1,0 +1,232 @@
+Title: Cluster Architecture | Kubernetes
+**Key Points:** Cluster ArchitectureThe architectural concepts behind Kubernetes. If you are running Kubernetes on your own premises, or in a learning environment inside your own PC, the cluster does not have a cloud controller manager. Understanding these variations is crucial for designing and maintaining Kubernetes clusters that meet specific operational needs.
+
+Cluster ArchitectureThe architectural concepts behind Kubernetes.A Kubernetes cluster consists of a control plane plus a set of worker machines, called nodes, that run containerized applications. Every cluster needs at least one worker node in order to run Pods.The worker node(s) host the Pods that are the components of the application workload. The control plane manages the worker nodes and the Pods in the cluster. In production environments, the control plane usually runs across multiple computers and a cluster usually runs multiple nodes, providing fault-tolerance and high availability.This document outlines the various components you need to have for a complete and working Kubernetes cluster.Figure 1. Kubernetes cluster components.About this architectureThe diagram in Figure 1 presents an example reference architecture for a Kubernetes cluster. The actual distribution of components can vary based on specific cluster setups and requirements.In the diagram, each node runs the kube-proxy component. You need a network proxy component on each node to ensure that the Service API and associated behaviors are available on your cluster network. However, some network plugins provide their own, third party implementation of proxying. When you use that kind of network plugin, the node does not need to run kube-proxy.Control plane components The control plane's components make global decisions about the cluster (for example, scheduling), as well as detecting and responding to cluster events (for example, starting up a new pod when a Deployment's replicas field is unsatisfied).Control plane components can be run on any machine in the cluster. However, for simplicity, setup scripts typically start all control plane components on the same machine, and do not run user containers on this machine. See Creating Highly Available clusters with kubeadm for an example control plane setup that runs across multiple machines.kube-apiserver The API server is a component of the Kubernetes control plane that exposes the Kubernetes API. The API server is the front end for the Kubernetes control plane.The main implementation of a Kubernetes API server is kube-apiserver. kube-apiserver is designed to scale horizontally—that is, it scales by deploying more instances. You can run several instances of kube-apiserver and balance traffic between those instances.etcd Consistent and highly-available key value store used as Kubernetes' backing store for all cluster data.If your Kubernetes cluster uses etcd as its backing store, make sure you have a back up plan for the data.You can find in-depth information about etcd in the official documentation.kube-scheduler Control plane component that watches for newly created Pods with no assigned node, and selects a node for them to run on.Factors taken into account for scheduling decisions include: individual and collective resource requirements, hardware/software/policy constraints, affinity and anti-affinity specifications, data locality, inter-workload interference, and deadlines.kube-controller-manager Control plane component that runs controller processes.Logically, each controller is a separate process, but to reduce complexity, they are all compiled into a single binary and run in a single process.There are many different types of controllers. Some examples of them are:Node controller: Responsible for noticing and responding when nodes go down.Job controller: Watches for Job objects that represent one-off tasks, then creates Pods to run those tasks to completion.EndpointSlice controller: Populates EndpointSlice objects (to provide a link between Services and Pods).ServiceAccount controller: Create default ServiceAccounts for new namespaces.The above is not an exhaustive list.cloud-controller-manager A Kubernetes control plane component that embeds cloud-specific control logic. The cloud controller manager lets you link your cluster into your cloud provider's API, and separates out the components that interact with that cloud platform from components that only interact with your cluster.The cloud-controller-manager only runs controllers that are specific to your cloud provider. If you are running Kubernetes on your own premises, or in a learning environment inside your own PC, the cluster does not have a cloud controller manager.As with the kube-controller-manager, the cloud-controller-manager combines several logically independent control loops into a single binary that you run as a single process. You can scale horizontally (run more than one copy) to improve performance or to help tolerate failures.The following controllers can have cloud provider dependencies:Node controller: For checking the cloud provider to determine if a node has been deleted in the cloud after it stops respondingRoute controller: For setting up routes in the underlying cloud infrastructureService controller: For creating, updating and deleting cloud provider load balancersNode components Node components run on every node, maintaining running pods and providing the Kubernetes runtime environment.kubelet An agent that runs on each node in the cluster. It makes sure that containers are running in a Pod.The kubelet takes a set of PodSpecs that are provided through various mechanisms and ensures that the containers described in those PodSpecs are running and healthy. The kubelet doesn't manage containers which were not created by Kubernetes.kube-proxy (optional) kube-proxy is a network proxy that runs on each node in your cluster, implementing part of the Kubernetes Service concept.kube-proxy maintains network rules on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster.kube-proxy uses the operating system packet filtering layer if there is one and it's available. Otherwise, kube-proxy forwards the traffic itself.If you use a network plugin that implements packet forwarding for Services by itself, and providing equivalent behavior to kube-proxy, then you do not need to run kube-proxy on the nodes in your cluster.Container runtime A fundamental component that empowers Kubernetes to run containers effectively. It is responsible for managing the execution and lifecycle of containers within the Kubernetes environment.Kubernetes supports container runtimes such as containerd, CRI-O, and any other implementation of the Kubernetes CRI (Container Runtime Interface).Addons Addons use Kubernetes resources (DaemonSet, Deployment, etc) to implement cluster features. Because these are providing cluster-level features, namespaced resources for addons belong within the kube-system namespace.Selected addons are described below; for an extended list of available addons, please see Addons.DNS While the other addons are not strictly required, all Kubernetes clusters should have cluster DNS, as many examples rely on it.Cluster DNS is a DNS server, in addition to the other DNS server(s) in your environment, which serves DNS records for Kubernetes services.Containers started by Kubernetes automatically include this DNS server in their DNS searches.Web UI (Dashboard) Dashboard is a general purpose, web-based UI for Kubernetes clusters. It allows users to manage and troubleshoot applications running in the cluster, as well as the cluster itself.Container resource monitoring Container Resource Monitoring records generic time-series metrics about containers in a central database, and provides a UI for browsing that data.Cluster-level Logging A cluster-level logging mechanism is responsible for saving container logs to a central log store with a search/browsing interface.Network plugins Network plugins are software components that implement the container network interface (CNI) specification. They are responsible for allocating IP addresses to pods and enabling them to communicate with each other within the cluster.Architecture variations While the core components of Kubernetes remain consistent, the way they are deploy
+
+---
+
+Title: Kubernetes Architecture Explained (2026 Updated Edition)
+**Definition:** Note: To understand Kubernetes architecture better, there are some prerequisites Please check the prerequisites in the kubernetes learning guide to know more.
+
+**Key Points:** Kubernetes Architecture Explained (2026 Edition)
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Bibin Wilson
+ 
+ Jan 19, 2026 
+ 18 min read
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ On this page
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+ In this guide, you will explore Kubernetes architecture inside-out. Cloud Controller Manager (CCM)When kubernetes is deployed in cloud environments, the cloud controller manager acts as a bridge between Cloud Platform APIs and the Kubernetes cluster. Here Kubernetes provisions a Cloud-specific Loadbalancer and integrates with Kubernetes Service.
+
+## Kubernetes Native Objects (What the Architecture Manages)
+Till now we have learned about the core Kubernetes components and how each component works.
+All these components work towards managing the following key Kubernetes objects.
+
+
+## What is Kubernetes Architecture?
+The following Kubernetes architecture diagram shows all the components of the Kubernetes cluster and how external systems connect to the Kubernetes cluster.
+Click to view in HD
+The first and foremost thing you should understand about Kubernetes is, that it is a distributed system. Meaning, it has multiple components spread across different servers over a network. These servers could be Virtual machines or bare metal servers. We call it a Kubernetes cluster.
+A Kubernetes cluster consists of control plane nodes and worker nodes.
+
+
+## Kubernetes Architecture Explained (2026 Edition)
+Bibin Wilson
+    
+      Jan 19, 2026 
+      18 min read
+
+
+## How is communication between the control plane and worker nodes secured in Kubernetes?
+Communication between the control plane and worker nodes is secured using PKI certificates and communication between different components happens over TLS. This way, only trusted components can communicate with each other.
+
+
+## What is the purpose of the etcd key-value store in Kubernetes?
+Etcd primarily stores the kubernetes objects, cluster information, node information, and configuration data of the cluster, such as the desired state of the applications running on the cluster.
+
+
+## What is L4 and L7 routing in Kubernetes?
+Kubernetes Service object uses IP and Port for the traffic routing that is knows as L4 routing and Gateway API uses HTTP details like path, host, etc so is the L7 routing.
+
+
+## Is Kubernetes a Paas or IaaS?
+Kubernetes is a platform for the container orchestration so it has both capabilities of PasS and IaaS.
+
+
+## What happens to Kubernetes applications if the etcd goes down?
+While the running applications will not be affected if etcd experiences an outage. It will not be possible to create or update any objects without a functioning etcd
+
+
+## Core Components of the Kubernetes Control Plane
+First, let's take a look at each control plane component and the important concepts behind each component.
+
+
+## What is the purpose of the worker nodes in a Kubernetes cluster?
+Worker nodes are the servers (either bare-metal or virtual) that run the container in the cluster. They are managed by the control plane and receive instructions from it on how to run the containers that are part of pods.
+
+
+## Core Components of Kubernetes Worker Node
+Now let's look at each of the worker node components.
+
+
+## What is the main purpose of the Kubernetes control plane?
+The control plane is responsible for maintaining the desired state of the cluster and the applications running on it. It consists of components such as the API server, etcd, Scheduler, and controller manager.
+
+
+## Kubernetes Cluster Addon Components
+Apart from the core components, the kubernetes cluster needs addon components to be fully operational. Choosing an addon depends on the project requirements and use cases.
+Following are some of the popular addon components that you might need on a cluster.
+CNI Plugin (Container Network Interface)CoreDNS (For DNS server): CoreDNS acts as a DNS server within the Kubernetes cluster. By enabling this addon, you can enable DNS-based service discovery.Metrics Server (For Resource Metrics): This addon helps you collect performance data and resource usage of Nodes and pods in the cluster.Web UI (Kubernetes Dashboard): This addon enables the Kubernetes dashboard to manage the object via web UI.
+
+
+
+
+---
+
+Title: Kubernetes Architecture Explained: A Deep Dive into Cloud ...
+**Definition:** Kubernetes is an open-source container orchestrator that simplifies the complex process of managing containers at scale.
+
+**Key Points:** Core Components of Kubernetes Architecture
+Kubernetes consists of two main layers: the Control Plane and Node Components. Kubernetes Cluster Architecture
+Kubernetes introduces several abstraction layers to help define and manage applications efficiently. Master and worker nodes
+A Kubernetes cluster consists of two main types of nodes:
+
+Master nodes (Control Plane): Responsible for orchestrating and managing the cluster.
+
+## What is Kubernetes Architecture?
+The following diagram visually represents Kubernetes' architecture:
+Image by Author. The Kubernetes Architecture.
+The Control Plane components manage the cluster and ensure the desired state is maintained.
+The Worker Nodes execute workloads, running containers inside Pods.
+The API Server acts as the bridge between user interactions (via UI or CLI) and the cluster.
+Networking and storage add-ons extend Kubernetes capabilities for production environments.
+With this foundation in place, we can now explore the detailed roles of each component in Kubernetes’ cluster architecture.
+
+
+## Core Components of Kubernetes Architecture
+Kubernetes consists of two main layers: the Control Plane and Node Components. Let’s explore each in turn:
+
+
+## Use Cases of Kubernetes Architecture
+Kubernetes is widely adopted across industries for its ability to scale applications, ensure high availability, and support multi-cloud environments. Its architecture enables seamless workload management, making it a preferred choice for modern cloud-native applications.
+
+
+## Kubernetes Microservices Architecture
+Kubernetes is ideal for microservices, offering scalability, resilience, and automation for distributed applications. It enables:
+Automated scaling: Adjusts resources based on demand.
+Self-healing: Detects and replaces failed containers.
+Service discovery and load balancing: Efficient communication between microservices.
+Portability: Runs across cloud and on-premises environments.
+Declarative configuration: Uses YAML for predictable deployments.
+One common concern of professionals is whether to use Kubernetes or Docker Compose for your microservices. If that’s your case, I recommend the following guide Docker Compose vs Kubernetes to further understand it.
+
+
+## Kubernetes Cluster Architecture
+Kubernetes introduces several abstraction layers to help define and manage applications efficiently. These abstractions simplify deployment, scaling, and management across distributed environments.
+
+
+## Extending Kubernetes with add-ons
+Kubernetes is designed to be highly extensible, allowing you to customize and enhance its functionality through add-ons. While the control plane and worker nodes form the core infrastructure, add-ons provide networking, storage, monitoring, and automation capabilities that make Kubernetes more powerful and production-ready.
+
+
+## What is Kubernetes?
+Kubernetes is a powerful distributed system designed to orchestrate and manage containerized applications at scale. It enables organizations to deploy workloads across multiple physical or virtual machines, called Nodes, ensuring that applications remain available, scalable, and resilient to failures.
+One of Kubernetes’ core strengths is its ability to handle dynamic workloads efficiently. By automatically distributing containers across nodes, Kubernetes ensures that applications can scale horizontally, balancing workloads based on available resources. If a node becomes overloaded, Kubernetes reschedules workloads to healthy neighbor nodes, minimizing downtime and maintaining performance.
+If you are still a beginner with this technology, check out this Introduction to Kubernetes course to get started.
+
+
+## A brief history of Kubernetes
+Google originally developed Kubernetes as an open-source successor to Borg, their internal container management system. Released in 2014, Kubernetes quickly became the industry standard for container orchestration, supported by a vast ecosystem of tools and cloud providers. Today, it is maintained by the Cloud Native Computing Foundation (CNCF) and is widely adopted across industries for managing cloud-native applications.
+
+
+## Introduction to Kubernetes
+3 hr16.9K
+In this course, you will learn the fundamentals of Kubernetes and deploy and orchestrate containers using Manifests and kubectl instructions.
+
+
+## .css-1531qan{-webkit-text-decoration:none;text-decoration:none;color:inherit;}Containerization and V
+.css-set6so{-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;gap:16px;margin-bottom:12px;}
+.css-l8w85a{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;gap:16px;margin-bottom:12px;}
+.css-a2vx78{box-sizing:border-box;margin:0;min-width:0;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;gap:16px;margin-bottom:12px;}
+.css-i7f8ey{-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;gap:4px;}.css-1p8di5r{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;gap:4px;}.css-4yrfe3{box-sizing:border-box;margin:0;min-width:0;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;gap:4px;}.css-1nidj1s{color:#848492;}.css-1cvgzax{color:#5D6A77;font-size:14px;text-align:center;}.css-1tlx3u4{box-sizing:border-box;margin:0;min-width:0;color:#05192D;font-size:16px;line-height:1.5;color:#5D6A77;font-size:14px;text-align:center;}13 hr
+.css-1pu6a0g{overflow:hidden;text-overflow:ellipsis;}
+.css-klgjx2{box-sizing:border-box;margin:0;min-width:0;color:#05192D;font-size:16px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;}
+Learn the power of Docker and Kubernetes, this interactive track will allow you to build and deploy applications in modern environments.
+
+
+## Pod architecture
+At the core of Kubernetes is the Pod, which is the smallest deployable unit in the system. A Pod encapsulates one or more containers that share storage, networking, and configuration settings.
+Single-container Pods: The most common setup, where each Pod contains one container running a microservice.
+Multi-container Pods: Used when tightly coupled containers need to share resources and communicate efficiently.
+Pods are ephemeral, meaning they can be rescheduled or restarted as needed. Kubernetes manages Pods through Deployments, StatefulSets, and DaemonSets, ensuring scalability and availability.
+Image by Author. Pod’s Architecture.
+
+
+
+
+---
+
+Title: Kubernetes - Architecture - GeeksforGeeks
+**Key Points:** Worker nodes run application workloads and include kubelet for communication with the control plane, kube-proxy for networking, and a container runtime (such as containerd or Docker) to manage containers. Each Node can have multiple pods and pods have containers running inside them. These add-ons are typically deployed within the kube-system namespace, providing cluster-level capabilities and extending the native features of Kubernetes.
+
+CoursesTutorialsInterview PrepDevOpsCloud ComputingGitAWSDockerKubernetesMicrosoft AzureGoogle Cloud PlatformPythonGolangOperating SystemComputer NetworkKubernetes - ArchitectureLast Updated : 28 Apr, 2026Kubernetes follows a client–server architecture consisting of a control plane (master) and worker nodes. The control plane includes components such as the API Server, Scheduler, Controller Manager, and etcd for cluster state storage. Worker nodes run application workloads and include kubelet for communication with the control plane, kube-proxy for networking, and a container runtime (such as containerd or Docker) to manage containers.Control Plane ComponentsIt is basically a collection of various components that help us in managing the overall health of a cluster.  For example, if you want to set up new pods, destroy pods, scale pods, etc. Basically, 4 services run on the Control Plane:1. Kube-API serverThe API server is a component of the Kubernetes control plane that exposes the Kubernetes API. It is like an initial gateway to the cluster that listens to updates or queries via CLI like Kubectl. Kubectl communicates with API Server to inform what needs to be done like creating pods or deleting pods etc. It also works as a gatekeeper. It generally validates requests received and then forwards them to other processes. No request can be directly passed to the cluster, it has to be passed through the API Server.2. Kube-SchedulerWatches for newly created Pods that have no assigned node.Selects the best Worker Node for a Pod based on resource requirements, policy constraints, and hardware/software limits.3. Kube-Controller-ManagerRuns controller processes that maintain the "desired state" of the cluster.Node Controller: Monitors node health.Replication Controller: Ensures the correct number of Pod replicas are running.4. etcdA consistent, high-availability key-value store.Stores all cluster data (the "Source of Truth"). If it isn't in etcd, it doesn't exist in Kubernetes.Worker Node ComponentsThese are the nodes where the actual work happens. Each Node can have multiple pods and pods have containers running inside them. There are 3 processes in every Node that are used to Schedule and manage those pods. The following are the some of the components related to Node:1. Container runtimeThe software responsible for actually running the containers (e.g., containerd, CRI-O).It pulls images from a registry and starts/stops the containers.2. kubeletAn agent that runs on each node in the cluster.Ensures that containers are running in a Pod by following instructions (PodSpecs) from the Control Plane.Reports the health and status of the node back to the API server.3. kube-proxyA network proxy that maintains network rules on nodes.Allows network communication to your Pods from inside or outside of the cluster.Handles service discovery and load balancing.Addons Plug-inKubernetes add-ons are plug-ins that enhance the cluster's functionality, often installed as Kubernetes resources like DaemonSets, Deployments, and more. These add-ons are typically deployed within the kube-system namespace, providing cluster-level capabilities and extending the native features of Kubernetes. CoreDNS: A flexible, extensible DNS server that provides name resolution services for Kubernetes clusters, ensuring efficient service discovery and network routing.KubeVirt: Allows the running of virtual machines alongside containers, providing a unified management platform for both VMs and containerized applications.ACI (Application Containerization Interface): Facilitates the integration and management of containers across different environments, improving the portability and scalability of applications.Calico: A network policy engine that provides secure, high-performance networking for Kubernetes clusters, supporting both network policy enforcement and advanced routing capabilities.Commands for KubectlHere are some common commands for interacting with a Kubernetes cluster:To view a list of all the pods in the cluster, you can use the following command:kubectl get podslist of all the pods in the clusterTo view a list of all the nodes in the cluster, you can use the following command:kubectl get nodeslist of all the nodes in the clusterTo view a list of all the services in the cluster, you can use the following command:kubectl get serviceslist of all the services in the clusterCommentArticle Tags:Article Tags:Technical ScripterKubernetesDevOpsTechnical Scripter 2022Kubernetes-Basics+1 MoreExploreDevOps BasicsWhat is DevOps6 min readDevOps Lifecycle5 min readThe Evolution of DevOps - 3 Major Trends for Future7 min readVersion ControlVersion Control Systems4 min readMerge Strategies in Git4 min readWhich Version Control System Should I Choose?5 min readCI & CDWhat is CI/CD?7 min readUnderstanding Deployment Automation4 min readContainerizationWhat is Docker?6 min readWhat is Dockerfile Syntax?5 min readOrchestrationKubernetes - Introduction to Container Orchestration4 min readFundamental Kubernetes Components and their role in Container Orchestration12 min readHow to Use AWS ECS to Deploy and Manage Containerized Applications?4 min readInfrastructure as Code (IaC)Infrastructure as Code (IaC)7 min readIntroduction to Terraform8 min readAWS Cloudformation11 min readMonitoring and LoggingWorking with Prometheus and Grafana Using Helm5 min readWorking with Monitoring and Logging Services5 min readMicrosoft Teams vs Slack4 min readSecurity in DevOpsWhat is DevSecOps: Overview and Tools10 min readDevOps Best Practices for Kubernetes11 min readTop 10 DevOps Projects with Source Code [2025]8 min read

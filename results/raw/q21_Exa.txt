@@ -1,0 +1,222 @@
+Title: Containers vs. VMs: What are the key differences? | TechTarget
+Key Highlights:
+The difference between containers and VMs is primarily in the location of the virtualization layer and the way OS resources are used. Containers and VMs are simply different ways of provisioning and using compute resources -- processors, memory and I/O -- that are already present in a physical computer. Although the goal of virtualization is the same as containers, the approach is notably different, and each approach offers unique characteristics and tradeoffs for enterprise workloads.
+[...]
+Virtual machines rely on a hypervisor, which is a software layer installed atop the bare-metal system hardware. Such hypervisors are called Type 1 or bare-metal hypervisors. Type 1 hypervisors, such as VMware vSphere ESXi and Microsoft Hyper-V, are perceived as OSes in their own right. Once administrators install the hypervisor layer, they can provision VM instances from the system's available computing resources. Each VM can then receive its own unique OS and workload. Thus, VMs are fully isolated from one another -- no VM is aware of or relies on the presence of another VM on the same system -- and malware, application crashes and other problems affect only that VM. Admins can migrate VMs from one virtualized system to another without regard for the system's hardware or OSes.
+[...]
+- Isolation. Every VM is logically isolated from every other VM. VMs aren't aware of each other's presence and don't share software components.
+[...]
+- Compatibility. VMs are fully compatible with all standard x86 OSes, applications and other software components, so VMs can run any software that runs on a physical x86 computer.
+[...]
+- Portability. VMs can be migrated from one virtualized computer to another virtualized
+[...]
+Containers are logical instances provisioned from system hardware resources that have been virtualized by container engine software. Each container can then be loaded with a software application and its associated dependencies and can redeploy easily between physical systems where a suitable container engine is present.
+[...]
+The virtualized container environment is arranged differently. With containers, a host OS, such as Linux, is installed on the system first, and then a container layer -- typically, a container manager, such as Docker -- is installed atop the host OS. The container manager provides the hypervisor for containers. The approach is almost identical to hosted or Type 2 hypervisors.
+[...]
+Once admins install the container layer, they can provision container instances from the system's available computing resources and deploy enterprise application components in the containers. However, every containerized application shares the same underlying OS: the single host OS. By comparison, every VM gets its own unique OS. Although the container layer provides a level of logical isolation between containers, the common OS can present a single point of failure for all containers on the system. As with VMs, containers are also easily migrated between physical systems with a suitable OS and container layer environment.
+[...]
+- Deployment. Both containers and VMs can be deployed by loading a desired image file into a corresponding virtual instance. An image file packages all the components needed to start a VM or container. VMs can also be deployed manually, as they act as independent computers.
+[...]
+- Fault tolerance. Both containers and VMs support fault-tolerant techniques, such as load-balanced clustering, and both can be readily recovered or restarted from their respective image files. Containers are natively stateless and usually carry little risk of data loss when a fault occurs. VMs are naturally persistent and can potentially suffer some amount of data loss when a fault occurs.
+[...]
+- Isolation. VMs have complete logical isolation. VMs aren't aware of any other VM in the environment -- even though other VMs might be running on the same physical computer. Containers have less isolation because containers share a common OS kernel.
+[...]
+- Load balancing. VMs enable live migration and can be migrated from one virtualized computer to another to balance computing and networking loads. Containers don't move but are recreated on target computers before destroying the original instance. Thus, containers readily support immutable infrastructure concepts.
+[...]
+environment might strain
+[...]
+than fewer VMs.
+[...]
+- Performance. Both containers and VMs provide excellent performance at close to bare-metal speeds. VMs have a slight performance edge because VMs don't face the potential contention of a shared OS.
+[...]
+- Persistent storage. VMs include persistent storage with a virtual hard disk. Containers natively work from memory and require careful storage tools, such as Docker data volumes, to preserve container data once the container is destroyed.
+[...]
+- Portability and compatibility. VMs share common virtualization technologies, often based on or built from open source components. VMs can be portable and compatible with systems employing similar virtualization platforms. Containers are highly portable, and the component packaging incorporated into container image files can enable containers to run on almost any system that supports the container platform. However, container platforms aren't completely compatible.
+[...]
+- Resources. Containers use fewer computing resources and typically host smaller applications than VMs, so an enterprise can potentially fit far more containers on a single computer.
+[...]
+- Scalability. Containers are smaller and require fewer resources than VMs, so containers can scale -- be created or destroyed -- much faster than VMs. Containers are often employed where short-term compute instances are required.
+[...]
+- Security. VMs use separate OSes and applications, so a security flaw in one VM doesn't translate to other VMs in the environment. Containers share a common OS and can be affected by flaws in the OS, so they aren't as secure as VMs. However, containers can be operated within a VM in a hybrid deployment approach, which can help contain potential security vulnerabilities.
+[...]
+- Updates and upgrades. VMs act as independent, fully functional computers. VM contents, such as OSes, drivers and applications, can be patched, updated and upgraded through traditional techniques. Containers use a fixed package of libraries and binaries that are created to run on container platforms, such as Docker. Containers can't be readily upgraded or updated live. Instead, container files are updated and versioned, and the new image file can be redeployed to implement the updates. This also supports immutable infrastructure concepts.
+
+---
+
+Title: Containers vs. virtual machines | Microsoft Learn
+Key Highlights:
+Containers vs. virtual machines | Microsoft Learn
+
+Ask Learn Ask Learn
+
+# Containers vs. virtual machines
+
+Applies to: Windows Server 2025, Windows Server 2022, Windows Server 2019, Windows Server 2016
+
+This topic discusses some of the key similarities and differences between containers and virtual machines (VMs), and when you might want to use each. Containers and VMs each have their uses–in fact, many deployments of containers use VMs as the host operating system rather than running directly on the hardware, especially when running containers in the cloud.
+
+For an overview of containers, see Windows and containers.
+
+## Container architecture
+
+A container is an isolated, lightweight silo for running an application on the host operating system. Containers build on top of the host operating system's kernel (which can be thought of as the buried plumbing of the operating system), and contain only apps and some lightweight operating system APIs and services that run in user mode, as shown in this diagram.
+
+## Virtual machine architecture
+
+In contrast to containers, VMs run a complete operating system–including its own kernel–as shown in this diagram.
+
+## Containers vs. virtual machines
+
+The following table shows some of the similarities and differences of these complementary technologies.
+
+Expand table
+
+Updating or upgrading the operating system files within a container is the same:
+
+1. Edit your container image's build file (known as a Dockerfile) to point to the latest version of the Windows base image.
+2. Rebuild your container image with this new base image.
+3. Push the container image to your container registry.
+4. Redeploy using an orchestrator.The orchestrator provides powerful automation for doing this at scale. For details, see Tutorial: Update an application in Azure Kubernetes Service.
+
+| Feature | Virtual machine | Container |
+| --- | --- | --- |
+| Isolation | Provides complete isolation from the host operating system and other VMs. This is useful when a strong security boundary is critical, such as hosting apps from competing companies on the same server or cluster. | Typically provides lightweight isolation from the host and other containers, but doesn't provide as strong a security boundary as a VM. (You can increase the security by using Hyper-V isolation mode to isolate each container in a lightweight VM). |
+| Operating system | Runs a complete operating system including the kernel, thus requiring more system resources (CPU, memory, and storage). | Runs the user mode portion of an operating system, and can be tailored to contain just the needed services for your app, using fewer system resources. |
+| Guest compatibility | Runs just about any operating system inside the virtual machine. | Runs on the same operating system version as the host(Hyper-V isolation enables you to run earlier versions of the same OS in a lightweight VM environment). |
+| Deployment | Deploy individual VMs by using Windows Admin Center or Hyper-V Manager; deploy multiple VMs by using PowerShell or System Center Virtual Machine Manager. | Deploy individual containers by using Docker via command line; deploy multiple containers by using an orchestrator such as Azure Kubernetes Service. |
+| Operating system updates and upgrades | Download and install operating system updates on each VM. Installing a new operating system version requires upgrading or often just creating an entirely new VM. This can be time-consuming, especially if you have a lot of VMs. |
+| Persistent storage | Use a virtual hard disk (VHD) for local storage for a single VM, or an SMB file share for storage shared by multiple servers. | Use Azure Disks for local storage for a single node, or Azure Files (SMB shares) for storage shared by multiple nodes or servers. |
+| Load balancing | Virtual machine load balancing moves running VMs to other servers in a failover cluster. | Containers themselves don't move; instead an orchestrator can automatically start or stop containers on cluster nodes to manage changes in load and availability. |
+| Fault tolerance | VMs can fail over to another server in a cluster, with the VM's operating system restarting on the new server. | If a cluster node fails, any containers running on it are rapidly recreated by the orchestrator on another cluster node. |
+| Networking | Uses virtual network adapters. | Uses an isolated view of a virtual network adapter, providing a little less virtualization–the host's firewall is shared with containers–while using less resources. For more, see Windows container networking. |
+
+---
+
+- Last updated on 01/22/2025
+
+Ask Learn is an AI assistant that can answer questions, clarify concepts, and define terms using trusted Microsoft documentation.
+
+Please sign in to use Ask Learn.
+
+Sign in
+
+---
+
+Title: Containers vs. VMs: What’s the Best Choice for Your Workloads? | JFrog
+Key Highlights:
+Containers and virtual machines (VMs) are nothing new. The concepts of resource partitioning and multi-tasking date back as far as the 1960s—from which VMs and containers evolved over the following twenty years. But the two technologies have only relatively recently started to take off. VMs were the first to go mainstream in the early 2000s. Then, following the launch of Docker in 2013, the adoption of containers also began to skyrocket.
+[...]
+A VM is a simulated operating environment, which serves as a virtual computer within a host computer and behaves just like physical hardware in its own right. The host computer uses a hypervisor to emulate VMs, which are autonomous systems isolated from each other and the underlying host.
+[...]
+A hypervisor can run multiple VMs on a single physical machine. This helps to make more efficient use of infrastructure. In addition, hypervisors support a range of guest operating systems, so you can run different versions of Windows Server and distributions of Linux on the same hardware.
+[...]
+Containers also provide isolated operating environments for your workloads, but use a different method of abstracting resources. They use neither a hypervisor nor a full-blown guest operating system (OS). Instead, they work by sharing the kernel of the host OS with other containers.
+[...]
+What’s more, they package up only those resources (e.g., installations, dependencies and code) that your applications actually need. As a result, containers are far more compact than their VM counterparts.
+[...]
+A typical setup would be multiple VMs running on a bare-metal server, where each VM runs multiple containers. This eventually allows for the best utilization of resources. This is the default setup in all cloud-based services. The following sections will describe the relationships between VMs and containers.
+[...]
+As containers avoid the resource overhead of hardware emulation, and are more streamlined application environments, they tend to offer better overall performance than VMs. They can also stop and start more quickly, making them more responsive than VMs to fluctuating scaling requirements. However, as most containerized workloads are currently hosted on VM-based infrastructure, relatively few deployments fulfill their performance potential.
+[...]
+VMs help to reduce the number of physical machines you need to host your workloads and keep costs down. However, containers generally have a much lower infrastructure footprint. Not only can you fit more of them on a bare-metal server, you can typically fit several containers on a VM. So, either way you look at it, containers help you to get more from your hardware.
+[...]
+Additionally, containers lend themselves particularly well to cloud-native applications based on clusters of loosely coupled services. Although you can also use VMs to host your microservices, containers give you finer-grained control over resource allocation. So, with good cluster management, you can make more efficient use of your cloud resources and reduce your monthly pay-as-you-go bills.
+[...]
+Applications packaged to containers tend to be more portable, as they’re far less cumbersome than the full server environments of VM deployments. You can run them on different Linux machines with different configurations, provided the kernel of each host OS is compatible with the container environment.
+[...]
+However, a Linux container cannot run on a Windows host without an additional virtualization layer. Likewise, a Windows-based container cannot run on a Linux host. By contrast, with a VM, you can run a Linux-based application on Windows and vice versa. Nevertheless, your application will still be tied to the same guest operating system.
+[...]
+New types of containers, such as Windows Hyper-V Containers, carry their own kernel and are analogous to lightweight versions of VMs. These are designed to increase the level of isolation between container environments and their host. However, the technology may ultimately lead to full container portability between Linux and Windows systems.
+[...]
+portability will also depend on the
+[...]
+. It will also
+[...]
+Containers and VMs use different methods to isolate your applications. Accordingly, they offer different security advantages. The illustration below displays the two levels of isolation that can strengthen the overall security of a containerized application. The first level is the separation of VMs, the second is the isolated containers within VMs.
+[...]
+Containerized applications are typically compartmentalized, where container boundaries make it harder for a security breach to spread throughout your infrastructure. As they are more streamlined environments, which provide only the resources an application needs, containers also have a smaller attack surface.
+[...]
+On the other hand, a hypervisor layer ensures VMs can offer a much higher level of isolation between an application and the host environment. In a single VM, containers still share the same kernel, which presents an element of risk. However, this is mitigated by security layers within the container engine. This highlights the reason why so many containerized workloads run on VMs rather than directly on host infrastructure, as this is a deployment method that provides both forms of isolation and enhanced security benefits.
+[...]
+A hybrid deployment method offers the best of both worlds
+[...]
+Type of abstraction
+[...]
+Application environment only
+[...]
+Full hardware emulation
+[...]
+Primary use case
+[...]
+Full-blown server
+[...]
+Limited by host OS
+[...]
+Limited by guest OS
+[...]
+Robust protection between services
+[...]
+Robust protection from host
+
+---
+
+Title: Containers are not VMs | Docker
+Key Highlights:
+I get it because I did the exact same thing when I first started working with Docker. It’s easy to connect those dots as both technologies share some characteristics. Both are designed to provide an isolated environment in which to run an application. Additionally, in both cases that environment is represented as a binary artifact that can be moved between hosts. There may be other similarities, but to me these are the two biggies.
+[...]
+The key is that the underlying architecture is fundamentally different between the two. The analogy I use (because if you know me, you know I love analogies) is comparing houses (VMs) to apartment buildings (containers).
+[...]
+Houses (the VMs) are fully self-contained and offer protection from unwanted guests. They also each possess their own infrastructure – plumbing, heating, electrical, etc. Furthermore, in the vast majority of cases houses are all going to have at a minimum a bedroom, living area, bathroom, and kitchen. I’ve yet to ever find a “studio house” – even if I buy the smallest house I may end up buying more than I need because that’s just how houses are built. (for the pedantic out there, yes I’m ignoring the new trend in micro houses because they break my analogy)
+[...]
+Apartments (the containers) also offer protection from unwanted guests, but they are built around shared infrastructure. The apartment building (Docker Host) shares plumbing, heating, electrical, etc. Additionally apartments are offered in all kinds of different sizes – studio to multi-bedroom penthouse. You’re only renting exactly what you need. Finally, just like houses, apartments have front doors that lock to keep out unwanted guests.
+[...]
+With containers, you share the underlying resources of the Docker host and you build an image that is exactly what you need to run your application. You start with the basics and you add what you need. VMs are built in the opposite direction. You are going to start with a full operating system and, depending on your application, might be strip out the things you don’t want.
+[...]
+To me the light bulb moment came when I realized that Docker is not a virtualization technology, it’s an application delivery technology. In a VM-centered world, the unit of abstraction is a monolithic VM that stores not only application code, but often its stateful data. A VM takes everything that used to sit on a physical server and just packs it into a single binary so it can be moved around. But it is still the same thing. With containers the abstraction is the application; or more accurately a service that helps to make up the application.
+[...]
+With containers, typically many services (each represented as a single container) comprise an application. Applications are now able to be deconstructed into much smaller components which fundamentally changes the way they are managed in production.
+[...]
+So, how do you backup your container, you don’t. Your data doesn’t live in the container, it lives in a named volume that is shared between 1-N containers that you define. You backup the data volume, and forget about the container. Optimally your containers are completely stateless and immutable.
+[...]
+Certainly patches will still be part of your world, but they aren’t applied to running containers. In reality if you patched a running container, and then spun up new ones based on an unpatched image, you’re gonna have a bad time. Ideally you would update your Docker image, stop your running containers, and fire up new ones. Because a container can be spun up in a fraction off a second, it’s just much cheaper to go this route.
+[...]
+Your application server translates into a service run inside of a container. Certainly there may be cases where your microservices-based application will need to connect to a non-containerized service, but for the most part standalone servers where you execute your code give way to one or more containers that provide the same functionality with much less overhead (and offer up much better horizontal scaling).
+[...]
+I often have people ask me how to run huge monolithic apps in a container. There are many valid strategies for migrating to a microservices architecture that start with moving an existing monolithic application from a VM into a container but that should be thought of as the first step on a journey, not an end goal.
+[...]
+As you consider how your organization can leverage Docker, try and move away from a VM-focused mindset and realize that Docker is way more than just “a lightweight VM.” It’s an application-centric way to deliver high-performing, scalable applications on the infrastructure of your choosing.
+
+---
+
+Title: Containers Versus Virtual Machines (VMs): What’s The Difference? | IBM
+Key Highlights:
+Containers have become a dominant force in cloud native development, so it’s important to understand what they are and what they are not. While containers and VMs have distinct and unique characteristics, they are similar in that they both improve IT efficiency, provide application portability and enhance DevOps and the software development lifecycle.
+[...]
+abstraction layer over
+[...]
+hardware that allows the hardware elements of a single computer to be divided into multiple virtual computers.
+[...]
+The software used is called a hypervisor, a small layer that enables multiple operating systems to run alongside each other, sharing the same physical computing resources. When a hypervisor is used on a physical computer or server (also known as bare metal server) in a data center, it allows the physical computer to separate its operating system and applications from its hardware. Then, it can divide itself into several independent “virtual machines.”
+[...]
+Virtual machines(VMs) are a technology for building virtualized computing environments. They have been around for quite a while and are considered the foundation of the first generation of cloud computing.
+[...]
+Simply put, a virtual machine is an emulation of a physical computer. VMs enable teams to run what appear to be multiple machines, with multiple operating systems, on a single computer. VMs interact with physical computers by using lightweight software layers called hypervisors. Hypervisors can separate VMs from one another and allocate processors, memory and storage among them.
+[...]
+Containers are a lighter-weight, more agile way of handling virtualization—since they don’t use a hypervisor, you can enjoy faster resource provisioning and speedier availability of new applications.
+[...]
+Rather than spinning up an entire virtual machine, containerization packages together everything needed to run a single application or microservice (along with runtime libraries they need to run). The container includes all the code, its dependencies and even the operating system itself. This enables applications to run almost anywhere—a desktop computer, a traditional IT infrastructure or the cloud.
+[...]
+Containers use a form of operating system (OS) virtualization. Put simply, they leverage features of the host operating system to isolate processes and control the processes’ access to CPUs, memory and desk space.
+[...]
+In traditional virtualization, a hypervisor virtualizes physical hardware. The result is that each virtual machine contains a guest OS, a virtual copy of the hardware that the OS requires to run and an application and its associated libraries and dependencies. VMs with different operating systems can be run on the same physical server. For example, a VMware VM can run next to a Linux VM, which runs next to a Microsoft VM, etc.
+[...]
+Instead of virtualizing the underlying hardware, containers virtualize the operating system (typically Linux or Windows) so each individual container contains only the application and its libraries and dependencies. Containers are small, fast, and portable because, unlike a virtual machine, containers do not need to include a guest OS in every instance and can, instead, simply leverage the features and resources of the host OS.
+[...]
+Just like virtual machines, containers allow developers to improve CPU and memory utilization of physical machines. However, containers go even further because they also enable microservice architectures, where application components can be deployed and scaled more granularly. This is an attractive alternative to having to scale up an entire monolithic application because a single component is struggling with load.
+[...]
+While there are still many reasons to use VMs, containers provide a level of flexibility and portability that is perfect for the multicloud world. When developers create new applications, they might not know all the places it will need to be deployed.
+[...]
+Today, an organization might run the application on its private cloud, but tomorrow it might need to deploy it on a public cloud from a different provider. Containerizing applications provides teams the flexibility that they need to handle the many software environments of modern IT.
+[...]
+Containers are also ideal for automation and DevOps pipelines, including continuous integration and continuous deployment(CI/CD) implementation.

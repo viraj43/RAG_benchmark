@@ -1,0 +1,1395 @@
+Title: API gateways - Azure Architecture Center | Microsoft Learn
+Table of contents Exit editor mode
+
+Ask LearnAsk Learn
+
+Reading modeTable of contents[Read in English](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway)Add to CollectionsAdd to plan[Edit](https://github.com/microsoftdocs/architecture-center/blob/main/docs/microservices/design/gateway.yml)
+
+* * *
+
+Copy MarkdownPrint
+
+* * *
+
+Note
+
+Access to this page requires authorization. You can try [signing in](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#) or changing directories.
+
+
+Access to this page requires authorization. You can try changing directories.
+
+
+# Use API gateways in microservices
+
+Feedback
+
+Azure Application Gateway
+
+
+Azure API Management
+
+
+In a microservices architecture, a client might interact with more than one front-end service. Given this fact, how does a client know what endpoints to call? What happens when new services are introduced, or existing services are refactored? How do services handle SSL termination, mutual TLS, authentication, and other concerns? An _API gateway_ can help to address these challenges.
+
+![Diagram of an API gateway](https://learn.microsoft.com/en-us/azure/architecture/microservices/images/gateway.png)
+
+_Download a [Visio file](https://arch-center.azureedge.net/gateway.vsdx) of this architecture._
+
+[Section titled: What is an API gateway?](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#what-is-an-api-gateway)
+
+## What is an API gateway?
+
+An API gateway provides a centralized entry point for managing interactions between clients and application services. It acts as a reverse proxy and routes clients requests to the appropriate services. It can also perform various cross-cutting tasks such as authentication, SSL termination, mutual TLS, and rate limiting.
+
+[Section titled: Why use an API gateway?](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#why-use-an-api-gateway)
+
+## Why use an API gateway?
+
+An API gateway simplifies communication, enhances client interactions, and centralizes the management of common service-level responsibilities. It acts as an intermediary, and it prevents direct exposure of application services to clients. Without an API gateway, clients must communicate directly with individual application services, which can introduce the following challenges:
+
+- **Complex client code**: It can result in complex client code. Clients must track multiple endpoints and handle failures resiliently.
+
+- **Tight coupling**: It creates coupling between the client and the backend. Clients need to understand decomposition of individual services, complicating service maintenance and refactoring.
+
+- **Increased latency**: A single operation might require calls to multiple services. The result can be multiple network round trips between the client and the server, adding significant latency.
+
+- **Redundant handling of concerns**: Each public-facing service must handle concerns such as authentication, SSL, and client rate limiting.
+
+- **Protocol limitations**: Services must expose a client-friendly protocol such as HTTP or WebSocket. This exposure limits [communication protocols](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/interservice-communication) options.
+
+- **Expanded attack surface**: Public endpoints increase the potential attack surface and require hardening.
+
+
+[Section titled: How to use an API gateway](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#how-to-use-an-api-gateway)
+
+## How to use an API gateway
+
+An API gateway can be tailored to your application’s requirements by using specific design patterns. These design patterns address key functionality such as routing, request aggregation, and cross-cutting concerns:
+
+- [Gateway routing](https://learn.microsoft.com/en-us/azure/architecture/patterns/gateway-routing). You can use an API gateway as a reverse proxy to route client requests to different application services. The API gateway uses layer-7 routing and provides a single endpoint for clients to use. Use API gateway routing when you want to decouple clients from application services.
+
+- [Gateway aggregation](https://learn.microsoft.com/en-us/azure/architecture/patterns/gateway-aggregation). You can use the API gateway to aggregate multiple client requests into a single request. Use this pattern when a single operation requires calls to multiple application services. In API aggregation, the client sends one request to the API gateway. Then, the API gateway routes requests to the various services required for the operations. Finally, the API gateway aggregates the results and sends them back to the client. The aggregation helps reduce chattiness between the client and the application services.
+
+- [Gateway offloading](https://learn.microsoft.com/en-us/azure/architecture/patterns/gateway-offloading). You can use an API gateway to provide cross-cutting functionality, so individual services don't have to provide it. It can be useful to consolidate cross-cutting functionality into one place, rather than making every service responsible. Here are examples of functionality that you could offload to an API gateway:
+
+  - SSL termination
+  - Mutual TLS
+  - Authentication
+  - IP allowlist or blocklist
+  - Client rate limiting (throttling)
+  - Logging and monitoring
+  - Response caching
+  - Web application firewall
+  - GZIP compression
+  - Servicing static content
+
+[Section titled: API gateway options](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#api-gateway-options)
+
+## API gateway options
+
+Here are some options for implementing an API gateway in your application.
+
+- **Reverse proxy server**. Nginx and HAProxy are open-source reverse proxy offerings. They support features such as load balancing, SSL termination, and layer-7 routing. They have free versions and paid editions that provide extra features and support options. These products are mature with rich feature sets, high performance, and extensible.
+
+- **[Service mesh ingress controller](https://learn.microsoft.com/en-us/azure/aks/servicemesh-about/)**. If you use a service mesh, evaluate the ingress controller’s features specific to that service mesh. Check for AKS-supported add-ons like Istio and Open Service Mesh. Look for third-party open-source projects like Linkerd or Consul Connect. For example, the Istio ingress controller supports layer 7 routing, HTTP redirects, retries, and other features.
+
+- **[Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/)**. Application Gateway is a managed load balancing service. It provides perform layer-7 routing, SSL termination, and a web application firewall (WAF).
+
+- **[Azure Front Door](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview)**. Azure Front Door is a content delivery network (CDN). It uses global and local points of presence (PoPs) to provide fast, reliable, and secure access to your applications' static and dynamic web content globally.
+
+- **[Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/)**. API Management is a managed solution for publishing APIs to external and internal customers. It provides features to manage public-facing APIs, including rate limiting, IP restrictions, and authentication using Microsoft Entra ID or other identity providers. API Management doesn't perform any load balancing, so you should use it with a load balancer, such as Azure Application Gateway, or a reverse proxy. For more information, see [API Management with Azure Application Gateway](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-integrate-internal-vnet-appgateway).
+
+
+[Section titled: Choose an API gateway technology](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#choose-an-api-gateway-technology)
+
+## Choose an API gateway technology
+
+When selecting an API gateway, consider the following factors:
+
+- **Support all requirements.** Choose an API gateway that supports your required features. All the previous [API gateway options](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#api-gateway-options) support layer-7 routing. But their support for other features, such as authentication, rate limiting, and SSL termination, can vary. Assess whether a single gateway meets your needs or if multiple gateways are necessary.
+
+- **Prefer built-in offerings.** Use built-in API gateway and ingress solutions provided by your platform, such as Azure Container Apps and AKS, whenever they meet your security and control requirements. Only use a custom gateway if the built-in options lack necessary flexibility. Custom solutions require a governance model, such as GitOps, to manage its lifecycle effectively.
+
+- **Choose the right deployment model.** Use managed services like Azure Application Gateway and Azure API Management for reduced operational overhead. If you use general-purpose reverse proxies or load balancers, deploy them in a way that aligns with your architecture. You can deploy general-purpose API gateways to dedicated virtual machines or inside an AKS cluster in their Ingress Controller offerings. To isolate the API gateway from the workload, you can deploy them outside the cluster, but this deployment increases the management complexity.
+
+- **Manage changes.** When you update services or add new ones, you might need to update the gateway routing rules. Implement processes or workflows to manage routing rules when adding or modifying services, SSL certificates, IP allowlists, and security configurations. Use infrastructure-as-code and automation tools to streamline API gateway management.
+
+
+[Section titled: Next steps](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#next-steps)
+
+## Next steps
+
+Previous articles explored the interfaces _between_ microservices and between microservices and client applications. These interfaces treat each service as a self-contained, opaque unit. A critical principle of microservices architecture is that services should never expose internal details about how they manage data. This approach has significant implications for maintaining data integrity and consistency, which is the subject of the next article.
+
+[Data considerations for microservices](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
+
+[Section titled: Related resources](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#related-resources)
+
+## Related resources
+
+- [Design APIs for microservices](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/api-design)
+- [Design a microservices architecture](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/)
+- [Using domain analysis to model microservices](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/domain-analysis)
+- [Microservices assessment and readiness](https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/microservices-assessment)
+
+* * *
+
+## Feedback
+
+Was this page helpful?
+
+
+YesNoNo
+
+Need help with this topic?
+
+
+Want to try using Ask Learn to clarify or guide you through this topic?
+
+
+Ask LearnAsk Learn
+
+Suggest a fix?
+
+Ask Learn is an AI assistant that can answer questions, clarify concepts, and define terms using trusted Microsoft documentation.
+
+Please sign in to use Ask Learn.
+
+[Sign in](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway#)
+
+---
+
+Title: Amazon API Gateway - AWS Documentation
+## Select your cookie preferences
+
+We use essential cookies and similar tools that are necessary to provide our site and services. We use performance cookies to collect anonymous statistics, so we can understand how customers use our site and make improvements. Essential cookies cannot be deactivated, but you can choose “Customize” or “Decline” to decline performance cookies.
+
+If you agree, AWS and approved third parties will also use cookies to provide useful site features, remember your preferences, and display relevant content, including relevant advertising. To accept or decline all non-essential cookies, choose “Accept” or “Decline.” To make more detailed choices, choose “Customize.”
+
+AcceptDeclineCustomize
+
+## Customize cookie preferences
+
+We use cookies and similar tools (collectively, "cookies") for the following purposes.
+
+### Essential
+
+Essential cookies are necessary to provide our site and services and cannot be deactivated. They are usually set in response to your actions on the site, such as setting your privacy preferences, signing in, or filling in forms.
+
+### Performance
+
+Performance cookies provide anonymous statistics about how customers navigate our site so we can improve site experience and performance. Approved third parties may perform analytics on our behalf, but they cannot use the data for their own purposes.
+
+Allowed
+
+### Functional
+
+Functional cookies help us provide useful site features, remember your preferences, and display relevant content. Approved third parties may set these cookies to provide certain site features. If you do not allow these cookies, then some or all of these services may not function properly.
+
+Allowed
+
+### Advertising
+
+Advertising cookies may be set through our site by us or our advertising partners and help us deliver relevant marketing content. If you do not allow these cookies, you will experience less relevant advertising.
+
+Allowed
+
+Blocking some types of cookies may impact your experience of our sites. You may review and change your choices at any time by selecting Cookie preferences in the footer of this site. We and selected third-parties use cookies or similar technologies as specified in the [AWS Cookie Notice](https://aws.amazon.com/legal/cookies/).
+
+CancelSave preferences
+
+## Unable to save cookie preferences
+
+We will only store essential cookies at this time, because we were unable to save your cookie preferences.
+
+If you want to change your cookie preferences, try again later using the link in the AWS console footer, or contact support if the problem persists.
+
+Dismiss
+
+# What is Amazon API Gateway?
+
+[PDF](https://docs.aws.amazon.com/pdfs/apigateway/latest/developerguide/apigateway-dg.pdf#welcome)
+
+[RSS](https://docs.aws.amazon.com/apigateway/latest/developerguide/amazon-apigateway-release-notes.rss)
+
+[Markdown](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.md "Download Markdown")
+
+Focus mode
+
+What is Amazon API Gateway? - Amazon API Gateway
+
+[Open PDF](https://docs.aws.amazon.com/pdfs/apigateway/latest/developerguide/apigateway-dg.pdf#welcome "Open PDF")
+
+[Architecture of API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#api-gateway-overview-aws-backbone) [Features of API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#api-gateway-overview-features) [Accessing API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#introduction-accessing-apigateway) [Part of AWS serverless infrastructure](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#api-gateway-overview-a-serverless-pillar) [How to get started with Amazon API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#welcome-how-to-get-started)
+
+Amazon API Gateway is an AWS service for creating, publishing, maintaining, monitoring, and
+securing REST, HTTP, and WebSocket APIs at any scale. API developers can create APIs that
+access AWS or other web services, as well as data stored in the [AWS Cloud](https://aws.amazon.com/what-is-cloud-computing/). As an API Gateway
+API developer, you can create APIs for use in your own client applications. Or you can make
+your APIs available to third-party app developers. For more information, see [Who uses API Gateway?](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-overview-developer-experience.html#apigateway-who-uses-api-gateway).
+
+API Gateway creates RESTful APIs that:
+
+- Are HTTP-based.
+
+- Enable stateless client-server communication.
+
+- Implement standard HTTP methods such as GET, POST, PUT, PATCH, and DELETE.
+
+
+For more information about API Gateway REST APIs and HTTP APIs, see [Choose between REST APIs and HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html), [API Gateway HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html), [Use API Gateway to create REST APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-overview-developer-experience.html#api-gateway-overview-rest), and [Develop REST APIs in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-develop.html).
+
+API Gateway creates WebSocket APIs that:
+
+- Adhere to the [WebSocket](https://datatracker.ietf.org/doc/html/rfc6455)
+protocol, which enables stateful, full-duplex communication between client and
+server.
+
+- Route incoming messages based on message content.
+
+
+For more information about API Gateway WebSocket APIs, see [Use API Gateway to create WebSocket APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-overview-developer-experience.html#api-gateway-overview-websocket) and [Overview of WebSocket APIs in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html).
+
+###### Topics
+
+- [Architecture of API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#api-gateway-overview-aws-backbone)
+
+- [Features of API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#api-gateway-overview-features)
+
+- [API Gateway use cases](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-overview-developer-experience.html)
+
+- [Accessing API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#introduction-accessing-apigateway)
+
+- [Part of AWS serverless infrastructure](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#api-gateway-overview-a-serverless-pillar)
+
+- [How to get started with Amazon API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html#welcome-how-to-get-started)
+
+- [Amazon API Gateway concepts](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-basic-concept.html)
+
+- [Choose between REST APIs and HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html)
+
+- [Get started with the REST API console](https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-rest-new-console.html)
+
+
+## Architecture of API Gateway
+
+The following diagram shows API Gateway architecture.
+
+![API Gateway architecture diagram](https://docs.aws.amazon.com/images/apigateway/latest/developerguide/images/Product-Page-Diagram_Amazon-API-Gateway-How-Works.png)
+
+This diagram illustrates how the APIs you build in Amazon API Gateway provide you or your
+developer customers with an integrated and consistent developer experience for building
+AWS serverless applications. API Gateway handles all the tasks involved in accepting and
+processing up to hundreds of thousands of concurrent API calls. These tasks include
+traffic management, authorization and access control, monitoring, and API version
+management.
+
+API Gateway acts as a "front door" for applications to access data, business logic, or
+functionality from your backend services, such as workloads running on Amazon Elastic Compute Cloud
+(Amazon EC2), code running on AWS Lambda, any web application, or real-time communication
+applications.
+
+## Features of API Gateway
+
+Amazon API Gateway offers features such as the following:
+
+- Support for stateful ( [WebSocket](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api.html)) and stateless ( [HTTP](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html) and
+[REST](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html)) APIs.
+
+- Powerful, flexible [authentication](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-to-api.html) mechanisms, such as AWS Identity and Access Management policies, Lambda
+authorizer functions, and Amazon Cognito user pools.
+
+- [Canary release deployments](https://docs.aws.amazon.com/apigateway/latest/developerguide/canary-release.html) for safely
+rolling out changes.
+
+- [CloudTrail](https://docs.aws.amazon.com/apigateway/latest/developerguide/cloudtrail.html) logging and monitoring of API usage and
+API changes.
+
+- CloudWatch access logging and execution logging, including the ability to set
+alarms. For more information, see [Monitor REST API execution with Amazon CloudWatch metrics](https://docs.aws.amazon.com/apigateway/latest/developerguide/monitoring-cloudwatch.html) and
+[Monitor WebSocket API execution with CloudWatch metrics](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-logging.html).
+
+- Ability to use CloudFormation templates to enable API creation. For more information,
+see [Amazon API Gateway Resource\\
+Types Reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_ApiGateway.html) and [Amazon API Gateway V2 Resource\\
+Types Reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_ApiGatewayV2.html).
+
+- Support for [custom domain\\
+names](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html).
+
+- Integration with [AWS WAF](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-aws-waf.html) for protecting your APIs against common web exploits.
+
+- Integration with [AWS X-Ray](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html) for
+understanding and triaging performance latencies.
+
+
+For a complete list of API Gateway feature releases, see [Document history](https://docs.aws.amazon.com/apigateway/latest/developerguide/history.html).
+
+## Accessing API Gateway
+
+You can access Amazon API Gateway in the following ways:
+
+- **AWS Management Console** – The AWS Management Console provides a web interface for creating
+and managing APIs. After you complete the steps in [Set up to use API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/setting-up.html), you can access the API Gateway
+console at [https://console.aws.amazon.com/apigateway](https://console.aws.amazon.com/apigateway).
+
+- **AWS SDKs** – If you're using a
+programming language that AWS provides an SDK for, you can use an SDK to access
+API Gateway. SDKs simplify authentication, integrate easily with your development
+environment, and provide access to API Gateway commands. For more information, see
+[Tools for Amazon Web\\
+Services](https://aws.amazon.com/developer/tools/).
+
+- **API Gateway V1 and V2 APIs** – If you're using
+a programming language that an SDK isn't available for, see the [Amazon API Gateway Version 1 API Reference](https://docs.aws.amazon.com/apigateway/latest/api/API_Operations.html)
+and [Amazon API Gateway Version 2 API Reference](https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/api-reference.html).
+
+- **AWS Command Line Interface** – For more information, see
+[Getting Set Up with the AWS Command Line Interface](https://docs.aws.amazon.com/cli/latest/userguide/) in the
+_AWS Command Line Interface User Guide_.
+
+- **AWS Tools for Windows PowerShell** – For more information, see
+[Setting Up the AWS Tools for Windows PowerShell](https://docs.aws.amazon.com/powershell/latest/userguide/) in the
+_AWS Tools for PowerShell User Guide_.
+
+
+## Part of AWS serverless infrastructure
+
+Together with [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/), API Gateway forms the app-facing
+part of the AWS serverless infrastructure. To learn more about getting started with serverless, see the
+[Serverless Developer Guide](https://docs.aws.amazon.com/serverless/latest/devguide/welcome.html).
+
+For an app to call publicly available AWS services, you can use Lambda to interact
+with required services and expose Lambda functions through API methods in API Gateway.
+AWS Lambda runs your code on a highly available computing infrastructure. It performs the
+necessary execution and administration of computing resources. To enable serverless
+applications, API Gateway supports [streamlined\\
+proxy integrations](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-set-up-simple-proxy.html) with AWS Lambda and HTTP endpoints.
+
+## How to get started with Amazon API Gateway
+
+For an introduction to Amazon API Gateway, see the following:
+
+- [Get started with API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started.html), which provides a walkthrough for creating an HTTP API.
+
+- [Serverless land](https://serverlessland.com/video?tag=Amazon%20API%20Gateway), which provides instructional videos.
+
+- [Happy Little API\\
+Shorts](https://www.youtube.com/playlist?list=PLJo-rJlep0EDFw7t0-IBHffVYKcPMDXHY), which is a series of brief instructional videos.
+
+
+[Document Conventions](https://docs.aws.amazon.com/general/latest/gr/docconventions.html)
+
+API Gateway use cases
+
+Did this page help you? - Yes
+
+Thanks for letting us know we're doing a good job!
+
+If you've got a moment, please tell us what we did right so we can do more of it.
+
+Did this page help you? - No
+
+Thanks for letting us know this page needs work. We're sorry we let you down.
+
+If you've got a moment, please tell us how we can make the documentation better.
+
+### View related pages
+
+Abstracts generated by AI
+
+Managedservices › userguide
+[Use AMS SSP to provision Amazon API Gateway in your AMS account![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/similar/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Cmanagedservices%7Clatest%7Cuserguide%7Capi-gateway.html)](https://docs.aws.amazon.com/managedservices/latest/userguide/api-gateway.html)
+AMS SSP enables REST WebSocket APIs, IAM roles federation, restricted VPCLink CREATE privileges AMS managed accounts.
+
+_May 1, 2026_
+
+### Discover highly rated pages
+
+Abstracts generated by AI
+
+- 1
+- 2
+- 3
+- 4
+
+Apigateway › developerguide
+[Choose between REST APIs and HTTP APIs![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/highlyRated/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Chttp-api-vs-rest.html)](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html)
+REST APIs offer per-client throttling, AWS WAF, request validation; HTTP APIs provide lower cost minimal features.
+
+_May 1, 2026_
+
+Apigateway › developerguide
+[Amazon API Gateway quotas![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/highlyRated/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Climits.html)](https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html)
+Account-level throttle limits, burst quota RPS, fixed quotas apply per Region for creating, deploying, managing APIs.
+
+_May 1, 2026_
+
+Apigateway › developerguide
+[Tutorial: Create a REST API with a Lambda proxy integration![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/highlyRated/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Capi-gateway-create-api-as-simple-proxy-for-lambda.html)](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html)
+Build REST API using Lambda proxy integration, create Hello World function, configure API Gateway, deploy, test via cURL.
+
+_May 1, 2026_
+
+- ### On this page
+
+- ### Related resources
+
+
+
+
+
+[Amazon API Gateway API Reference](https://docs.aws.amazon.com/apigateway/api-reference/index.html)
+
+
+
+[AWS CLI commands for Amazon API Gateway](https://docs.aws.amazon.com/cli/latest/reference/apigateway/)
+
+
+
+[SDKs & Tools](https://aws.amazon.com/tools/)
+
+- Recommended tasks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Learn about
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Understand what AWS Lambda is and how it works![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Clambda%7Clatest%7Cdg%7Cwelcome.html)](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)
+
+
+
+[Compare REST APIs and HTTP APIs capabilities for API Gateway![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Chttp-api-vs-rest.html)](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html)
+
+
+
+[Understand serverless development concepts and AWS services![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Cserverless%7Clatest%7Cdevguide%7Cwelcome.html)](https://docs.aws.amazon.com/serverless/latest/devguide/welcome.html)
+
+
+
+[Understand core concepts of Amazon API Gateway![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Capi-gateway-basic-concept.html)](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-basic-concept.html)
+
+
+
+[Understand Amazon API Gateway WebSocket and HTTP APIs![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigatewayv2%7Clatest%7Capi-reference%7Capi-reference.html)](https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/api-reference.html)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### How to
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Create a serverless API using Lambda and API Gateway quickly![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/QJ77LCjis9iHDG_Gga2duSTPjzgpR71OUYMnGQX7545L64FnIlfbKA==/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cwelcome.html/https:%7C%7Cdocs.aws.amazon.com%7Capigateway%7Clatest%7Cdeveloperguide%7Cgetting-started.html)](https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started.html)
+
+- Did this page help you?
+
+
+
+
+
+
+
+
+Yes
+
+
+
+No
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Provide feedback](https://docs.aws.amazon.com/feedback/doc-feedback.html?hidden_service_name=API+Gateway&topic_url=https%3A%2F%2Fdocs.aws.amazon.com%2Fapigateway%2Flatest%2Fdeveloperguide%2Fwelcome.html)
+
+
+#### Next topic:
+
+[API Gateway use cases](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-overview-developer-experience.html)
+
+## API Gateway architecture diagram
+
+![API Gateway architecture diagram](https://docs.aws.amazon.com/images/apigateway/latest/developerguide/images/Product-Page-Diagram_Amazon-API-Gateway-How-Works.png)
+
+Close
+
+---
+
+Title: What Is an API Gateway? - Palo Alto Networks
+[Deploy Bravely — Secure your AI transformation with Prisma AIRS](https://www.paloaltonetworks.com/deploybravely)
+
+[palo alto networks](https://www.paloaltonetworks.com/)
+
+Search
+
+All
+
+
+- [Tech Docs](https://docs.paloaltonetworks.com/search)
+
+Close search modal
+
+Table of Contents
+
+- [What Is a Cloud Workload Protection Platform (CWPP)?](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform)  - [The Importance of a CWPP](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#importance)
+  - [Key Features of a CWPP](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#features)
+  - [Benefits of a CWPP](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#benefits)
+  - [Cloud Workload Protection Vs. Application Security](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#security)
+  - [CWPPs and the Cloud-Native Application Protection Platform](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#protection)
+  - [CWPP Considerations for Security Leaders](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#leaders)
+  - [Cloud Workload Protection Platform FAQs](https://www.paloaltonetworks.com/cyberpedia/what-is-cwpp-cloud-workload-protection-platform#faqs)
+- [What Is Layer 7?](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7)  - [Layer 7 Explained](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#what)
+  - [Understanding the OSI Model](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#osi)
+  - [How Does Data Flow Through the OSI Model?](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#how)
+  - [The Role of Layer 7](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#role)
+  - [Layer 7 Load Balancing](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#load)
+  - [Layer 7 Security](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#security)
+  - [OSI Model Vs. the TCP/IP Model](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#model)
+  - [Layer 7 and the OSI Model FAQs](https://www.paloaltonetworks.com/cyberpedia/what-is-layer-7#faqs)
+- [Agentless vs Agent-Based Security](https://www.paloaltonetworks.com/cyberpedia/what-is-the-difference-between-agent-based-and-agentless-security)  - [Agentless Security](https://www.paloaltonetworks.com/cyberpedia/what-is-the-difference-between-agent-based-and-agentless-security#agentless)
+  - [Is Agentless or Agent-Based Security Better?](https://www.paloaltonetworks.com/cyberpedia/what-is-the-difference-between-agent-based-and-agentless-security#better)
+  - [FAQs](https://www.paloaltonetworks.com/cyberpedia/what-is-the-difference-between-agent-based-and-agentless-security#faqs)
+- [What Is a Workload?](https://www.paloaltonetworks.com/cyberpedia/what-is-workload)  - [Workloads Explained](https://www.paloaltonetworks.com/cyberpedia/what-is-workload#workloads)
+  - [Cloud Workload Characteristics](https://www.paloaltonetworks.com/cyberpedia/what-is-workload#cloud)
+  - [Cloud or On-Premises?](https://www.paloaltonetworks.com/cyberpedia/what-is-workload#phases)
+  - [Workload Management](https://www.paloaltonetworks.com/cyberpedia/what-is-workload#manage)
+  - [Workload Automation](https://www.paloaltonetworks.com/cyberpedia/what-is-workload#automation)
+  - [Cloud Workload Protection](https://www.paloaltonetworks.com/cyberpedia/what-is-workload#protection)
+- [What is the Difference Between Web Application Firewall (WAF) and Next-Generation Firewall (NGFW)?](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws)  - [What Is a Web Application Firewall (WAF)?](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#what)
+  - [What Is an NGFW?](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#ngfw)
+  - [The Similarities and Differences Between WAFs and NGFWs](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#the)
+  - [When to Use WAFs vs. NGFWs](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#when)
+  - [How Do WAFs and NGFWs Complement Each Other?](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#how)
+  - [What Customers Should Consider When Searching for a Web Application Security Solution](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#solution)
+  - [WAF vs NGFW FAQs](https://www.paloaltonetworks.com/cyberpedia/difference-between-wafs-and-ngfws#faqs)
+- [What Is Web Application and API Protection?](https://www.paloaltonetworks.com/cyberpedia/what-is-web-application-and-api-protection)
+- What Is an API Gateway?
+  - [API Gateway Explained](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#explained)
+  - [API Gateways for Microservices Architectures](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#architectures)
+  - [What Is the API Gateway Pattern?](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#pattern)
+  - [Challenges of API Gateways Potential Response Time Increases](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#response)
+  - [Use Cases and API Gateway Benefits](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#benefits)
+  - [Service Mesh Vs. API Gateway](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#service)
+  - [API Gateway Vs. Load Balancer](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#balancer)
+  - [API Gateways Security and WAFs](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#security)
+  - [API Gateway Solutions](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#solutions)
+  - [Industry Practices and Standards](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#practices)
+  - [API Gateway FAQs](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#faqs)
+
+# What Is an API Gateway?
+
+5 min. read
+
+Table of Contents
+
+- [API Gateway Explained](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#explained)
+- [API Gateways for Microservices Architectures](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#architectures)
+- [What Is the API Gateway Pattern?](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#pattern)
+- [Challenges of API Gateways Potential Response Time Increases](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#response)
+- [Use Cases and API Gateway Benefits](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#benefits)
+- [Service Mesh Vs. API Gateway](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#service)
+- [API Gateway Vs. Load Balancer](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#balancer)
+- [API Gateways Security and WAFs](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#security)
+- [API Gateway Solutions](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#solutions)
+- [Industry Practices and Standards](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#practices)
+- [API Gateway FAQs](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#faqs)
+
+1\. API Gateway Explained
+
+- [API Gateway Explained](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#explained)
+- [API Gateways for Microservices Architectures](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#architectures)
+- [What Is the API Gateway Pattern?](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#pattern)
+- [Challenges of API Gateways Potential Response Time Increases](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#response)
+- [Use Cases and API Gateway Benefits](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#benefits)
+- [Service Mesh Vs. API Gateway](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#service)
+- [API Gateway Vs. Load Balancer](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#balancer)
+- [API Gateways Security and WAFs](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#security)
+- [API Gateway Solutions](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#solutions)
+- [Industry Practices and Standards](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#practices)
+- [API Gateway FAQs](https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway#faqs)
+
+An API gateway is a server that acts as an intermediary between clients and [microservices](https://www.paloaltonetworks.com/cyberpedia/what-are-microservices) in a distributed software architecture, often within a cloud environment. Serving as a reverse proxy, it handles client requests, routes them to the appropriate microservices and aggregates responses from multiple microservices into one response for the client. The API gateway also provides additional functionality, such as authentication, authorization, rate limiting, caching, and monitoring. By centralizing these functions, the API gateway simplifies the development, management, and scalability of microservices-based applications.
+
+## API Gateway Explained
+
+API gateways are traffic conductors. They facilitate interactions between client applications and backend services. Operating as an intermediary between application programming interfaces (APIs) and their clients, the API gateway serves as the enforcement point for policies at runtime. This control includes how the gateway accepts API calls, routes requests to the appropriate services, aggregates results for responses, and translates protocols.
+
+Gateways also handle tasks like API authentication, rate limiting, and logging. By governing end-to-end access, transforming data and facilitating analytics, the API gateway earns a place in an organization’s API management strategy.
+
+![API Gateway for microservices](https://www.paloaltonetworks.com/content/dam/pan/en_US/images/cyberpedia/api-gateway-microservices.jpg?imwidth=1920)
+
+_Figure 1: Using an API gateway for client-to-microservice communication_
+
+The API gateway offers a unified point of access to the distributed architecture of [cloud-native](https://www.paloaltonetworks.com/cyberpedia/what-is-cloud-native) microservices. By orchestrating interactions, steering traffic, and providing a layer of abstraction, the gateway simplifies the client's view of the backend. Its primary role lies in encapsulating the internal microservices and system architecture and exposing a set of tailored APIs to the client.
+
+### How the API Gateway Works
+
+From the API call and response to performance and API protection, fulfilling its multifaceted role involves many steps.
+
+**Request Handling and Routing**
+
+When a client sends a request, the API gateway receives it and inspects the HTTP method, headers and URI to determine the target microservice. The gateway uses preconfigured routing rules to forward the request to the appropriate microservice instance. This process often involves load-balancing algorithms, such as Round Robin or Least Connections, to distribute the requests among the available instances.
+
+**Protocol Translation**
+
+API gateways can perform protocol translation between clients and microservices, allowing them to communicate using different protocols. A client might send a request using HTTP/REST, for example, which the gateway translates into a gRPC or message queue-based request before forwarding it to the target microservice.
+
+**Authentication and Authorization**
+
+[API security](https://www.paloaltonetworks.com/cyberpedia/what-is-api-security) is a crucial aspect of API management. The API gateway can act as a centralized point for implementing authentication and authorization mechanisms. It can integrate with identity providers (e.g., OAuth, OpenID Connect, SAML, or JWT) to validate incoming requests and ensure that clients have permissions to access the requested resources.
+
+**Rate Limiting and Quotas**
+
+To protect microservices from excessive load or abuse, the API gateway can enforce rate limits and quotas on incoming requests. Developers can establish this based on the client Internet Protocol, API key, user account, or other factors.
+
+**Response Transformation and Aggregation**
+
+The API gateway can modify and aggregate responses from multiple microservices before sending them back to the client. This includes transformations like adding, removing, or renaming fields in the response payload, converting data formats (e.g., XML to JSON), and aggregating data from multiple microservice responses into a single response object.
+
+**Caching**
+
+The API gateway can cache responses from microservices to reduce latency and improve performance. By storing frequently accessed data in-memory, the gateway can quickly respond to client requests without needing to repeatedly query the same data from the microservices.
+
+**Monitoring, Logging and Analytics**
+
+The API gateway can log incoming requests, responses, and errors, which provide valuable analytics data. This information can help system administrators and developers identify performance bottlenecks, detect security incidents and ensure the overall health of the system.
+
+**Resilience and Fault Tolerance**
+
+API gateways can implement resiliency patterns such as circuit breakers, retries, and timeouts to handle failures in the underlying microservices. In case a microservice instance becomes unresponsive or fails, the gateway can automatically redirect requests to other available instances, ensuring high availability and fault tolerance.
+
+Related Content
+
+[What Is Web Application and API Protection? \\
+\\
+APIs can spare developers from making every API from scratch. But ensuring web application and API protection in cloud-native environments is a challenge.](https://www.paloaltonetworks.com/cyberpedia/what-is-web-application-and-api-protection)
+
+[Tip Sheet: Secure Your APIs\\
+\\
+Unmanaged and unsecured APIs make easy targets for bad actors searching for exposed application logic, resources, and sensitive data.](https://www.paloaltonetworks.com/resources/datasheets/tip-sheet-secure-your-apis)
+
+[5 Best Practices for Securing Modern Web Applications and APIs\\
+\\
+As Web apps and APIs evolve, so does the attack surface. Developers and security practitioners need a comprehensive solution to protect their web apps and APIs.](https://www.paloaltonetworks.com/resources/ebooks/5-best-practices-for-securing-modern-web-applications-and-apis)
+
+[ESG Research Report: Security API Attack Surface\\
+\\
+We surveyed IT, cybersecurity, and application development professionals to uncover the latest trends in API security.](https://start.paloaltonetworks.com/2023-api-security-data-in-new-report.html)
+
+## API Gateways for Microservices Architectures
+
+Without an API gateway, developers would need to expose microservices to incoming requests and let the microservices determine how to respond. Imagine the resources needed for each microservice to decide whether to respond — on a scale of multiple microservices per application and countless requests.
+
+The API gateway is a building block in [microservices architectures](https://www.paloaltonetworks.com/cyberpedia/what-are-microservices), facilitating their decoupling nature and enhancing independent scalability and resilience.
+
+Acting as a façade, the gateway offers one entry point and a standardized interface that shields clients from the complexities of the underlying microservices. The gateway can tailor protocols to each microservice while presenting a consistent API to clients. It can also simplify client-side logic by translating between API styles — HTTP REST, gRPC, GraphQL — and aggregate responses from multiple services into a single response.
+
+_Figure 2: API transformation function in an API gateway_
+
+## What Is the API Gateway Pattern?
+
+The API gateway pattern defines an approach where a server acts as a single-entry point for different types of clients — web, mobile, desktop — accessing a system comprising numerous microservices. The pattern aims to encapsulate the system's architecture by simplifying the client's interaction and reducing the number of requests and amount of data that needs to pass between client and server.
+
+### Reverse Proxy or Gateway Routing
+
+The gateway routes client requests to the appropriate services within the system. By doing so, it hides the complexity of the system's internal structure from the client and reduces the client's need to manage multiple service endpoints.
+
+### Requests Aggregation
+
+The API gateway pattern can aggregate responses from multiple services into one response to minimize the number of round-trip requests between the client and the server. This helps to improve efficiency and reduce latency.
+
+### Cross-Cutting Concerns or Gateway Offloading
+
+The gateway handles cross-cutting concerns applicable across various services. Concerns can include logging, metrics, rate limiting and security. By managing them at the gateway level, it offloads these tasks from individual services, allowing them to focus on their core business logic.
+
+_Figure 3: The pattern is part of a distributed system reverse proxy or gateway routing._
+
+## Challenges of API Gateways Potential Response Time Increases
+
+While API gateways generally increase efficiency, they can introduce latency. The added processing steps for tasks like request routing, composition, and protocol translation can increase response time. Optimizing the performance of the API gateway will prevent it from forming a bottleneck.
+
+### Dependencies
+
+If not designed for scalability, API gateways can create dependencies, hindering the independent deployment and scalability of microservices. When all traffic has to pass through the gateway, it may limit the velocity and autonomy that a microservices architecture usually enables.
+
+### Complexity
+
+Implementing an API gateway adds another layer of complexity to the system. Configuration, maintenance, and the ongoing development of the gateway require effort and expertise, which might increase overhead on the team, especially for smaller projects.
+
+### Security Compromise
+
+While an API gateway can enhance security, it can also pose risks if compromised. Because it's a single point of entry to the system, any security breach could expose the underlying services. Careful design and implementation of security controls are imperative to mitigate risks.
+
+### Single Gateway Reliability
+
+The architecture of the API gateway poses another challenge — availability. Given its role in handling all incoming API calls, any downtime can impact the system. Ensuring high availability, redundancy, and fault tolerance of the API gateway gains importance in a production environment.
+
+## Use Cases and API Gateway Benefits
+
+API gateways serve diverse use cases across different architectural environments, playing a notable role in shaping the behavior of applications, particularly in distributed architectures.
+
+### Microservices Security
+
+As these architectures proliferate numerous discrete services, coordinating interactions and routing requests becomes convoluted. An API gateway can streamline the process, handling request routing, composition, and protocol translation. It stands at the frontline, directing incoming API calls to backend services.
+
+And as mentioned, by serving as a single entry point into the system, the API gateway can offer a layer of defense to fortify the security of microservices. It can enforce policies like SSL termination, access control and IP whitelisting, eliminating the need for each microservice to implement these measures. This arrangement simplifies the security landscape and reduces the potential for errors and vulnerabilities.
+
+### API Authentication
+
+An API gateway can authenticate user or system credentials, ensuring that only authorized entities can access the services. It supports different authentication mechanisms, such as OAuth or JWT, which offloads this responsibility from individual microservices and promotes better security practices.
+
+### Input Validation
+
+API gateways can perform request validation to ensure only correctly formatted data enters the system. By rejecting invalid requests at the gateway, it lightens the load on individual microservices, allowing them to focus on their primary functions.
+
+### Serverless Support
+
+In the context of serverless architectures, API gateways take on additional significance. With backend services running on demand, the API gateway needs to manage invocation requests for these functions. It also provides a buffer against the cold-start latency inherent in serverless environments.
+
+API gateways also play a role in managing the lifecycle of function-based services, including their invocation, scaling, and performance monitoring. They also handle version control, deployment, and staging, helping to streamline the function-as-a-service (FaaS) model that underpins serverless computing.
+
+### Billing for Microservices
+
+In commercial settings, API gateways can manage billing and metering for API usage. They can track the number of requests each client makes and can enforce usage quotas and limits, which allows for a granular understanding of API usage and supports a usage-based billing model.
+
+### Microservices Caching
+
+API gateways can take advantage of caching. By storing the response of a service request, the gateway can serve repeated requests for the same data, improving response times and reducing the load on backend services. It can also implement response compression to reduce bandwidth consumption and improve network efficiency.
+
+### Extending Legacy Apps
+
+Use cases extend to the modernization of legacy systems. An API gateway allows organizations to wrap legacy applications in modern, RESTful APIs. This technique enables these legacy systems to interact with modern applications and services without extensive refactoring.
+
+### Supports for DevOps and Serverless Environments
+
+In [DevOps practices](https://www.paloaltonetworks.com/cyberpedia/what-is-devops), an API gateway forms a crucial bridge between development and operations teams by establishing a unified front for all the microservices. It promotes continuous integration and delivery by ensuring that API changes and deployments do not negatively affect the system's overall operation.
+
+## Service Mesh Vs. API Gateway
+
+While both a service mesh and an API gateway manage interservice communication, their focus areas differ. A comprehensive microservices strategy often includes both an API gateway and a service mesh.
+
+Acting as a reverse proxy, the API gateway deals with client-to-services communication, or north-south traffic. The service mesh provides service discovery, load balancing, failure recovery, metrics and monitoring through service-to-service communication, or east-west traffic.
+
+## API Gateway Vs. Load Balancer
+
+A load balancer and an API gateway have overlapping functions, but their primary objectives diverge.
+
+A load balancer distributes network traffic across multiple servers to enhance responsiveness and availability. Operating at the transport layer, it distributes load based on policies and the health of backend servers.
+
+An API gateway operates at a higher level, focusing on application logic. It handles routing, aggregation, protocol translation and security. While it also can distribute requests among services, its features surpass those of a typical load balancer, encompassing application-level concerns and policies.
+
+_Video 1: Overview of API security and tips for enhancing API security_
+
+## API Gateways Security and WAFs
+
+API gateways and [web application firewalls (WAFs)](https://www.paloaltonetworks.com/cyberpedia/what-is-a-web-application-firewall) play distinct yet interconnected roles in the security and efficiency of web applications.
+
+The API gateway focuses on ensuring the correct use of APIs by enforcing valid request structures and authenticating and authorizing clients. It can block requests that don't meet criteria, but it usually can’t inspect the content of the requests for patterns matching known attack vectors.
+
+The WAF operates as a protective barrier for web applications, intercepting and inspecting HTTP traffic to identify and block threats. By using predefined security rules and anomaly detection, the WAF can prevent SQL injection, cross-site scripting (XSS), distributed denial-of-service (DDoS), and other types of attack. Its rules can also be updated to guard against newly discovered vulnerabilities and attack methods, which makes the WAF a vital line of defense against web application attacks.
+
+In practice, using an API gateway with a WAF provides a layered security approach. The API gateway manages interactions with the API, while the WAF provides an additional security layer against malicious activity. Together, they offer a powerful combination of application management and [API security](https://www.paloaltonetworks.com/cyberpedia/what-is-api-security).
+
+## API Gateway Solutions
+
+Organizations have several deployment options for API gateway, depending on the requirements and infrastructure of their applications.
+
+- On-premises: Organizations can deploy an API gateway on-premises within a data center, which provides control over the infrastructure and security.
+- Cloud-based: API gateway can be deployed in a public or private cloud environment, offering scalability, and flexibility.
+- Serverless: Using serverless computing platforms such as AWS Lambda or Azure Functions eliminates the need for organizations to manage underlying infrastructure.
+- Hybrid: With a combination of on-premises, cloud or serverless environments, organizations can meet unique application requirements.
+
+When exploring your API gateway options, look for a solution that meets your application's requirements. Consider factors like scalability, extensibility, and integration with existing infrastructure and services. Popular solutions include:
+
+**Amazon API Gateway**
+
+A fully managed service from Amazon Web Services (AWS), Amazon API Gateway handles all aspects of API management and traffic management. It supports WebSocket and REST APIs, has built-in DDoS protection, integrates with AWS services like Lambda and DynamoDB, and can scale to any volume of traffic.
+
+**Azure API Management**
+
+This Microsoft offering includes an API gateway, developer portal, and a variety of tools for defining and managing APIs. It offers features like throttling, routing, caching, identity provider integration and analytics.
+
+**Kong**
+
+An open-source API gateway and platform built on top of NGINX, Kong offers extensibility through a rich plugin ecosystem that includes integration with various databases and services. Kong also provides load balancing, authentication, rate limiting, and health checks.
+
+**Apigee**
+
+Apigee by Google Cloud provides a full-featured API platform that includes an API gateway, developer portal and tools for API design, monetization, security, analytics, and operations.
+
+**MuleSoft Anypoint Platform**
+
+An integration platform that includes API gateway functionality, MuleSoft Anypoint Platform offers features like security, caching and load balancing, along with integration and orchestration capabilities.
+
+## Industry Practices and Standards
+
+Follow leading practices for optimal gateway performance.
+
+**Implement security best practices:** Ensure that your API gateway is configured to enforce authentication, authorization, and encryption to protect your microservices from unauthorized access and potential security threats.
+
+**Monitor and log API traffic:** Collect logs and metrics from your API gateway to gain insights into the performance, availability, and security of your microservices. Use this data to identify issues, optimize performance, and detect potential security threats.
+
+**Optimize performance:** Configure caching, rate limiting, and load balancing in your API gateway to improve the performance and reliability of your microservices.
+
+**Plan for scalability:** Design your API gateway to accommodate growth in your application's user base and the number of microservices it supports. Consider using cloud-based or serverless deployment options for better scalability.
+
+**Maintain API documentation:** Keep your API documentation up to date and easily accessible for developers and clients, ensuring they have the information needed to interact with your microservices effectively.
+
+**Implement versioning:** Allow versioning in your API gateway to manage changes and updates to your microservices without breaking existing clients.
+
+**Use health checks and monitoring:** Regularly monitor the health and performance of your API gateway and microservices, setting up alerts and notifications to quickly detect and address issues.
+
+**Adopt a DevOps/DevSecOps culture:** Encourage collaboration between development, security and operations teams, ensuring that security and performance standards are integrated throughout the application lifecycle.
+
+## API Gateway FAQs
+
+### What is an API (Application Programming Interface)?
+
+APIs are sets of protocols and tools for building software applications. They define the methods and data formats that an application should use to communicate with other software components, operating systems or microservices.
+
+### What is an API call?
+
+An API call is the process that takes place when you send a request after setting up your API with the correct endpoints. Your information is transferred, processed, and feedback is returned back. An API call is a command from a user or system to the API of another system.
+
+### What is an API request?
+
+An API request is a communication from a client to an API that tells it to perform a specific action. It involves making a call to an API endpoint and typically includes:
+
+- Base URL of the API
+- Path specifying a resource
+- HTTP method indicating the desired action
+- Headers containing metadata
+- Possibly a body with data
+
+### What is API authentication?
+
+API authentication is a process that validates the identities of parties involved in API interactions. It uses methods like API keys, OAuth, or JWT to ensure that only authorized parties can access the API.
+
+### What is an API key?
+
+An API key is a unique identifier used to authenticate a client, developer, or calling program when making requests to an API. Typically generated as a long string of random characters by the API provider, API keys are issued to users who include the key in their requests. API gateways can be configured to require API keys for access. While they don't directly provide security, they help track and control how the API is used.
+
+### What is an API ID?
+
+An API ID is a unique identifier for an API. It is used for tracking, management, and controlling access to an API. In cloud services like AWS, each instance of an API gateway deployment is given an API ID, which is used in the invocation URL for the API. Similarly, in Google Cloud, each API is assigned a project ID and an API ID that are used to manage and call the API.
+
+### What is API caching?
+
+API caching stores the responses from microservices in a cache, allowing API gateway to serve cached responses to clients instead of forwarding requests to the microservices. Caching can improve application performance by reducing the load on the microservices and minimizing response times for clients.
+
+### What is fault tolerance?
+
+Fault tolerance is the ability of a system to continue operating correctly even in the presence of failures, such as hardware failures, software errors, or network issues. API gateway can be designed to provide fault tolerance by implementing features like load balancing, circuit breakers, and retries, ensuring that client requests are still processed even if some microservices are unavailable.
+
+### What is API throttling?
+
+API throttling is the process of limiting the number of API requests a client can make in a specific period. Throttling is used to prevent excessive load on the backend servers, ensuring fair usage of resources and protecting the API from potential denial-of-service attacks. API gateway can be configured to enforce rate limiting based on client IP addresses, API keys, or other identifiers.
+
+### What is serverless computing?
+
+[Serverless computing](https://www.paloaltonetworks.com/cyberpedia/what-is-serverless-security) is a cloud computing execution model that allows developers to build and run applications without managing the underlying infrastructure. In serverless computing, cloud providers automatically allocate resources and handle scaling, patching, and capacity planning. Developers only pay for the compute resources and execution time their applications consume.
+
+### What is a reverse proxy?
+
+A reverse proxy is a server that sits between clients and one or more backend servers, forwarding client requests to the appropriate backend server and returning the server's response to the client. Reverse proxies can be used for load balancing, caching, and security purposes.
+
+### What is a service mesh?
+
+A service mesh is a configurable infrastructure layer for a microservices application. It facilitates service-to-service communications, resilience, and observable behavior, while offloading these capabilities from the individual services.
+
+### What is transformation in API?
+
+API transformation refers to the process of modifying or converting the structure, format, or content of data exchanged between an API and its consumers. Transformation allows for communication and interoperability between different systems or applications that may have varying data requirements.
+
+In the context of APIs, transformation typically involves modifying the payload or data representation format, such as converting XML to JSON or vice versa, altering the data structure or performing data validation and enrichment. It can also include tasks like data mapping, protocol translation, or encryption/decryption.
+
+API transformation plays a crucial role in ensuring compatibility and efficient data exchange between the API provider and consumers, especially when dealing with heterogeneous systems or when adapting to different standards or protocols.
+
+### What is meant by versioning?
+
+When you implement versioning in your API gateway, you allow multiple versions of your API to coexist and be accessible to clients. Versioning maintains backward compatibility for older clients when you introduce new features, make changes to existing ones, or fix bugs in your microservices. API versioning ensures that your existing clients don't break when updates are made to the API, and it provides a smooth transition for clients to adopt the new API changes.
+
+### What is a REST API?
+
+A REST API (Representational State Transfer API) is a type of API that adheres to the principles of REST architectural style. It uses standard HTTP methods and is stateless, meaning each request from a client contains all the information needed to process the request. REST APIs interact with resources, where each resource is identified by a specific URL. The API uses different HTTP methods to manipulate these resources.
+
+### What is a RESTful API?
+
+A RESTful API is essentially the same as a REST API. The term emphasizes that the API adheres strictly to the principles of REST. This means the API has a clear separation of concerns (client-server architecture), it is stateless; it can cache data to improve performance; it has a uniform interface; and it is layered, allowing for encapsulation of legacy services and components.
+
+### What is a WebSocket API?
+
+A WebSocket API is a type of API that enables live, bidirectional communication between client and server over a single, long-lived connection. Unlike REST APIs, which are stateless, a WebSocket API maintains a persistent connection, allowing for instantaneous data push and synchronization.
+
+### What is an envoy proxy?
+
+Envoy Proxy is a high-performance, open-source edge and service proxy designed for cloud-native applications. It can handle outbound and inbound traffic for all services in an architecture and provides dynamic service discovery, load balancing, TLS termination, HTTP/2 and gRPC proxies, circuit breakers, health checks, and more. Envoy is often used as a component in service mesh deployments.
+
+### What is an API endpoint?
+
+An API endpoint is a specific route or URL where an API can be accessed by a client. Each endpoint is associated with a specific function or resource, and it often includes specific paths to perform various operations on that resource. For example, in a RESTful API, an endpoint for a user resource might be '/users', with '/users/{id}' allowing access to a specific user, and HTTP methods like GET, POST, PUT, DELETE used to perform operations on the resource.
+
+### What is an HTTP endpoint?
+
+An HTTP endpoint is a URL where a client application can access your API. This endpoint is exposed over HTTP(S) and defined by a URL pattern, an HTTP method (GET, POST, PUT, DELETE, etc.), and the types of data it can accept and return. An API is typically made up of multiple HTTP endpoints, each corresponding to a specific service or functionality.
+
+### What is an HTTP API?
+
+An HTTP API is an API that is accessed via HTTP (Hypertext Transfer Protocol) methods, such as GET, POST, PUT, and DELETE. It allows communication between software systems, often serving as a bridge to connect the client and server, so they can send and receive data. HTTP APIs can be built in multiple architectural types, including REST, GraphQL, or gRPC. Similarly, they can return data in various formats, such as JSON or XML.
+
+### What is a backend service?
+
+A backend service refers to any service that handles requests from a client application or frontend service but is not directly exposed to the user. Backend services can include databases, microservices, business logic services, and other server-side components. They are responsible for processing requests, performing operations, and returning the results back to the client application.
+
+### What is a backend API?
+
+A backend API is an API that serves as the interface for backend services. It encapsulates the business logic, data access operations and other server-side processing needed by client applications or frontend services. Client apps interact with backend APIs to retrieve data, execute business processes, and interact with underlying systems, databases, or other services. A backend API may be implemented in any number of architectural styles, such as REST, GraphQL, or gRPC.
+
+### What is open source?
+
+Open source refers to a type of software whose source code is available to the public and can be modified or enhanced by anyone. This promotes collaboration and transparency, as users are free to improve the software, fix bugs, or adapt it for their needs. Notable examples of open-source software include the Linux operating system, the Apache HTTP Server, and the MySQL database management system.
+
+### What is OAuth?
+
+OAuth (Open Authorization) is an open standard for access delegation, allowing users to grant third-party applications limited access to their resources without sharing their credentials. OAuth provides a secure and standardized way for applications to request and manage access tokens, which can be used to access protected resources on behalf of a user.
+
+### What is OpenID Connect?
+
+OpenID Connect (OIDC) is an identity layer built on top of the OAuth 2.0 protocol, used for user authentication. It allows clients to verify the identity of the user and obtain basic profile information in an interoperable manner. OIDC issues an ID token to the client after successful authentication. This can then be validated to ensure the integrity and authenticity of the user's data.
+
+### What is JSON Web Token (JWT)?
+
+JSON Web Token (JWT) is an open standard for securely transmitting information between parties as a JSON object. JWTs are often used for authentication and authorization purposes, as they can be digitally signed or encrypted to ensure the integrity and confidentiality of the transmitted data. In API gateway, JWTs can be used to authenticate clients and authorize access to microservices.
+
+### What is a cloud shell?
+
+A cloud shell is a browser-based command-line interface for interacting with cloud resources. It provides a preconfigured, on-demand environment from which users can manage and administer their cloud services. Cloud shells often come with a set of tools pre-installed, allowing developers to run scripts, build applications and carry out administrative tasks directly within the cloud environment.
+
+### What is proxy integration?
+
+Proxy integration is a type of API integration in AWS API gateway, where the API acts as a pass-through for requests and responses. This means that incoming requests pass directly to the backend service without needing to be mapped. Responses from the backend service likewise pass directly back to the client. It simplifies the process of integrating APIs with backend services.
+
+### What is a client app?
+
+A client app is a software application that runs on a user's device, such as a smartphone or computer, and communicates with remote servers to request services. Examples include web browsers, email clients and messaging apps. They interact with backend servers via APIs to retrieve and manipulate data.
+
+### What is a private API?
+
+A private API is an API that’s not publicly available or accessible. Its access is restricted to a specific audience, typically within an organization or among specific partners. Private APIs serve internal business needs, improving productivity and efficiency. They are often used to expose data and services for use by other parts of the organization or by specific external partners.
+
+Related Content
+
+[What Is Web Application and API Protection? \\
+\\
+APIs can spare developers from making every API from scratch. But ensuring web application and API protection in cloud-native environments is a challenge.](https://www.paloaltonetworks.com/cyberpedia/what-is-web-application-and-api-protection)
+
+[Tip Sheet: Secure Your APIs\\
+\\
+Unmanaged and unsecured APIs make easy targets for bad actors searching for exposed application logic, resources, and sensitive data.](https://www.paloaltonetworks.com/resources/datasheets/tip-sheet-secure-your-apis)
+
+[5 Best Practices for Securing Modern Web Applications and APIs\\
+\\
+As Web apps and APIs evolve, so does the attack surface. Developers and security practitioners need a comprehensive solution to protect their web apps and APIs.](https://www.paloaltonetworks.com/resources/ebooks/5-best-practices-for-securing-modern-web-applications-and-apis)
+
+[ESG Research Report: Security API Attack Surface\\
+\\
+We surveyed IT, cybersecurity, and application development professionals to uncover the latest trends in API security.](https://start.paloaltonetworks.com/2023-api-security-data-in-new-report.html)
+
+[Facebook](https://www.facebook.com/share.php?u=https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway)[Linkedin](https://www.linkedin.com/sharing/share-offsite/?url=https://www.paloaltonetworks.com/cyberpedia/what-is-api-gateway&amp;title=What%20Is%20an%20API%20Gateway%3F)[mail](mailto:?subject=What%20Is%20an%20API%20Gateway%3F&body=Explore%20the%20role%20of%20API%20gateways%20in%20software%20development%2C%20simplifying%20microservices%20complexity%20and%20enhancing%20client%20interactions%20with%20applications.%20at%20https%3A//www.paloaltonetworks.com/cyberpedia/what-is-api-gateway)
+
+Back to Top
+
+[Previous](https://www.paloaltonetworks.com/cyberpedia/what-is-web-application-and-api-protection) What Is Web Application and API Protection?
+
+## Get the latest news, invites to events, and threat alerts
+
+Enter your email now to subscribe!
+
+Sign up
+
+
+
+
+By submitting this form, I understand my personal data will be processed in accordance with
+[Palo Alto Networks Privacy Statement](https://www.paloaltonetworks.com/legal-notices/privacy) and [Terms of Use.](https://www.paloaltonetworks.com/legal-notices/terms-of-use)
+
+Sign up
+
+## Products and Services
+
+- [AI-Powered Network Security Platform](https://www.paloaltonetworks.com/network-security)
+- [Secure AI by Design](https://www.paloaltonetworks.com/ai-security)
+- [Prisma AIRS](https://www.paloaltonetworks.com/prisma/prisma-ai-runtime-security)
+- [AI Access Security](https://www.paloaltonetworks.com/sase/ai-access-security)
+- [Cloud Delivered Security Services](https://www.paloaltonetworks.com/network-security/security-subscriptions)
+- [Advanced Threat Prevention](https://www.paloaltonetworks.com/network-security/advanced-threat-prevention)
+- [Advanced URL Filtering](https://www.paloaltonetworks.com/network-security/advanced-url-filtering)
+- [Advanced WildFire](https://www.paloaltonetworks.com/network-security/advanced-wildfire)
+- [Advanced DNS Security](https://www.paloaltonetworks.com/network-security/advanced-dns-security)
+- [Enterprise Data Loss Prevention](https://www.paloaltonetworks.com/sase/enterprise-data-loss-prevention)
+- [Enterprise IoT Security](https://www.paloaltonetworks.com/network-security/enterprise-device-security)
+- [Medical IoT Security](https://www.paloaltonetworks.com/network-security/medical-device-security)
+- [Industrial OT Security](https://www.paloaltonetworks.com/network-security/medical-device-security)
+- [SaaS Security](https://www.paloaltonetworks.com/sase/saas-security)
+
+- [Next-Generation Firewalls](https://www.paloaltonetworks.com/network-security/next-generation-firewall)
+- [Hardware Firewalls](https://www.paloaltonetworks.com/network-security/hardware-firewall-innovations)
+- [Software Firewalls](https://www.paloaltonetworks.com/network-security/software-firewalls)
+- [Strata Cloud Manager](https://www.paloaltonetworks.com/network-security/strata-cloud-manager)
+- [SD-WAN for NGFW](https://www.paloaltonetworks.com/network-security/sd-wan-subscription)
+- [PAN-OS](https://www.paloaltonetworks.com/network-security/pan-os)
+- [Panorama](https://www.paloaltonetworks.com/network-security/panorama)
+- [Secure Access Service Edge](https://www.paloaltonetworks.com/sase)
+- [Prisma SASE](https://www.paloaltonetworks.com/sase)
+- [Application Acceleration](https://www.paloaltonetworks.com/sase/app-acceleration)
+- [Autonomous Digital Experience Management](https://www.paloaltonetworks.com/sase/adem)
+- [Enterprise DLP](https://www.paloaltonetworks.com/sase/enterprise-data-loss-prevention)
+- [Prisma Access](https://www.paloaltonetworks.com/sase/access)
+- [Prisma Browser](https://www.paloaltonetworks.com/sase/prisma-browser)
+- [Prisma SD-WAN](https://www.paloaltonetworks.com/sase/sd-wan)
+- [Remote Browser Isolation](https://www.paloaltonetworks.com/sase/remote-browser-isolation)
+- [SaaS Security](https://www.paloaltonetworks.com/sase/saas-security)
+
+- [AI-Driven Security Operations Platform](https://www.paloaltonetworks.com/cortex)
+- [Cloud Security](https://www.paloaltonetworks.com/cortex/cloud)
+- [Cortex Cloud](https://www.paloaltonetworks.com/cortex/cloud)
+- [Application Security](https://www.paloaltonetworks.com/cortex/cloud/application-security)
+- [Cloud Posture Security](https://www.paloaltonetworks.com/cortex/cloud/cloud-posture-security)
+- [Cloud Runtime Security](https://www.paloaltonetworks.com/cortex/cloud/runtime-security)
+- [Prisma Cloud](https://www.paloaltonetworks.com/prisma/cloud)
+- [AI-Driven SOC](https://www.paloaltonetworks.com/cortex)
+- [Cortex XSIAM](https://www.paloaltonetworks.com/cortex/cortex-xsiam)
+- [Cortex XDR](https://www.paloaltonetworks.com/cortex/cortex-xdr)
+- [Cortex XSOAR](https://www.paloaltonetworks.com/cortex/cortex-xsoar)
+- [Cortex Xpanse](https://www.paloaltonetworks.com/cortex/cortex-xpanse)
+- [Unit 42 Managed Detection & Response](https://www.paloaltonetworks.com/cortex/managed-detection-and-response)
+- [Managed XSIAM](https://www.paloaltonetworks.com/cortex/managed-xsiam)
+
+- [Threat Intel and Incident Response Services](https://www.paloaltonetworks.com/unit42)
+- [Proactive Assessments](https://www.paloaltonetworks.com/unit42/assess)
+- [Incident Response](https://www.paloaltonetworks.com/unit42/respond)
+- [Transform Your Security Strategy](https://www.paloaltonetworks.com/unit42/transform)
+- [Discover Threat Intelligence](https://www.paloaltonetworks.com/unit42/threat-intelligence-partners)
+
+## Company
+
+- [About Us](https://www.paloaltonetworks.com/about-us)
+- [Careers](https://jobs.paloaltonetworks.com/en/)
+- [Contact Us](https://www.paloaltonetworks.com/company/contact-sales)
+- [Corporate Responsibility](https://www.paloaltonetworks.com/about-us/corporate-responsibility)
+- [Customers](https://www.paloaltonetworks.com/customers)
+- [Investor Relations](https://investors.paloaltonetworks.com/)
+- [Location](https://www.paloaltonetworks.com/about-us/locations)
+- [Newsroom](https://www.paloaltonetworks.com/company/newsroom)
+
+## Popular Links
+
+- [Blog](https://www.paloaltonetworks.com/blog/)
+- [Communities](https://www.paloaltonetworks.com/communities)
+- [Content Library](https://www.paloaltonetworks.com/resources)
+- [Cyberpedia](https://www.paloaltonetworks.com/cyberpedia)
+- [Event Center](https://events.paloaltonetworks.com/)
+- [Manage Email Preferences](https://start.paloaltonetworks.com/preference-center)
+- [Products A-Z](https://www.paloaltonetworks.com/products/products-a-z)
+- [Product Certifications](https://www.paloaltonetworks.com/legal-notices/trust-center/compliance)
+- [Report a Vulnerability](https://www.paloaltonetworks.com/security-disclosure)
+- [Sitemap](https://www.paloaltonetworks.com/sitemap)
+- [Tech Docs](https://docs.paloaltonetworks.com/)
+- [Unit 42](https://unit42.paloaltonetworks.com/)
+- [Do Not Sell or Share My Personal Information](https://panwedd.exterro.net/portal/dsar.htm?target=panwedd)
+
+---
+
+Title: What does API gateway do in Microservices Architecture? - Medium
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+[Mastodon](https://me.dm/@maheshsaini89)
+
+Member-only story
+
+# What does API gateway do in Microservices Architecture?
+
+[![Mahesh Saini](https://miro.medium.com/v2/da:true/resize:fill:32:32/0*_CDoi2FpB9UQnPI6)](https://medium.com/@maheshsaini.sec?source=post_page---byline--d1e93e27e040---------------------------------------)
+
+[Mahesh Saini](https://medium.com/@maheshsaini.sec?source=post_page---byline--d1e93e27e040---------------------------------------)
+
+Follow
+
+3 min read
+
+·
+
+May 18, 2023
+
+672
+
+8
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3Dd1e93e27e040&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040&source=---header_actions--d1e93e27e040---------------------post_audio_button------------------)
+
+Share
+
+## API Gateway
+
+- An API gateway is the conductor that organizes the requests being processed by the microservices architecture to create a simplified experience for the user.
+- It’s a translator, taking a client’s many requests and turning them into just one, to reduce the number of round trips between the client and the application.
+- An API gateway is set up in front of the microservices and becomes the entry point for every new request being executed by the app.
+- It simplifies both the client implementations and the microservices app.
+
+The diagram below shows the detail.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/0*bD1nHLwJrBzVU604.png)
+
+Image from — [blog.bytebytego.com](https://blog.bytebytego.com/p/ep23-how-to-choose-the-right-database)
+
+**Step 1** — The client sends an HTTP request to the API gateway.
+
+**Step 2** — The API gateway parses and validates the attributes in the HTTP request.
+
+**Step 3** — The API gateway performs allow-list/deny-list checks.
+
+**Step 4** — The API gateway talks to an identity provider for authentication and authorization.
+
+**Step 5** — The rate-limiting rules are applied to the request. If it is over the limit, the request is rejected.
+
+**Steps 6 and 7** — Now that the request has passed basic checks, the API gateway finds the relevant service to route to by path…
+
+**Step 8** — The API gateway transforms the request into the appropriate protocol and sends it to backend microservices.
+
+**Steps 9–12:** The API gateway can handle errors properly, and deals with faults if the error takes a longer time to recover (circuit break).
+
+It can also leverage ELK (Elastic-Logstash-Kibana) stack for logging and monitoring. We sometimes cache data in the API gateway.
+
+## Notable API Gateways
+
+- Netflix API Gateway: Zuul
+- Amazon API Gateway
+- Kong API Gateway
+- Apigee API Gateway
+- MuleSoft
+
+## What are the differences between a load balancer and an API gateway?
+
+1. NLB (Network Load Balancer) is usually deployed before the API gateway, handling…
+
+## Create an account to read the full story.
+
+The author made this story available to Medium members only.
+
+If you’re new to Medium, create a new account to read this story on us.
+
+[Continue in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3Dregwall&source=-----d1e93e27e040---------------------post_regwall------------------)
+
+Or, continue in mobile web
+
+[Sign up with Google](https://medium.com/m/connect/google?state=google-%7Chttps%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040%3Fsource%3D-----d1e93e27e040---------------------post_regwall------------------%26skipOnboarding%3D1%7Cregister%7Cremember_me&source=-----d1e93e27e040---------------------post_regwall------------------)
+
+[Sign up with Facebook](https://medium.com/m/connect/facebook?state=facebook-%7Chttps%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040%3Fsource%3D-----d1e93e27e040---------------------post_regwall------------------%26skipOnboarding%3D1%7Cregister%7Cremember_me&source=-----d1e93e27e040---------------------post_regwall------------------)
+
+Sign up with email
+
+Already have an account? [Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040&source=-----d1e93e27e040---------------------post_regwall------------------)
+
+[![Mahesh Saini](https://miro.medium.com/v2/resize:fill:48:48/0*_CDoi2FpB9UQnPI6)](https://medium.com/@maheshsaini.sec?source=post_page---post_author_info--d1e93e27e040---------------------------------------)
+
+[![Mahesh Saini](https://miro.medium.com/v2/resize:fill:64:64/0*_CDoi2FpB9UQnPI6)](https://medium.com/@maheshsaini.sec?source=post_page---post_author_info--d1e93e27e040---------------------------------------)
+
+Follow
+
+[**Written by Mahesh Saini**](https://medium.com/@maheshsaini.sec?source=post_page---post_author_info--d1e93e27e040---------------------------------------)
+
+[3.7K followers](https://medium.com/@maheshsaini.sec/followers?source=post_page---post_author_info--d1e93e27e040---------------------------------------)
+
+· [617 following](https://medium.com/@maheshsaini.sec/following?source=post_page---post_author_info--d1e93e27e040---------------------------------------)
+
+Enjoys coding, cycling, and swimming. Connect on LinkedIn: [https://www.linkedin.com/in/mahesh-s-28529349/](https://www.linkedin.com/in/mahesh-s-28529349/)
+
+Follow
+
+## Responses (8)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40maheshsaini.sec%2Fwhat-does-api-gateway-do-in-microservices-architecture-d1e93e27e040&source=---post_responses--d1e93e27e040---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+See all responses
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----d1e93e27e040---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----d1e93e27e040---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----d1e93e27e040---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----d1e93e27e040---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----d1e93e27e040---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----d1e93e27e040---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----d1e93e27e040---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----d1e93e27e040---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----d1e93e27e040---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: API Gateways 101: The Core of Modern API Management & Security
+[![ByteByteGo Newsletter](https://substackcdn.com/image/fetch/$s_!1eXV!,w_40,h_40,c_fill,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2F8a5609ae-1239-4400-9491-6010a15c4d60_504x504.png)](https://blog.bytebytego.com/)
+
+# [ByteByteGo Newsletter](https://blog.bytebytego.com/)
+
+SubscribeSign in
+
+# API Gateways 101: The Core of Modern API Management & Security
+
+[![ByteByteGo's avatar](https://substackcdn.com/image/fetch/$s_!U1Ej!,w_36,h_36,c_fill,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc9941c68-e5b7-4b93-be75-df7cc4ffef02_504x540.png)](https://substack.com/@bytebytego399569)
+
+[ByteByteGo](https://substack.com/@bytebytego399569)
+
+Oct 23, 2025
+
+∙ Paid
+
+221
+
+17
+
+Share
+
+Modern software systems rarely exist as a single, massive program anymore.
+
+A decade or two ago, most applications were built as monoliths. Everything from the user interface to business logic to database access lived inside one large codebase. This approach made development straightforward at first, but as applications grew in size and complexity, it became increasingly difficult to maintain and scale. A single change could impact the entire system, and deploying updates meant redeploying the whole application.
+
+To overcome these limitations, the industry gradually shifted toward a service-based architecture. Instead of one big program, systems were broken into smaller, independent services. Each service handles a specific function, such as user authentication, payments, or notifications. These microservices communicate with each other using APIs. The result was a more modular, flexible system that could be developed and deployed independently.
+
+However, the service-based architecture brought a new set of challenges. As the number of services grew, so did the number of client-to-service interactions. A simple client request (like displaying a user’s dashboard) might now require data from several microservices. Clients needed to know the location, authentication method, and request format for each service. When services changed or moved, clients also had to be updated. Managing these complexities became complex and error-prone.
+
+This is where the API gateway comes in. Think of the API Gateway as the entry point that sits between clients and the internal services. Instead of calling multiple services directly, the client sends requests to the API gateway, and the gateway takes care of the rest.
+
+Over time, API Gateways have evolved into full-fledged management platforms. They don’t just route traffic, but also handle authentication and authorization, manage multiple API versions, transform protocols and payloads, and provide analytics for monitoring API performance.
+
+In this article, we will look at API gateways in detail, along with their architecture and features.
+
+[![](https://substackcdn.com/image/fetch/$s_!SRj9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa392237c-952a-439f-a284-a5b1fa9d7155_2250x2624.png)](https://substackcdn.com/image/fetch/$s_!SRj9!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa392237c-952a-439f-a284-a5b1fa9d7155_2250x2624.png)
+
+## What is an API Gateway?
+
+![User's avatar](https://substackcdn.com/image/fetch/$s_!90Cx!,w_64,h_64,c_fill,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2F10cd1afb-9a92-433e-bbf4-f726eb8ffdb3_375x375.jpeg)
+
+## Continue reading this post for free, courtesy of Alex Xu.
+
+Claim my free post
+
+[Or purchase a paid subscription.](https://blog.bytebytego.com/subscribe?simple=true&next=https%3A%2F%2Fblog.bytebytego.com%2Fp%2Fapi-gateways-101-the-core-of-modern&utm_source=paywall&utm_medium=web&utm_content=176853475&just_signed_up=falsesimple=true&utm_source=paywall&utm_medium=email&utm_content=176853475&next=https://blog.bytebytego.com/p/api-gateways-101-the-core-of-modern)

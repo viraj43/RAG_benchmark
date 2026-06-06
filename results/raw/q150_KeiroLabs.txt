@@ -1,0 +1,86 @@
+Title: Advanced Machine Learning Techniques | Coursera
+**Definition:** ing TechniquesAdvanced Machine Learning TechniquesThis course is part of multiple programs.
+
+**Key Points:** Advanced Machine Learning TechniquesAdvanced Machine Learning TechniquesThis course is part of multiple programs. We'll explore five key areas of advanced ML: ensemble methods for combining models, dimensionality reduction techniques for handling complex data, natural language processing for text analysis, reinforcement learning for decision-making systems, and automated machine learning for optimization. You'll understand the key components of RL systems and implement both policy-based and value-based learning techniques.
+
+## Advanced Machine Learning Techniques
+This course is part of multiple programs. Learn moreThis course is part of multiple programsMachine Learning with Scikit-learn, PyTorch & Hugging Face Professional CertificateData Science Beyond the Basics (ML+DS) SpecializationOK
+Instructor: Professionals from the Industry
+Enroll for freeStarts May 2
+Included with Coursera Plus•Learn more
+
+
+## Ensemble Learning
+Module 1•8 hours to complete
+
+
+## Reinforcement Learning
+Module 4•5 hours to complete
+
+
+
+
+---
+
+Title: 4 advanced Machine Learning techniques
+**Key Points:** The model is then re-trained on both – original training data + our new pseudo-labeled additional training data. For this reason, it is a good practice to use pseudo-labeling at the latest stages of model development, when it is already improved by feature engineering, parameter optimization, and other basic techniques. If for some data row a model makes a big error compared to the average error for this given task, it means that for this given data row, the features tell the model one thing, but the label is very different.
+
+ Skip to content     Data Science   4 advanced Machine Learning techniques   Alternative ways to improve the model score even further      Agnis Liukis Oct 6, 2022 9 min read     Share     Photo by Silvan Arnet on Unsplash What are the typical ways to improve a Machine Learning model? Adding more features. Performing selection to remove redundant features. Optimizing hyper-parameters. Ensembling several models together. Yes, all of this may work, but there are many other approaches to improve the score. Maybe some of them are a little bit less known, and some are not applicable in all cases, but when applied at the right time they can bring significant improvement. Let’s go through some of them. Pseudo-labeling For the Data Science tasks usually we have a training dataset with known labels. In general, the more training data we have, the more possibilities for the model to learn something useful. But in most cases the amount of labeled training data is limited. In some cases, this is due to the labeling process being too costly (e.g. involving manual labeling of each case). One solution to this is creating additional training data using pseudo-labeling technique. For this we need additional data without the labels. If there is test data already available (for example, in competitions) we can use it. Otherwise, data needs to be collected somewhere – but as it doesn’t need labels, that should be much easier than collecting the real training data. Once data is collected, we use our model to make predictions on it. Without having the labels, it is not known, how good the predictions are. But in most cases, the more confident predictions mean the bigger probability of being right. Accordingly, we choose some percentage of the most confident model predictions and use these as additional training data labels. The model is then re-trained on both – original training data + our new pseudo-labeled additional training data. The new model might produce better score than the original one. Why does it work? Additionally collected data might be a little bit different from the original training data. Collected from another source, in a different time interval, and so on. Therefore, this data might incorporate slightly different relationships and signals. The model can’t learn these relationships from the original data, as they are not present or at least are slightly different there. But these can be learned from new pseudo-labeled data if the labels assigned to them are mostly correct. There is one important requirement however for pseudo-labeling to work – the accuracy of the original model must be high enough. Otherwise, many rows will be labeled incorrectly and there will be too much noise introduced by pseudo-labeled data. For this reason, it is a good practice to use pseudo-labeling at the latest stages of model development, when it is already improved by feature engineering, parameter optimization, and other basic techniques. Outliers removal by model predictions Removing outliers from training data is a standard step in most Machine Learning pipelines. But here I’m not talking about this simple standard way, which usually involves looking at every feature and removing some percentile from both ends to get rid of too-small and/or too-big values. Photo by Will Myers on Unsplash A more advanced way exists for dealing with outliers. This technique allows not only to remove outliers in terms of too big/small values of a single feature but deals with outlier feature interactions as well. The technique is very basic at its core idea:  First, the model is trained and tuned in a standard way, including feature selection, hyper-parameters tuning, and so on. Then the predictions are made in OOF (Out-Of-Folds) fashion for the training data rows. The error (or any other relevant metric for the specific problem) of the prediction is calculated for each row. The rows with the biggest errors are defined as outliers. The percentage of rows to remove can vary in each case. The model is re-trained on the training data with the identified outlier rows removed.  Why does it work? If for some data row a model makes a big error compared to the average error for this given task, it means that for this given data row, the features tell the model one thing, but the label is very different. In the real-life cases, this can happen due to various reasons:  there is an outlier in one or more significant features; the label is incorrect (due to an error in labeling, human mistake, or some other reason); this is some specific rare case which the model wasn’t able to learn from given data.  Now, if it’s an outlier or wrong value in some feature, we want to remove this row. If it has the wrong label, we definitely want to remove it, too. The only case we might prefer to leave this particular row in training data is in case it describes some rare case. In most cases it won’t be possible to separate these cases for a given row, so we need to decide globally – do we want to keep such rows or no? From my experience, in many tasks, this approach gives slight improvement. The size of improvement obviously depends on how many outliers, bad features, and incorrect target values the particular dataset has. In some cases, however, it might happen, that most of the rows detected as outliers are in fact valid. This happens mostly due to a too weak model – for this reason, I would advise applying this approach only at the latest stages of model tuning when the existing model is already improved as high as possible with standard techniques. Data augmentation In some way, this technique is similar to pseudo-labeling. In a sense that it helps to get more training data. And more training data typically results in a better model. The main difference is regarding the exact way how we get more training data. If in pseudo-labeling we used additional real data with self-assigned labels. But in some cases, we simply don’t have any additional data at all. In the case of augmentation, we use real labels, but the data itself is modified and transformed in different ways to create new data with similar characteristics as the original dataset. There are various techniques for data augmentation for all kinds of data – numeric data, time-series, image, and text data. For example, images can be rotated, cropped or skewed in different ways. From the logical perspective, the picture on the image (and therefore, the original label, too) is not changed. But for the model. this new image looks different and helps to make the model more robust. For text data, one approach can be translation. We can translate the original sentence to some other language and then translate it back. Through the translation process, the original sentence will become slightly different but the meaning should still be the same – hence the original label is preserved. For numeric and time-series data the exact approach highly depends on what exactly the data represents. Some domain knowledge might be required to correctly create new data rows with the original labels. The most improvement from this technique I’ve seen in computer vision tasks working with images. But for other types of the data there is potential, too. Explaining the model predictions The machine learning model is sometimes considered a black box. But in reality, it is not. There’s plenty of information we can gather from the model about exactly how it is making decisions in one or another case. The exact amount of information we can get depends on the type of the model. Some models, like tree-based models or a linear regression, are very easy to explain. But, for example, neural network models provide less interpretable information about what’s happening inside. Photo by JESHOOTS.COM on Unsplash In any case, it helps a lot to try our best to understand, how exactly the model is using the features. Looking at feature importance graphs is one way o
+
+---
+
+Title: Advanced Methods in Machine Learning - HIDA
+**Key Points:** Learning goals
+Understand Different Resampling Techniques Explain features and usage of cross-validation. Implement Machine Learning Techniques Using Python Apply learned machine learning algorithms and techniques in Python to solve real-world data analysis problems. Target group
+This course is designed for learners who have a foundational understanding of Python and Machine Learning, and are eager to get a general understand of more advanced classification and regression techniques and a basic introduction to Deep Learning.
+
+## Learning goals
+Understand Different Resampling Techniques
+Explain features and usage of cross-validation. 	Describe the advantages of bootstrapping. 	Discuss sampling techniques handling imbalanced data sets.
+Understand and Apply Ensemble Methods
+Extend decision trees to random forests and discuss the usage. 	Describe boosting algorithms and their benefits and applications.
+Introduce Advanced Classification Methods
+Understand Support Vector Machines and describe their limitations and advantages. 	Explore other methods used for classification.
+Provide an Overview on Deep Learning
+Gain an initial understanding of deep learning, with hands-on practice using convolutional networks in PyTorch.
+Implement Machine Learning Techniques Using Python
+Apply learned machine learning algorithms and techniques in Python to solve real-world data analysis problems.
+
+
+
+
+---
+
+Title: Machine Learning Crash Course - Google for Developers
+**Key Points:** Since 2018, millions of people worldwide have relied on Machine Learning Crash Course to learn how machine learning works, and how machine learning can work for them. Datasets, Generalization, and Overfitting
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ An introduction to the characteristics of machine learning datasets, and how to prepare your data to ensure high-quality results when training and evaluating your model. Embeddings
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Learn how embeddings allow you to do machine learning on large feature vectors.
+
+## Machine Learning Crash Course
+Google's fast-paced, practical introduction to machine learning, featuring a series of animated videos, interactive visualizations, and hands-on practice exercises.
+
+
+## What's new in Machine Learning Crash Course?
+Since 2018, millions of people worldwide have relied on Machine Learning Crash Course to learn how machine learning works, and how machine learning can work for them. We're delighted to announce the launch of a refreshed version of MLCC that covers recent advances in AI, with an increased focus on interactive learning. Watch this video to learn more about the new-and-improved MLCC.
+
+
+## Advanced ML models
+These modules cover advanced ML model architectures.
+
+

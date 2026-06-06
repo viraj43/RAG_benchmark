@@ -1,0 +1,287 @@
+Title: Cloud Design Patterns - Azure Architecture Center | Microsoft Learn
+Key Highlights:
+Architects design workloads by integrating platform services, functionality, and code to meet both functional and nonfunctional requirements. To design effective workloads, you must understand these requirements and select topologies and methodologies that address the challenges of your workload's constraints. Cloud design patterns provide solutions to many common challenges.
+[...]
+System design heavily relies on established design patterns. You can design infrastructure, code, and distributed systems by using a combination of these patterns. These patterns are crucial for building reliable, highly secure, cost-optimized, operationally efficient, and high-performing applications in the cloud.
+[...]
+The following cloud design patterns are technology-agnostic, which makes them suitable for any distributed system. You can apply these patterns across Azure, other cloud platforms, on-premises setups, and hybrid environments.
+[...]
+These misconceptions can result in flawed workload designs. Design patterns don't eliminate these misconceptions but help raise awareness, provide compensation strategies, and provide mitigations. Each cloud design pattern has trade-offs. Focus on why you should choose a specific pattern instead of how to implement it.
+[...]
+Consider how to use these industry-standard design patterns as the core building blocks for a well-architected workload design. Each design pattern in the Azure Well-Architected Framework represents one or more of its pillars. Some patterns might introduce trade-offs that affect the goals of other pillars.
+[...]
+Each pattern in this catalog describes the problem that it addresses, considerations for applying the pattern, and an example based on Microsoft Azure services and tools. Some patterns include code samples or snippets that show how to implement the pattern on Azure.
+[...]
+## AI agent orchestration patterns
+[...]
+The preceding cloud design patterns address common challenges in distributed systems, but AI workloads that use multiple autonomous agents require specialized coordination approaches. Traditional patterns like Scheduler Agent Supervisor or Choreography provide foundational concepts. However, AI agents introduce unique challenges such as nondeterministic outputs, dynamic reasoning capabilities, and the need for intelligent handoffs between specialized components.
+[...]
+For AI workloads that include multiple autonomous agents, see AI agent orchestration patterns. These patterns complement the cloud design patterns in this catalog by addressing the specific coordination requirements of intelligent, autonomous components that work together to accomplish complex outcomes.
+
+---
+
+Title: Cloud design patterns, architectures, and implementations
+Key Highlights:
+# Cloud design patterns, architectures, and implementations
+
+Anitha Deenadayalan, Amazon Web Services (AWS)
+
+May 2024 (document history)
+
+This guide provides guidance for implementing commonly used modernization design patterns by using AWS services. An increasing number of modern applications are designed by using microservices architectures to achieve scalability, improve release velocity, reduce the scope of impact for changes, and reduce regression. This leads to improved developer productivity and increased agility, better innovation, and an increased focus on business needs. Microservices architectures also support the use of the best technology for the service and the database, and promote polyglot code and polyglot persistence.
+
+Traditionally, monolithic applications run in a single process, use one data store, and run on servers that scale vertically. In comparison, modern microservice applications are fine-grained, have independent fault domains, run as services across the network, and can use more than one data store depending on the use case. The services scale horizontally, and a single transaction might span multiple databases. Development teams must focus on network communication, polyglot persistence, horizontal scaling, eventual consistency, and transaction handling across the data stores when developing applications by using microservices architectures. Therefore, modernization patterns are critical for solving commonly occurring problems in modern application development, and they help accelerate software delivery.
+
+This guide provides a technical reference for cloud architects, technical leads, application and business owners, and developers who want to choose the right cloud architecture for design patterns based on well-architected best practices. Each pattern discussed in this guide addresses one or more known scenarios in microservices architectures. The guide discusses the issues and considerations associated with each pattern, provides a high-level architectural implementation, and describes the AWS implementation for the pattern. Open source GitHub samples and workshop links are provided where available.
+
+The guide covers the following patterns:
+
+- Anti-corruption layer
+- API routing patterns: Hostname routing Path routing HTTP header routing
+- Circuit breaker
+- Event sourcing
+- Hexagonal architecture
+- Publish-subscribe
+- Retry with backoff
+- Saga patterns: Saga choreography Saga orchestration
+- Scatter-gather
+- Strangler fig
+- Transactional outbox
+
+## Targeted business outcomes
+
+By using the patterns discussed in this guide to modernize your applications, you can:
+
+- Design and implement reliable, secure, operationally efficient architectures that are optimized for cost and performance.
+- Reduce the cycle time for use cases that require these patterns, so you can focus on organization-specific challenges instead.
+- Accelerate development by standardizing pattern implementations by using AWS services.
+- Help your developers build modern applications without inheriting technical debt.
+
+---
+
+Title: Cloud Architecture Design Principles and Patterns | Cloud Computing Authority
+Key Highlights:
+Cloud architecture design encompasses the structured set of principles, patterns, and decision frameworks that govern how applications, data, and infrastructure are organized within cloud environments. This reference covers the canonical design principles recognized by major standards bodies and cloud governance frameworks, the structural patterns architects apply across service and deployment models, the causal drivers that force architectural tradeoffs, and the classification boundaries between competing design approaches. The domain spans cloud service models, deployment models, and the full range of workload types encountered in enterprise and small-business environments.
+[...]
+Cloud architecture design is the discipline of structuring computational resources, network topology, storage hierarchies, security boundaries, and operational processes to meet defined reliability, performance, security, and cost requirements within cloud infrastructure. It is distinct from general software architecture because cloud environments introduce elastic resource provisioning, shared multi-tenant hardware, API-driven control planes, and pricing models tied directly to resource consumption — all of which have no direct equivalent in fixed on-premises deployments.
+[...]
+Cloud architecture design operates through the composition of discrete patterns — reusable structural solutions to recurring design problems. The pattern concept in software was formalized by the Gang of Four in 1994 and extended to distributed systems by publications including the Microsoft Azure Architecture Center and the AWS Architecture Blog.
+[...]
+Microservices decomposition — A monolithic application is partitioned into independently deployable services, each owning its data store and communicating through defined APIs. The cloud APIs and integration reference covers the integration mechanics that microservices depend upon.
+[...]
+Event-driven architecture — Components communicate asynchronously through event streams rather than direct synchronous calls, reducing temporal coupling. Apache Kafka, Amazon Kinesis, and Google Pub/Sub are the primary managed implementations across major providers.
+[...]
+CQRS (Command Query Responsibility Segregation) — Read and write paths are separated into distinct models, allowing each to be scaled and optimized independently. This pattern is commonly paired with event sourcing.
+[...]
+Sidecar and service mesh — Infrastructure concerns such as mutual TLS, observability, and traffic shaping are offloaded from application code into a co-deployed proxy process. Istio and Linkerd are the dominant open-source implementations, both governed under the Cloud Native Computing Foundation (CNCF).
+[...]
+Bulkhead isolation — Resources are partitioned so that a failure in one pool cannot cascade to adjacent pools. This mirrors the physical bulkhead partitioning in naval engineering and is a core reliability pattern in the AWS Well-Architected Framework's reliability pillar.
+[...]
+Strangler fig migration — Legacy systems are incrementally replaced by routing traffic to new components, with the old system progressively decommissioned. This is the dominant structural pattern for cloud migration projects involving active production systems.
+[...]
+Operational cost structure — Cloud pricing ties resource cost directly to utilization. A 2023 analysis by the Cloud Native Computing Foundation found that 44% of organizations cited cost overruns as the primary motivator for re-architecting workloads after initial cloud migration. Cloud cost management practices are therefore not separate from architecture — they are an embedded constraint that shapes pattern selection from the design phase
+[...]
+and regulatory requirements — Data
+[...]
+Cloud architecture patterns fall into four classification axes:
+[...]
+1. Coupling axis (tight vs. loose) — Synchronous request-response architectures are tightly coupled in time; event-driven and queue-mediated architectures are loosely coupled. Neither is universally superior — financial transaction systems require tight coupling for consistency guarantees that would be violated by eventual-consistency event patterns.
+[...]
+2. State axis (stateful vs. stateless) — Stateless components scale horizontally without coordination overhead. Serverless computing and containers and Kubernetes workloads are typically designed stateless, with state externalized to managed persistence services.
+[...]
+3. Deployment topology (centralized vs. distributed edge) — Workloads requiring sub-10ms latency or data sovereignty at the network edge fall outside the scope of centralized cloud region architectures. Edge computing and cloud covers the hybrid topology patterns that bridge these two deployment models.
+[...]
+4. Ownership boundary (single-provider vs. multi-cloud vs. hybrid) — Multi-cloud architectures introduce portability requirements that constrain use of provider-proprietary managed services. Hybrid architectures connecting on-premises data centers to cloud VPCs introduce network latency and encryption overhead not present in fully cloud-native deployments. Cloud vendor lock-in addresses the strategic and technical implications of this boundary.
+[...]
+complexity scales non-linearly with service count.
+[...]
+| Architecture Pattern | Coupling | State Model | Primary Use Case | Key Tradeoff |
+| --- | --- | --- | --- | --- |
+| Monolithic | Tight | Stateful | Simple workloads, rapid prototyping | Low scalability granularity |
+[...]
+| Microservices | Loose | Stateless preferred | High-scale distributed applications | Operational complexity |
+[...]
+| Event-driven | Loose | Stateless | Real-time data pipelines, IoT | Eventual consistency |
+[...]
+| Serverless functions | None (managed) | Stateless | Bursty, short-duration tasks | Cold start latency, execution limits |
+[...]
+| Container orchestration | Configurable | Both | Portable, complex workloads | Kubernetes operational overhead |
+[...]
+| Service mesh | Loose | Stateless | Large microservices estates | Proxy latency, configuration complexity |
+[...]
+| CQRS + Event sourcing | Loose | Append-only log | Audit-heavy, high-read/write asymmetry | Implementation complexity |
+[...]
+| Strangler fig | Incremental | Mixed | Legacy system migration | Extended dual-system operational period |
+[...]
+| Multi-region active-active | Loose | Distributed | Global latency optimization, DR | Data consistency, 40–60% cost premium |
+[...]
+| Edge-cloud hybrid | Loose | Distributed | Low-latency, data-sovereign workloads | Network design complexity |
+
+---
+
+Title: AWS Well-Architected - Build secure, efficient cloud applications
+Key Highlights:
+Learn, measure, and build using architectural best practices
+[...]
+AWS Well-Architected helps cloud architects build secure, high-performing, resilient, and efficient infrastructure for a variety of applications and workloads. Built around six pillars—operational excellence, security, reliability, performance efficiency, cost optimization, and sustainability—AWS Well-Architected provides a consistent approach for customers and partners to evaluate architectures and implement scalable designs.
+[...]
+The AWS Well-Architected Framework includes domain-specific lenses, hands-on labs, and the AWS Well-Architected Tool. The AWS Well-Architected Tool, available at no cost in the AWS Management Console, provides a mechanism for regularly evaluating workloads, identifying high-risk issues, and recording improvements. View the latest AWS Well-Architected Blog for further details.
+[...]
+The AWS Well-Architected Framework describes key concepts, design principles, and architectural best practices for designing and running workloads in the cloud. By answering a few foundational questions, learn how well your architecture aligns with cloud best practices and gain guidance for making improvements.
+[...]
+## AWS Well-Architected Six Pillars
+[...]
+### Operational Excellence Pillar
+[...]
+The operational excellence pillar focuses on running and monitoring systems, and continually improving processes and procedures. Key topics include automating changes, responding to events, and defining standards to manage daily operations. Learn more
+[...]
+### Security Pillar
+[...]
+The security pillar focuses on protecting information and systems. Key topics include confidentiality and integrity of data, managing user permissions, and establishing controls to detect security events. Learn more
+[...]
+### Reliability Pillar
+[...]
+The reliability pillar focuses on workloads performing their intended functions and how to recover quickly from failure to meet demands. Key topics include distributed system design, recovery planning, and adapting to changing requirements. Learn more
+[...]
+### Performance Efficiency Pillar
+[...]
+The performance efficiency pillar focuses on structured and streamlined allocation of IT and computing resources. Key topics include selecting resource types and sizes optimized for workload requirements, monitoring performance, and maintaining efficiency as business needs evol Learn more
+[...]
+### Cost Optimization Pillar
+[...]
+The cost optimization pillar focuses on avoiding unnecessary costs. Key topics include understanding spending over time and controlling fund allocation, selecting resources of the right type and quantity, and scaling to meet business needs without overspending. Learn more
+[...]
+### Sustainability Pillar
+[...]
+The sustainability pillar focuses on minimizing the environmental impacts of running cloud workloads. Key topics include a shared responsibility model for sustainability, understanding impact, and maximizing utilization to minimize required resources and reduce downstream impacts. Learn more
+[...]
+AWS Well-Architected Lenses extend the guidance offered by AWS Well-Architected to specific industry and technology domains, such as machine learning (ML), data analytics, serverless, high performance computing (HPC), IoT, SAP, streaming media, the games industry, hybrid networking, and financial services. To fully evaluate workloads, use applicable lenses together with the AWS Well-Architected Framework and its six pillars.
+[...]
+Unlike the Framework and Lenses, which are aligned with all six pillars of the Well-Architected Framework, AWS Well-Architected Guidance focuses on a specific use case, technology, or implementation scenario.
+
+---
+
+Title: 
+Key Highlights:
+This guide provides guidance for implementing commonly used modernization design patterns by using AWS services. An increasing number of modern applications are designed by using microservices architectures to achieve scalability, improve release velocity, reduce the scope of impact for changes, and reduce regression. This leads to improved developer productivity and increased agility, better innovation, and an increased focus on business needs. Microservices architectures also support the use of the best technology for the service and the database, and promote polyglot code and polyglot persistence.
+[...]
+more than one
+[...]
+in modern application
+[...]
+they help accelerate
+[...]
+This guide provides a technical reference for cloud architects, technical leads, application and business owners, and developers who want to choose the right cloud architecture for design patterns based on well-architected best practices. Each pattern discussed in this guide addresses one or more known scenarios in microservices architectures. The guide discusses the issues and considerations associated with each pattern, provides a high-level architectural implementation, and describes the AWS implementation for the pattern. Open source GitHub samples and workshop links are provided where available.
+[...]
+The guide covers the following patterns: 
+• Anti-corruption layer 
+• API routing patterns: 
+
+AWS Prescriptive Guidance Cloud design patterns, architectures, and implementations 
+• Hostname routing 
+• Path routing 
+• HTTP header routing 
+• Circuit breaker 
+• Event sourcing 
+• Hexagonal architecture 
+• Publish-subscribe 
+• Retry with backoff 
+• Saga patterns: 
+• Saga choreography 
+• Saga orchestration 
+• Scatter-gather 
+• Strangler fig 
+• Transactional outbox 
+
+Targeted business outcomes
+[...]
+Anti-corruption layer pattern
+[...]
+ACL) pattern acts as
+[...]
+domain model semantics from one
+[...]
+Hostname routing pattern
+
+Routing by hostname is a mechanism for isolating API services by giving each API its own hostname; for example, service-a.api.example.com or service-a.example.com.
+[...]
+Path routing pattern 
+Routing by paths is the mechanism of grouping multiple or all APIs under the same hostname, 
+and using a request URI to isolate services; for example, api.example.com/service-a or 
+api.example.com/service-b. 
+Typical use case 
+Most teams opt for this method because they want a simple architecture―a developer has 
+to remember only one URL such as api.example.com to interact with the HTTP API. API 
+documentation is often easier to digest because it is often kept together instead of being split 
+across different portals or PDFs. 
+Path-based routing is considered a simple mechanism for sharing an
+[...]
+. However, it involves 
+operational
+[...]
+such as configuration, authorization, integrations, and additional
+[...]
+due to multiple hops. It also requires mature change management processes to ensure that a
+[...]
+misconfiguration doesn
+[...]
+t disrupt all services. 
+On AWS, there are multiple ways to share an API and route effectively to the correct service. The 
+following sections discuss three approaches: HTTP service reverse proxy, API Gateway, and Amazon 
+CloudFront. None of the suggested approaches for unifying API services relies on the downstream 
+services running on AWS. The services could run anywhere without issue or on any technology, as 
+long as they'
+[...]
+The Amazon API Gateway
+[...]
+HTTP header routing pattern
+
+Header-based routing enables you to target the correct service for each request by specifying an
+[...]
+. For example,
+[...]
+, because it
+[...]
+Circuit breaker pattern
+[...]
+The circuit breaker pattern can prevent a caller service from retrying a call to another service (callee) when the call has previously caused repeated timeouts or failures. The pattern is also used to detect when the callee service is functional again.
+[...]
+Event sourcing pattern
+[...]
+In event-driven architectures, the event sourcing pattern stores the events that result in a state change in a data store. This helps to capture and maintain a complete history of state changes, and promotes auditability, traceability, and the ability to analyze past states.
+[...]
+Hexagonal architecture pattern
+[...]
+The hexagonal architecture pattern, which is also known as the ports and adapters pattern, was proposed by Dr. Alistair Cockburn in 2005. It aims to create loosely coupled architectures where application components can be tested independently, with no dependencies on data stores or user interfaces (UIs). This pattern helps prevent technology lock-in of data stores and UIs. This makes it easier to change the technology stack over time, with limited or no impact to business logic. In this loosely coupled architecture, the application communicates with external components over interfaces called ports, and uses adapters to translate the technical exchanges with these components.
+[...]
+hexagonal architecture pattern
+[...]
+coupled business logic
+[...]
+AWS Lambda functions that
+[...]
+integration with external services.
+[...]
+business logic in
+[...]
+database layer as stored procedures and in the
+[...]
+practice, along with using UI-specific constructs within business logic, leads to closely coupled architectures that cause bottlenecks in database migrations and user
+[...]
+hexagonal architecture pattern enables you to design your systems and applications by
+[...]
+rather than by
+[...]
+. This strategy results in easily exchangeable application components such as databases
+[...]
+UX, and service components.
+[...]
+infrastructure code and
+[...]
+Publish-subscribe pattern
+[...]
+The publish-subscribe pattern, which is also known as the pub-sub pattern, is a messaging pattern that decouples a message sender (publisher) from interested receivers (subscribers). This pattern implements asynchronous communications by publishing messages or events through an intermediary known as a message broker or router (message infrastructure). The publish-subscribe pattern increases scalability and responsiveness for senders by offloading the responsibility of the message delivery to the message infrastructure, so the sender can focus on core message processing.
+[...]
+Retry with backoff pattern
+[...]
+Saga patterns

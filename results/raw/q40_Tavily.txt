@@ -1,0 +1,868 @@
+Title: What are Diffusion Models? | IBM
+# What are diffusion models?
+
+## Authors
+
+Senior Staff Writer, AI Models
+
+IBM Think
+
+Staff Editor, AI Models
+
+IBM Think
+
+## What are diffusion models?
+
+Diffusion models are generative models used primarily for image generation and other computer vision tasks. Diffusion-based [neural networks](https://www.ibm.com/topics/neural-networks) are trained through [deep learning](https://www.ibm.com/topics/deep-learning) to progressively “diffuse” samples with random noise, then reverse that diffusion process to generate high-quality images.
+
+Diffusion models are among the neural network architectures at the forefront of [generative AI](https://www.ibm.com/topics/generative-ai), most notably represented by popular text-to-image models including Stability AI’s Stable Diffusion, OpenAI’s DALL-E (beginning with DALL-E-2), Midjourney and Google’s Imagen. They improve upon the performance and stability of other [machine learning](https://www.ibm.com/topics/machine-learning) architectures used for image synthesis such as [variational autoencoders (VAEs),](https://www.ibm.com/think/topics/variational-autoencoder) generative adversarial networks (GANs) and autoregressive models such as PixelCNN.
+
+The intuition behind diffusion models is inspired by physics, treating pixels like the molecules of a drop of ink spreading out in a glass of water over time. Much like how the random movement of the ink molecules will eventually lead to their even dispersal in the glass, the random introduction of noise into an image will eventually result in what looks like TV static. By modeling that diffusion process, then somehow learning to *reverse* it, an [artificial intelligence model](https://www.ibm.com/topics/ai-model) can generate new images by simply “denoising” samples of random noise.
+
+Diffusion models are most prominently associated with image generation and other image processing tasks such as inpainting and super-resolution, but their applications extend to other domains including audio generation, drug design and molecule generation. For simplicity, this article will focus on image generation.
+
+## The latest AI trends, brought to you by experts
+
+Get curated insights on the most important—and intriguing—AI news. Subscribe to our weekly Think newsletter. See the [IBM Privacy Statement](https://www.ibm.com/privacy).
+
+## Thank you! You are subscribed.
+
+## History and theory of diffusion models
+
+To explain and understand diffusion models, it’s important to first note that the generative process now called “diffusion” was independently discovered on two separate occasions through two distinct mathematical approaches. In short, there are *multiple* ways that diffusion models, which are conceptually simple but mathematically complex, can “work.”
+
+Subsequent developments have borrowed ideas from both approaches, blending the advantages of each to eventually yield the modern diffusion models that currently dominate the field of image generation. A brief review of the history and theory of diffusion models thus facilitates an understanding of not only *how* diffusion models work, but *why* they work.
+
+### Deep learning models inspired by thermodynamics
+
+Physics-inspired diffusion models were first introduced by Sohl-Dickstein *et al* in their 2015 paper, “Deep Unsupervised Learning using Nonequilibrium Thermodynamics.” Their algorithm applied [*Langevin dynamics*](https://en.wikipedia.org/wiki/Langevin_dynamics)*,* a method for modeling the movement of molecular systems, to underwrite the basic premise of diffusion models: turn data into noise, so you can then turn noise into data.
+
+#### A note on probability density functions
+
+Like most generative models, such as variational autoencoders (VAEs), Sohl-Dickstein’s algorithm modeled *probability density:*the relative likelihood of a randomly sampled variable, *x*, falling within a particular range of values. Essentially, modeling a probability density function for a training data set allows an algorithm to then generate samples that are highly likely to fit the training data distribution. When generating a new image, the model is assuming a *high probability*of pixel values being distributed in that specific way, based on the probability distribution it learned from patterns in training data.
+
+Logically speaking, probability density functions require the likelihood of all possibilities to sum up to 1. Put another way, the percentage chance of all possibilities must sum up to exactly 100%. In practice, this often requires a *normalizing constant:*a value incorporated into a probability function that reduces total probability to 1.
+
+Calculating a normalization constant that works for all possible variable values is often *intractable:* technically solvable, but requiring infinite time to compute. In such cases, likelihood-based models must either be restricted to specific model architectures or develop clever workarounds that approximate the normalization constant in a tractable way.
+
+### Score-based generative models
+
+Independently of Sohl-Dickstein’s work, Yang Song and Stefano Ermon developed a type of [energy-based model](https://arxiv.org/abs/2101.03288)  called a *noise conditional score network* in their 2019 paper, “Generative Modeling by Estimating Gradients of the Data Distribution.” Their algorithm modeled the [*gradient*](https://www.ibm.com/think/topics/backpropagation#Key+mathematical+concepts)(∇x) of the logarithm (log) of the probability density function p(x). The gradient of the log probability density function, written as ∇xlogp(x), is called the *Stein score* or simply the “score function."
+
+Unlike conventional probability density functions, *score functions* don’t require a normalizing constant because they don’t directly model probability density (and therefore don’t have to normalize total probability to 1). Instead, they’re trained through *score matching*:learning model parameters, *θ, that yields* a model *p*θ(*x*) whose score—in other words, its gradient—matches that of the data distribution *q*(*x*) of the training data.
+
+Another benefit of such score-based generative models (SGMs) is that, unlike likelihood-based models, they don’t impose many restrictions on the model architecture of *p*θ(*x*).
+
+Exploring ways to improve their model’s performance, Song and Ermon coincidentally arrived at the same techniques employed by Sohl-Dickstein *et al.* Their paper noted that “perturbing data with random [Gaussian](https://www.ibm.com/docs/en/cognos-analytics/12.0.0?topic=terms-normal-distribution) noise makes the data distribution more amenable to score-based generative modeling.” Their model, built using [the U-Net](https://www.ibm.com/topics/image-segmentation#Deep+learning+image+segmentation+models) architecture originally developed for [image segmentation](https://www.ibm.com/topics/image-segmentation), likewise applied Langevin dynamics to generate samples.
+
+### Denoising diffusion probabilistic models (DDPMs)
+
+In 2020, Ho *et al* proposed using Sohl-Dickstein’s approach to generate high-quality images by using variational inference in their seminal paper, “Denoising diffusion probabilistic models” (DDPMs). Their paper showed that maximizing the [evidence lower bound (ELBO)](https://www.ibm.com/think/topics/variational-autoencoder#How+variational+autoencoders+work)—a way to rewrite probability-based optimization problems to be tractable—to train diffusion models is essentially equivalent to the combination of score matching objectives used to train SGMs.
+
+Implementing Sohl-Dickstein’s approach using score matching, Ho *et al* demonstrated that diffusion probabilistic models can achieve image quality competitive with GANs, which at the time were state-of-the-art. These connections were further explored by Song, Ermon, Sohl-Dickstein and others—including Diederik P. Kingma, creator of the VAE—in their 2021 paper, “Score-Based Generative Modeling through Stochastic Differential Equations.”
+
+Later that year, Dhariwal and Nichol, leveraging insights from the previously mentioned paper, published “Diffusion Models Beat GANs on Image Synthesis,” firmly establishing diffusion models as the new state-of-the-art.
+
+DDPMs, rather than SGMs, generally remain the dominant mode of diffusion models, albeit with improvements pioneered through subsequent research. For example, the influential 2022 paper “High-Resolution Image Synthesis with Latent Diffusion Models” marked important advancements in efficiency and cost-effectiveness.
+
+### The rise of generative AI for business
+
+Learn about the historical rise of generative AI and what it means for business.
+
+## How do diffusion models work?
+
+In training, diffusion models gradually *diffuse* a data point with random noise, step-by-step, until it’s destroyed, then learn to reverse that diffusion process and reconstruct the original data distribution.
+
+A trained diffusion model can then generate new data points that resemble the training data by simply *denoising* a random initial sample of pure noise. Conceptually, this is similar to a [denoising autoencoder](https://www.ibm.com/topics/autoencoder#Regularized+autoencoders) in which the noisy images act as latent variables.
+
+Directly transforming random noise into a coherent image is extremely difficult and complex, but transforming a noisy image into *a slightly less noisy* image is relatively easy and straightforward. Diffusion models therefore formulate the reverse diffusion process as an incremental, step-by-step transformation of a simple distribution (like [Gaussian](https://www.ibm.com/docs/en/cognos-analytics/12.0.0?topic=terms-normal-distribution) noise) to a more complex distribution (like a coherent image).
+
+The process of training and then deploying a diffusion can be broken down into three key stages:
+
+## Forward diffusion process
+
+The purpose of the forward diffusion process is to transform clean data from the training dataset, such as an image or audio sample, into pure noise. The most common method entails iteratively injecting gaussian noise until the entire data distribution is gaussian.
+
+Mathematically, this step-by-step process is formulated as a [*Markov chain*](https://community.ibm.com/community/user/ai-datascience/blogs/moloy-de1/2020/03/26/points-to-ponder): a type of stochastic process—a random process that follows certain probabilistic rules—for modeling sequential time-series data. In a Markov chain, the outcome at each timestep is influenced only by the timestep immediately preceding it. Put simply: *x*t*,* the state of the Markov chain *x* at timestep *t,* is directly influenced only by *x*t-1. The mathematical function defining the transition from any *x*tto *x*t+1is called a *transition kernel.*
+
+At each timestep *t,* a small amount of Gaussian noise is added to *x*t-1and the image is then rescaled to maintain a constant image size despite the continual injection of random pixels.In this formulation, *x*0 is the original clean data point; *x*1 is the data point after the first timestep, with a small amount of gaussian noise added to it; *x*T is the final state of forward diffusion process. If T is large enough—that is, after enough steps—*x*T will converge to pure gaussian noise.
+
+We define each forward step as *q(xt|xt-1):*predict the state of the data distribution *q*(xt), given *q*(xt-1). In a standard DDPM, this forward process does not involve any machine learning: the end result of the Markov chain will always be a gaussian distribution, and thus does not require optimization.
+
+### Adding noise
+
+In a DDPM, the Gaussian noise added at each step in the Markov chain is neither constant nor arbitrary. Instead, the noise is derived from the structure of the original image and the rate at which it’s added steadily increases with each consecutive step.
+
+Varying the amount of noise both improves the stability of model training and enhances overall performance by balancing two competing priorities. As noted by Yang Song in [his blog post about score-based generative models](https://yang-song.net/blog/2021/score/#score-based-generative-modeling-with-multiple-noise-perturbations):
+
+Recall that any gaussian (normal) distribution has both a mean, μ , and a variance, Σ . Another parameter, *β,* serves as a scaling factor for the mean and variance of the gaussian noise in the transition kernel that defines each step in the forward Markov chain. Changing the value of *β* in a given step results in changing the gaussian noise added at that step. *β1*is the variance at timestep 1; *β*t is the variance at timestep *t*, and so on, until *β*T.
+
+The rate value of *β* at each step is, in turn, determined by the *variance schedule.*
+
+### Variance schedule
+
+At each step *t,* the image is slightly shifted from its iteration in the previous step (per the mean) and noise is added to this shifted version of the image (per the variance). The magnitude of each shift and addition of noise is driven by the value of βt: as βt increases in accordance with the variance schedule, the rate of diffusion steadily increases as a result. *β* is always a value between 0 and 1: so, 0 < *β1 < β2 < … < βT <* 1.
+
+Choosing a specific variance schedule for *β* is an important consideration. It’s usually set by hand as a hyperparameter, either fixed to a constant value or proceeding according to some formula with a predetermined starting value and end value for *β*. In the DDPM paper, Ho *et al* used a linear schedule with 1,000 steps wherein *β*1 = 10-4 and *β*T = 0.02. Later research found improvements in performance and efficiency with other types of schedules, such as a cosine schedule,[1] or making the schedule itself another learned parameter.[2]
+
+The value of *βt* determines both the mean and variance of the Gaussian noise added at step *t.*
+
+In summary, at each step *t,* the image is slightly shifted from its iteration in the previous step (per the mean) and noise is added to this shifted version of the image (per the variance). The magnitude of each shift and addition of noise is driven by the value of *βt*: as *βt* increases in accordance with the variance schedule, the rate of diffusion steadily increases as a result.
+
+Because the addition of gaussian noise begins gradually and the noise itself is always derived from the essential structure of the original image in the previous step, the essential qualities of the original image are retained for many steps. This enables the model to meaningfully learn the patterns and structure of the original data distribution during the reverse diffusion process.
+
+### The reparameterization trick
+
+One shortcoming of that step-by-step process is that it’s cumbersome and computationally expensive: for each image in a training data set that might contain thousands or millions of images, the forward process would require dozens or hundreds of individual steps.
+
+Instead of repeatedly adding noise, the formula for the forward process can be rewritten in a clever way by *reparameterizing* the expression of 1–βt as a new parameter, αt. Through a “nice property” of Markov chains, this new parameter can be further extended to an additional parameter, α¯t, derived from the iterative multiplication of αt at each progressive step in the chain up to that point. This additional parameter essentially reflects the signal-to-noise ratio (SNR) of *xt*: in other words, how much of the original image remains at timestep *t*.
+
+For instance, at *x*1*,* a small amount of noise has been added one time. The value of α¯t is close to 1, meaning the image still retains most of its original "signal." At a later step, like *x*50, noise has been added many times. Because αt=1–βt, the value of αt is always less than 1. Since α¯50=α1∙α2∙...∙α49∙α50, the value of α¯t at step 50 will be much closer to 0, meaning more of the original image has been replaced by noise. At timestep *T*, *xT* is entirely noise and the value of α¯t approaches 0.
+
+While the complex derivation of the equation is beyond the scope of this article, there are two important takeaways to understand the importance of this reparameterization trick:
+
+## Reverse diffusion process
+
+In diffusion models, the reverse diffusion process is where the actual machine learning takes place. In learning to perform the reverse of the noising steps of the forward process, the model is essentially learning to denoise pure gaussian noise into a clean image. Once the neural network has been trained, this ability can be used to generate new images out of gaussian noise through step-by-step reverse diffusion.
+
+In theory, the model’s task can be thought of as the simple reverse of forward diffusion. The forward process, starting with data point x0 sampled from the real data distribution *q*(*x*) of the training data set, is defined as q(xt|xt-1): that is, given q(xt-1), calculate q(xt). Its opposite, reverse diffusion, would be defined as q(xt-1|xt). But in practice, computing q(xt-1|xt) is intractable.
+
+Instead, the training task is formulated through two workarounds:
+
+Recall again that the mean of the gaussian noise added in forward diffusion is not arbitrary: though it's indeed *random*, the structure of the noise is initially derived from the structure of the original image *x*0. Therefore, by learning to accurately predict the noise through reverse diffusion, the model not only learns to denoise the image, but also implicitly learns the structure of *x*0.
+
+### Loss function for diffusion model training
+
+The specific training objective used for diffusion models is closely related to the reconstruction loss term used to optimize [variational autoencoders (VAEs).](https://www.ibm.com/think/topics/variational-autoencoder) Like VAEs, diffusion models are optimized by maximizing the *variational lower bound* (VLB), also called the *evidence lower bound* (ELBO), of a combination of multiple loss terms.
+
+Maximizing the VLB is used in variational inference to approximate the intractable score function ∇xlog(p(x)): instead of directly minimizing error, it reformulates the equation as maximizing the minimum estimation (or *lower bound*) of the accuracy of model predictions.
+
+The loss terms used each reflect the [*Kullback-Leibler divergence*](https://research.ibm.com/publications/variational-kullback-leibler-divergence-for-hidden-markov-models)(or “KL divergence,” usually denoted as *D*KL) between the outcomes of forward diffusion steps of *q* and the reverse steps predicted by *p*θ. KL divergence is used to measure the difference between two probability distributions—for instance, between the distribution of pixel values in one image and the distribution of pixel values in another.
+
+Specifically, the [loss function](https://www.ibm.com/think/topics/loss-function) for diffusion models combines three loss terms: ***LT**,* ***L*t**and ***L0**.*
+
+Though its complex mathematical derivation is beyond the scope of this article, the VLB can ultimately be simplified down to the [*mean-squared error (MSE*)](https://www.ibm.com/think/topics/loss-function#Regression+loss+functions) *between the noise predicted by the model*, *εθ and the true noise added in the forward process*, *ε,* at each timestep. This explains why the model’s output is a prediction of noise at each step, rather than the denoised image itself.
+
+By calculating the gradient of the [loss function](https://www.ibm.com/think/topics/loss-function) during [backpropagation](https://www.ibm.com/think/topics/backpropagation) and then adjusting model weights to minimize the loss function through [gradient descent](https://www.ibm.com/topics/gradient-descent), the model’s predictions across the entire training data set will become more accurate.
+
+## Image generation with diffusion models
+
+Once the diffusion model has learned to accurately estimate the noise to be subtracted at each step, it can be used to generate new images by sampling from a random noisy image *x*Tfrom the data distribution it has learned and denoising it for T steps. Similar to VAEs, introducing a slight element of randomness into the sampling process enables diffusion models to produce *new* images that *resemble* the training data, rather than directly reproduce training images.
+
+Unlike in the reverse diffusion training process, the amount of steps in the generation process does not have to match the amount of steps used in the forward process. This is possible because the model is trained to predict *the entire noise* at each image step, rather than the specific amount of noise to be removed in that step.
+
+Fewer steps entail greater speed and lower computational demands, with a potential tradeoff in fine detail; more steps typically improve accuracy, albeit at the cost of decreased speed and increased computational costs.
+
+### Guided diffusion models
+
+While a standard diffusion model can produce high-quality variations of training images at random, most practical uses of an image generation model require some control over the model’s output. *Guided diffusion models*allow a user to condition the generated images with specific *guidance*.
+
+The most common form of guided diffusion model is a text-to-image diffusion model that lets users condition the output with a text prompt, like “a giraffe wearing a top hat.” This entails pairing a diffusion model with a separate large language model (LLM) to interpret the text prompt, first introduced by Google in the paper “Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding.”
+
+Standard diffusion models aim to predict the unconditional score function ∇xlogp(x): in other words, the gradient of the logarithm of the likelihood that the image *x*generated by the model *p* fits the training data *x*. Guided diffusion models introduce a specific visual category, *y*—for example, “giraffe”—and predict the *conditional*score function ∇xlogp(x|y): in other words, the likelihood of image *x,* given that it must fit category *y.*
+
+Methods for guided diffusion can be separated into two categories:
+
+## Latent diffusion models
+
+Despite their state-of-the-art ability to generate high-quality images, conventional diffusion models have two important disadvantages: they’re slow and computationally expensive. These drawbacks were greatly reduced by the advent of *latent diffusion models,* beginning with Stable Diffusion.
+
+The premise behind latent diffusion models is simple, drawing once again on the connection to variational autoencoders (VAEs). Rather than applying the diffusion process in high-dimensional *pixel space*—that is, directly to input images—the model could first project input to lower-dimensional [*latent space*](https://www.ibm.com/think/topics/variational-autoencoder)*,* then apply the diffusion process there.
+
+In essence, latent diffusion models employ a VAE-like autoencoder architecture to train an encoder to output latent representations *z* of input data *x*. Those latent representations are then used as the input to a standard diffusion model, typically using the U-Net architecture. Because the diffusion model is working with lower-dimensional data, its output is then fed into a decoder network for upsampling into the desired final image size.
+
+Learn how to scale agentic AI for measurable ROI across your enterprise. This playbook outlines the top barriers that limit impact, how to effectively measure ROI and a practical framework to drive successful, enterprise-wide adoption.
+
+## Resources
+
+Discover our five predictions about what will define the most successful enterprises in 2030 and the steps leaders can take to gain an AI-first advantage.
+
+Learn fundamental concepts and build your skills with hands-on labs, courses, guided projects, trials and more.
+
+Want to get a better return on your AI investments? Learn how scaling gen AI in key areas drives change by helping your best minds build and deliver innovative new solutions.
+
+Learn how organizations are shifting from launching AI in disparate pilots to applying AI to drive transformation at the core.
+
+Techsplainers by IBM breaks down the essentials of gen AI, from key concepts to real‑world use cases. Clear, quick episodes help you learn the fundamentals fast.
+
+Learn how CEOs can balance the value generative AI can create against the investment it demands and the risks it introduces.
+
+Explore essential tools and resources to accelerate your next project. Get started and discover the full range of supported models available from IBM.
+
+Uncover the benefits of AI platforms that enable foundation model customization through technology, processes and best practices to help you easily operationalize the gen AI lifecycle.
+
+IBM Granite® is our family of open, performant, and trusted AI models designed for business and optimized to scale your AI applications. Explore models for language, code, time series and guardrails.
+
+Learn how to select the most suitable AI foundation model for your use case.
+
+Dive into the 3 critical elements of a strong AI strategy: creating a competitive edge, scaling AI across the business and advancing trustworthy AI.
+
+Easily design scalable AI assistants and agents, automate repetitive tasks and simplify complex processes with IBM® watsonx Orchestrate™.
+
+Put AI to work in your business with IBM’s industry-leading AI expertise and portfolio of solutions at your side.
+
+IBM Consulting AI services help reimagine how businesses work with AI for transformation.
+
+Whether you choose to customize pre-built apps and skills or build and deploy custom agentic services using an AI studio, the IBM watsonx platform has you covered.
+
+##### Footnotes
+
+*NOTE: All links reside outside ibm.com.*
+
+[1] [“Improved Denoising Diffusion Probabilistic Models,”](https://arxiv.org/abs/2102.09672) arXiv, 18 February 2021  
+[2] [“Variational Diffusion Models,”](https://arxiv.org/abs/2107.00630) arXiv, last revised 14 April 2023
+
+---
+
+Title: Diffusion Models: Generative AI Explained | Ultralytics
+![Close button](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e15_Icon-banner-close.svg)[![Ultralytics logo in white color](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e84_Ultralytics_full_white.svg)
+
+Introducing Ultralytics Platform: Annotate, train, and deploy YOLO models
+
+![Arrow right](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/69ba5bb596507e4235390de5_banner-arrow-right.png)](https://platform.ultralytics.com/)
+
+[![Ultralytics logo](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6914c5f6e5b3ebb12ce86156_updated-logo.svg)](/)
+
+[129.9K+
+
+K+](https://github.com/ultralytics)
+
+[Request license](/license)[Get started](https://platform.ultralytics.com/)
+
+Cookie Settings
+
+By clicking “Accept All Cookies”, you agree to the storing of cookies on your device to enhance site navigation, analyze site usage and assist in our marketing efforts. [More info](https://www.ultralytics.com/legal/privacy)
+
+Cookie Settings
+
+By clicking “Accept All Cookies”, you agree to the storing of cookies on your device to enhance site navigation, analyze site usage and assist in our marketing efforts. [More info](https://www.ultralytics.com/legal/privacy)
+
+[Accept All Cookies](#)[Cookie Settings](#)
+
+![Yolo Vision Shenzhen](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/68e64036498a78ceb6f71a8e_yv25-shenzhen.avif)
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd4128_Ultrlytics%20YOLO%20Vision%20RGB%20White.avif)
+
+Shenzhen
+
+October 26 at 10 AM CST
+
+Hybrid event
+
+[Join now
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/68fa2a05bda0021f12867dde_chevron-right.svg)](https://www.youtube.com/live/v6mBZjEFd-c)
+
+[Vision AI](/blog-category/vision-ai)
+
+# What are Diffusion Models? A quick and comprehensive guide
+
+[![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/680a070c3b99253410dd419b_Abirami.avif)
+
+Abirami Vina
+
+5 min read
+
+August 26, 2024](/authors/abirami-vina)
+
+Join us as we explore how diffusion models can be used to create realistic content and redefine fields like design, music, and film with various applications.
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/680a070c3b99253410dd47f8_67ed57539bd285506bed5fd2_670e6345f6b27bf63ff442c8_Diffusion%252520models.webp)
+
+Scale your computer vision projects with Ultralytics
+
+[Get started](https://platform.ultralytics.com/)
+
+[Example H2](#)
+
+[Example H3](#)
+
+Using [generative AI](https://www.ultralytics.com/blog/2024-starts-with-a-generative-ai-wave) tools like Midjourney and Sora to create content is becoming increasingly common, and there is a rising interest in looking under the hood of these tools. In fact, a recent study shows that [94%](https://www.accenture.com/content/dam/accenture/final/accenture-com/document-2/Accenture-Work-Can-Become-Era-Generative-AI.pdf) of individuals are prepared to learn new skills to work with generative AI. Understanding how generative AI models work can help you use these tools more effectively and get the most out of them.
+
+At the heart of tools like Midjourney and Sora are advanced diffusion models - generative AI models that can create [images](https://www.ultralytics.com/blog/how-to-tell-if-an-image-is-ai-generated), [videos](https://www.ultralytics.com/blog/generating-video-with-google-deepmind-veo), [text,](https://www.ultralytics.com/blog/a-deep-dive-into-the-capabilities-of-openais-gpt-4o-mini) and audio for various applications. For example, diffusion models are a great option for producing short marketing videos for social media platforms like [TikTok](https://www.tiktok.com/@ultralytics) and [YouTube Shorts](https://www.youtube.com/ultralytics). In this article, we’ll explore how diffusion models work and where they can be used. Let’s get started!
+
+## The inspiration behind advanced diffusion models
+
+In physics, diffusion is the process by which molecules spread out from areas of higher concentration to areas of lower concentration. The concept of diffusion is closely related to [Brownian motion](https://theaisummer.com/diffusion-models/), where particles move randomly as they collide with molecules in a fluid and gradually spread out over time.
+
+These concepts inspired the development of diffusion models in generative AI. Diffusion models work by gradually adding noise to data and then learning to reverse that process to generate new, high-quality data like text, images, or sound. It is similar to the idea of reverse diffusion in physics. Theoretically, diffusion can be tracked backward to return particles to their original state. In the same way, diffusion models learn to reverse the added noise to create realistic new data from noisy inputs.
+
+‍
+
+‍
+
+‍
+
+## Looking under the hood of diffusion models
+
+Generally, a diffusion model’s architecture involves two main steps. First, the model learns to add noise to the [dataset](https://docs.ultralytics.com/datasets/) gradually. Then, it’s trained to reverse this process and bring the data back to its original state. Let’s take a closer look at how this works.
+
+### Data preprocessing
+
+Before we dive into the core of a diffusion model, it’s important to remember that any data the model is trained on should be preprocessed. For example, if you are training a diffusion model to generate images, the [training dataset of images](https://docs.ultralytics.com/guides/data-collection-and-annotation/) needs to be cleaned up first. [Preprocessing image data](https://docs.ultralytics.com/guides/preprocessing_annotated_data/) can involve removing any outliers that could affect the results, normalizing the pixel values so that all the images are on the same scale, and using data augmentation to introduce more variety. Data preprocessing steps help guarantee the quality of training data, and this is true not just for diffusion models but any [AI model](https://docs.ultralytics.com/models/).
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/68e7749f0a0fc07c938b1d00_684d867a35cd45ba1f37cf3b_67ed57559bd285506bed6104_670e634ac7a43ba5890cca44_66c8498e570e01c04cbb3bc4_66c847e786919a529d0ba8f7_Diffusion%252525252520Models_Fig2.png)
+
+[Fig 2.](https://docs.ultralytics.com/guides/preprocessing_annotated_data/#data-augmentation-methods) Examples of Image Data Augmentation.
+
+‍
+
+### Forward diffusion process
+
+After data preprocessing, the next step is the forward diffusion process. Let’s focus on [training](https://docs.ultralytics.com/guides/model-training-tips/) a diffusion model to generate images. The process begins by sampling from a simple distribution, like a Gaussian distribution. In other words, some random noise is selected. As shown in the image below, the model gradually transforms the image in a series of steps. The image starts off clear and becomes increasingly noisy as it progresses through each step, eventually turning into almost complete noise by the end.
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/68e7749f0a0fc07c938b1cfd_684d867a35cd45ba1f37cf44_67ed57559bd285506bed6101_670e6349c7a43ba5890cca2f_66c8498d570e01c04cbb3bbc_66c848025fdbd9c119c7de13_Diffusion%252525252520Models_Fig3.png)
+
+[Fig 3](https://theaisummer.com/diffusion-models/). Forward Diffusion Process.
+
+‍
+
+Each step builds on the previous one, and noise is added in a controlled, incremental way using a Markov Chain. A Markov chain is a mathematical model where the probability of the next state depends only on the current state. It's used to predict future outcomes based on present conditions. As each step adds complexity to the data, we can capture the most intricate patterns and details of the original image data distribution. The addition of Gaussian noise also generates diverse and realistic samples as the diffusion unfolds.
+
+### Reverse diffusion process
+
+The reverse diffusion process begins once the forward diffusion process has transformed a sample into a noisy, complex state. It gradually maps the noisy sample back to its original state using a series of inverse transformations. The steps that reverse the noise-adding process are guided by a reverse Markov Chain.
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/68e7749f0a0fc07c938b1d03_684d867a35cd45ba1f37cf32_67ed57549bd285506bed60e1_670e634ac7a43ba5890cca47_66c8498d570e01c04cbb3bb9_66c848234127c4836fbcb9f1_Diffusion%252525252520Models_fig4%252525252520(1).png)
+
+[Fig 4](https://arxiv.org/pdf/2006.11239). Reverse Diffusion Process.
+
+‍
+
+During the reverse process, diffusion models learn to generate new data by starting with a random noise sample and gradually refining it into a clear, detailed output. The generated data ends up closely resembling the original dataset. This capability is what makes diffusion models great for tasks like image synthesis, data completion, and denoising. In the next section, we'll explore more applications of diffusion models.
+
+## The applications of diffusion models
+
+The step-by-step diffusion process makes it possible for diffusion model to efficiently generate complex data distributions without being overwhelmed by the data's high dimensionality. Let’s take a look at some applications where diffusion models excel.
+
+### Graphic design
+
+Diffusion models can be used to generate graphical visual content quickly. Human designers and artists can provide input sketches, layouts, or even some simple rough ideas of what they want, and the models can bring these ideas to life. It can speed up the entire [design process](https://www.ultralytics.com/blog/ai-in-mechanical-engineering-and-product-design), offer a wide range of new possibilities from the initial concept to the final product, and save a lot of valuable time for human designers.
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/68e7749f0a0fc07c938b1d08_684d867a35cd45ba1f37cf3e_67ed57559bd285506bed617b_670e634ac7a43ba5890cca40_66c8498e570e01c04cbb3bc7_66c848426a57e5cce375006b_Diffusion%252525252520Models_fig5.png)
+
+[Fig 5](https://www.reddit.com/r/StableDiffusion/comments/10z3ez8/my_new_graphic_design_tuned_model_is_released/). Graphic Designs Created By Diffusion Models.
+
+‍
+
+### Music and sound design
+
+Diffusion models can also be adapted to generate very unique soundscapes or music notes. It offers new ways for musicians and artists to visualize and create auditory experiences. Here are some of the use cases of diffusion models in the field of [sound and music creation](https://www.ultralytics.com/blog/ai-in-music-applications-and-tools-like-musicbrainz-picard):
+
+* **Voice transfer**: Diffusion models can be used to transform one sound into another, such as converting a kick drum sample into a snare sound for unique sound combinations.  
+  ‍
+* **Sound variability and humanization**: Audio diffusion can bring slight variations in sounds to add a human element to digital audio by simulating live instrument performances.  
+  ‍
+* **Sound design adjustments**: These models can be used to subtly alter a sound (such as enhancing a door slam sample) to modify its characteristics at a deeper level than traditional EQ or filtering.  
+  ‍
+* **Melody generation**: They can also help generate new melodies, and inspire artists in a way similar to browsing sample packs.
+
+‍
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/68e775330121e6b6c997c332_A%20Visualization%20of%20Audio%20Diffusion.webp)
+
+[Fig 6.](https://towardsdatascience.com/audio-diffusion-generative-musics-secret-sauce-f625d0aca800/) A Visualization of Audio Diffusion.
+
+‍
+
+### Film and animation
+
+Another interesting use case of diffusion models is in [creating film and animation clips](https://www.ultralytics.com/blog/generating-video-with-google-deepmind-veo). They can be used to [generate characters](https://www.ultralytics.com/blog/ai-in-video-games-shaping-the-future-of-gaming), realistic backgrounds, and even dynamic elements within scenes. Using diffusion models can be a big advantage for production companies. It streamlines the overall workflow and makes way for more experimentation and creativity in visual storytelling. Some of the clips made using these models are comparable with actual animated or film clips. It is even possible to use these models to create entire movies.
+
+‍
+
+![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/68ece91a32235ef9ac53a248_A.webp)
+
+[Fig 7](https://www.youtube.com/watch?v=9VWpRHIs3Jw&t=123s). A scene from the short film *Seasons* that was created using diffusion models.
+
+‍
+
+## Popular diffusion models
+
+Now that we've learned about some of the applications of diffusion models, let's look at some popular diffusion models that you can try using.
+
+* **Stable Diffusion:** Created by Stability AI, Stable Diffusion is an efficient model known for converting text prompts into realistic images. It has a strong reputation for high-quality image generation. It can also be modified for film and animation.  
+  ‍
+* **DALL-E 3**: DALL-E 3 is the latest version of OpenAI's image generation model. It's integrated into [ChatGPT](https://www.ultralytics.com/blog/openai-gpt-4o-showcases-ai-potential), and it offers many improvements in image generation quality over the previous version, DALL-E 2.  
+  ‍
+* **Sora:** Sora is OpenAI's text-to-video model that can generate highly realistic 1080p videos that are up to a minute long. Some of the video clips made using Sora can be easily mistaken for real footage.  
+  ‍
+* [**Imagen**](https://www.ultralytics.com/blog/generating-video-with-google-deepmind-veo#more-on-deepminds-2024-generative-ai-updates)**:** Developed by Google, Imagen is a text-to-image diffusion model recognized for its photorealism and advanced language understanding.
+
+## Challenges and limitations related to diffusion models
+
+While diffusion models offer benefits across many industries, we should also keep in mind some of the challenges that come with them. One challenge is that the training process is very [resource-intensive](https://www.ultralytics.com/blog/understanding-the-impact-of-compute-power-on-ai-innovations). While advancements in hardware acceleration can help, they can be costly. Another issue is the limited ability of diffusion models to generalize to unseen data. Adapting them to specific domains can require lots of [fine-tuning](https://docs.ultralytics.com/guides/model-evaluation-insights/) or retraining.
+
+Integrating these models into real-world tasks comes with its own set of challenges. It's key that what the AI generates actually matches what humans intend. There are also [ethical concerns](https://www.ultralytics.com/blog/the-ethical-use-of-ai-balances-innovation-and-integrity), like the risk of these models picking up and reflecting biases from the data they're trained on. On top of that, managing user expectations and constantly refining the models based on feedback can become an ongoing effort to make sure these tools are as effective and reliable as possible.
+
+## The future of diffusion models
+
+Diffusion models are a fascinating concept in generative AI that helps create high-quality images, videos, and sounds across many different fields. While they can present some implementation challenges, like computational demands and ethical concerns, the AI community is constantly working on improving their efficiency and impact. Diffusion models are all set to transform industries like film, music production, and digital content creation as they continue to evolve.
+
+Let's learn and explore together! Check out our [GitHub repository](https://github.com/ultralytics) to see our contributions to AI. Discover how we are redefining industries like [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing) and [healthcare](https://www.ultralytics.com/solutions/ai-in-healthcare) with cutting-edge AI technology.
+
+Copied
+
+## Read more in this category
+
+Vision AI
+
+[![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/69caa3a783482a0e3a2c4947_Blog%20template_.webp)
+
+### 5 reasons why computer vision models fail in production
+
+4 min read
+
+Mar 30, 2026](/blog/5-reasons-why-computer-vision-models-fail-in-production)
+
+Vision AI
+
+[![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/69a56637e958af5565c3b6ed_CV-projects_Thumbnails%201.webp)
+
+### 10 easy computer vision projects for hands-on learning
+
+8 min read
+
+Mar 2, 2026](/blog/10-easy-computer-vision-projects-for-hands-on-learning)
+
+Vision AI
+
+[![](https://cdn.prod.website-files.com/680a070c3b99253410dd3df5/699f2f9b9826a8fe7ef951d0_defect-detection_thumbnail.webp)
+
+### How vision AI enhances defect detection on production lines
+
+5 min read
+
+Feb 25, 2026](/blog/how-vision-ai-enhances-defect-detection-on-production-lines)
+
+[Browse all articles](/blog)
+
+## Let’s build the future of AI together!
+
+Begin your journey with the future of machine learning
+
+[Get started](https://platform.ultralytics.com/)
+
+[Request license](/license)
+
+---
+
+Title: What Are Diffusion Models? | Coursera
+# What Are Diffusion Models?
+
+Written by Coursera Staff • Updated on
+
+Explore diffusion models, a type of generative artificial intelligence model that continually finds new applications across professional fields. Learn what these are, common applications, and some advantages and limitations of this approach.
+
+![[Featured Image] Two machine learning professionals look over some paperwork in an office and talk about diffusion models.
+](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://images.ctfassets.net/wp1lcwdav1p1/2IxgzQMQ6ok7NR1OIEoVb2/0b50a07058e796edf40b802b7d1eb448/GettyImages-698379070.jpg?w=1500&h=680&q=60&fit=fill&f=faces&fm=jpg&fl=progressive&auto=format%2Ccompress&dpr=1&w=1000)
+
+Diffusion models are a class of generative models in [artificial intelligence](https://www.coursera.org/articles/what-is-artificial-intelligence) that have revolutionized how we create and manipulate digital content, such as generating images and audio. At their core, diffusion models add random noise to existing data and then reverse the process to transform the random noise into a structured output gradually. Through this process, the model learns to create synthetic data.
+
+Use this guide to explore different applications of this type of model, innovations in this space, the advantages and disadvantages of this process, and more.
+
+## What is a diffusion model used for? Key applications
+
+Diffusion models have found their way into several types of applications, transforming how we create and interact with digital content. While new applications continue to emerge, you might see this technology used for functions such as:
+
+* **Media generation:** Diffusion models are widely used to generate complex data that mimics the structure of training inputs. Professionals can apply this technology in many ways, including generating artificial pictures and synthetic biological structures.
+
+* **Text-to-image generation:** These models can take written descriptors, such as “small dog” or “woman eating an apple,” and create lifelike pictures that capture the textual information.
+
+* **Large language models:** The de-noising algorithms in diffusion models are useful in large language models to understand and interpret complex user text input and produce appropriate responses.
+
+### What do diffusion models predict?
+
+Diffusion models predict how to transform random noise into meaningful data, such as realistic images, by learning how to reverse the process that added noise. For example, a model trained on cat images starts with static-like noise and gradually predicts less noisy versions at each step until it generates a lifelike picture of a cat.
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/articles/purple-hash-pattern.svg?auto=format%2Ccompress&dpr=2&blur=200&px=8&max-w=252)
+
+## New innovations: Understanding the AI diffusion model
+
+Diffusion models have been commonly used to generate images from text. Still, recent innovations have expanded their use in deep-learning and generative AI for applications like developing drugs, using natural language processing to create more complex images and predicting human choices based on eye tracking. One of the most notable creations in this space is the [DALL-E](https://www.coursera.org/articles/what-is-dall-e), which is an image-generation artificial intelligence model that bases its algorithm on diffusion model principles.
+
+DALL-E, named after the artist Salvador Dali and the robot WALL-E, is a powerful generative AI model developed by OpenAI that can create novel images from textual descriptions, even outside of training images. For example, you could ask it to create an image of “a rainbow stream with unicorns drinking from it” or “a sparkling elephant with two heads.” This is relatively new in artificial intelligence, and researchers are still finding novel ways to use this technology and make it accessible to users.
+
+## Who benefits from diffusion models?
+
+Diffusion models have been a revolution in the AI world, with their applications benefiting various fields like medicine, art, marketing, and psychology. While applications continue to expand, you’ve likely already seen these models in play.
+
+For example, in [health care](https://www.coursera.org/gb/articles/machine-learning-in-health-care), diffusion models enable more accurate medical imaging, such as denoising images and increasing their quality, which can aid in early diagnosis and treatment planning. In addition, their application in drug discovery accelerates the development of new medications by predicting molecular structures and interactions, potentially saving lives by bringing treatments to market faster.
+
+In the creative space, professionals can use diffusion models as tools for creativity and innovation. Artists and designers use them to create intricate digital artworks, interior design mockups, and sound generation, opening new options for artistic expression. In psychology and marketing, professionals use diffusion models to understand neural networks, cognitive processes, social media activity, and consumer adoption of new products. By analyzing patterns and predicting choices, these models help marketers tailor strategies designed for their target audiences, considering product demand and consumer characteristics.
+
+## Pros and cons of using diffusion models
+
+Diffusion models are a powerful tool, but as with any type of artificial intelligence model, they have their own set of limitations. Awareness of the advantages and disadvantages can help inform your decisions when designing your model and help you avoid pitfalls. Plus, you can increase your confidence that you are using your model for the right types of data and applications.
+
+### Pros
+
+* **Strategic insights:** Diffusion models offer insights into product adoption rates and the spread of innovation. This helps organizations refine their market strategies, identify influential stakeholders, and improve product development processes.
+
+* **Behavioral understanding:** Diffusion models help decode complex human behaviors and choices, which can give marketers and psychologists a deeper understanding of why people make the decisions they do.
+
+* **Novel images:** While more traditional models took training data and tried to create new pictures that were similar to the original input data, more advanced models can now extend applications beyond training data to truly unique outputs.
+
+### Cons
+
+* **Difficulty with complex prompts:** Models may struggle with inputs that have numerical or spatial components.
+
+* **May have limited scope:** Depending on the design of your algorithm, the diffusion model may have limits to the patterns it can identify and the types of images it can generate.
+
+* **Privacy concerns with training data:** Because of the high volume of data needed for training, you might find obstacles when sourcing data that isn’t protected, licensed, or copyrighted online.
+
+## How to start learning diffusion models
+
+Before exploring the complexities of diffusion models, you’ll want to build a strong foundation in the basics of artificial intelligence. This includes understanding how AI systems learn from data, make decisions, and solve real-world problems.
+
+Since diffusion models are particularly powerful in generating and manipulating images, you might start with a thorough understanding of image processing. To do this, familiarize yourself with concepts such as computer vision, image recognition, and image restoration, which should help deepen your understanding of how diffusion models can create detailed and realistic images from noise.
+
+Diffusion models fall under the category of generative AI, which focuses on creating new data instances that resemble the training data. To expand your knowledge, you can explore other generative models like generative adversarial networks (GANs) to learn about the broader context and capabilities of this type of AI technology.
+
+## Get started with machine learning diffusion models on Coursera
+
+Learn more about artificial intelligence algorithms by taking specialized courses and Specializations on Coursera. You can prepare yourself for a career in AI with the [Machine Learning Specialization](https://www.coursera.org/specializations/machine-learning-introduction) from Stanford University and DeepLearning.AI. This is a beginner-level Specialization that guides you through machine learning basics all the way to applied practice with unsupervised models.
+
+Updated on
+
+Written by:
+
+C
+
+### [Coursera Staff](https://www.coursera.org/articles/author/coursera-staff)
+
+Editorial Team
+
+Coursera’s editorial team is comprised of highly experienced professional editors, writers, and fact...
+
+This content has been made available for informational purposes only. Learners are advised to conduct additional research to ensure that courses and other credentials pursued meet their personal, professional, and financial goals.
+
+---
+
+Title: Synthetic Data Generation with Diffusion Models · Hugging Face
+![Hugging Face's logo](/front/assets/huggingface_logo-noborder.svg)
+
+Community Computer Vision Course documentation
+
+Synthetic Data Generation with Diffusion Models
+
+# Community Computer Vision Course
+
+![Hugging Face's logo](/front/assets/huggingface_logo-noborder.svg)
+
+and get access to the augmented documentation experience
+
+to get started
+
+# Synthetic Data Generation with Diffusion Models
+
+Imagine trying to train a model for tumor segmentation. As it’s hard to gather data for medical imaging, it’d be really difficult for the model to converge.
+Ideally, we expect to have at least enough data to build a simple baseline, but what if you have just a few samples? Synthetic data generation methods try to solve this dilemma, and now we have many more options with the boom of generative models!
+
+As you’ve seen in the previous sections, it is possible to use generative models such as DCGAN to generate synthetic images. In this section, we will focus on diffusion models using [diffusers](https://huggingface.co/docs/diffusers/index)!
+
+## Recap of the Diffusion Models
+
+Diffusion models are generative models that gained significant popularity in recent years, thanks to their capabilities to produce high-quality images. Nowadays, they’re widely used in image, video, and text synthesis.
+
+A diffusion model works by learning to denoise random Gaussian noise step-by-step. The training process requires adding Gaussian noise to the input samples and letting the model learn denoising.
+
+Diffusion models are generally conditioned to a kind of input besides the data distribution, such as text prompts, images or even audio. Additionally, it’s also possible to [build an unconditional generator](https://huggingface.co/docs/diffusers/training/unconditional_training).
+
+There are many underlying concepts behind the model’s inner workings but the simplified version is similar to this:
+
+Firstly, the model adds noise to the input and processes it.
+
+![noising](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/noising.jpg?download=true)
+
+![noising](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/noising.jpg?download=true)
+
+Then the model learns to denoise the given data distribution.
+
+![denoising](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/denoising.jpg?download=true)
+
+![denoising](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/denoising.jpg?download=true)
+
+We won’t dive deep into the theory, but understanding how a diffusion model works will come really handy when we need to pick a technique to generate synthetic data for our use case.
+
+## Text-To-Image Diffusion Model: Stable Diffusion
+
+Essentially, the way Stable Diffusion (SD) works is the same as we mentioned above. It uses three main components that help it to produce high-quality images.
+
+**The diffusion process:** The input is processed multiple times to generate useful information about the image. The “usefulness” is learned while training the model.
+
+**Image encoder and decoder model:** Lets the model compress images from pixel space to a smaller dimensional space, abstracting meaningless information while increasing performance.
+
+**Optional conditional encoder:** This component is used to condition to generation process on an input. This extra input can be text prompts, images, audio, and other representations. Originally, it was a text encoder.
+
+So while the general workflow looks like this:
+![general stable diffusion workflow](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/general-workflow.png?download=true)
+
+![general stable diffusion workflow](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/general-workflow.png?download=true)
+
+Originally we used a text encoder to condition the model on our prompts:
+![original stable diffusion workflow](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/stable-diffusion-workflow.png?download=true)
+
+![original stable diffusion workflow](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/stable-diffusion-workflow.png?download=true)
+
+This short overview is just the tip of the iceberg! If you wish to dive deep into the theory behind stable diffusion (or diffusion models), you can out the [further reading section](#further-reading-about-stable-diffusion)!
+
+[diffusers](https://huggingface.co/docs/diffusers/index) provide us ready to use pipelines for different tasks, such as:
+
+| Task | Description | Pipeline |
+| --- | --- | --- |
+| Unconditional Image Generation | generate an image from Gaussian noise | [unconditional\_image\_generation](https://huggingface.co/docs/diffusers/using-diffusers/unconditional_image_generation) |
+| Text-Guided Image Generation | generate an image given a text prompt | [conditional\_image\_generation](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) |
+| Text-Guided Image-to-Image Translation | adapt an image guided by a text prompt | [img2img](https://huggingface.co/docs/diffusers/using-diffusers/img2img) |
+| Text-Guided Image-Inpainting | fill the masked part of an image given the image, the mask and a text prompt | [inpaint](https://huggingface.co/docs/diffusers/using-diffusers/inpaint) |
+| Text-Guided Depth-to-Image Translation | adapt parts of an image guided by a text prompt while preserving structure via depth estimation | [depth2img](https://huggingface.co/docs/diffusers/using-diffusers/depth2img) |
+
+There’s also a complete list of supported tasks that you can find from the [Diffusers Summary](https://huggingface.co/docs/diffusers/api/pipelines/overview#diffusers-summary) table.
+
+This means we have many tools under our belt to generate synthetic data!
+
+## Approaches to Synthetic Data Generation
+
+There are generally three cases for needing synthetic data:
+
+**Extending an existing dataset:**
+
+**Creating a Dataset from Scratch**:
+
+**Preserving Privacy**:
+
+There are different methods for us to utilize a text-to-image diffusion model to generate customized outputs. For example, by simply utilizing the pre-trained diffusion model (such as [Stable Diffusion XL](https://huggingface.co/docs/diffusers/api/pipelines/stable_diffusion/stable_diffusion_xl)), you can try to construct a nice prompt to generate images. But the quality of the generated images may not be consistent and it might be really difficult to construct such a prompt for your specific use case.
+
+You will usually be required to change some parts of the model to generate the personalized output you want, here are a few techniques that you can use for that:
+
+**Training with [Textual Inversion](https://huggingface.co/docs/diffusers/main/en/training/text_inversion):**
+
+![textual-inversion](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/textual_inversion.png?download=true)
+
+![textual-inversion](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/textual_inversion.png?download=true)
+
+Textual inversion is a technique that works by interfering with the text embeddings in the model’s architecture. You can add a new token to the vocabulary and then fine-tune the embeddings using a few examples.
+
+By providing samples corresponding to the new token, we try to optimize the embeddings to capture the characteristics of the object.
+
+**Training a [LoRA (Low-Rank Adaptation)](https://huggingface.co/docs/diffusers/main/en/training/lora?installation=PyTorch) model:**
+
+LoRA has targeted the problem of fine-tuning LLMs. It represents the weight updates with two smaller update matrices through low-rank decomposition, which has substantially less amount of parameters. Then these matrices can be trained to adapt the new data!
+
+The base model’s weights remain frozen in the whole process, so we just train the new update matrices. Then lastly, the adapted weights are combined with the original weights.
+
+This means training LoRA is essentially much faster than full model fine-tuning! As an important note, it’s also possible to combine LoRA with other techniques since it can be added on top of the model itself.
+
+**Training with [DreamBooth](https://huggingface.co/docs/diffusers/main/en/training/dreambooth):**
+
+![dreambooth](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/dreambooth.png?download=true)
+
+![dreambooth](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/dreambooth.png?download=true)
+
+DreamBooth is a technique to fine-tune the model to personalize the outputs. Given a few images of a subject, it lets you fine-tune a pre-trained text-to-image model. The main idea is to associate a unique identifier with that specific subject.
+
+For training, we use the tokens in the vocabulary and build a dataset using preferably a rare-token identifier. Because if you choose a rather common identifier, the model would also have to learn to disentangle from their original meaning.
+
+In the original paper, authors find the rare tokens in the vocabulary and then choose identifiers from those. This reduces the risk of an identifier having a strong prior. It is also stated that the best results were achieved by fine-tuning all the layers of the model.
+
+**Training with [Custom Diffusion](https://huggingface.co/docs/diffusers/main/en/training/custom_diffusion):**
+
+![custom diffusion](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/custom_diffusion.png?download=true)
+
+![custom diffusion](https://huggingface.co/datasets/hf-vision/course-assets/resolve/main/synthetic-data-creation-diffusion-models/custom_diffusion.png?download=true)
+
+Custom Diffusion is a really powerful technique to personalize the model. It requires just a few samples like the previously mentioned methods, but its power lies in being able to learn multiple concepts at the same time!
+
+It works by training just a part of the diffusion process and the text encoder we mentioned above, meaning that there are fewer parameters to optimize. Thus, this method also enables fast fine-tuning!
+
+## Real-world Examples of Using Diffusion Models for Dataset Generation
+
+There are many unique cases where diffusion models are used to generate synthetic datasets!
+
+Find them below.
+
+## Further reading about Stable Diffusion
+
+---
+
+Title: What are Diffusion Models? | Splunk
+# What are Diffusion Models?
+
+[Learn](https://www.splunk.com/en_us/blog/learn.html) [Muhammad Raza](/en_us/blog/author/muhammad-raza.html) 
+
+As artificial intelligence continues to evolve, diffusion models have emerged as one of the most exciting and promising developments in the field of [generative AI](/en_us/blog/learn/generative-ai.html). These models have captured attention for their ability to create high-quality images, videos, and text from simple inputs. They are being utilized in a wide range of applications, from creative tasks to scientific breakthroughs.
+
+However, while diffusion models are gaining popularity, many still struggle to understand how they work and how they can be effectively applied
+
+In this blog, we will review a simple and intuitive explanation of the diffusion models, exploring how they function, and how you can use them.
+
+## What are diffusion models?
+
+Diffusion models are a class of probabilistic generative model in machine learning, inspired by the concept of non-equilibrium thermodynamics in physics. They are considered one of the most promising AI developments of the last decade.
+
+Some of the interesting applications of diffusion models include text-to-image and text-to-video generative AI models such as:
+
+* [OpenAI SORA](https://openai.com/sora/)
+* Stable Diffusion by [Stability AI](https://stability.ai/)
+* [Google Imagen](https://imagen.research.google/)
+
+Diffusion models work by simulating a process where data is gradually corrupted with noise and then learning how to reverse this corruption to recover the original data. This reverse process is what allows diffusion models to generate new, high-quality samples. This is what makes them powerful tools for tasks like image generation, video synthesis, and more.
+
+Diffusion models have emerged as the most popular invention since the Generative Adversarial Networks ([GANs](https://arxiv.org/pdf/1406.2661)) in 2014.
+
+### Generative Adversarial Networks (GANs)
+
+GANs are a class of probabilistic [machine learning models](/en_us/blog/learn/machine-learning-ml-models.html) that use an adversarial competition between a generator network that produces fake images resembling a target data distribution, and a discriminator network that distinguishes real images from the fake samples.
+
+Consider the diffusion models to be a mathematical representation of a simulated diffusion process where energy spreads out due to temperature ([gradients](https://arxiv.org/pdf/1406.2661)).
+
+Let’s look at a few images produced by the diffusion model Google Imagen:
+
+![](/content/dam/splunk-blogs/images/media_19e6002cba9e5d452161971da9af658a2ee287671.webp?width=750&format=webp&optimize=medium)      ![](/content/dam/splunk-blogs/images/media_18f2c8f86fac43d0149041fb29ac0b908eb3bb988.webp?width=750&format=webp&optimize=medium)
+
+## Generating something from nothing
+
+Generative AI models, like [large language models (LLMs)](/en_us/blog/learn/language-models-slm-vs-llm.html), typically learn the underlying data distribution to generate new data. Some models, such as variational autoencoders, explicitly learn this distribution, while others, like GANs, generate samples implicitly without needing to learn the distribution upfront.
+
+Additionally, generative models capture additional attributes, such as interdependencies between features in a data distribution, temporal dynamics for [time series forecasting](/en_us/blog/learn/time-series-forecasting.html), and latent representations that highlight essential low-dimensional features, representing a high-dimensional data distribution, such as colors in an image instead of detailed objects.
+
+## Understanding the diffusion process
+
+Diffusion models learn the noise-to-signal mapping of a data distribution, in the process of transitioning a true data distribution into pure noise and its reverse process (of reconstructing the original uncorrupted data distribution).
+
+Consider the case of image generation with diffusion models:
+
+### Forward process
+
+Noise is injected into an image sequentially for several timesteps until it becomes indistinguishable from pure noise. This is the forward process of the diffusion model, where an unknown data distribution is converted into a known prior distribution — pure noise, typically modeled by a Gaussian distribution with a defined mean and variance.
+
+By understanding the parameters of this distribution (mean and variance), you can generate an infinite number of samples that belong to that distribution.
+
+### Reverse process
+
+Starting from the pure noise distribution, the diffusion model learns to reconstruct the original data point by progressively removing the noise. This process occurs step-by-step, mirroring the way the model sequentially interacted with noise perturbations during the forward process.
+
+There are several ways in which this reconstruction process is learned.
+
+## Common approaches to diffusion models
+
+While there are various approaches to diffusion models, depending on the specific generative task and design, let’s discuss two common methods:
+
+1. Denoising diffusion probabilistic models
+2. Denoising score matching
+
+### Denoising diffusion probabilistic models
+
+One common approach is for a neural network model to learn at each of the timestep, how much noise was introduced given the state of the noise-perturbed image at a given time step (going from pure noise to original image).
+
+### Denoising score matching
+
+Another approach learns the gradient of the log-probability of noise-perturbed data points at every instance of the reverse process.
+
+Intuitively, this information serves as a guide for removing the required noise perturbation at every time instance reaching from pure noise to the original data sample. It helps identify regions of the noisy space instead of the noise itself.
+
+**With this information, it guides the generative (reverse diffusion) process toward the direction of the true mean and variance of the original data sample.**
+
+Here is a visual representation of the forward process (first row) and the reverse process (second row):
+
+![](/content/dam/splunk-blogs/images/media_1cd4c275b0dc87782a6e4909bf4aadc0b34fd6ab7.avif?width=750&format=avif&optimize=medium)
+
+*For a detailed mathematical explanation, follow the guides [here](https://arxiv.org/pdf/2209.00796) and [here](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/).*
+
+## Applications & use cases of diffusion models
+
+Diffusion models are not just about generating creative images, videos and text in response to a user prompt. Diffusion models offer a variety of important applications in the domain of science, technology and business:
+
+* **Computational biology:** [AlphaFold 3](https://blog.google/technology/ai/google-deepmind-isomorphic-alphafold-3-ai-model/#life-molecules) predicts molecular structures and interactions with a diffusion model. This is the latest iteration of the technology from the winners of the [2024 Nobel](https://www.nature.com/articles/d41586-024-03214-7) prize in chemistry.
+* **Time Series Imputation:** Diffusion models can be used to generate missing information within time series data. This includes future forecasting (such as whether or stock pricing) and missing medical test results (such as transforming low resolution radiology results into high resolution and information-rich images)
+* **Chatbots:** A variety of interactive multimodal chatbots on the market today use diffusion based generative processes.
+* **E-commerce:** Prototyping new product designs, synthesizing images and videos for customer try-outs.
+* **Finance:** Generate synthetic information to train fraud detection models.
+
+## What’s next for diffusion models?
+
+There’s a lot more to do with regards to both the theoretical and empirical aspects of diffusion models research and applications. For example, the generative process is slower and therefore compute intensive. How can we develop more efficient sampling methods to generate new data?
+
+These models are nevertheless powerful enough to emulate human behavior. This has already opened the doors for cybercriminals and can pose a security and privacy risk in the form of deepfakes and [social engineering](/en_us/blog/learn/social-engineering-attacks.html).
+
+### FAQs about Diffusion Models
+
+**What are diffusion models?**
+
+Diffusion models are a class of generative models that learn to create data, such as images, by gradually adding and then removing noise through a series of steps.
+
+**How do diffusion models work?**
+
+Diffusion models work by first corrupting data with noise over many steps and then learning to reverse this process, reconstructing the original data from pure noise.
+
+**What are diffusion models used for?**
+
+Diffusion models are primarily used for generating realistic images, but they are also being explored for applications in audio, video, and other data types.
+
+**How are diffusion models different from GANs?**
+
+Unlike GANs, which use a generator and discriminator in a competitive setup, diffusion models use a stepwise noise addition and removal process, often resulting in more stable training and higher-quality outputs.
+
+**What are the advantages of diffusion models?**
+
+Diffusion models often produce high-quality, diverse outputs and are less prone to issues like mode collapse compared to GANs.
+
+**Are there any challenges with diffusion models?**
+
+Diffusion models can be computationally intensive and slow to sample from, as they require many steps to generate each output.
+
+</en_us/blog/fragments/disclaimer-with-divider>
+
+</en_us/blog/fragments/5-big-myths-of-machine-learning-and-ai-debunked>
+
+Style
+
+two-column
+
+Title
+
+Related Articles
+
+Filter
+
+Category
+
+Blog Limit
+
+3
+
+Category
+
+learn
+
+Sort Category Shuffle Order
+
+true
+
+### Related Articles
+
+[Learn](/en_us/blog/learn.html)
+
+5 Minute Read
+
+### [What Is Detection Engineering? A Complete Guide to Modern Threat Detection](/en_us/blog/learn/detection-engineering.html)
+
+Learn how detection engineering transforms telemetry into actionable alerts to reduce dwell time and proactively identify advanced cyber threats.
+
+[Learn](/en_us/blog/learn.html)
+
+8 Minute Read
+
+### [Chargebacks vs. Showbacks: Everything You Need to Know](/en_us/blog/learn/chargeback-vs-showback.html)
+
+Managing IT costs internally isn’t easy, but two methods can help: learn all about showbacks and chargebacks in this article.
+
+[Learn](/en_us/blog/learn.html)
+
+4 Minute Read
+
+### [What Is Network Architecture?](/en_us/blog/learn/network-architecture.html)
+
+Learn everything you need to know about network architecture and follow the best practices to maintain your architecture’s security.
+
+  

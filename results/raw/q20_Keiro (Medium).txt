@@ -1,0 +1,254 @@
+Title: Top 10 ways to monitor Linux in the console - Jeff Geerling
+**Key Points:** Top 10 ways to monitor Linux in the consoleJan 15, 2025top (pictured below. He even writes a book on Linux performance monitoring! Seriously, go read through Brendan Gregg's Linux Performance page if you want to go much, much deeper.
+
+```text
+# Install on Debian/Ubuntu Linux
+apt install -y stress-ng s-tui
+```
+
+Top 10 ways to monitor Linux in the consoleJan 15, 2025top (pictured below... above is btop) is the first utility everyone recommends to monitor Linux (or any form of UNIX, including macOS) resource usage. It's efficient, available almost everywhere... but it's also a bit basic. It shows essential metrics, but looks like it's from the 80s. There are ways to brighten it up, like highlighting active processes or changing color schemes, but it's not the only game in town!Nowadays, there are a lot of modern monitoring tools—and some not so modern, but immensely useful—to choose from. This blog post will run through some of the ones I rely on most often. Let me know in the comments if you use any others I didn't cover!Contentss-tuihtopatopiftopiotopnvtopasitopbtopperfwavemonIf you'd like to see all these tools in action, check out the video that goes along with this blog post, embedded below:s-tui# Install on Debian/Ubuntu Linux
+apt install -y stress-ng s-tui
+If I want to quickly observe the system's CPU frequency and temperatures while running a stress benchmark, this is by far the best way.I originally discovered this tool through ServeTheHome—Patrick uses it and displays it on the giant screen behind him to monitor core to core stability when running a system under load.It has two basic modes, 'Monitor' and 'Stress', and while running in Stress mode, it will use stress or stress-ng to stress all CPU cores (you can configure stress options within s-tui's configuration).I've used it on Linux and macOS, and it seems to pick up the right temperature sensors on most hardware, even exotic systems like the AmpereOne!htopsudo apt install htop
+htop is often installed by default (e.g. on Raspberry Pi OS), and is like top, but focuses visually on CPU metrics more than memory. It provides more visual indication of system load through bar graphs, and it's usually a tossup whether I choose htop or top.atopWARNING (2025-03): Some versions of Atop are vulnerable to local attacks which could lock up the machine.sudo apt install atop
+atop breaks out a lot of critical performance metrics into a dizzying array of metrics, with a process list below. There are two features I like about atop that draws me to it instead of other tools when I'm debugging hardware bottlenecks:First, it uses color sparingly to indicate resources reaching saturation (e.g. 90% of disk, memory, or CPU usage turns that metric red).Second, it breaks out IRQ consumption, network packets in and out, and some other metrics that are either hidden or buried in other tools. This tool has been especially helpful when troubleshooting bottlenecks like network file copy slowdowns, which sometimes are affected by CPU core affinity, PCIe bottlenecks, or disk IO (or a combination of all!).iftopsudo apt install iftop
+If I'm just focused on bandwidth monitoring—seeing how much data is going through a network interface, there's no simpler tool than iftop. It shows total bandwidth over the interface, along with a running total of download and upload size. Then it lists every connection with traffic up and down, with a simple bar graph display for each.iotopsudo apt install iotop
+What iftop is for network bandwidth, iotop is for disk bandwidth.The nice party trick is it also breaks out the disk IO by process, so if you are experiencing slow disk access, or want to see what processes are hogging a drive, this is the quickest way to get at that info.If you want to get even fancier, sysdig (sudo apt install -y sysdig) comes with a console UI csysdig which lets you dig directly into processes by volume of data written or ops! Very handy.nvtopsudo apt install nvtop
+nvtop is a lightweight task viewer for AMD, Intel, Nvidia, and Apple GPUs. Some tools like btop (shown later) include very simple GPU metrics (sometimes...), but nvtop gives you all the hardware details, like power consumption, fan speed, memory consumption, and a process breakdown.There are tools like radeontop and amdgpu_top for AMD, or nvitop for Nvidia... but nvtop is almost universally available, and works on the largest variety of GPUs. It's nice to know one tool for all, and even nicer when it's an apt install away. Or brew install nvtop on macOS!asitoppip3 install asitop
+I try not to get too platform-specific with my tooling, but sometimes when I'm on a Mac, I don't have access to the full gauntlet of process monitoring tools I get on Linux.Lucky for me, there's asitop, which is a handy visual tool to monitor CPU, GPU, power, and clock speeds. It even breaks down visuals based on E and P cores!btopsudo apt install btop
+Now we get to it—the Lamborghini of tops. Not only does it have full color, mouse support, and a sensible video-game-like menu system (no arcane hidden features here!), it makes you look like you're hacking away on TV set.The visuals aren't all eye-candy, either. Color schemes and almost infinite settings and layouts mean you can set it up for precisely the metrics you want to monitor, usually with just a few keystrokes.It's worth spending the time to learn some of btop's options. btop is usually the first tool I install when getting a feel for a new computer or SBC. Sometimes the colors can get a bit wacky, especially over SSH sessions, but a quick trip to the menus (o) and setting Truecolor to False fixes that right up.This is by far the tool I get the most comments about when it appears in one of my YouTube videos. The visuals are not only pretty, but functional.perfsudo apt install linux-perf
+And after the beauty of btop, we have to go in the complete opposite direction. perf isn't a top at all! Well, then, why is it in the list?Because usually once you monitor a system with a lightweight tool like btop or atop, you need to actually figure out the bottleneck. And perf has deep kernel integration to pull out performance data you didn't even know existed!I can't even scratch the surface of what it can do—I'll let the guy who I've learned the like 0.2% of perf's features from describe it so much better: Brendan Gregg's perf Examples. He even writes a book on Linux performance monitoring!And yes, that's the same Brendan Gregg famous for Shouting in the Datacenter.wavemonsudo apt install wavemon
+Since we're off on a tangent of non-top monitoring tools, I figured I'd throw an honorable mention out to wavemon.Before I discovered this tool, I would use watch -n 1 with nmcli or iwconfig... but that was not ideal, and a tool like iwconfig occupies some weird head space where I can never remember the exact name, because there's also ipconfig or ifconfig or ip or whatever other networking tools that have overloaded those registers in my brain.But now I can see precisely which direction to orient my external wifi antenna, or find a way to eke out an extra 100 Mbps from an otherwise-stable connection!That rounds out my list of the top 10 ways to monitor Linux... but as I mentioned in the perf section, this is barely scratching the surface. Seriously, go read through Brendan Gregg's Linux Performance page if you want to go much, much deeper.Further reading:Diagnosing Disk I/O issues: swapping, high IO wait, congestionIs an Intel N100 a better value than a Raspberry Pi?Hacking Pi firmware to get the fastest overclockComments
+
+---
+
+Title: 2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More
+**Definition:** post instead 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ Key Takeaways
+
+Linux monitoring is essential for ensuring performance, security, availability, and compliance across workloads.
+
+**Key Points:** Why Linux Monitoring Matters
+Monitoring your Linux systems is essential for maintaining stability, performance, and Linux security — especially in modern, always-on environments. The Real Challenges of Monitoring Linux Systems
+The Linux operating system gives you incredible control and flexibility, but keeping an eye on modern systems isn’t as simple as running a few commands. Monitoring Best Practices & Techniques for Linux System Administrators
+Effective Linux system monitoring goes beyond simply reacting to alerts; it requires a proactive and strategic approach.
+
+## Key Metrics to Track on Linux Servers
+Effective Linux monitoring also hinges on tracking the right indicators. Below are the most important metrics across CPU, memory, disk, network, and system health, crucial for early issue detection and maintaining uptime.
+
+
+## 2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More for Sysadmins
+July 29, 2025 - 
+                                
+                                    📖 11 min
+
+
+## Elevate Your Linux Monitoring: Next Steps
+Effective Linux system monitoring, whether on-premise, in virtual environments, or across dynamic cloud infrastructures, demands more than just basic tools or reactive responses. As we’ve explored, mastering this evolving landscape requires strategic approaches to metric analysis, automation, and addressing the unique challenges of modern Linux deployments, particularly around security and uptime. Linux automation tools can help by automating repetitive tasks, such as monitoring configuration, log analysis, and basic threat detection, allowing administrators to focus on complex issues. Given these demands, relying solely on manual processes can introduce risk and inefficiency.
+This is where TuxCare’s KernelCare Enterprise becomes invaluable. With automated, rebootless patching, KernelCare eliminates patch-related downtime and ensures your Linux infrastructure remains secure, compliant, and stable without disruption.
+Ready to simplify Linux patching and improve security? Talk to a TuxCare expert today and discover how KernelCare can help you automate patch management and protect your Linux servers.
+SummaryArticle Name2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More for SysadminsDescriptionLearn how to monitor Linux servers effectively using command-line tools, key performance metrics, and expert sysadmin strategies to boost performance and security.Author
+							Rohan Timalsina
+							
+							Publisher Name
+							TuxCare
+							
+
+
+							Publisher Logo
+
+
+## Why Linux Monitoring Matters
+Monitoring your Linux systems is essential for maintaining stability, performance, and Linux security — especially in modern, always-on environments.
+Here’s why Linux monitoring is critical in 2025:
+Performance: Detect high CPU, memory, disk, or network usage before it affects users.
+Security: Identify unusual processes, failed logins, or suspicious behavior early.
+Compliance: Maintain audit trails and meet regulatory or industry-specific requirements.
+Availability: Prevent outages and reduce Mean Time to Recovery (MTTR).
+Efficiency: Optimize resources, avoid over-provisioning, and streamline operations.
+
+
+## The Real Challenges of Monitoring Linux Systems
+The Linux operating system gives you incredible control and flexibility, but keeping an eye on modern systems isn’t as simple as running a few commands. Mastering this dynamic landscape, where issues can hide in plain sight, is key for effective monitoring.
+
+
+## Linux Monitoring in Cloud and Virtual Environments
+While fundamental Linux metrics remain critical, effective monitoring in cloud or virtualized environments introduces distinct complexities. Instances are often ephemeral, scaling dynamically, and part of highly distributed microservices architectures. This demands a more flexible strategy, as traditional agent-based tools often fall short in tracking instances that spin up and down rapidly.
+Key considerations include leveraging cloud-native monitoring services (e.g., AWS CloudWatch, Azure Monitor), which offer auto-discovery and native integration with cloud resources. Understanding the cloud provider’s shared responsibility model is also vital — clearly defining which components (like hardware and core networking) they monitor, versus what remains your responsibility (such as Linux VMs, apps, and data).
+The shift towards observability becomes paramount, emphasizing the collection and correlation of metrics, logs, and traces across distributed components. This detailed visibility is crucial for tracking dynamic resource allocation, optimizing cloud spend by identifying underutilized resources, and maintaining consistent visibility as infrastructure constantly shifts.
+
+
+## Monitoring Best Practices & Techniques for Linux System Administrators
+Effective Linux system monitoring goes beyond simply reacting to alerts; it requires a proactive and strategic approach. By adopting these key techniques, administrators can gain deeper insights, prevent issues, and ensure optimal system health.
+
+
+## Best Tools for Linux Monitoring
+Below are some of the top Linux monitoring tools to consider, covering both command-line utilities and enterprise-grade platforms. Each tool has different pros and cons, which will determine how suitable it is for your team’s unique monitoring needs.
+
+
+## Implement Infrastructure as Code (IaC) for Monitoring Configurations
+Managing monitoring configurations across numerous servers can quickly lead to inconsistencies if done manually. By treating monitoring setups as code, IaC tools allow you to define, version control, and automatically deploy configurations. This ensures uniformity, reduces configuration drift, and minimizes human error in your monitoring landscape.
+
+
+
+
+---
+
+Title: How to Monitor System Resources and Performance in Linux
+**Key Points:** This website is using a security service to protect itself from online attacks. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data. You can email the site owner to let them know you were blocked.
+
+  Please enable cookies.   Sorry, you have been blocked You are unable to access interserver.net          Why have I been blocked? This website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data.   What can I do to resolve this? You can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page.     Cloudflare Ray ID: 9f5657ddcc1feb6a • Your IP: Click to reveal 107.174.25.136 •  Performance & security by Cloudflare    
+
+---
+
+Title: Essential Tools and Techniques for Linux Server Monitoring
+**Definition:** oring
+
+Why is Monitoring Important?
+
+Monitoring Linux servers is not just about tracking resource usage; it plays a crucial role in:
+
+ Performance Optimization: Identifying bottlenecks in CPU, memory, disk, or network usage.
+
+**Key Points:** Essential Linux Monitoring Tools
+
+Command-Line Monitoring Tools (Built-in)
+
+ top / htop – Monitor running processes, CPU, and memory usage. Best Practices for Linux Server Monitoring
+
+Implement Proactive Monitoring
+
+ Set up alerts before problems impact users. Conclusion
+
+Effective Linux server monitoring and alerting are vital for system stability, security, and performance.
+
+```text
+#!/bin/bash
+THRESHOLD=80
+USAGE=$(df / | grep / | awk '{print $5}' | sed 's/%//g')
+if [ "$USAGE" -gt "$THRESHOLD" ]; then
+  echo "Disk usage is above $THRESHOLD%" | mail -s "Disk Space Alert" admin@example.com
+fi
+```
+
+## Best Practices for Linux Server Monitoring
+Implement Proactive Monitoring
+Set up alerts before problems impact users.
+	
+	
+	Regularly review logs and performance trends.
+Use Multi-Layered Monitoring
+Monitor servers, applications, and networks together.
+	
+	
+	Utilize both agent-based and agentless monitoring tools.
+Avoid False Positives
+Fine-tune alert thresholds to prevent unnecessary notifications.
+	
+	
+	Use anomaly detection instead of static thresholds where possible.
+Ensure Regular Log Rotation and Analysis
+Prevent log files from consuming excessive disk space.
+	
+	
+	Automate log retention policies with tools like logrotate.
+Keep Monitoring Tools and Scripts Updated
+Regularly update monitoring software to avoid vulnerabilities.
+	
+	
+	Test alerts periodically to ensure they are functioning correctly.
+
+
+## Understanding Linux Server Monitoring
+Why is Monitoring Important?
+Monitoring Linux servers is not just about tracking resource usage; it plays a crucial role in:
+Performance Optimization: Identifying bottlenecks in CPU, memory, disk, or network usage.
+	
+	
+	Security Enhancement: Detecting unauthorized access attempts, abnormal activities, or potential vulnerabilities.
+	
+	
+	Resource Management: Ensuring efficient use of hardware and system resources.
+	
+	
+	Preventing Downtime: Alerting administrators before issues become critical failures.
+	
+	
+	Compliance & Auditing: Maintaining logs and metrics for regulatory or internal auditing.
+Key Metrics to Monitor
+System Performance Metrics:
+
+	
+		CPU Usage: Load percentage, idle time, and context switching.
+		
+		
+		Memory Usage: RAM consumption, swap utilization, and buffer/cache metrics.
+		
+		
+		Disk I/O: Read/write speeds, latency, and disk queue length.
+		
+	
+	
+	Network Metrics:
+
+	
+		Bandwidth Usage: Incoming and outgoing traffic statistics.
+		
+		
+		Latency & Packet Loss: Connectivity health and round-trip time.
+		
+		
+		Open Ports & Connections: Identifying unauthorized or excessive connections.
+		
+	
+	
+	System Health Metrics:
+
+	
+		Load Average: A measure of CPU demand over time.
+		
+		
+		Disk Space Usage: Preventing full partitions that could disrupt services.
+		
+		
+		System Temperature: Avoiding hardware failures due to overheating.
+		
+	
+	
+	Security Metrics:
+
+	
+		Failed Login Attempts: Signs of brute-force attacks.
+		
+		
+		Process Anomalies: Detecting rogue or compromised processes.
+		
+		
+		Firewall Logs: Monitoring for unauthorized access attempts.
+
+
+## Essential Linux Monitoring Tools
+Command-Line Monitoring Tools (Built-in)
+top / htop – Monitor running processes, CPU, and memory usage.
+	
+	
+	vmstat – View real-time system performance statistics.
+	
+	
+	iostat – Analyze disk I/O and CPU load.
+	
+	
+	netstat / ss – Check active network connections and open ports.
+	
+	
+	df / du – View disk usage and free space details.
+Open-Source Monitoring Solutions
+
+

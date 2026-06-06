@@ -1,0 +1,1241 @@
+Title: 4 advanced Machine Learning techniques | Towards Data Science
+![Towards Data Science](https://towardsdatascience.com/wp-content/uploads/2025/02/TDS-Vector-Logo.svg)
+
+Publish AI, ML & data-science insights to a global community of data professionals.
+
+![Towards Data Science](https://towardsdatascience.com/wp-content/uploads/2025/02/TDS-Vector-Logo.svg)
+
+# 4 advanced Machine Learning techniques
+
+Alternative ways to improve the model score even further
+
+![Photo by Silvan Arnet on Unsplash](https://towardsdatascience.com/wp-content/uploads/2022/10/0RqD6ztLjOaoqEvki-scaled.jpg)
+
+What are the typical ways to improve a Machine Learning model? Adding more features. Performing selection to remove redundant features. Optimizing hyper-parameters. Ensembling several models together. Yes, all of this may work, but there are many other approaches to improve the score. Maybe some of them are a little bit less known, and some are not applicable in all cases, but when applied at the right time they can bring significant improvement. Let’s go through some of them.
+
+### Pseudo-labeling
+
+For the Data Science tasks usually we have a training dataset with known labels. In general, the more training data we have, the more possibilities for the model to learn something useful. But in most cases the amount of labeled training data is limited. In some cases, this is due to the labeling process being too costly (e.g. involving manual labeling of each case).
+
+One solution to this is creating additional training data using pseudo-labeling technique.
+
+For this we need additional data without the labels. If there is test data already available (for example, in competitions) we can use it. Otherwise, data needs to be collected somewhere – but as it doesn’t need labels, that should be much easier than collecting the real training data.
+
+Once data is collected, we use our model to make predictions on it. Without having the labels, it is not known, how good the predictions are. But in most cases, the more confident predictions mean the bigger probability of being right. Accordingly, we choose some percentage of the most confident model predictions and use these as additional training data labels. The model is then re-trained on both – original training data + our new pseudo-labeled additional training data. The new model might produce better score than the original one.
+
+*Why does it work?*
+
+Additionally collected data might be a little bit different from the original training data. Collected from another source, in a different time interval, and so on. Therefore, this data might incorporate slightly different relationships and signals. The model can’t learn these relationships from the original data, as they are not present or at least are slightly different there. But these can be learned from new pseudo-labeled data if the labels assigned to them are mostly correct.
+
+There is one important requirement however for pseudo-labeling to work – the accuracy of the original model must be high enough. Otherwise, many rows will be labeled incorrectly and there will be too much noise introduced by pseudo-labeled data. For this reason, it is a good practice to use pseudo-labeling at the latest stages of model development, when it is already improved by feature engineering, parameter optimization, and other basic techniques.
+
+### Outliers removal by model predictions
+
+Removing outliers from training data is a standard step in most Machine Learning pipelines. But here I’m not talking about this simple standard way, which usually involves looking at every feature and removing some percentile from both ends to get rid of too-small and/or too-big values.
+
+![Photo by Will Myers on Unsplash](https://towardsdatascience.com/wp-content/uploads/2022/10/0-biFNuQUs8VKkffT-scaled.jpg)
+
+A more advanced way exists for dealing with outliers. This technique allows not only to remove outliers in terms of too big/small values of a single feature but deals with outlier feature interactions as well.
+
+The technique is very basic at its core idea:
+
+*Why does it work?*
+
+If for some data row a model makes a big error compared to the average error for this given task, it means that for this given data row, the features tell the model one thing, but the label is very different. In the real-life cases, this can happen due to various reasons:
+
+Now, if it’s an outlier or wrong value in some feature, we want to remove this row. If it has the wrong label, we definitely want to remove it, too. The only case we might prefer to leave this particular row in training data is in case it describes some rare case. In most cases it won’t be possible to separate these cases for a given row, so we need to decide globally – do we want to keep such rows or no?
+
+From my experience, in many tasks, this approach gives slight improvement. The size of improvement obviously depends on how many outliers, bad features, and incorrect target values the particular dataset has. In some cases, however, it might happen, that most of the rows detected as outliers are in fact valid. This happens mostly due to a too weak model – for this reason, I would advise applying this approach only at the latest stages of model tuning when the existing model is already improved as high as possible with standard techniques.
+
+### Data augmentation
+
+In some way, this technique is similar to pseudo-labeling. In a sense that it helps to get more training data. And more training data typically results in a better model. The main difference is regarding the exact way how we get more training data.
+
+If in pseudo-labeling we used additional real data with self-assigned labels. But in some cases, we simply don’t have any additional data at all. In the case of augmentation, we use real labels, but the data itself is modified and transformed in different ways to create new data with similar characteristics as the original dataset.
+
+There are various techniques for data augmentation for all kinds of data – numeric data, time-series, image, and text data. For example, images can be rotated, cropped or skewed in different ways. From the logical perspective, the picture on the image (and therefore, the original label, too) is not changed. But for the model. this new image looks different and helps to make the model more robust.
+
+For text data, one approach can be translation. We can translate the original sentence to some other language and then translate it back. Through the translation process, the original sentence will become slightly different but the meaning should still be the same – hence the original label is preserved.
+
+For numeric and time-series data the exact approach highly depends on what exactly the data represents. Some domain knowledge might be required to correctly create new data rows with the original labels.
+
+The most improvement from this technique I’ve seen in computer vision tasks working with images. But for other types of the data there is potential, too.
+
+### Explaining the model predictions
+
+The machine learning model is sometimes considered a black box. But in reality, it is not. There’s plenty of information we can gather from the model about exactly how it is making decisions in one or another case. The exact amount of information we can get depends on the type of the model. Some models, like tree-based models or a linear regression, are very easy to explain. But, for example, neural network models provide less interpretable information about what’s happening inside.
+
+![Photo by JESHOOTS.COM on Unsplash](https://towardsdatascience.com/wp-content/uploads/2022/10/0TefOvQRFWJEroQry-scaled.jpg)
+
+In any case, it helps a lot to try our best to understand, how exactly the model is using the features. Looking at feature importance graphs is one way of doing that. If we spot some strange feature on top of the feature importance graph, it’s worth trying to find out if there is indeed some signal in the feature or if this is just noise. In the simplest case, try to remove the feature and compare the validation score with and without the particular feature.
+
+But the feature importance graph is not the only source of information about the usage of features. There are more possibilities to dig much deeper inside the model internals. LIME and SHAP are some of those (I’ll leave the technical details regarding them for your own investigation, if interested). The benefit of these approaches is not only to check which features are used by the model but also to check the direction of feature impact. It gives us the understanding that lower values of a particular feature result in lower or higher values of the target. This knowledge allows us to use domain knowledge to judge if such a feature interpretation makes sense.
+
+Deep investigation of features and their impacts on the model is not an easy task and is not fast, so in most cases it won’t be beneficial to do this for every single feature. But at least, it is worth checking the top important features and understanding how the model is using them and does this makes any sense. Depending on the result we might want to decide on removing the feature, or in some cases even completely reviewing our validation approach – if we see that using the obviously wrong feature leads to better validation scores.
+
+### Some final words
+
+In machine learning, the models are never really finished. There is always a possibility so squeeze out some additional tiny improvement. The key moment here is to stop improving at the right time – so that the model is "good enough", but also developed in a reasonable time.
+
+Hopefully, this article will give you some ideas to try out for squeezing some additional improvement from your models without investing too much additional time.
+
+Thanks for reading!
+
+Written By
+
+Share This Article
+
+Towards Data Science is a community publication. Submit your insights to reach our global audience and earn through the TDS Author Payment Program.
+
+## Related Articles
+
+![](https://towardsdatascience.com/wp-content/uploads/2024/08/0c09RmbCCpfjAbSMq.png)
+
+## [Implementing Convolutional Neural Networks in TensorFlow](https://towardsdatascience.com/implementing-convolutional-neural-networks-in-tensorflow-bc1c4f00bd34/)
+
+Step-by-step code guide to building a Convolutional Neural Network
+
+![Photo by Krista Mangulsone on Unsplash](https://towardsdatascience.com/wp-content/uploads/2024/08/0GyVVTbgotH-DhGPH-scaled.jpg)
+
+## [How to Forecast Hierarchical Time Series](https://towardsdatascience.com/how-to-forecast-hierarchical-time-series-75f223f79793/)
+
+A beginner’s guide to forecast reconciliation
+
+![Photo by davisuko on Unsplash](https://towardsdatascience.com/wp-content/uploads/2024/08/1bAABgtZtAIG5YW1oEjW3pA-scaled.jpeg)
+
+## [Hands-on Time Series Anomaly Detection using Autoencoders, with Python](https://towardsdatascience.com/hands-on-time-series-anomaly-detection-using-autoencoders-with-python-7cd893bbc122/)
+
+Here’s how to use Autoencoders to detect signals with anomalies in a few lines of…
+
+![Image from Canva.](https://towardsdatascience.com/wp-content/uploads/2024/08/1UAA9jQVdqMXnwzYiz8Q53Q.png)
+
+## [3 AI Use Cases (That Are Not a Chatbot)](https://towardsdatascience.com/3-ai-use-cases-that-are-not-a-chatbot-f4f328a2707a/)
+
+Feature engineering, structuring unstructured data, and lead scoring
+
+## [Solving a Constrained Project Scheduling Problem with Quantum Annealing](https://towardsdatascience.com/solving-a-constrained-project-scheduling-problem-with-quantum-annealing-d0640e657a3b/)
+
+Solving the resource constrained project scheduling problem (RCPSP) with D-Wave’s hybrid constrained quadratic model (CQM)
+
+![](https://towardsdatascience.com/wp-content/uploads/2023/02/1VEUgT5T4absnTqBMOEuNig.png)
+
+## [Back To Basics, Part Uno: Linear Regression and Cost Function](https://towardsdatascience.com/back-to-basics-part-uno-linear-regression-cost-function-and-gradient-descent-590dcb3eee46/)
+
+An illustrated guide on essential machine learning concepts
+
+![](https://towardsdatascience.com/wp-content/uploads/2024/08/1kM8tfYcdaoccB1HX71YDig.png)
+
+## [Must-Know in Statistics: The Bivariate Normal Projection Explained](https://towardsdatascience.com/must-know-in-statistics-the-bivariate-normal-projection-explained-ace7b2f70b5b/)
+
+Derivation and practical examples of this powerful concept
+
+![Towards Data Science](https://towardsdatascience.com/wp-content/uploads/2025/02/TDS-Vector-Logo.svg)
+
+Your home for data science and Al. The world’s leading publication for
+data science, data analytics, data engineering, machine learning, and
+artificial intelligence professionals.
+
+![](https://px.ads.linkedin.com/collect/?pid=7404572&fmt=gif)
+
+---
+
+Title: Advanced Optimization Techniques in Machine Learning Algorithms
+![Express Analytics Logo](/_next/image?url=%2Fea-main.webp&w=96&q=75)
+![Innovative Optimization Techniques in Machine Learning Algorithms](/_next/image?url=https%3A%2F%2Fhmexachglgvzhygvsfet.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fblog-images%2FInnovative_Optimization_Techniques_in_Machine_Learning_Algorithms-1760536041582.webp&w=3840&q=75)
+
+# Innovative Optimization Techniques in Machine Learning Algorithms
+
+The objective of machine learning optimization is to reduce the level of errors in a ML model, increasing its efficiency at making forecasts on data.
+
+Today, you live in the era of automation, artificial intelligence, and the rise of complicated digitization.
+
+The rapid advancement of smart technologies appears to have been going faster as the years go by.
+
+Businesses across the US and around the globe have benefitted dearly from this accelerated technological progress by implementing it throughout their operations as suitable.
+
+Moreover, using this technology to speed up operations is a valid point to remember; it is a completely different ball game to use modern tech for better performance.
+
+If your approaches are clear, you can expect better usability from your existing resources.
+
+This is true for machine learning as for everything else. So, today let’s highlight some of the top ways to optimize ML algorithms in detail.
+
+## **The Need For Machine Learning Optimization & Its Types**
+
+In the world of machine learning, optimization is an activity of adjusting the model parameters to maximize or minimize some objective function.
+
+The function of an objective function is to reduce the error on a specific set of training data.
+
+Usually, when you develop a program, you determine how it should consider things, which remains like that.
+
+Business decisions can be made by machine learning for new data according to the given program by adjusting the rules.
+
+That’s pretty much it if you’d simplify the concept. But of course, there’s a lot that goes on within the program that gets complex and complicated.
+
+**Improve Your Business Operations with Generative AI --> Let's Connect**
+
+The algorithms you use for these programs assist you in identifying the best settings for a model’s parameters that reduce a specific function, usually referred to as a loss function.
+
+This loss function shows errors in the model or how methodically it completes an assigned task.
+
+Given that, your approach can be better or worse based on your goals and circumstances.
+
+At last, to generate productive intelligent programs, you need to have effective machine learning, so it’s recommended to boost your algorithms for good results.
+
+So, let’s closely look at some possible ways to improve machine learning algorithms:
+
+##### **Gradient Descent Optimization**
+
+Let’s first discuss gradient descent. This is a primary ML optimization method. As the name implies, it has to do with gradients and descents. As a result of its simplicity, it’s one of the reputed techniques.
+
+What it does is that it minimizes the loss function through gradual steps toward the steepest descent. Of course, it does calculate the gradient pointing to that first.
+
+Later, with every replication, you observe it moving closer and closer to the descent. Eventually, your algorithm’s performance will become better. But where there’s a way, nobody said there’d only be one way.
+
+So, as you can guess, there are multiple gradient descent optimization methods, such as:
+
+***Stochastic Gradient Descent (SGD)***
+
+This is a relatively quicker variant, suitable for the fast-paced processing of extensive data.
+
+***Mini-batch Gradient Descent***
+
+It requires less data compared to SGD and leads to more organized results.
+
+***Adam, AdaGrad, RMSprop***
+
+Finally, you have these three, which improve upon SDG’s convergence and gradient vanishing issues.
+
+##### **Newton and Quasi-Newton Optimizations**
+
+It uses something you define as second-order information, which minimizes your algorithm’s complexity better than gradient descent. That does come at a price, quite rigorously.
+
+An arguable improvement upon this method is known as the Quasi-Newton Method.
+
+Here, you can use the Hessian matrix as the second-order derivative that improves upon the Newton method’s loss function calculations.
+
+This can be done in two ways:
+
+***BFGS (Broyden-Fletcher-Goldfarb-Shanno)***
+
+The BFGS variant relies on rank-one updates for the Hessian matrix calculations.
+
+***Limited-memory BFGS (L-BFGS)***
+
+The L-BFGS is a more memory-efficient edition of the BFGS Quasi-Newton method.
+
+##### **Evolutionary Algorithms**
+
+When things aren’t working out well as they should, you need to adapt to make it right. Or else, you should accept the new challenges and handle them better.
+
+Here, you have to invest some time in tackling some new challenges properly. A similar concept applies to advanced [machine learning](https://supernovamathacademy.com/business-professionals/) algorithms.
+
+When you can’t trust the gradient information you have, evolutionary algorithms should be your go-to optimization choice.
+
+These work well by imitating an array of solutions and expanding for improved performance via several assessment factors. The best examples of this are Differential Evolution and Genetic Algorithms.
+
+##### **Swarm Intelligence Algorithms**
+
+When the cure was finally implemented on a global scale for the last pandemic, many people hadn’t gotten their shots.
+
+Yet, they weren’t getting sick, and healthcare professionals termed the scenario “herd immunity,” implying the effects of some people getting cured passed on to others in the group.
+
+That’s not entirely related to the concept of swarm intelligence algorithms. But these optimization methods do also go by the concept of grouping things for collective goals.
+
+For instance, the Particle Swarm Optimization (PSO) method was created to iterate a swarm of solutions to find the best approach to a machine learning problem you’re tackling.
+
+##### **Bayesian Optimization**
+
+All [machine learning algorithms](https://www.expressanalytics.com/blog/machine-learning/) are good for what they’re designed for. But what happens when you need hyperparameter tuning? This is where you turn to Bayesian optimization.
+
+You’re often short on time for landing the best solutions by a guessing game.
+
+With this algorithm, you can go with the most ideal points for forecasting the superior next solution according to the probabilistic modeling of your object function.
+
+As a result, you fine-tune your approach to black-box function optimizations, which would otherwise have taken you considerably longer than you’d anticipated.
+
+##### **Coordinate Descent**
+
+Coordinate Descent is one of the familiar [machine learning optimization techniques](https://www.expressanalytics.com/blog/machine-learning-techniques-guide/). It differs from gradient descent in the primary approach to solving the problem.
+
+This algorithm improves one parameter in one shot and maintains the others fixed. This makes it additionally advantageous for problems where the loss function is completely separable for different parameters.
+
+So, you can easily use this model for sparse linear models like LASSO (Least Absolute Shrinkage and Selection Operator) without a second thought.
+
+## **Emerging Trends in Optimization Techniques**
+
+What’s here is what works. But what’s upcoming is the future.
+
+This is why when you realize “machine learning optimization,” you can’t depend solely on what has brought results but also on how machine learning and artificial intelligence continue to evolve.
+
+Let’s explore common trends that have a crucial impact on the future of optimization in machine learning:
+
+##### **AutoML**
+
+It’s already mentioned as one of the few methods involved in automated learning (bayesian optimization).
+
+A primary application of [AutoML](https://www.expressanalytics.com/blog/what-is-automated-machine-learning-automl/) (Automated Machine Learning) is to accelerate the streamlining of real-world problem-solving.
+
+For example, it’s widely used to implement ML automation across different operations containing model selection and feature engineering.
+
+But much more that goes on here than can be covered in a single paragraph.
+
+##### **Optimization for Quantum Computing**
+
+Filmmakers and especially science-fiction filmmakers love using the word “quantum” when they don’t feel like explaining the concepts they’re using in their movies.
+
+Either way, there’s a thing called Quantum Approximate Optimization Algorithm, or QAOA in short, which is one of the many machine learning algorithms developed to optimize complex quantum computations for enhanced speeds and more accurate results.
+
+##### **Robust & Adversarial Optimization**
+
+The name doesn’t suggest other optimization algorithms are bad, only that this one helps tackle noise and adversarial issues much better.
+
+You can’t predict the type of data you’ll need to run your algorithm against.
+
+At times, it can be too flawed, so robust optimization models come into play here. They are mainly developed to ensure that your ML algorithm remains adaptable under the least favourable circumstances.
+
+#### **Finding the Right Balance**
+
+If you aim to find one algorithm that does it and is the best at everything for everything, I’ve got some bad news for you.
+
+Every machine learning optimization algorithm described in this post has its ups and downs. There’s no black and white. Of course, some might perform better for you than others, based on your needs.
+
+So, your responsibility is to analyze your options and, based on that, decide what suits your optimization needs.
+
+For this, if you need any consultation, [contact](https://www.expressanalytics.com/contact-us/) Express Analytics; otherwise, you can consider the below-mentioned factors:
+
+Ultimately, the final decision will be yours only. So, consider your options, try a couple of variations here and there, and make an informed decision.
+
+Keep in mind that the right balance is important to improve your outcomes perfectly. Happy optimizing, and follow for more.
+
+### Ready to Transform Your Analytics?
+
+Let's discuss how our expertise can help you achieve your business goals.
+
+### Related Blogs
+
+![Why Data Silos in B2B Marketing Break Personalization Efforts](/_next/image?url=https%3A%2F%2Fhmexachglgvzhygvsfet.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fblog-images%2FWhy_Data_Silos_in_B2B_Marketing_Break_Personalization_Efforts-1774021113899.webp&w=3840&q=75)
+
+#### Why Data Silos in B2B Marketing Break Personalization Efforts
+
+Understand how data silos affect B2B marketing and why unified data is critical for effective personalization and growth.
+
+![Data Cleansing in 2026: Why It's the Backbone of Better Analytics](/_next/image?url=https%3A%2F%2Fhmexachglgvzhygvsfet.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fblog-images%2FData_Cleansing_in_2026-1771419405972.webp&w=3840&q=75)
+
+#### Data Cleansing in 2026: Why It's the Backbone of Better Analytics
+
+In 2026, data cleansing is no longer a background task handled quietly by IT. It sits at the core of every reliable analytics initiative. As organizations rely more heavily on AI, predictive models, and automated decision systems, even small inconsistencies in data can lead to flawed insights and costly missteps.
+
+![Why You Need to Implement Omnichannel Retailing Straightaway](/_next/image?url=https%3A%2F%2Fhmexachglgvzhygvsfet.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fblog-images%2FWhy_You_Need_to_Implement_Omnichannel_Retailing_Straightaway-1768221444989.webp&w=3840&q=75)
+
+#### Why You Need to Implement Omnichannel Retailing Straightaway
+
+If your online and offline channels still work in silos, customers feel it. Omnichannel retailing brings everything together so shoppers get a consistent, connected experience wherever they interact with your brand.
+
+![Express Analytics Logo](/_next/image?url=%2Fea-main.webp&w=96&q=75)
+
+---
+
+Title: Advanced Learning Algorithms | Coursera
+![DeepLearning.AI](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/b4/5cb90bb92f420b99bf323a0356f451/Icon.png?auto=format%2Ccompress&dpr=1&w=28&h=28)
+
+![Stanford University](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/c8/5fa17837ee411da8260f3ef1f479cf/360x360-stanford-online-logo.png?auto=format%2Ccompress&dpr=1&w=28&h=28)
+
+## Advanced Learning Algorithms
+
+![DeepLearning.AI](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/1b/bdf48065584cbe8e096669d9dd4852/LogoFiles_DeepLearning_Coursera_200x48.png?auto=format%2Ccompress&dpr=1&h=36)
+
+![Stanford University](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/8c/66c948ff364973a890121704deea25/200x48-stanford-online-logo.png?auto=format%2Ccompress&dpr=1&h=36)
+
+# Advanced Learning Algorithms
+
+This course is part of [Machine Learning Specialization](/specializations/machine-learning-introduction)
+
+![Andrew Ng](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/2a/6192a04f1311e7ba12057425631cbc/AndrewNg-Headshot.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+![Aarti Bagul](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/b1/46e02a12f3418486d986cc1d30727d/aarti_bagul_profile_pic.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+![Geoff Ladwig](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/43/bc63bb19704d71844c37595d29e234/20220524_223511509_iOS.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Instructors: [Andrew Ng](/instructor/andrewng)
+
+Instructor ratings
+
+We asked all learners to give feedback on our instructors based on the quality of their teaching style.
+
+5.0 (2,578 ratings)
+
+![Andrew Ng](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/2a/6192a04f1311e7ba12057425631cbc/AndrewNg-Headshot.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Andrew Ng](/instructor/andrewng)
+
+51 Courses•9,713,499 learners
+
+![Aarti Bagul](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/b1/46e02a12f3418486d986cc1d30727d/aarti_bagul_profile_pic.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Aarti Bagul](/instructor/~77736236)
+
+6 Courses•1,225,329 learners
+
+![Geoff Ladwig](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/43/bc63bb19704d71844c37595d29e234/20220524_223511509_iOS.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Geoff Ladwig](/instructor/geoff-ladwig)
+
+DeepLearning.AI
+
+6 Courses•1,225,329 learners
+
+![Eddy Shyu](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/8c/0a5a2ce2a44f959b8d3d3573d70613/eddy-profile-photo.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+[Eddy Shyu](/instructor/~170597538)
+
+DeepLearning.AI
+
+17 Courses•1,509,855 learners
+
+Top Instructor
+
+**445,025** already enrolled
+
+[4 modules](#modules)
+
+Gain insight into a topic and learn the fundamentals.
+
+4.9
+
+8,661 reviews
+
+Beginner level
+
+Recommended experience
+
+## Recommended experience
+
+Beginner level
+
+We recommend completing Supervised Learning: Regression and Classification - course 1 of the Machine Learning Specialization.
+
+Flexible schedule
+
+3 weeks at 10 hours a week
+
+Learn at your own pace
+
+98%
+
+Most learners liked this course
+
+---
+
+[4 modules](#modules)
+
+Gain insight into a topic and learn the fundamentals.
+
+4.9
+
+8,661 reviews
+
+Beginner level
+
+Recommended experience
+
+## Recommended experience
+
+Beginner level
+
+We recommend completing Supervised Learning: Regression and Classification - course 1 of the Machine Learning Specialization.
+
+Flexible schedule
+
+3 weeks at 10 hours a week
+
+Learn at your own pace
+
+98%
+
+Most learners liked this course
+
+## What you'll learn
+
+* Build and train a neural network with TensorFlow to perform multi-class classification
+* Apply best practices for machine learning development so that your models generalize to data and tasks in the real world
+* Build and use decision trees and tree ensemble methods, including random forests and boosted trees
+
+## Skills you'll gain
+
+* [Applied Machine Learning](https://www.coursera.org/courses?query=applied%20machine%20learning)
+* [Random Forest Algorithm](https://www.coursera.org/courses?query=random%20forest%20algorithm)
+* [Machine Learning](https://www.coursera.org/courses?query=machine%20learning)
+* [Regression Analysis](https://www.coursera.org/courses?query=regression%20analysis)
+* [Model Evaluation](https://www.coursera.org/courses?query=model%20evaluation)
+* [Supervised Learning](https://www.coursera.org/courses?query=supervised%20learning)
+* [Artificial Neural Networks](https://www.coursera.org/courses?query=artificial%20neural%20networks)
+* [Model Training](https://www.coursera.org/courses?query=model%20training)
+* [Responsible AI](https://www.coursera.org/courses?query=responsible%20ai)
+* [Data Ethics](https://www.coursera.org/courses?query=data%20ethics)
+* [Deep Learning](https://www.coursera.org/courses?query=deep%20learning)
+* [Logistic Regression](https://www.coursera.org/courses?query=logistic%20regression)
+* [Model Optimization](https://www.coursera.org/courses?query=model%20optimization)
+* [Decision Tree Learning](https://www.coursera.org/courses?query=decision%20tree%20learning)
+* [Transfer Learning](https://www.coursera.org/courses?query=transfer%20learning)
+* [Machine Learning Algorithms](https://www.coursera.org/courses?query=machine%20learning%20algorithms)
+
+## Tools you'll learn
+
+* [Tensorflow](https://www.coursera.org/courses?query=tensorflow)
+* [Classification Algorithms](https://www.coursera.org/courses?query=classification%20algorithms)
+
+## Details to know
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/images/31ebcba3851b87d1d8609abf15d0ff7e.png?auto=format%2Ccompress&dpr=1&w=24&h=24)
+
+Shareable certificate
+
+Add to your LinkedIn profile
+
+Assessments
+
+14 assignments
+
+Taught in English
+
+# See how employees at top companies are mastering in-demand skills
+
+[Learn more about Coursera for Business](/business?utm_medium=coursera&utm_source=xdp&utm_campaign=website&utm_content=c4b-xdp-thin-card&utm_term=out)
+
+![ logos of Petrobras, TATA, Danone, Capgemini, P&G and L'Oreal ](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/images/74c8747e8210831049cf88dd4eefe26c.png?auto=format%2Ccompress&dpr=2&blur=200&px=8&max-w=320)
+
+## Build your subject-matter expertise
+
+This course is part of the [Machine Learning Specialization](/specializations/machine-learning-introduction)
+
+When you enroll in this course, you'll also be enrolled in this Specialization.
+
+* Learn new concepts from industry experts
+* Gain a foundational understanding of a subject or tool
+* Develop job-relevant skills with hands-on projects
+* Earn a shareable career certificate
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/images/a7c5400e51272c78b710ce9b56fd3178.png?auto=format%2Ccompress&dpr=2&blur=200&px=8&max-w=562)
+
+## There are 4 modules in this course
+
+In the second course of the Machine Learning Specialization, you will:
+
+• Build and train a neural network with TensorFlow to perform multi-class classification • Apply best practices for machine learning development so that your models generalize to data and tasks in the real world • Build and use decision trees and tree ensemble methods, including random forests and boosted trees The Machine Learning Specialization is a foundational online program created in collaboration between DeepLearning.AI and Stanford Online. In this beginner-friendly program, you will learn the fundamentals of machine learning and how to use these techniques to build real-world AI applications. This Specialization is taught by Andrew Ng, an AI visionary who has led critical research at Stanford University and groundbreaking work at Google Brain, Baidu, and Landing.AI to advance the AI field. This 3-course Specialization is an updated and expanded version of Andrew’s pioneering Machine Learning course, rated 4.9 out of 5 and taken by over 4.8 million learners since it launched in 2012. It provides a broad introduction to modern machine learning, including supervised learning (multiple linear regression, logistic regression, neural networks, and decision trees), unsupervised learning (clustering, dimensionality reduction, recommender systems), and some of the best practices used in Silicon Valley for artificial intelligence and machine learning innovation (evaluating and tuning models, taking a data-centric approach to improving performance, and more.) By the end of this Specialization, you will have mastered key theoretical concepts and gained the practical know-how to quickly and powerfully apply machine learning to challenging real-world problems. If you’re looking to break into AI or build a career in machine learning, the new Machine Learning Specialization is the best place to start.
+
+This week, you'll learn about neural networks and how to use them for classification tasks. You'll use the TensorFlow framework to build a neural network with just a few lines of code. Then, dive deeper by learning how to code up your own neural network in Python, "from scratch". Optionally, you can learn more about how neural network computations are implemented efficiently using parallel processing (vectorization).
+
+#### What's included
+
+17 videos1 reading4 assignments1 programming assignment3 ungraded labs
+
+##### 17 videos•Total 140 minutes
+
+* Welcome!•3 minutes
+* Neurons and the brain•11 minutes
+* Demand Prediction•16 minutes
+* Example: Recognizing Images•7 minutes
+* Neural network layer•10 minutes
+* More complex neural networks•8 minutes
+* Inference: making predictions (forward propagation)•5 minutes
+* Inference in Code•7 minutes
+* Data in TensorFlow•11 minutes
+* Building a neural network•8 minutes
+* Forward prop in a single layer•5 minutes
+* General implementation of forward propagation•8 minutes
+* Is there a path to AGI?•11 minutes
+* How neural networks are implemented efficiently•4 minutes
+* Matrix multiplication•9 minutes
+* Matrix multiplication rules•10 minutes
+* Matrix multiplication code•6 minutes
+
+##### 1 reading•Total 2 minutes
+
+* Join the DeepLearning.AI Forum to ask questions, get support, or share amazing ideas!•2 minutes
+
+##### 4 assignments•Total 40 minutes
+
+* Practice quiz: Neural networks intuition•10 minutes
+* Practice quiz: Neural network model•10 minutes
+* Practice quiz: TensorFlow implementation•10 minutes
+* Practice quiz: Neural network implementation in Python•10 minutes
+
+##### 1 programming assignment•Total 180 minutes
+
+* Practice Lab: Neural Networks for Binary Classification•180 minutes
+
+##### 3 ungraded labs•Total 80 minutes
+
+* Neurons and Layers•10 minutes
+* Coffee Roasting in Tensorflow•10 minutes
+* CoffeeRoastingNumPy•60 minutes
+
+This week, you'll learn how to train your model in TensorFlow, and also learn about other important activation functions (besides the sigmoid function), and where to use each type in a neural network. You'll also learn how to go beyond binary classification to multiclass classification (3 or more categories). Multiclass classification will introduce you to a new activation function and a new loss function. Optionally, you can also learn about the difference between multiclass classification and multi-label classification. You'll learn about the Adam optimizer, and why it's an improvement upon regular gradient descent for neural network training. Finally, you will get a brief introduction to other layer types besides the one you've seen thus far.
+
+#### What's included
+
+15 videos4 assignments1 programming assignment5 ungraded labs
+
+##### 15 videos•Total 140 minutes
+
+* TensorFlow implementation•4 minutes
+* Training Details•13 minutes
+* Alternatives to the sigmoid activation•5 minutes
+* Choosing activation functions•8 minutes
+* Why do we need activation functions?•6 minutes
+* Multiclass•3 minutes
+* Softmax•12 minutes
+* Neural Network with Softmax output•7 minutes
+* Improved implementation of softmax•9 minutes
+* Classification with multiple outputs (Optional)•4 minutes
+* Advanced Optimization•6 minutes
+* Additional Layer Types•9 minutes
+* What is a derivative? (Optional)•23 minutes
+* Computation graph (Optional)•19 minutes
+* Larger neural network example (Optional)•10 minutes
+
+##### 4 assignments•Total 120 minutes
+
+* Practice quiz: Neural Network Training•30 minutes
+* Practice quiz: Activation Functions•30 minutes
+* Practice quiz: Multiclass Classification•30 minutes
+* Practice quiz: Additional Neural Network Concepts•30 minutes
+
+##### 1 programming assignment•Total 180 minutes
+
+* Practice Lab: Neural Networks for Multiclass classification •180 minutes
+
+##### 5 ungraded labs•Total 195 minutes
+
+* ReLU activation•60 minutes
+* Softmax•60 minutes
+* Multiclass•15 minutes
+* Optional Lab: Derivatives•30 minutes
+* Optional Lab: Back propagation•30 minutes
+
+This week you'll learn best practices for training and evaluating your learning algorithms to improve performance. This will cover a wide range of useful advice about the machine learning lifecycle, tuning your model, and also improving your training data.
+
+#### What's included
+
+17 videos3 assignments1 programming assignment2 ungraded labs
+
+##### 17 videos•Total 174 minutes
+
+* Deciding what to try next•4 minutes
+* Evaluating a model•10 minutes
+* Model selection and training/cross validation/test sets•14 minutes
+* Diagnosing bias and variance•11 minutes
+* Regularization and bias/variance•10 minutes
+* Establishing a baseline level of performance•9 minutes
+* Learning curves•12 minutes
+* Deciding what to try next revisited•9 minutes
+* Bias/variance and neural networks•11 minutes
+* Iterative loop of ML development•8 minutes
+* Error analysis•8 minutes
+* Adding data•14 minutes
+* Transfer learning: using data from a different task•12 minutes
+* Full cycle of a machine learning project•9 minutes
+* Fairness, bias, and ethics•10 minutes
+* Error metrics for skewed datasets•12 minutes
+* Trading off precision and recall•12 minutes
+
+##### 3 assignments•Total 90 minutes
+
+* Practice quiz: Advice for applying machine learning•30 minutes
+* Practice quiz: Bias and variance•30 minutes
+* Practice quiz: Machine learning development process•30 minutes
+
+##### 1 programming assignment•Total 180 minutes
+
+* Practice Lab: Advice for Applying Machine Learning•180 minutes
+
+##### 2 ungraded labs•Total 60 minutes
+
+* Optional Lab: Model Evaluation and Selection•30 minutes
+* Optional Lab: Diagnosing Bias and Variance•30 minutes
+
+This week, you'll learn about a practical and very commonly used learning algorithm the decision tree. You'll also learn about variations of the decision tree, including random forests and boosted trees (XGBoost).
+
+#### What's included
+
+14 videos2 readings3 assignments1 programming assignment2 ungraded labs
+
+##### 14 videos•Total 144 minutes
+
+* Decision tree model•7 minutes
+* Learning Process•11 minutes
+* Measuring purity•8 minutes
+* Choosing a split: Information Gain•12 minutes
+* Putting it together•9 minutes
+* Using one-hot encoding of categorical features•5 minutes
+* Continuous valued features•7 minutes
+* Regression Trees (optional)•10 minutes
+* Using multiple decision trees•4 minutes
+* Sampling with replacement•4 minutes
+* Random forest algorithm•6 minutes
+* XGBoost•7 minutes
+* When to use decision trees•6 minutes
+* Andrew Ng and Chris Manning on Natural Language Processing•47 minutes
+
+##### 2 readings•Total 4 minutes
+
+* [IMPORTANT] Reminder about end of access to Lab Notebooks•2 minutes
+* Acknowledgements•2 minutes
+
+##### 3 assignments•Total 90 minutes
+
+* Practice quiz: Decision trees•30 minutes
+* Practice quiz: Decision tree learning•30 minutes
+* Practice quiz: Tree ensembles•30 minutes
+
+##### 1 programming assignment•Total 180 minutes
+
+* Practice Lab: Decision Trees•180 minutes
+
+##### 2 ungraded labs•Total 60 minutes
+
+* Optional Lab: Decision Trees•30 minutes
+* Optional Lab: Tree Ensembles•30 minutes
+
+### Earn a career certificate
+
+Add this credential to your LinkedIn profile, resume, or CV. Share it on social media and in your performance review.
+
+### Instructors
+
+Instructor ratings
+
+## Instructor ratings
+
+We asked all learners to give feedback on our instructors based on the quality of their teaching style.
+
+5.0 (2,578 ratings)
+
+![Andrew Ng](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/2a/6192a04f1311e7ba12057425631cbc/AndrewNg-Headshot.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Andrew Ng](/instructor/andrewng)
+
+DeepLearning.AI
+
+51 Courses•9,713,499 learners
+
+## Instructors
+
+Instructor ratings
+
+We asked all learners to give feedback on our instructors based on the quality of their teaching style.
+
+5.0 (2,578 ratings)
+
+![Andrew Ng](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/2a/6192a04f1311e7ba12057425631cbc/AndrewNg-Headshot.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Andrew Ng](/instructor/andrewng)
+
+DeepLearning.AI
+
+51 Courses•9,713,499 learners
+
+![Aarti Bagul](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/b1/46e02a12f3418486d986cc1d30727d/aarti_bagul_profile_pic.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Aarti Bagul](/instructor/~77736236)
+
+6 Courses•1,225,329 learners
+
+![Geoff Ladwig](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/43/bc63bb19704d71844c37595d29e234/20220524_223511509_iOS.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+Top Instructor
+
+[Geoff Ladwig](/instructor/geoff-ladwig)
+
+DeepLearning.AI
+
+6 Courses•1,225,329 learners
+
+![Eddy Shyu](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-instructor-photos.s3.amazonaws.com/8c/0a5a2ce2a44f959b8d3d3573d70613/eddy-profile-photo.jpg?auto=format%2Ccompress&dpr=1&w=75&h=75&fit=crop)
+
+[Eddy Shyu](/instructor/~170597538)
+
+DeepLearning.AI
+
+17 Courses•1,509,855 learners
+
+### Offered by
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/b4/5cb90bb92f420b99bf323a0356f451/Icon.png?auto=format%2Ccompress&dpr=1&w=38&h=38&fit=fill)
+
+[DeepLearning.AI](/partners/deeplearning-ai)
+
+## Offered by
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/b4/5cb90bb92f420b99bf323a0356f451/Icon.png?auto=format%2Ccompress&dpr=1&w=88&h=88&fit=fill)
+
+[DeepLearning.AI](/partners/deeplearning-ai)
+
+DeepLearning.AI is an education technology company that develops a global community of AI talent. DeepLearning.AI's expert-led educational experiences provide AI practitioners and non-technical professionals with the necessary tools to go all the way from foundational basics to advanced application, empowering them to build an AI-powered future.
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/c8/5fa17837ee411da8260f3ef1f479cf/360x360-stanford-online-logo.png?auto=format%2Ccompress&dpr=1&w=38&h=38&fit=fill)
+
+[Stanford University](/partners/stanford)
+
+## Offered by
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/http://coursera-university-assets.s3.amazonaws.com/c8/5fa17837ee411da8260f3ef1f479cf/360x360-stanford-online-logo.png?auto=format%2Ccompress&dpr=1&w=88&h=88&fit=fill)
+
+[Stanford University](/partners/stanford)
+
+The Leland Stanford Junior University, commonly referred to as Stanford University or Stanford, is an American private research university located in Stanford, California on an 8,180-acre (3,310 ha) campus near Palo Alto, California, United States.
+
+## Explore more from Machine Learning
+
+* ![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://d15cw65ipctsrr.cloudfront.net/3a/9d2a7af297483a845340bcfbac6f1e/MLS.course-banners-01_Course-Logo-.png?auto=format%2C%20compress%2C%20enhance&dpr=1&w=320&h=204&fit=crop&q=50)
+
+  D
+
+  DeepLearning.AI
+
+  [### Machine Learning](/specializations/machine-learning-introduction)
+
+  Specialization
+
+  Status: Free Trial
+
+  Free Trial
+
+  Category: Credit offered
+
+  Credit offered
+* ![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-course-photos.s3.amazonaws.com/16/bce0f96e1746afabd2a2a5072106a1/Adv-ML.jpeg?auto=format%2C%20compress%2C%20enhance&dpr=1&w=320&h=204&fit=crop&q=50)
+
+  F
+
+  Fractal Analytics
+
+  [### Advanced Machine Learning Algorithms](/learn/advanced-machine-learning-algorithms)
+
+  Course
+
+  Status: Free Trial
+
+  Free Trial
+
+  Category: Credit offered
+
+  Credit offered
+* ![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-course-photos.s3.amazonaws.com/9c/90ae67ecdb4185a4ae79ec9a5ae0b6/Course-Logo--1.png?auto=format%2C%20compress%2C%20enhance&dpr=1&w=320&h=204&fit=crop&q=50)
+
+  D
+
+  DeepLearning.AI
+
+  [### Supervised Machine Learning: Regression and Classification](/learn/machine-learning)
+
+  Course
+
+  Status: Free Trial
+
+  Free Trial
+
+  Category: Credit offered
+
+  Credit offered
+* ![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera-course-photos.s3.amazonaws.com/9d/94b73964644f83be145d935af64acc/Course-Logo--3.png?auto=format%2C%20compress%2C%20enhance&dpr=1&w=320&h=204&fit=crop&q=50)
+
+  D
+
+  DeepLearning.AI
+
+  [### Unsupervised Learning, Recommenders, Reinforcement Learning](/learn/unsupervised-learning-recommenders-reinforcement-learning)
+
+  Course
+
+  Status: Free Trial
+
+  Free Trial
+
+  Category: Credit offered
+
+  Credit offered
+
+## Why people choose Coursera for their career
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/growth_testimonials/passionate_learner/Felipe_Moitta.png?auto=format%2Ccompress&dpr=1&w=64&h=64&fit=crop)
+
+### Felipe M.
+
+Learner since 2018
+
+"To be able to take courses at my own pace and rhythm has been an amazing experience. I can learn whenever it fits my schedule and mood."
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/growth_testimonials/passionate_learner/Jennifer_John.png?auto=format%2Ccompress&dpr=1&w=64&h=64&fit=crop)
+
+### Jennifer J.
+
+Learner since 2020
+
+"I directly applied the concepts and skills I learned from my courses to an exciting new project at work."
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/growth_testimonials/passionate_learner/Larry_Tao_Wang_1.png?auto=format%2Ccompress&dpr=1&w=64&h=64&fit=crop)
+
+### Larry W.
+
+Learner since 2021
+
+"When I need courses on topics that my university doesn't offer, Coursera is one of the best places to go."
+
+![](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/growth_testimonials/passionate_learner/Chaitanya_Anand.png?auto=format%2Ccompress&dpr=1&w=64&h=64&fit=crop)
+
+### Chaitanya A.
+
+"Learning isn't just about being better at your job: it's so much more than that. Coursera allows me to learn without limits."
+
+## Learner reviews
+
+4.9
+
+8,661 reviews
+
+* 5 stars
+
+  92.60%
+* 4 stars
+
+  6.40%
+* 3 stars
+
+  0.56%
+* 2 stars
+
+  0.17%
+* 1 star
+
+  0.25%
+
+Showing 3 of 8661
+
+A
+
+AA
+
+4·
+
+Reviewed on Dec 30, 2024
+
+The course provides an excellent introduction to widely used machine learning concepts, including Neural Networks. While the material can be challenging, it is presented in a digestible manner.
+
+M
+
+MP
+
+5·
+
+Reviewed on Nov 5, 2025
+
+One of the best course for Learning Neural Network Fundamentals also dive into the advance algorithm like Decision trees,Random forest or XGB Algorithm.
+
+Thanks Andrew Ng for the top-notch course.
+
+M
+
+5·
+
+Reviewed on Jul 30, 2023
+
+Another fantastic course by Andrew Ng! He covers neural networks, decision trees, random forest, and XGBoost models really well. I like that he shares his intuition behind every concept he explains.
+
+[View more reviews](/learn/advanced-learning-algorithms/reviews)
+
+![Coursera Plus](https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://coursera_assets.s3.amazonaws.com/images/7a1c0e2e779c1ff27cae62480adfe003.png?auto=format%2Ccompress&dpr=2&blur=200&px=8&max-w=120)
+
+## Open new doors with Coursera Plus
+
+Unlimited access to 10,000+ world-class courses, hands-on projects, and job-ready certificate programs - all included in your subscription
+
+[Learn more](/courseraplus)
+
+## Advance your career with an online degree
+
+Earn a degree from world-class universities - 100% online
+
+[Explore degrees](/degrees)
+
+## Join over 3,400 global companies that choose Coursera for Business
+
+Upskill your employees to excel in the digital economy
+
+[Learn more](/business?utm_medium=coursera&utm_source=xdp&utm_campaign=website&utm_content=c4b-xdp-upsell-card&utm_term=out)
+
+## Frequently asked questions
+
+To access the course materials, assignments and to earn a Certificate, you will need to purchase the Certificate experience when you enroll in a course. You can try a Free Trial instead, or apply for Financial Aid. The course may offer 'Full Course, No Certificate' instead. This option lets you see all course materials, submit required assessments, and get a final grade. This also means that you will not be able to purchase a Certificate experience.
+
+When you enroll in the course, you get access to all of the courses in the Specialization, and you earn a certificate when you complete the work. Your electronic Certificate will be added to your Accomplishments page - from there, you can print your Certificate or add it to your LinkedIn profile.
+
+Yes. In select learning programs, you can apply for financial aid or a scholarship if you can’t afford the enrollment fee. If fin aid or scholarship is available for your learning program selection, you’ll find a link to apply on the description page.
+
+### More questions
+
+[Visit the learner help center](https://learner.coursera.help/hc/)
+
+Financial aid available,
+
+---
+
+Title: Machine Learning  |  Google for Developers
+* [# Machine Learning](https://developers.google.com/machine-learning)
+
+* English
+* Deutsch
+* Español
+* Español – América Latina
+* Français
+* Indonesia
+* Italiano
+* Polski
+* Português – Brasil
+* Tiếng Việt
+* Türkçe
+* Русский
+* עברית
+* العربيّة
+* فارسی
+* हिंदी
+* বাংলা
+* ภาษาไทย
+* 中文 – 简体
+* 中文 – 繁體
+* 日本語
+* 한국어
+  Sign in
+
+ 
+
+* [Home](https://developers.google.com/)
+* [Products](https://developers.google.com/products)
+* [Machine Learning](https://developers.google.com/machine-learning)
+* [Advanced courses](https://developers.google.com/machine-learning/advanced-courses)
+
+  Stay organized with collections   Save and categorize content based on your preferences.    
+
+## Advanced courses
+
+The advanced courses teach tools and techniques for solving a variety of machine learning problems.
+
+The courses are structured independently. Take them based on interest or problem domain.
+
+[![](https://developers.google.com/static/machine-learning/images/decision-forest.png)](https://developers.google.com/machine-learning/decision-forests)
+
+New
+
+### [Decision Forests](https://developers.google.com/machine-learning/decision-forests)
+
+Decision forests are an alternative to neural networks.
+
+[![](https://developers.google.com/static/machine-learning/images/recc-sys.png)](https://developers.google.com/machine-learning/recommendation)
+
+### [Recommendation Systems](https://developers.google.com/machine-learning/recommendation)
+
+Recommendation systems generate personalized suggestions.
+
+[![](https://developers.google.com/static/machine-learning/images/clustering.png)](https://developers.google.com/machine-learning/clustering)
+
+### [Clustering](https://developers.google.com/machine-learning/clustering)
+
+Clustering is a key unsupervised machine learning strategy to associate related items.
+
+[![](https://developers.google.com/static/machine-learning/images/gans.png)](https://developers.google.com/machine-learning/gan)
+
+### [Generative Adversarial Networks](https://developers.google.com/machine-learning/gan)
+
+GANs create new data instances that resemble your training data.
+
+ 
+
+[[["Easy to understand","easyToUnderstand","thumb-up"],["Solved my problem","solvedMyProblem","thumb-up"],["Other","otherUp","thumb-up"]],[["Missing the information I need","missingTheInformationINeed","thumb-down"],["Too complicated / too many steps","tooComplicatedTooManySteps","thumb-down"],["Out of date","outOfDate","thumb-down"],["Samples / code issue","samplesCodeIssue","thumb-down"],["Other","otherDown","thumb-down"]],[],[],[]]
+
+   
+
+---
+
+Title: Types of Machine Learning | IBM
+# Five machine learning types to know
+
+## Author
+
+[Chrystal R. China](https://www.ibm.com/think/author/chrystal-china.html) 
+
+Staff Writer, Automation & ITOps
+
+IBM Think
+
+[Machine learning](https://www.ibm.com/think/topics/machine-learning) (ML) technologies can drive decision-making in virtually all industries, from healthcare to human resources to finance and in myriad use cases, like [computer vision](https://www.ibm.com/think/topics/computer-vision), [large language models](https://www.ibm.com/think/topics/large-language-models) (LLMs), speech recognition, self-driving cars and more.
+
+However, the growing influence of ML isn’t without complications. The validation and training datasets that undergird ML technology are often aggregated by human beings, and humans are susceptible to bias and prone to error. Even in cases where an ML model isn’t itself biased or faulty, deploying it in the wrong context can produce errors with unintended harmful consequences.
+
+That’s why diversifying enterprise AI and ML usage can prove invaluable to maintaining a competitive edge. Each type and sub-type of ML algorithm has unique benefits and capabilities that teams can leverage for different tasks. Here, we’ll discuss the five major types and their applications.
+
+## The latest AI trends, brought to you by experts
+
+Get curated insights on the most important—and intriguing—AI news. Subscribe to our weekly Think newsletter. See the [IBM Privacy Statement](https://www.ibm.com/privacy).
+
+## Thank you! You are subscribed.
+
+## What is machine learning?
+
+ML is a computer science, [data science](https://www.ibm.com/think/topics/data-science) and [artificial intelligence](https://www.ibm.com/think/topics/artificial-intelligence) (AI) subset that enables systems to learn and improve from data without additional programming interventions.
+
+Instead of using explicit instructions for performance optimization, ML models rely on algorithms and statistical models that deploy tasks based on data patterns and inferences. In other words, ML leverages input data to predict outputs, continuously updating outputs as new data becomes available.
+
+On retail websites, for instance, [machine learning algorithms](https://www.ibm.com/think/topics/machine-learning-algorithms) influence consumer buying decisions by making recommendations based on purchase history. Many retailers’ e-commerce platforms—including those of IBM, Amazon, Google, Meta and Netflix—rely on artificial neural networks (ANNs) to deliver personalized recommendations. And retailers frequently leverage data from [chatbots](https://www.ibm.com/think/topics/chatbots) and virtual assistants, in concert with ML and [natural language processing](https://www.ibm.com/think/topics/natural-language-processing) (NLP) technology, to automate users’ shopping experiences.
+
+Mixture of Experts | 24 April, episode 104
+
+### Decoding AI: Weekly News Roundup
+
+Join our world-class panel of engineers, researchers, product leaders and more as they cut through the AI noise to bring you the latest in AI news and insights.
+
+[Watch all episodes of Mixture of Experts](https://www.ibm.com/think/podcasts/mixture-of-experts?utm=XFLatestEpMoE)
+
+## Machine learning types
+
+Machine learning algorithms fall into five broad categories: supervised learning, unsupervised learning, semi-supervised learning, self-supervised and reinforcement learning.
+
+### 1. Supervised machine learning
+
+[Supervised machine learning](https://www.ibm.com/think/topics/supervised-learning) is a type of machine learning where the model is trained on a labeled dataset (i.e., the target or outcome variable is known). For instance, if data scientists were building a model for tornado forecasting, the input variables might include date, location, temperature, wind flow patterns and more, and the output would be the actual tornado activity recorded for those days.
+
+Supervised learning is commonly used for risk assessment, image recognition, [predictive analytics](https://www.ibm.com/think/topics/predictive-analytics?_gl=1*j7qzs7*_ga*MTQxNDgxMzk4MS4xNzU0MDI3ODU5*_ga_FYECCCS21D*czE3NTcwNTI1MTUkbzQ5JGcxJHQxNzU3MDUyODU2JGoyNiRsMCRoMA..) and fraud detection, and comprises several types of algorithms.
+
+* **Regression algorithms**—predict output values by identifying linear relationships between real or continuous values (e.g., temperature, salary). Regression algorithms include linear regression, random forest and gradient boosting, as well as other subtypes.
+* **Classification algorithms**—predict categorical output variables (e.g., “junk” or “not junk”) by labeling pieces of input data. Classification algorithms include logistic regression, k-nearest neighbors and support vector machines (SVMs), among others.
+* [**Naïve Bayes classifiers**](https://www.ibm.com/think/topics/naive-bayes)—enable classification tasks for large datasets. They’re also part of a family of generative learning algorithms that model the input distribution of a given class or/category. Naïve Bayes algorithms include [decision trees](https://www.ibm.com/think/topics/decision-trees), which can actually accommodate both regression and classification algorithms.
+* [**Neural networks**](https://www.ibm.com/think/topics/neural-networks)—simulate the way the human brain works, with a huge number of linked processing nodes that can facilitate processes like natural language translation, image recognition, speech recognition and image creation.
+* [**Random forest algorithms**](https://www.ibm.com/think/topics/random-forest)—predict a value or category by combining the results from a number of decision trees.
+
+### 2. Unsupervised machine learning
+
+[Unsupervised learning](https://www.ibm.com/think/topics/unsupervised-learning) algorithms—like Apriori, Gaussian Mixture Models (GMMs) and principal component analysis (PCA)—draw inferences from unlabeled datasets, facilitating exploratory data analysis and enabling pattern recognition and predictive modeling.
+
+The most common unsupervised learning method is cluster analysis, which uses clustering algorithms to categorize data points according to value similarity (as in customer segmentation or [anomaly detection](https://www.ibm.com/think/topics/anomaly-detection)). Association algorithms allow data scientists to identify associations between data objects inside large databases, facilitating data visualization and dimensionality reduction.
+
+* **K-means clustering**—assigns data points into K groups, where the data points closest to a given centroid are clustered under the same category and K represents clusters based on their size and level of granularity. K-means clustering is commonly used for market segmentation, document clustering, image segmentation and image compression.
+* **Hierarchical clustering**—describes a set of clustering techniques, including agglomerative clustering—where data points are initially isolated into groups and then merged iteratively based on similarity until one cluster remains—and divisive clustering—where a single data cluster is divided based on the differences between data points.
+* **Probabilistic clustering**—helps solve density estimation or “soft” clustering problems by grouping data points based on the likelihood that they belong to a particular distribution.
+
+Unsupervised ML models are often behind the “customers who bought this also bought…” types of recommendation systems.
+
+### 3. Self-supervised machine learning
+
+Self-supervised learning (SSL) enables models to train themselves on unlabeled data, instead of requiring massive annotated and/or labeled datasets. SSL algorithms, also called predictive or pretext learning algorithms, learn one part of the input from another part, automatically generating labels and transforming unsupervised problems into supervised ones. These algorithms are especially useful for jobs like computer vision and NLP, where the volume of labeled training data needed to train models can be exceptionally large (sometimes prohibitively so).
+
+### 4. Reinforcement learning
+
+[Reinforcement learning](https://www.ibm.com/think/topics/rlhf), also called *reinforcement learning from human feedback (RLHF),* is a type of dynamic programming that trains algorithms using a system of reward and punishment. To deploy reinforcement learning, an agent takes actions in a specific environment to reach a predetermined goal. The agent is rewarded or penalized for its actions based on an established metric (typically points), encouraging the agent to continue good practices and discard bad ones. With repetition, the agent learns the best strategies.
+
+Reinforcement learning algorithms are common in video game development and are frequently used to teach robots how to replicate human tasks.
+
+### 5. Semi-supervised learning
+
+The fifth type of machine learning technique offers a combination between supervised and unsupervised learning.
+
+Semi-supervised learning algorithms are trained on a small labeled dataset and a large unlabeled dataset, with the labeled data guiding the learning process for the larger body of unlabeled data. A semi-supervised learning model might use unsupervised learning to identify data clusters and then use supervised learning to label the clusters.
+
+Generative adversarial networks (GANs)—[deep learning](https://www.ibm.com/think/topics/deep-learning) tool that generates unlabeled data by training two neural networks—are an example of semi-supervised machine learning.
+
+Regardless of type, ML models can glean data insights from enterprise data, but their vulnerability to human/data bias make responsible AI practices an organizational imperative.
+
+## Manage a range of machine learning models with watsonx.ai
+
+Nearly everyone, from developers to users to regulators, engages with applications of machine learning at some point, whether they interact directly with AI technology or not. And the adoption of ML technology is only accelerating. The [global machine learning market was valued](https://www.prnewswire.co.uk/news-releases/machine-learning-market-set-to-hit-usd-188-34-billion-by-2030--exponentially-growing-at-37-47-cagr-fueled-by-rising-data-generation-across-industries-kings-research-reports-301987991.html) at USD 19 billion in 2022 and is expected to reach USD 188 billion by 2030 (a CAGR of more than 37 percent).
+
+The scale of ML adoption and its growing business impact make understanding AI and ML technologies an ongoing—and vitally important—commitment, requiring vigilant monitoring and timely adjustments as technologies evolve. With IBM® [watsonx.ai](https://www.ibm.com/products/watsonx-ai)™ AI studio, developers can manage ML algorithms and processes with ease.
+
+IBM watsonx.ai—part of the IBM watsonx™ portfolio of AI products—combines new generative AI capabilities and a next-generation enterprise studio to help AI builders train, validate, tune and deploy AI models with a fraction of the data, in a fraction of the time. Watsonx.ai offers teams advanced data generation and classification features that help businesses leverage data insights for optimal real-world AI performance.
+
+In the age of data proliferation, AI and machine learning are as integral to day-to-day business operations as they are to tech innovation and business competition. But as new pillars of a modern society, they also represent an opportunity to diversify enterprise IT infrastructures and create technologies that work for the benefit of businesses and the people who depend on them.
+
+Link copied
+
+[Ebook   Data science and MLOps for data leaders 
+
+Join forces with other leaders to drive the three essential pillars of MLOps and trustworthy AI: trust in data, trust in models and trust in processes.
+
+ Read the ebook](https://www.ibm.com/forms/mkt-51585)
+
+## Resources
+
+[Training   Level up your ML expertise 
+
+Learn fundamental concepts and build your skills with hands-on labs, courses, guided projects, trials and more.
+
+ Explore ML courses](https://developer.ibm.com/technologies/machine-learning/courses/)
+
+[Ebook   Unlock the power of generative AI + ML 
+
+Learn how to confidently incorporate generative AI and machine learning into your business.
+
+ Read the ebook](https://www.ibm.com/forms/mkt-52356)
+
+[Techsplainers Podcast   Machine learning explained 
+
+Techsplainers by IBM breaks down the essentials of machine learning, from key concepts to real‑world use cases. Clear, quick episodes help you learn the fundamentals fast.
+
+ Listen now](https://www.ibm.com/think/podcasts/techsplainers#tabs-fw-44e285b2cc-item-2f805729d7-tab)
+
+[Guide   Put AI to work: Driving ROI with gen AI 
+
+Want to get a better return on your AI investments? Learn how scaling gen AI in key areas drives change by helping your best minds build and deliver innovative new solutions.
+
+ Read the guide](https://www.ibm.com/forms/mkt-53137)
+
+[Ebook   How to choose the right foundation model 
+
+Learn how to select the most suitable AI foundation model for your use case.
+
+ Read the ebook](https://www.ibm.com/forms/mkt-52620)
+
+[AI models   Explore IBM Granite 
+
+IBM® Granite® is our family of open, performant and trusted AI models, tailored for business and optimized to scale your AI applications. Explore language, code, time series and guardrail options.
+
+ Meet Granite](https://www.ibm.com/granite)
+
+[Guide   How to thrive in this new era of AI with trust and confidence 
+
+Dive into the 3 critical elements of a strong AI strategy: creating a competitive edge, scaling AI across the business and advancing trustworthy AI.
+
+ Read the guide](https://www.ibm.com/downloads/documents/us-en/10c31775a25403b9)
+
+Related solutions    IBM® watsonx Orchestrate™    
+
+Easily design scalable AI assistants and agents, automate repetitive tasks and simplify complex processes with IBM® watsonx Orchestrate™.
+
+   [Explore watsonx Orchestrate](https://www.ibm.com/products/watsonx-orchestrate)   
+ AI for developers   
+
+Move your applications from prototype to production with the help of our AI development solutions.
+
+   [Explore AI development tools](https://www.ibm.com/solutions/ai-for-developers)   
+ AI consulting and services   
+
+Reinvent critical workflows and operations by adding AI to maximize experiences, real-time decision-making and business value.
+
+   [Explore AI services](https://www.ibm.com/consulting/artificial-intelligence)
+
+Take the next step
+
+Whether you choose to customize pre-built apps and skills or build and deploy custom agentic services using an AI studio, the IBM watsonx platform has you covered.
+
+1. [Explore watsonx Orchestrate](https://www.ibm.com/products/watsonx-orchestrate)
+2. [Explore watsonx.ai](https://www.ibm.com/products/watsonx-ai)

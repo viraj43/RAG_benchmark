@@ -1,0 +1,1819 @@
+Title: Do not use secrets in environment variables and here's how to do it ...
+We developers are well too fond of using environment variables to set application configuration and often use it to store secrets and other sensitive information.
+
+You already use an environment variable to set the port Nuxt runs on, or the `BASE_API_URL` for the Fastify Node.js web API you’re building, so why not use it to store the `OPENAI_API_KEY` or that serverless PostgreSQL `DB_PASSWORD`?
+
+We all do it, right? Right.
+
+Why do we do it though? why do we store secrets in environment variables?
+
+Not because it’s secure. Not because it is a best practice. **We store secrets in environment variables because it is easy**. Because it is easy to put that API token in an environment variable. It’s easy to put the API token in Vercel’s deployment environment variables configuration. It’s easy to put the API token in a GitHub Action’s environment variables secrets configuration. It’s easy to put the API token in a `.env` file.
+
+I mean, who hasn’t seen a `.env` file with a bunch of `API_KEY=1234567890` or `DB_PASSWORD=supersecretpassword` ?
+
+It’s easy. That’s why we do it. But we need to stop.
+
+![.env found leaked on a web application](https://www.nodejs-security.com/images/blog/dotenv-found-leaked-on-web-application.png)
+
+In this write-up:
+
+- [Is it wrong to store secrets in environment variables?](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#is-it-wrong-to-store-secrets-in-environment-variables)
+- [Why you should not store secrets in environment variables](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#why-you-should-not-store-secrets-in-environment-variables)
+  - [❌ Reason 1: Secrets in Environment Variables are Likely Poorly Managed](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-1-secrets-in-environment-variables-are-likely-poorly-managed)
+  - [❌ Reason 2: The Blurry Line Between Frontend and Backend SSR Leaks Secrets](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-2-the-blurry-line-between-frontend-and-backend-ssr-leaks-secrets)
+  - [❌ Reason 3: Secrets in .env **Files** are Too Easy to Leak](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-3-secrets-in-env-files-are-too-easy-to-leak)
+  - [❌ Reason 4: Secret Data Leaked by Logs](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-4-secret-data-leaked-by-logs)
+    - [Real-World Example: Seneca CVE-2019-5483](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#real-world-example-seneca-cve-2019-5483)
+  - [❌ Reason 5: Spawned Processes Share the Same Environment by Default](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-5-spawned-processes-share-the-same-environment-by-default)
+    - [FAQ: But I don’t spawn child processes in my application](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#faq-but-i-dont-spawn-child-processes-in-my-application)
+  - [❌ Reason 6: Environment Variables are Visible in Process Lists](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-6-environment-variables-are-visible-in-process-lists)
+    - [FAQ: But you can’t see processes of another user](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#faq-but-you-cant-see-processes-of-another-user)
+    - [FAQ: But Gaining Access to the System is Unlikely](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#faq-but-gaining-access-to-the-system-is-unlikely)
+    - [A Path Traversal Vulnerability Exposes Secrets in Environment Variables](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#a-path-traversal-vulnerability-exposes-secrets-in-environment-variables)
+  - [❌ Reason 7: Build Arguments and .env Files Leak into Docker Images](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-reason-7-build-arguments-and-env-files-leak-into-docker-images)
+- [🙌 Proposal for Better Secrets Management](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#-proposal-for-better-secrets-management)
+  - [0\. Solving the “Secret Zero” problem](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#0-solving-the-secret-zero-problem)
+  - [1\. The easiest and most convenient: secrets stores](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#1-the-easiest-and-most-convenient-secrets-stores)
+  - [2\. The more secure and more complex: secrets management services](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#2-the-more-secure-and-more-complex-secrets-management-services)
+- [FAQ](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#faq)
+  - [But if I use a secrets management service I still have to pass clientSecret as environment variable?](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#but-if-i-use-a-secrets-management-service-i-still-have-to-pass-clientsecret-as-environment-variable)
+  - [How does environment variables protect you against a malicious dependency?](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#how-does-environment-variables-protect-you-against-a-malicious-dependency)
+  - [Doesn’t securely managing secrets offer some protection against a malicious dependency?](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#doesnt-securely-managing-secrets-offer-some-protection-against-a-malicious-dependency)
+  - [How do I follow “secret zero” and provide a limited initial secret?](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#how-do-i-follow-secret-zero-and-provide-a-limited-initial-secret)
+  - [Is this relevant if I’m running my Node.js application on Lambda?](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better#is-this-relevant-if-im-running-my-nodejs-application-on-lambda)
+
+## Is it wrong to store secrets in environment variables?
+
+If it’s a hobby project, or some application you’re toying with, or if it’s a non-critical application, not anything you’re deploying to production-like environment that has significant security risks and implications, then sure, go ahead, use environment variables to store your secrets if that’s an easy way for you to do it.
+
+**For anything else with a real consequence such as leaking user data, financial loss, or business risks, you should never store secrets in environment variables.**
+
+## Why you should not store secrets in environment variables
+
+In this section, I’ll list a handful of reasons and reference real-world incidents to help discourage why you should refrain from storing secrets in environment variables or any other kind of sensitive data.
+
+### ❌ Reason 1: Secrets in Environment Variables are Likely Poorly Managed
+
+To begin with, environment variables are not a secure way to store secrets, mostly and first-off, they are simply poorly managed, leading to a variety of security risks and compliance issues. Consider the following common pitfalls:
+
+- **Difficult to change when compromised**: Imagine there’s now a data breach or one of your team members accidentally exposed an API token through a publishing a GitHub repository as public or in an npm package they pushed to the registry. Changing compromised secrets stored in environment variables often requires a full application restart or redeployment. Further, it requires accessing each and every provisioned instance to make the update. This process can lead to downtime, it’s very complex to roll-out in a distributed system, error-prone and requires a lot of coordination and communication from staff members. Let alone, how do you even know which services are using the compromised secret?
+- **Not rotated regularly**: Environment variables are often set once for the infrastructure at play and forgotten, leading to static secrets that remain unchanged for extended periods. This is an anti-pattern when dealing with secrets and a bad practice overall since you may have pro-longed secrets that potentially got leaked in an incident that you may have not known about before. If you are familiar with JWT tokens and the need for short-time expiration then you can easily relate to this point and why regularly rotating your secrets is important. Implementing automated rotation for environment variables does require to use a more advanced mechanism for secrets like a secrets management service but that’s not something you trade-off in a production environment.
+- **Hard to audit**: Environment variables lack built-in auditing capabilities. There’s no native way to track who accessed a secret, when it was last changed, or how it’s being used across the system. Even just figuring out where is said secret used across all of your deployed services, frontend, backend, SSR or otherwise. If you’re an enterprise or on a startup that seeks growth, this lack of visibility makes it difficult to comply with security standards like SOC 2 or HIPAA, which require detailed audit trails for access to sensitive information.
+- **Not encrypted at rest**: Environment variables are typically stored in plain text on the host system. This poses a significant security risk for secrets because anyone with access to the host can potentially view these secrets. You did a feature demo of deploying the service and accidentally leaked the environment variables in a screen cast? You have a path traversal vulnerability? Those secrets are easily accessed through the `/proc/PID/environ` file.
+
+### ❌ Reason 2: The Blurry Line Between Frontend and Backend SSR Leaks Secrets
+
+In particular with meta-frameworks such as Next.js, Nuxt and others, the lines between “client-side” and “server” has gotten very blurry. This is especially true with server-side rendering (SSR) and serverless functions, where the same codebase can run on both the client and the server.
+
+With these frameworks, there’s no clear separation of frontend and backend code for developers in the form of a separate code repository for example. On the contrary, not only the codebase is shared but rather the framework itself is designed to act as either the frontend or the backend depending on the context.
+
+Then, what happens when you adopt such server-side APIs with said frameworks and need to provision secrets via environment variables and framework-specific configuration? Mistakes. That’s what happens.
+
+Here is the classic Vite example:
+
+![vite configuration exposes environment variables on the client-side](https://www.nodejs-security.com/images/blog/vite-configuration-exposes-environment-variables-on-the-client-side.png)
+
+Next.js and Nuxt had have their fair share of similar confusing configuration. For example:
+
+- In Next.js, you can differentiate between server-side vs client-side bundled environment variables by prefixing them with `NEXT_` or `NEXT_PUBLIC` respectively. But what if you forget to prefix them correctly? What if you didn’t even realize that there’s a difference? (Here’s one [reference](https://x.com/tobekman/status/1663878249233907715), here’s [another](https://github.com/vercel/next.js/issues/11131#issue-582851591)).
+- In Next.js, at one point in time at least, if you had added a `env: {}` object in your `next.config.js` file, it would expose all of the environment variables to the client-side bundle. This was a common mistake made by developers who were not aware of the implications of this configuration. (Here’s one [reference](https://x.com/Kubessandra/status/1587961596390903809))
+
+This truly has severe and real-world implications. Don’t take it from me. Take it from this person who accidentally leaked their credentials in a Next.js application and suffered a crypto wallet compromise:
+
+![leaked Next.js environment variable secrets lead to crypto wallet compromise](https://www.nodejs-security.com/images/blog/leaked-nextjs-environment-variable-secrets-lead-to-crypto-wallet-compromise.png)
+
+Both Next.js and Nuxt are doing their best to alleviate this issue by providing better documentation and creating more clear separation between client-side and server-side code. But the problem still persists and it’s up to you, the developer who employs this frameworks to be aware of the risks and take the necessary precautions.
+
+### ❌ Reason 3: Secrets in .env **Files** are Too Easy to Leak
+
+In continuation to this posts’ prelude - it is way too convenient to use a `.env` file to store configuration. As long as it is general configuration - while maintenance headache, at least not a security issue.
+
+The moment you put secrets in a `.env` file, which is way too easy to do, you introduced two problems:
+
+- You’ve violated the principle of separation of concerns. Application configuration and application secrets are two different things and should not be mixed together. Adding secrets to a `.env` file convolutes the two and makes it harder to manage and maintain.
+- You’ve introduced a security risk. `.env` files end up committed to source control repositories, either accidentally or intentionally. This is a common mistake that can lead to secrets being exposed to unauthorized users.
+
+How are your dev skills compared to developers at New England Biolabs? because [they leaked their .env file](https://securityaffairs.com/152995/data-breach/new-england-biolabs-leak-sensitive-data.html) with secrets to the public:
+
+![new england biolabs leak .env secrets](https://www.nodejs-security.com/images/blog/new-england-biolabs-leak-env-secrets.png)
+
+Or how about the time when developers leak secrets in environment variables when streaming?
+
+![developers leak secrets in environment variables when streaming](https://www.nodejs-security.com/images/blog/developers-leak-secrets-in-environment-variables-when-streaming.png)
+
+### ❌ Reason 4: Secret Data Leaked by Logs
+
+Environment variables containing secrets are frequently exposed through logging mechanisms, often unintentionally. This data exposure can occur in unexpected error logs on the server, a rich debug output, or exception thrown crash reports, potentially revealing sensitive information to unauthorized users.
+
+The risk here in particular is that secrets and credentials make it into logged data, whether on disk or in logging systems or services, which could then in turn be exposed through data breaches or unauthorized access. Practical example is a log entry with environment variables information pushed to a fire hydrant Slack channel and then accidentally shared with the wrong team members or exposed publicly.
+
+The most ubiquitous example of this is the Express web application framework in Node.js. If you use Express, and you _aren’t_ running the Node.js process with the explicit `NODE_ENV=production` environment variable setting, then the default behavior is that Express will produce verbose error messages in the response body, including the full stack trace.
+
+Some other examples of how leaking secrets might come about are:
+
+```
+try {
+
+  // Some operation
+
+} catch (error) {
+
+  console.error('Error occurred:', error, 'Environment:', process.env);
+
+}
+```
+
+Or how about:
+
+```
+if (process.env.DEBUG) {
+
+  console.log('Debug info:', JSON.stringify(process.env, null, 2));
+
+}
+```
+
+Or does this next one might look better?
+
+```
+process.on('uncaughtException', (error) => {
+
+  const report = {
+
+    error: error.stack,
+
+    env: process.env,
+
+    // Other debug info
+
+  };
+
+  fs.writeFileSync('crash_report.json', JSON.stringify(report, null, 2));
+
+});
+```
+
+All of these code examples seem so naive and rudimentary, huh?
+
+#### Real-World Example: Seneca CVE-2019-5483
+
+To serve as a practical reference for such security issues, I’ll refer you to [CVE-2019-5483](https://security.snyk.io/vuln/SNYK-JS-SENECA-460597) \- an information exposure vulnerability in the form of environment variables that leaked secrets, such as cloud API keys in one publicly referenced incident, that was found in the Node.js microservices toolkit called `seneca`.
+
+Seneca was not as popular as Express but had a very decent user base with about 30,000 downloads a week.
+
+> Funny enough, the [HackerOne bug bounty report](https://hackerone.com/reports/526258) involved Matteo Collina reporting this security vulnerability to the Node.js Security working group at that time (2019), in which I was a member of and helped coordinate the security disclosure
+
+Here’s the patch that involved the fix:
+
+```
+diff --git a/lib/common.js b/lib/common.js
+
+index ef3e398..e992cd6 100644
+
+--- a/lib/common.js
+
++++ b/lib/common.js
+
+@@ -339,10 +339,7 @@ exports.makedie = function(instance, ctxt) {
+
+         process.arch +
+
+         ', platform=' +
+
+         process.platform +
+
+-        (!full ? '' : ', path=' + process.execPath) +
+
+-        ', argv=' +
+
+-        Util.inspect(process.argv).replace(/\n/g, '') +
+
+-        (!full ? '' : ', env=' + Util.inspect(process.env).replace(/\n/g, ''))
+
++        (!full ? '' : ', path=' + process.execPath)
+
+       var when = new Date()
+```
+
+### ❌ Reason 5: Spawned Processes Share the Same Environment by Default
+
+When you use environment variables, the information stored in them is shared across all spawned processes. This comes with a particular risk when dealing with child processes.
+
+In most programming languages, and true to Node.js, Bun, and Deno in particular for us JavaScript developers, the default behavior for spawned child processes is to inherit the environment variables data from their parent process. This means that any secret stored in an environment variable of the parent process becomes accessible to all of its child processes, regardless of whether they actually need that information.
+
+Consider the following example in Node.js:
+
+```
+const { spawn } = require('child_process');
+
+const ls = spawn('my-program.js', ['/usr']);
+```
+
+In this code snippet, the spawned process `my-program.js` will inherit all the environment variables from `process.env` of the parent process. This inheritance happens automatically, without any explicit permission or configuration.
+
+When processes are spawned in this way, they are of clear violation of a fundamental security principle: the principle of least privilege. This principle states that every module or process should only have access to the information and resources that are strictly necessary for its legitimate purpose. When child processes automatically inherit all environment variables, they gain access to potentially sensitive information that they may not need. This unnecessary access increases the attack surface and the potential impact of a security breach.
+
+This is also an opportunity to embrace a software architect mindset and think more broadly about the problem. Detach yourself from the concept of “web applications” and think about the impact of secrets in other settings, for example:
+
+- An Electron based desktop application
+- A CLI tool that you’re building
+- A mobile application
+
+Would you still store secrets in environment variables in these environments?
+
+#### FAQ: But I don’t spawn child processes in my application
+
+Maybe you don’t spawn child processes now, but you might in the future.
+
+Maybe you don’t spawn child processes in your code, but a third-party library you use does.
+
+Here’s an example of an npm package that converts images from one format to another and applies some image manipulation:
+
+```
+import {readFileSync} from 'fs';
+
+import {convert} from 'imagemagick-convert';
+
+const imgBuffer = await convert({
+
+    srcData: readFileSync('./origin.jpg'),
+
+    srcFormat: 'JPEG',
+
+    width: 100,
+
+    height: 100,
+
+    resize: 'crop',
+
+    format: 'PNG'
+
+});
+```
+
+Under the hood? Here’s the `lib/convert.js` source code:
+
+```
+const {spawn} = require('child_process');
+
+// ...
+
+// ...
+
+ /**
+
+     * Proceed converting
+
+     * @returns {Promise<Buffer>}
+
+     */
+
+    proceed() {
+
+        return new Promise((resolve, reject) => {
+
+            const source = this.options.get('srcData');
+
+            if (source && (source instanceof Buffer)) {
+
+                try {
+
+                    const origin = this.createOccurrence(this.options.get('srcFormat')),
+
+                        result = this.createOccurrence(this.options.get('format')),
+
+                        cmd = this.composeCommand(origin, result),
+
+                        cp = spawn('convert', cmd),
+
+                        store = [];
+
+                    cp.stdout.on('data', (data) => store.push(Buffer.from(data)));
+
+                    cp.stdout.on('end', () => resolve(Buffer.concat(store)));
+
+                    cp.stderr.on('data', (data) => reject(data.toString()));
+
+                    cp.stdin.end(source);
+
+                }
+
+                catch (e) {
+
+                    reject(e);
+
+                }
+
+            }
+
+            else reject(new Error('imagemagick-convert: the field `srcData` is required and should have `Buffer` type'));
+
+        });
+
+    }
+```
+
+### ❌ Reason 6: Environment Variables are Visible in Process Lists
+
+Environment variables are exposed in process lists. This exposure can lead to unintended disclosure of sensitive information to anyone with access to the system.
+
+On most Unix-like operating systems (including Linux and macOS), it’s possible for any user on the system to view the environment variables of running processes. This means that secrets stored in environment variables are potentially visible to all users on the system, not just the owner of the process.
+
+To illustrate this issue, let’s walk through a simple demonstration:
+
+Open a terminal and run the following command:
+
+```
+$ SECRET_API_KEY=1234 node -e "console.log('hello world'); setTimeout(() => {}, 20000);"
+```
+
+This command sets an environment variable `SECRET_IN_ENV` with the value `admin` and then runs the sleep command for 256 seconds.
+
+Open another terminal window and run:
+
+```
+$ ps -wwwE
+```
+
+On macOS, this command lists all running processes along with their full environment variables. On Linux systems, you might use `ps auxwe` or `ps eww` for similar results. In the output, search for `admin`. You’ll find that the secret value is visible in plain text.
+
+#### FAQ: But you can’t see processes of another user
+
+Remember, we’re in the context of a web server or web application. We’re not talking about risks of multi-user systems where you have some sort of shared hosting where-in some user ssh’ed into the server and can see another user’s processes. No, I’m referring here to the web application itself getting exploited and such as, under whatever user it runs, it could expose environment variable data to the attacker. Let alone, there are likely many insecure and misconfigured container based deployments where the application runs as root anyway.
+
+#### FAQ: But Gaining Access to the System is Unlikely
+
+You might be raising the concern that gaining access to the system is unlikely and if a user has access to the system, they can already do a lot of damage.
+
+I agree that the likelihood of an attacker exploiting this attack vector (viewing the process list) is relatively low. However, the potential impact of such an attack if it happens is high, especially in high-security environments. Some of the security risks would be around:
+
+- Local User Access: Any user with access to the system can potentially view these secrets, even if they don’t have permission to access the application itself.
+- Malware Risks: If the system is compromised by malware, even with limited privileges, it could potentially harvest secrets from the process list, simply by listing processes.
+- Container Environments: In containerized environments, this issue can be even more problematic, as containers often run with elevated privileges on the host system.
+
+**With that said, please read in detail the next section on chaining vulnerabilities**.
+
+#### A Path Traversal Vulnerability Exposes Secrets in Environment Variables
+
+In the information security and cybersecurity world, there’s the concept of layered security controls and the concept of defense in depth. This means that you should have multiple layers of security controls in place to protect your systems and data.
+
+At the same time, attackers often chain multiple vulnerabilities together to exploit a system. This is known as a “vulnerability chain” or “attack chain”. One vulnerability might not be enough to compromise a system, but when combined with other vulnerabilities, it can lead to a successful attack and furthermore, to a vertical privilege escalation and lateral movement through a said system.
+
+Here’s an example of how a path traversal vulnerability can be chained with the exposure of environment variables to leak sensitive information. Consider the following code snippet in Node.js that allows serving static file assets like CSS, JavaScript, SVG and others in the `public/` directory:
+
+```
+const app = require('express')();
+
+app.get('/public/*', (req, res) => {
+
+  const filePath = path.join(__dirname, req.path.replace('/public/', ''));
+
+  return res.sendFile(filePath);
+
+});
+```
+
+This might not seem obvious to you but there’s a path traversal vulnerability in this code snippet.
+
+I literally wrote over a hundred-pages long book particularly on the topic of [Node.js Secure Coding and Path Traversal vulnerabilities](https://www.nodejs-security.com/book/path-traversal) made popular in Node.js applications and npm dependencies so you’d be shocked to know that this is a common mistake made by developers and maintainers alike.
+
+👋 Just a quick break
+
+I'm Liran Tal and I'm the author of the newest series of expert Node.js Secure Coding books. [Check it out and level up your JavaScript](https://www.nodejs-security.com/)
+
+[![Node.js Secure Coding: Defending Against Command Injection Vulnerabilities](https://www.nodejs-security.com/images/book/book-command-injection-cover-light.png)](https://www.nodejs-security.com/book/command-injection)
+
+[![Node.js Secure Coding: Prevention and Exploitation of Path Traversal Vulnerabilities](https://www.nodejs-security.com/images/book/book-path-traversal-cover-light.png)](https://www.nodejs-security.com/book/path-traversal)
+
+An attacker can craft a request to access any file on the server, including sensitive files like your `package.json` or `config.json` file, but I have a more interesting revelation for you.
+
+Did you know that process information, including environment variables are available in the `/proc` filesystem on Linux systems? Ahh yes, definitely so! Here’s how you can access it:
+
+```
+$ cat /proc/12345/environ
+
+# Output
+
+SECRET_API_KEY=1234SHELL=/bin/bashNUGET_XMLDOC_MODE=skipCOLORTERM=truecolorCLOUDENV_ENVIRONMENT_ID=23232-33-33-bd9e-4424323232=/usr/local/share/nvm/versions/node/v20.16.0/include/node...
+```
+
+Just replace the process ID `12345` with the one for the Node.js process running your application.
+
+I hear you asking: “But how can you find the process ID of a Node.js process running on a server?”, and “how can you even access this file?”
+
+Well, as simple as this cURL request available to anyone in the world:
+
+```
+$ curl http://your-website.com/public/../../../../proc/12345/environ
+```
+
+You don’t need to know the process ID, you can just brute force it. This isn’t some UUID or GUID with billions of possibilities, it’s a simple integer that you can iterate over and in most cases this integer is going to end up in a low range.
+
+Actually, wait. It’s even easier than that. **You don’t even need to know the process ID AT ALL**.
+
+You can just access the `/proc/self/environ` file to get the environment variables of the current process. Here’s how you can do it:
+
+```
+$ curl http://your-website.com/public/../../../../proc/self/environ
+```
+
+And there you go, another reason why you shouldn’t store secrets in environment variables.
+
+> Note: the `/proc/self/environ` trick only works when the server itself is exposed to local file inclusion or path traversal vulnerabilities
+
+### ❌ Reason 7: Build Arguments and .env Files Leak into Docker Images
+
+If you’re using Docker to containerize your applications you are likely making use of Docker build arguments. Docker build arguments, often used to pass secrets or sensitive information during image construction, can inadvertently leak into the final image, exposing confidential data.
+
+Here’s the the problem at play - when using `ARG` instructions in a `Dockerfile` and passing secrets as build arguments, these values become part of the image’s metadata. It means that these secrets are visible in the image history and can be extracted by anyone with access to the image.
+
+You typically might do something like this to pass a secret to a Docker build:
+
+```
+$ docker build . --build-arg MY_SECRET=1234 -t my-app
+```
+
+Then, running the following Docker command will reveal the build argument `MY_SECRET=1234` in the image history cache:
+
+```
+$ docker history my-app
+```
+
+How bad is this? According to studies, approximately [10% of images on Docker Hub are leaking sensitive data](https://www.intrinsec.com/docker-leak/). This widespread issue highlights the importance of secure Docker image building practices.
+
+To make matters worse, Docker build arguments are just one vector for leaking secrets in Docker images. Other common vectors include storing the `.env` file in the built Docker image that also results in leaking credentials and secrets that are then kept in the image’s layers.
+
+This is more common than you think, evidently, from Bret Comnes, a Senior Software Engineer at Socket.io:
+
+![docker secrets leak via .env files](https://www.nodejs-security.com/images/blog/docker-secrets-leak-via-env-files.png)
+
+There are however, more secure ways to build docker images, such as using multi-stage docker image.
+
+## 🙌 Proposal for Better Secrets Management
+
+To begin with, the hint lies in the title of this section: secrets **management**. Environment variables are hardly managed unless you explicitly use an integration or an orchestrator like Kubernetes to automatically inject environment variable configuration. For the vast majority of developers, environment variables are more of a “set and forget” practice.
+
+I would like to propose a 3-fold principle to better secrets management:
+
+- Always separate application configuration from secrets and credentials.
+- Secrets are either completely injected to the application from an external resource as an ephemeral and short-lived access, or requested at runtime by the application. This breaks-down to several options:
+  - An infrastructure orchestration mechanism such as a Kubernetes sidecar container performs secure data fetching and make it available to the application by a temporary file available to the application to read during bootstrap, or a secret volume mount to the application container (popular with Docker Swarm and Kubernetes). Another option is a one-time, short-lived, secret (often known as token), provided through an environment variable.
+  - An external secrets management service is used to initiate a retrieval of secrets using temporary and short-lived token and the application is then responsible for fetching the secrets from the service as a follow-up runtime operation.
+  - Using the cloud vendor secrets management service to allow fetching secrets from application code and relying on authentication and authorization based on the cloud infrastructure and the application’s identity (IAM).
+- Secrets are managed via a secrets management service or a key management service.
+
+But how do you actually follow all of this in practice?
+
+Well, secrets management solutions come in different shapes and sizes so I will refrain from recommending a specific one, but I don’t want to leave you hanging so let me provide a guideline on an adoption approach and how they differ. The following is listed in ascending order of complexity and security:
+
+### 0\. Solving the “Secret Zero” problem
+
+Often times we have to face the “secret zero” problem. The “secret zero” problem is in essence the chicken and egg problem of having to provide a secret to access a secret.
+
+This is why it is important to differentiate between storing secrets and providing secrets. If the application needs a single secret to bootstrap and then access a secret management service, _you can provide the initial secret through an environment variable_ as long as the initial secret (often referred to as a token in many products, such as Hashicorp’s vault) is short-lived and has a limited usage count. This distinction is important because we treat the orchestration and the medium through-which the initial secret is provided as trusted sources, and once the application has bootstrapped and obtained the necessary secrets to function, the initial secret passed through the environment variable is discarded and expired. Even if leaked, it is useless.
+
+Thus far, we described providing secrets to the application. If you however practice “secrets storage” which is storing long-lived secrets in environment variables, you’re opening yourself to the risks I outlined in this post.
+
+### 1\. The easiest and most convenient: secrets stores
+
+A cloud service or a secrets store tool manage the secrets for you based on your `.env` file and they in turn integrate back with your application’s environment variables.
+
+To call out a practical example: 1Password.
+
+1Password is a password management service. Teams at companies use it to store and share passwords and other sensitive information through vaults. 1Password also has a CLI (called `op`) that reads your `.env` file and inject secrets to your application process.
+
+Your `.env` file:
+
+```
+API_TOKEN="op://Onyx Team/Dev/OpenAI API Token/token"
+```
+
+You then start the Node.js process as follows:
+
+```
+$ op run -- node app.js
+```
+
+When you run the 1Password CLI, it will authenticate you as it normally does (configure the fingerprint auth and you’ll enjoy a seamless experience), map the credential to the secret in the 1Password vault, and then inject the secret to the Node.js process environment. Your Node.js application can then use `process.env.API_TOKEN` to access it.
+
+The down-side with this approach is:
+
+- You’re still using environment variables, so some of the above mentioned security risks apply (secrets listed in logs, process lists, etc.)
+- You probably don’t use 1Password in production, so you’re not getting the full benefit of a secrets management service. Although, 1Password does have a business offering that you can use in production.
+
+Still, this is a better than nothing approach and a super convenient way to avoid exposing secrets in `.env` files.
+
+### 2\. The more secure and more complex: secrets management services
+
+Offloading secrets entirely out of the environment variable scope.
+
+In the previous approach with 1Password, you still needed to maintain and map each secret or credential to an environment variable name. That’s a manual process and completely exposes you to accidental leakage of all the secrets in the `.env` file.
+
+A better way is to use a secrets management service, such as Infisical, HashiCorip Vault, or cloud vendor secrets management services like Google Cloud Secret Manager (which I feel comfortable calling out because I used it personally). These services either authenticate you based on the cloud infrastructure’s identity (i.e: IAM, and applies to the cloud vendor solutions) or via a temporary token (like Infisical) passed via environment variables (or an orchestrator).
+
+To show a quick example of how you’d using Infisical (similar to how you’d use Google Cloud Secret Manager):
+
+```
+import { InfisicalSDK } from '@infisical/sdk'
+
+const client = new InfisicalSDK();
+
+await client.auth().universalAuth.login({
+
+  clientId: "<machine-identity-client-id>",
+
+  clientSecret: "<machine-identity-client-secret>"
+
+});
+
+const singleSecret = await client.secrets().getSecret({
+
+  environment: "dev",
+
+  projectId: "<your-project-id>",
+
+  secretName: "DATABASE_URL",
+
+});
+```
+
+This is by far the preferred approach for anything you are building that is production-grade and has substantial and likelihood of a business impact.
+
+## FAQ
+
+### But if I use a secrets management service I still have to pass clientSecret as environment variable?
+
+Yes, you do. But the difference with the `clientSecret` is vast compared to traditionally storing secrets in environment variables:
+
+- This credential is only used to authenticate your application to the secrets management service. Once authenticated, the application service receives a temporary token that is used to fetch the secrets (you can think of it like doing JWT-based authentication workflow).
+- Even if exposed or leaked, it is one secret to rotate rather than all of your secrets, scattered across all of your services and their environment variables.
+- This secret can, and should, be configured with a short time-to-live (TTL) and maximum usage count. Meaning, it only serves a purpose for the initial grabbing of secrets when the application bootstraps and then it is useless.
+- This secret is governed by a CIDR-based IP allow-list, so even if leaked in some way or stolen through a malicious dependency, it can only be used from a specific IP range (e.g: the office network, the cloud provider’s network, the company approved VPN, etc).
+- This secret should be provisioned to application through secure trusted orchestration actor such as a Kubernetes sidecar, a CI/CD pipeline, or a cloud vendor’s secrets management service.
+
+### How does environment variables protect you against a malicious dependency?
+
+If you have a malicious third-party dependency in your application then it effectively doesn’t matter how environment variables are managed or how you pass secrets because the malicious dependency has access to:
+
+- Your file system and application environment (whether locally on your development machine or in the deployed production instance)
+- Your code during runtime (execution)
+
+Whether you store secrets in environment variables or if you use a secrets management service, the security of your application is effectively compromised and neither mechanism will protect you.
+
+The problem here, really, lies with the fact that this question conflates two separate issues: the security of your application and the security of your secrets and there is no “silver bullet” answer to this question because we’re mixing two different things. With that said, if you just store your secrets in environment variables, a malicious dependency can easily access all of them, exfiltrate them to a remote server, and use them to compromise your application and infrastructure.
+
+### Doesn’t securely managing secrets offer some protection against a malicious dependency?
+
+This question depends on the scope and context of the malicious dependency execution. If said malicious dependency is limited to executing during the build process, in which third-party dependencies are installed, and effectively allow install scripts to be run, and therefore execute arbitrary code, then securely managing secrets does offer some protection.
+
+If you insecurely store your secrets in a `.env` file, environment variables or an arbitrary `config.json` file, then a malicious dependency can easily access these secrets and exfiltrate them to a remote server during the install / build process. Running `npm install` will allow any package in the dependency tree to execute arbitrary code, so it can just run `env` or `cat .env` and send the output to a remote server.
+
+If however, you don’t actually store secrets as plain text on disk, and you don’t actually have any plain secrets in `.env` then a postinstall malicious dep hook would be useless in terms of exfiltrating secrets.
+
+### How do I follow “secret zero” and provide a limited initial secret?
+
+Many secrets management services provide a way to authenticate and obtain a temporary, single-use token that can be used to further fetch secrets. This is often referred to as a “machine identity” or “machine identity client” and is used to authenticate the application to the secrets management service.
+
+Some examples to call out for existing products:
+
+- Hashicorp Vault, see their [Secure introduction of Vault clients](https://developer.hashicorp.com/vault/tutorials/app-integration/secure-introduction) documentation.
+- Infisical Token Auth, see their [Token Auth authentication method](https://infisical.com/docs/documentation/platform/identities/token-auth) documentation.
+
+### Is this relevant if I’m running my Node.js application on Lambda?
+
+Serverless environments like AWS Lambda, or Vercel for that matter, are much more restricted and ephemeral which comes with some added benefits. However, some of the risks still apply, such as the security risk of exposing secrets in environment variables when the function crashes and the error message is logged or returned as an API response.
+
+Another reason to consider moving away from environment variables for these serverless environments is that AWS Lambda, as one example, has a limited size for environment variables. If you have a large number of secrets or large secrets, you may run into issues with the size limit. For example: large JSON configuration payloads, large RSA keys, large JWT tokens, etc.
+
+👋 Just a quick break
+
+I'm Liran Tal and I'm the author of the newest series of expert Node.js Secure Coding books. [Check it out and level up your JavaScript](https://www.nodejs-security.com/)
+
+[![Node.js Secure Coding: Defending Against Command Injection Vulnerabilities](https://www.nodejs-security.com/images/book/book-command-injection-cover-light.png)](https://www.nodejs-security.com/book/command-injection)
+
+[![Node.js Secure Coding: Prevention and Exploitation of Path Traversal Vulnerabilities](https://www.nodejs-security.com/images/book/book-path-traversal-cover-light.png)](https://www.nodejs-security.com/book/path-traversal)
+
+* * *
+
+## Node.js Security Newsletter
+
+Subscribe to get everything in and around the Node.js security ecosystem, direct to your inbox.
+
+Subscribe
+
+JavaScript & web security insights, latest security vulnerabilities, hands-on secure code insights, npm ecosystem incidents, Node.js runtime feature updates, Bun and Deno runtime updates, secure coding best practices, malware, malicious packages, and more.
+
+[Built with ConvertKit](https://convertkit.com/features/forms?utm_campaign=poweredby&utm_content=form&utm_medium=referral&utm_source=dynamic)
+
+---
+
+Title: Is it secure way to store private values in .env file? - Stack Overflow
+##### Collectives™ on Stack Overflow
+
+Find centralized, trusted content and collaborate around the technologies you use most.
+
+[Learn more about Collectives](https://stackoverflow.com/collectives)
+
+**Stack Internal**
+
+Knowledge at work
+
+Bring the best of human thought and AI automation together at your work.
+
+[Explore Stack Internal](https://stackoverflow.co/internal/?utm_medium=referral&utm_source=stackoverflow-community&utm_campaign=side-bar&utm_content=explore-teams-compact-popover)
+
+# [Is it secure way to store private values in .env file?](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file)
+
+[Ask Question](https://stackoverflow.com/questions/ask)
+
+Asked6 years, 2 months ago
+
+Modified [2 years, 6 months ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file?lastactivity "2023-10-24 10:07:24Z")
+
+Viewed
+89k times
+
+
+This question shows research effort; it is useful and clear
+
+47
+
+This question does not show any research effort; it is unclear or not useful
+
+Save this question.
+
+[Timeline](https://stackoverflow.com/posts/60360298/timeline)
+
+Show activity on this post.
+
+I'm trying to build a node.js server with express framework, and I want to store a private key for admin APIs in my server.
+
+I'm now using .env file to store those values, and in my routes, using that values by calling like `process.env.ADMIN_KEY`.
+
+**Question**
+
+Is it secure way to handle private datas? or there's another way better than this?
+
+- [node.js](https://stackoverflow.com/questions/tagged/node.js "show questions tagged 'node.js'")
+- [express](https://stackoverflow.com/questions/tagged/express "show questions tagged 'express'")
+- [security](https://stackoverflow.com/questions/tagged/security "show questions tagged 'security'")
+- [dotenv](https://stackoverflow.com/questions/tagged/dotenv "show questions tagged 'dotenv'")
+
+[Share](https://stackoverflow.com/q/60360298)
+
+Share a link to this question
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this question
+
+[Improve this question](https://stackoverflow.com/posts/60360298/edit "")
+
+Follow
+
+
+
+Follow this question to receive notifications
+
+asked Feb 23, 2020 at 8:09
+
+[![hyojoon's user avatar](https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/s64-rj/photo.jpg)](https://stackoverflow.com/users/9615926/hyojoon)
+
+[hyojoon](https://stackoverflow.com/users/9615926/hyojoon)
+
+65311 gold badge88 silver badges2121 bronze badges
+
+[Add a comment](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file# "Use comments to ask for more information or suggest improvements. Avoid answering questions in comments.") \| [Expand to show all comments on this post](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file# "Expand to show all comments on this post")
+
+## 6 Answers 6
+
+Sorted by:
+[Reset to default](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file?answertab=scoredesc#tab-top)
+
+Highest score (default)
+
+Trending (recent votes count more)
+
+Date modified (newest first)
+
+Date created (oldest first)
+
+
+This answer is useful
+
+72
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/65330139/timeline)
+
+Show activity on this post.
+
+It is more secure to store your secrets in a .env file than in the source code itself. But you can do one better. Here are the ways I've seen secrets managed, from least to most secure:
+
+1. Hard-code the secrets in the code.
+
+   - Pros: None. Don't do this.
+   - Cons: Your developers will see your production secrets as part of their regular work. Your secrets will be checked into source control. Both are security risks. Also, you have to modify the code to use it in different environments, like dev, test, and production.
+2. Put secrets in environment variables, loaded from a .env file.
+
+   - Pros: Developers won't see your production secrets. You can use different secrets in dev, test, and production, without having to modify the code.
+   - Cons: Malicious code can read your secrets. The bulk of your application's code is probably open-source libraries. Bad code may creep in without you knowing it.
+3. Put secrets in a dedicated secret manager, like [Vault by HashiCorp](https://www.vaultproject.io/) or [Secret Manager](https://cloud.google.com/secret-manager) by Google Cloud.
+
+   - Pros: It's harder for malicious code to read your secrets. You get auditing of who accessed secrets when. You can assign fine-grained roles for who updates secrets and who can read them. You can update and version your secrets.
+   - Cons: It's additional technology that you have to learn. It may be an additional piece of software that you need to set up and manage, unless it's included in the cloud platform you're using.
+
+So the choice is really between items 2 and 3 above. Which one you pick will depend on how sensitive your secrets are and how much extra work it would be to use a dedicated secret manager. For example, if your project is running on Google Cloud Platform, the Secret Manager is just [one API call away](https://cloud.google.com/secret-manager/docs/quickstart). It may be just as easy on the other major cloud platforms, but I don't have first-hand experience with them.
+
+[Share](https://stackoverflow.com/a/65330139)
+
+Share a link to this answer
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/65330139/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+[edited Oct 28, 2022 at 20:47](https://stackoverflow.com/posts/65330139/revisions "show all edits to this post")
+
+[![Sam Herrmann's user avatar](https://i.sstatic.net/tn8TR.jpg?s=64)](https://stackoverflow.com/users/3634032/sam-herrmann)
+
+[Sam Herrmann](https://stackoverflow.com/users/3634032/sam-herrmann)
+
+7,05655 gold badges3434 silver badges6262 bronze badges
+
+answered Dec 16, 2020 at 19:44
+
+[![Martin Omander's user avatar](https://i.sstatic.net/82Zbp.jpg?s=64)](https://stackoverflow.com/users/455313/martin-omander)
+
+[Martin Omander](https://stackoverflow.com/users/455313/martin-omander)
+
+3,6243232 silver badges2323 bronze badges
+
+Sign up to request clarification or add additional context in comments.
+
+
+## 6 Comments
+
+Add a comment
+
+[![](https://i.sstatic.net/5uhFU.png?s=64)](https://stackoverflow.com/users/13359076/jobin-selvanose)
+
+Jobin Selvanose
+
+[Jobin Selvanose](https://stackoverflow.com/users/13359076/jobin-selvanose) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment123783569_65330139)
+
+what is the use of creating env file on a private codebase?
+
+2021-11-18T17:12:31.907Z+00:00
+
+0
+
+Reply
+
+- Copy link
+
+[![](https://i.sstatic.net/4XYz1.jpg?s=64)](https://stackoverflow.com/users/13216976/riccardogabellone)
+
+riccardogabellone
+
+[riccardogabellone](https://stackoverflow.com/users/13216976/riccardogabellone) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment125127075_65330139)
+
+@JobinS development and testing purposes
+
+2022-01-19T23:44:55.687Z+00:00
+
+3
+
+Reply
+
+- Copy link
+
+[![](https://i.sstatic.net/82Zbp.jpg?s=64)](https://stackoverflow.com/users/455313/martin-omander)
+
+Martin Omander
+
+[Martin Omander](https://stackoverflow.com/users/455313/martin-omander) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment130020353_65330139)
+
+@JobinS Many people use different databases in dev, test, and prod environments. So you'd need different database addresses and passwords for these three environments.
+
+2022-09-07T00:23:06.687Z+00:00
+
+2
+
+Reply
+
+- Copy link
+
+[![](https://i.sstatic.net/CU3aL.png?s=64)](https://stackoverflow.com/users/10546172/sarogfx)
+
+SaroGFX
+
+[SaroGFX](https://stackoverflow.com/users/10546172/sarogfx) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment130294451_65330139)
+
+But where would you store the api key password? If they can find that, they can access the API and still get all the secrets, no?
+
+2022-09-20T14:15:56.37Z+00:00
+
+2
+
+Reply
+
+- Copy link
+
+[![](https://i.sstatic.net/82Zbp.jpg?s=64)](https://stackoverflow.com/users/455313/martin-omander)
+
+Martin Omander
+
+[Martin Omander](https://stackoverflow.com/users/455313/martin-omander) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment130767558_65330139)
+
+@SaroVerhees On Google Cloud your code runs as a service account, which has certain privileges determined by the admin. There is no need to supply an API key.
+
+2022-10-14T00:35:35.287Z+00:00
+
+1
+
+Reply
+
+- Copy link
+
+Add a comment\|Show 1 more comment
+
+This answer is useful
+
+16
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/60360317/timeline)
+
+Show activity on this post.
+
+Simple answer is **YES**, .env is used to store keys and secrets. It is not pushed to your repo i.e. github or bitbucket or anywhere you store your code. In that way it is not exposed.
+
+Here are the tutorial links for correct usage:
+
+- [managing-environment-variables-in-node-js-with-dotenv](https://stackabuse.com/managing-environment-variables-in-node-js-with-dotenv/)
+- [how-secure-is-your-environment-file-in-node-js](https://codeburst.io/how-secure-is-your-environment-file-in-node-js-7c4d2ed0d15a)
+
+[Share](https://stackoverflow.com/a/60360317)
+
+Share a link to this answer
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/60360317/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+[edited Feb 23, 2020 at 8:20](https://stackoverflow.com/posts/60360317/revisions "show all edits to this post")
+
+answered Feb 23, 2020 at 8:11
+
+[![Zeeshan Hassan Memon's user avatar](https://www.gravatar.com/avatar/c24490efc5f558f5942e9cbd5a9b9bf1?s=64&d=identicon&r=PG)](https://stackoverflow.com/users/3539857/zeeshan-hassan-memon)
+
+[Zeeshan Hassan Memon](https://stackoverflow.com/users/3539857/zeeshan-hassan-memon)
+
+8,37544 gold badges4848 silver badges6060 bronze badges
+
+## 6 Comments
+
+Add a comment
+
+[![](https://i.sstatic.net/YPZCC.jpg?s=64)](https://stackoverflow.com/users/1039843/abhik-chakraborty)
+
+Abhik Chakraborty
+
+[Abhik Chakraborty](https://stackoverflow.com/users/1039843/abhik-chakraborty) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment106776320_60360317)
+
+Most secure way if you are using EBS, store all the secret env under EBS environment variables. And I am sure for other nodejs hosting services have the same capabilities.
+
+2020-02-23T10:08:29.933Z+00:00
+
+1
+
+Reply
+
+- Copy link
+
+[![](https://graph.facebook.com/1951149208479672/picture?type=large)](https://stackoverflow.com/users/8632766/yves-ng)
+
+Yves Ng
+
+[Yves Ng](https://stackoverflow.com/users/8632766/yves-ng) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment120162377_60360317)
+
+I'm confused if it's not pushed to github and I use github repo as source for deployment on some cloud hosting, how will my deployed project use those secret values that lies within that `.env`?
+
+2021-06-15T10:36:18.7Z+00:00
+
+0
+
+Reply
+
+- Copy link
+
+[![](https://www.gravatar.com/avatar/c24490efc5f558f5942e9cbd5a9b9bf1?s=48&d=identicon&r=PG)](https://stackoverflow.com/users/3539857/zeeshan-hassan-memon)
+
+Zeeshan Hassan Memon
+
+[Zeeshan Hassan Memon](https://stackoverflow.com/users/3539857/zeeshan-hassan-memon) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment120175126_60360317)
+
+@YvesNg if you're using physical or virtual machine i.e. EC2 or Azure VM etc then you can login in to the server then where your code/repo resides create .env and copy-past its contents. If you're using PaaS i.e. Heroku or something else then you can directly manage en variables without using .env file because they provide option for it.
+
+2021-06-15T18:50:04.627Z+00:00
+
+5
+
+Reply
+
+- Copy link
+
+[![](https://graph.facebook.com/1951149208479672/picture?type=large)](https://stackoverflow.com/users/8632766/yves-ng)
+
+Yves Ng
+
+[Yves Ng](https://stackoverflow.com/users/8632766/yves-ng) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment120191549_60360317)
+
+@ZeeshanHassanMemon so that means manually adding a number of variables. neat xD
+
+2021-06-16T11:10:39.84Z+00:00
+
+0
+
+Reply
+
+- Copy link
+
+[![](https://i.sstatic.net/5uhFU.png?s=64)](https://stackoverflow.com/users/13359076/jobin-selvanose)
+
+Jobin Selvanose
+
+[Jobin Selvanose](https://stackoverflow.com/users/13359076/jobin-selvanose) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment123783574_60360317)
+
+what is the use of creating env file on a private codebase?
+
+2021-11-18T17:12:38.65Z+00:00
+
+0
+
+Reply
+
+- Copy link
+
+Add a comment\|Show 1 more comment
+
+This answer is useful
+
+3
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/73764868/timeline)
+
+Show activity on this post.
+
+Secrets stored in environment variables are in risk of getting exposed (for non-private node apps) as for example libraries you use might print the environment into the log in case of an error. So it would be more safe to store them in a file outside of source control and import it where needed.
+
+[https://movingfast.io/articles/environment-variables-considered-harmful/](https://movingfast.io/articles/environment-variables-considered-harmful/)
+
+[Share](https://stackoverflow.com/a/73764868)
+
+Share a link to this answer
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/73764868/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+answered Sep 18, 2022 at 17:13
+
+[![luigisuncorner's user avatar](https://www.gravatar.com/avatar/8d813af7f27ff345cae08d8cbf2e335b?s=64&d=identicon&r=PG&f=y&so-version=2)](https://stackoverflow.com/users/18567120/luigisuncorner)
+
+[luigisuncorner](https://stackoverflow.com/users/18567120/luigisuncorner)
+
+39011 silver badge88 bronze badges
+
+## Comments
+
+Add a comment
+
+This answer is useful
+
+3
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/77351182/timeline)
+
+Show activity on this post.
+
+The following demonstrates how to load environment variables and secret values into a software project for local development.
+
+- **Step 1**: Create secret records in [Google Secret Manager](https://console.cloud.google.com/security/secret-manager)
+- **Step 2**: Save environment variables and secret references to `.env` file(s)
+- **Step 3**: Add a call to `loadEnv(environment, options)` where you need those variables
+
+## Basic Example
+
+#### `.env` — environment variables
+
+```javascript
+Copy
+# Environment varialbes and secrets
+# NOTE: You can reference secrets from a cloud secret manager by
+#       following this pattern: secret://[provider]/[resource]
+
+# Google Cloud
+# https://console.cloud.google.com/
+GOOGLE_CLOUD_PROJECT=example
+GOOGLE_CLOUD_REGION=us-central1
+
+# Cloud Identity Platform (a.k.a. Firebase Auth)
+# https://console.cloud.google.com/customer-identity
+FIREBASE_APP_ID=1:674174690042:web:bb8d27dcc9e48fc0a7690d
+FIREBASE_API_KEY=BIzbEyGBAlkrEIvlYgZeub9LBCkYJM6ySIMF2Je
+FIREBASE_AUTH_DOMAIN=example.com
+
+# Cloudflare
+# https://dash.cloudflare.com/
+CLOUDFLARE_ACCOUNT_ID=a8b47b39ab92525b2653229b28a1fc31
+CLOUDFLARE_ZONE_ID=f3206a12cd93f45de116318496037c9f
+CLOUDFLARE_API_TOKEN=secret://google/projects/example/secrets/cloudflare-api-token/versions/latest
+
+# PostgreSQL Database
+# https://www.postgresql.org/docs/current/libpq-envars.htm
+PGHOST=34.172.75.101
+PGPORT=5432
+PGUSER=secret://google/projects/example/secrets/db-user/versions/latest
+PGPASSWORD=secret://google/projects/example/secrets/db-password/versions/latest
+
+# SendGrid
+# https://app.sendgrid.com/settings/api_keys
+EMAIL_FROM=hello@example.com
+SENDGRID_API_KEY=secrets://google/projects/example/secrets/sendgrid-api-key/versions/latest
+```
+
+**NOTE**: Only `PGUSER`, `PGPASSWORD`, `CLOUDFLARE_API_TOKEN`, and `SENDGRID_API_KEY` are actually secrets in the example above. The rest environment variables can be included as plain text into `.env` files.
+
+**NOTE**: You can reference secret values using the following pattern `secret://[provider]/[resource]`.
+
+#### `./core/env.ts` — environment variables schema (validator)
+
+To ensure that the app fails in case of any of the environment variables required by the app are missing or malformed, it's a good idea to create a validator (schema) similar to this:
+
+```javascript
+Copy
+import { cleanEnv, num, str } from "envalid";
+
+export default cleanEnv(process.env, {
+  GOOGLE_CLOUD_PROJECT: str(),
+  GOOGLE_CLOUD_REGION: str(),
+
+  FIREBASE_APP_ID: str(),
+  FIREBASE_API_KEY: str(),
+  FIREBASE_AUTH_DOMAIN: str(),
+
+  PGHOST: str(),
+  PGPORT: num(),
+  PGUSER: str(),
+  PGPASSWORD: str(),
+
+  EMAIL_FROM: str(),
+  SENDGRID_API_KEY: str(),
+});
+```
+
+#### `./vite.config.ts` — Vite configuration
+
+If you're launching your Node.js app using Vite / Vite Node, you would load secrets inside of the `vite.configt.ts` file as follows:
+
+```javascript
+Copy
+import { defineConfig } from "vite";
+import { loadEnv } from "envars";
+
+export default defineConfig(async ({ mode }) => {
+  await loadEnv(mode, {
+    root: ".",
+    schema: "./core/env.ts",
+    mergeTo: process.env,
+  });
+
+  return {
+    build: {
+      ssr: "index.ts",
+      target: "esnext",
+      sourcemap: true,
+    },
+  };
+});
+```
+
+**NOTE**: Normally, you want to use `loadEnv(...)` helper function just for local development and deployment. For example, if you deploy your app to Google Cloud Functions it supports secrets from Google Secret Manager natively.
+
+### References
+
+- [https://github.com/kriasoft/envars#readme](https://github.com/kriasoft/envars#readme)
+- [https://cloud.google.com/secret-manager/docs](https://cloud.google.com/secret-manager/docs)
+
+[Share](https://stackoverflow.com/a/77351182)
+
+Share a link to this answer
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/77351182/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+answered Oct 24, 2023 at 10:07
+
+[![Konstantin Tarkus's user avatar](https://i.sstatic.net/di2WF.jpg?s=64)](https://stackoverflow.com/users/82686/konstantin-tarkus)
+
+[Konstantin Tarkus](https://stackoverflow.com/users/82686/konstantin-tarkus)
+
+38.6k1414 gold badges138138 silver badges123123 bronze badges
+
+## 2 Comments
+
+Add a comment
+
+[![](https://www.gravatar.com/avatar/82a68e028d23739bf44d91c4599b4718?s=48&d=identicon&r=PG)](https://stackoverflow.com/users/4858619/marizombie)
+
+marizombie
+
+[marizombie](https://stackoverflow.com/users/4858619/marizombie) [Over a year ago](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment138535716_77351182)
+
+very helpful, more detailed than accepted answer
+
+2024-06-05T10:47:38.217Z+00:00
+
+0
+
+Reply
+
+- Copy link
+
+[![](https://www.gravatar.com/avatar/2a3e5e19a0d90edfd4eb094385f6617a?s=48&d=identicon&r=PG)](https://stackoverflow.com/users/851749/max)
+
+Max
+
+[Max](https://stackoverflow.com/users/851749/max) [Oct 11, 2025 at 7:50](https://stackoverflow.com/questions/60360298/is-it-secure-way-to-store-private-values-in-env-file#comment140789768_77351182)
+
+Downvoted for suggesting centralized 3rd party secret storage.
+
+2025-10-11T07:50:54.033Z+00:00
+
+0
+
+Reply
+
+- Copy link
+
+This answer is useful
+
+2
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/60360330/timeline)
+
+Show activity on this post.
+
+It is **yes**. An additional security check can be added by using encrypted values. Also avoid to checkin your .env file in public repo.
+
+[Share](https://stackoverflow.com/a/60360330)
+
+Share a link to this answer
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/60360330/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+answered Feb 23, 2020 at 8:13
+
+[![Hallah's user avatar](https://www.gravatar.com/avatar/7516117100aa7b3477abee04b99f08d3?s=64&d=identicon&r=PG&f=y&so-version=2)](https://stackoverflow.com/users/12834817/hallah)
+
+[Hallah](https://stackoverflow.com/users/12834817/hallah)
+
+12944 bronze badges
+
+## Comments
+
+Add a comment
+
+This answer is useful
+
+-2
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/60360337/timeline)
+
+Show activity on this post.
+
+You can and should store secrets, credentials or private data securely inside a `.env` is a secure environment config section in your projects, useful for storing API keys and app credentials. Only invited collaborators are able to see the contents of your `.env` file.
+
+[Share](https://stackoverflow.com/a/60360337)
+
+Share a link to this answer
+
+Copy link [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/ "The current license for this post: CC BY-SA 4.0")
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/60360337/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+[edited Feb 23, 2020 at 9:16](https://stackoverflow.com/posts/60360337/revisions "show all edits to this post")
+
+[![Bioukh's user avatar](https://www.gravatar.com/avatar/865a80f90d93cddccd1549d8c6cf2f4a?s=64&d=identicon&r=PG)](https://stackoverflow.com/users/2505390/bioukh)
+
+[Bioukh](https://stackoverflow.com/users/2505390/bioukh)
+
+1,98811 gold badge1616 silver badges2727 bronze badges
+
+answered Feb 23, 2020 at 8:15
+
+[![Tushar's user avatar](https://i.sstatic.net/JLtfP.jpg?s=64)](https://stackoverflow.com/users/12947421/tushar)
+
+[Tushar](https://stackoverflow.com/users/12947421/tushar)
+
+5044 bronze badges
+
+## Comments
+
+Add a comment
+
+## Your Answer
+
+Draft saved
+
+Draft discarded
+
+### Sign up or [log in](https://stackoverflow.com/users/login?ssrc=question_page&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f60360298%2fis-it-secure-way-to-store-private-values-in-env-file%23new-answer)
+
+Sign up using Google
+
+
+Sign up using Email and Password
+
+
+Submit
+
+### Post as a guest
+
+Name
+
+Email
+
+Required, but never shown
+
+Post Your Answer
+
+Discard
+
+
+By clicking “Post Your Answer”, you agree to our [terms of service](https://stackoverflow.com/legal/terms-of-service/public) and acknowledge you have read our [privacy policy](https://stackoverflow.com/legal/privacy-policy).
+
+
+Start asking to get answers
+
+Find the answer to your question by asking.
+
+[Ask question](https://stackoverflow.com/questions/ask)
+
+Explore related questions
+
+- [node.js](https://stackoverflow.com/questions/tagged/node.js "show questions tagged 'node.js'")
+- [express](https://stackoverflow.com/questions/tagged/express "show questions tagged 'express'")
+- [security](https://stackoverflow.com/questions/tagged/security "show questions tagged 'security'")
+- [dotenv](https://stackoverflow.com/questions/tagged/dotenv "show questions tagged 'dotenv'")
+
+See similar questions with these tags.
+
+lang-js
+
+---
+
+Title: How is vault better than env file in terms of security?
+[Skip to last reply](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577/6) [Skip to top](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577/1)
+
+[Skip to main content](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577#main-container)
+
+That's a wrap for HashiConf 2025! Check out the recap of our annual global cloud conference now: [hashiconf.com](https://www.hashiconf.com/).
+
+​
+
+
+[HCP Vagrant Registry](https://portal.cloud.hashicorp.com/vagrant/discover) is publicly available and ready for users to migrate their Vagrant Cloud artifacts.
+
+Review the [migration guide](https://developer.hashicorp.com/vagrant/vagrant-cloud/hcp-vagrant/migration-guide) to get started!
+
+If the migration does not complete successfully, review the [Migration Troubleshooting](https://developer.hashicorp.com/vagrant/vagrant-cloud/hcp-vagrant/troubleshooting) guide or contact us at [support+vagrantcloud@hashicorp.com](mailto:support@hashicorp.com) with the subject `HCP Vagrant Migration`
+
+# [How is vault better than env file in terms of security?](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577)
+
+[Vault](https://discuss.hashicorp.com/c/vault/30)
+
+You have selected **0** posts.
+
+[select all](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577)
+
+[cancel selecting](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577)
+
+3.9k
+views
+2
+links
+
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/jooddang/48/5947_2.png)3](https://discuss.hashicorp.com/u/jooddang "jooddang")
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/rebrendov/48/5404_2.png)2](https://discuss.hashicorp.com/u/rebrendov "rebrendov")
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/wolfsrudel/48/28465_2.png)](https://discuss.hashicorp.com/u/Wolfsrudel "Wolfsrudel")
+
+[Apr 2020](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577/1 "Jump to the first post")
+
+1 / 6
+
+
+Apr 2020
+
+
+[Apr 2020](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577/6)
+
+## post by jooddang on Apr 10, 2020
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/jooddang/48/5947_2.png)](https://discuss.hashicorp.com/u/jooddang)
+
+[jooddang](https://discuss.hashicorp.com/u/jooddang)
+
+[Apr 2020](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577 "Post date")
+
+Hi,
+
+I’m learning Vault to see if I’d like to use it in my service. My main question about Vault is: how does it advance security of credentials?
+
+I understand that managing credentials in one place is good and I see it has fancy functions.
+
+But in my case, I consider using it to replace `.env` file on my web server. `.env` file is vulnerable when access to my server is somehow snatched by an attacker. The attacker can access to filesystem then attacker can get all credentials.
+
+Let’s say I’m gonna introduce Vault to my system.
+
+- Then all the credentials in .env file will be moved to Vault.
+- my server will only hold credential for my server to access to Vault in filesystem. Let’s call this credential `Foo`.
+- there should be a process to initialize all credentials before starting service, which will be retrieved from Vault by Foo.
+
+So, if an attacker can get Foo from filesystem, then all credentials are at risk anyway. I don’t see benefits using Vault in security aspect.
+
+Please correct me if I got something wrong. ![:slight_smile:](https://emoji.discourse-cdn.com/twitter/slight_smile.png?v=9)
+
+3.9k
+views
+2
+links
+
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/jooddang/48/5947_2.png)3](https://discuss.hashicorp.com/u/jooddang "jooddang")
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/rebrendov/48/5404_2.png)2](https://discuss.hashicorp.com/u/rebrendov "rebrendov")
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/wolfsrudel/48/28465_2.png)](https://discuss.hashicorp.com/u/Wolfsrudel "Wolfsrudel")
+
+## post by Wolfsrudel on Apr 11, 2020
+
+[![](https://sea2.discourse-cdn.com/hashicorp/user_avatar/discuss.hashicorp.com/wolfsrudel/48/28465_2.png)](https://discuss.hashicorp.com/u/wolfsrudel)
+
+[Wolfsrudel](https://discuss.hashicorp.com/u/wolfsrudel)
+
+2
+
+[Apr 2020](https://discuss.hashicorp.com/t/how-is-vault-better-than-env-file-in-terms-of-security/7577/2 "Post date")
+
+Every secret in Vault is encrypted using the encryption key which is encrypted by the master key. The master key is somehow “splitted up”. To get secrets out of vault you will need to have the right token with the corresponding policy and vault must be unsealed using x out of y unseal keys to reconstruct the master key. These unseal keys should be hand out to several person seperatly.
+
+If the attacker gets Foo, but Foo is not the root token, only things the policy for Foo allows will be open for the attacker. You’ll have to restrict and permit access by fine grained policies. The advantage is, that your env file will hold every secret open for everyone with access. Vault will give you the secrets you are allowed to get.
+
+## post by jooddang on Apr 13, 2020
+
+## post by rebrendov on Apr 15, 2020
+
+## post by jooddang on Apr 20, 2020
+
+## post by rebrendov on Apr 24, 2020
+
+Reply
+
+### Related topics
+
+| Topic | Replies | Views | Activity |
+| --- | --- | --- | --- |
+| [Question regarding security](https://discuss.hashicorp.com/t/question-regarding-security/49113)<br>[Vault](https://discuss.hashicorp.com/c/vault/30) | [4](https://discuss.hashicorp.com/t/question-regarding-security/49113/1) | 580 | [Jan 2023](https://discuss.hashicorp.com/t/question-regarding-security/49113/5) |
+| [Vault token usage](https://discuss.hashicorp.com/t/vault-token-usage/67649)<br>[Vault](https://discuss.hashicorp.com/c/vault/30) | [8](https://discuss.hashicorp.com/t/vault-token-usage/67649/1) | 600 | [Jun 2024](https://discuss.hashicorp.com/t/vault-token-usage/67649/9) |
+| [Architecture - Multiple environments](https://discuss.hashicorp.com/t/architecture-multiple-environments/26565)<br>[Vault](https://discuss.hashicorp.com/c/vault/30) | [1](https://discuss.hashicorp.com/t/architecture-multiple-environments/26565/1) | 3.9k | [Aug 2021](https://discuss.hashicorp.com/t/architecture-multiple-environments/26565/2) |
+| [Python code to access static secret to access snowflake database](https://discuss.hashicorp.com/t/python-code-to-access-static-secret-to-access-snowflake-database/23059)<br>[Vault](https://discuss.hashicorp.com/c/vault/30) <br>- [vault](https://discuss.hashicorp.com/tag/vault/54) | [2](https://discuss.hashicorp.com/t/python-code-to-access-static-secret-to-access-snowflake-database/23059/1) | 1.8k | [Apr 2021](https://discuss.hashicorp.com/t/python-code-to-access-static-secret-to-access-snowflake-database/23059/3) |
+| [Is it safe to keep wallet information in .env using vault?](https://discuss.hashicorp.com/t/is-it-safe-to-keep-wallet-information-in-env-using-vault/57598)<br>[Vault](https://discuss.hashicorp.com/c/vault/30) | [0](https://discuss.hashicorp.com/t/is-it-safe-to-keep-wallet-information-in-env-using-vault/57598/1) | 236 | [Aug 2023](https://discuss.hashicorp.com/t/is-it-safe-to-keep-wallet-information-in-env-using-vault/57598/1) |
+
+Topic list, column headers with buttons are sortable.
+
+Invalid date
+
+Invalid date
+
+---
+
+Title: Common Security Issues in Node.js Applications - Medium
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40vloban%2Fcommon-security-issues-in-node-js-applications-51d334d42223&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40vloban%2Fcommon-security-issues-in-node-js-applications-51d334d42223&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+# Common Security Issues in Node.js Applications
+
+[![Volodymyr Loban](https://miro.medium.com/v2/resize:fill:32:32/1*bvo9kup5WPQyceKHKMyc6g.png)](https://medium.com/@vloban?source=post_page---byline--51d334d42223---------------------------------------)
+
+[Volodymyr Loban](https://medium.com/@vloban?source=post_page---byline--51d334d42223---------------------------------------)
+
+Follow
+
+4 min read
+
+·
+
+Jan 16, 2026
+
+1
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D51d334d42223&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40vloban%2Fcommon-security-issues-in-node-js-applications-51d334d42223&source=---header_actions--51d334d42223---------------------post_audio_button------------------)
+
+Share
+
+Node.js is one of the most popular backend technologies today. From startups to enterprise systems, it powers APIs, real-time apps, and microservices around the world. But with great popularity comes great responsibility — and sadly, a lot of developers overlook **security** when building Node.js applications.
+
+Whether you’re working on a personal project or a production-grade platform, here are some of the most **common security issues in Node.js apps** — and how to fix them before they become a problem.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*eNpSb5JIaOgWFQQZPxl8Wg.png)
+
+## 1\. Using Vulnerable Packages
+
+Node.js projects often rely heavily on third-party npm packages. But not all packages are safe or well-maintained.
+
+> The Risk:
+
+You might unknowingly install a package with known vulnerabilities, or worse, one that’s been hijacked to deliver malware (yes, it happens).
+
+### What to Do:
+
+- Run `npm audit` regularly to detect known issues.
+- Use tools like [Snyk](https://snyk.io/), [Socket](https://socket.dev/), or GitHub’s Dependabot.
+- Avoid packages that are outdated, poorly maintained, or have too many unresolved issues.
+
+### 2\. Hardcoding Secrets or API Keys
+
+It’s tempting to just drop your secret keys or database credentials right into your code. But this is a major security flaw.
+
+> The Risk:
+
+If your code gets exposed (e.g., on GitHub), your secrets go with it — opening the door to attacks.
+
+### What to Do:
+
+- Store secrets in **environment variables**.
+- Use a `.env` file locally with [dotenv](https://www.npmjs.com/package/dotenv).
+- Use secret managers like AWS Secrets Manager, HashiCorp Vault, or 1Password in production.
+
+```
+require('dotenv').config();
+const dbPassword = process.env.DB_PASSWORD;
+```
+
+## 3\. Lack of Input Validation
+
+Node.js apps often take user input — via forms, queries, or APIs. But what happens if that input is malformed or malicious?
+
+> The Risk:
+
+Unvalidated input can lead to **SQL injection**, **NoSQL injection**, **XSS**, or even app crashes.
+
+## What to Do:
+
+- Validate and sanitize all incoming data.
+- Use libraries like [Joi](https://joi.dev/), [Zod](https://zod.dev/), or [express-validator](https://express-validator.github.io/).
+- Never trust the client. Validate again on the backend.
+
+```
+const { body } = require('express-validator');
+app.post('/register', [\
+  body('email').isEmail(),\
+  body('password').isLength({ min: 8 }),\
+], (req, res) => {
+  // ...
+});
+```
+
+## 4\. NoSQL Injection in MongoDB Apps
+
+In traditional SQL, injections are well known — but in MongoDB (used by many Node.js apps), **NoSQL injections** are a rising threat.
+
+> The Risk:
+
+Attackers can send crafted queries that alter your MongoDB queries or expose unauthorized data.
+
+## What to Do:
+
+- Use strict schema validation (e.g., with Mongoose).
+- Don’t pass raw JSON from user input into Mongo queries.
+- Validate types and strip dangerous operators (`$ne`, `$gt`, `$where`).
+
+```
+// Unsafe:
+User.find({ username: req.body.username });
+// Safer:
+User.findOne({ username: sanitize(req.body.username) });
+```
+
+## 5\. Insecure Authentication
+
+Authentication is a critical part of almost every app — and also one of the most common sources of bugs.
+
+> The Risk:
+
+Using weak password hashing, storing passwords in plain text, or failing to rate-limit login attempts opens the door to account takeovers.
+
+### What to Do:
+
+- Use [bcrypt](https://www.npmjs.com/package/bcrypt) or `argon2` to hash passwords.
+- Never store plain text passwords.
+- Implement **rate limiting** and **2FA** where possible.
+- Don’t roll your own auth — consider using services like Auth0, Clerk, or Firebase Auth.
+
+## 6\. Misconfigured Cookies or JWTs
+
+If you’re using cookies or JWT tokens for sessions, configuration matters.
+
+> The Risk:
+
+Misconfigured cookies can be stolen via XSS or sent over insecure HTTP.
+
+### What to Do:
+
+- Set `HttpOnly`, `Secure`, and `SameSite=Strict` on cookies.
+- Rotate and expire JWT tokens appropriately.
+- Store secrets used to sign JWTs securely.
+
+```
+res.cookie('token', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'Strict',
+});
+```
+
+## 7\. Missing Helmet Headers
+
+Node.js doesn’t set security headers by default, leaving your app vulnerable to attacks like clickjacking and XSS.
+
+> The Risk:
+
+Attackers can exploit your app through missing or misconfigured HTTP headers.
+
+### What to Do:
+
+Use [Helmet](https://helmetjs.github.io/), a middleware that adds essential HTTP headers to secure your app.
+
+```
+const helmet = require('helmet');
+app.use(helmet());
+```
+
+## 8\. No Rate Limiting
+
+Without rate limiting, your endpoints can be spammed with brute-force attacks or heavy traffic — potentially crashing your server.
+
+> The Risk:
+
+Anyone can send 1000+ requests per second to your login or API endpoints.
+
+### What to Do:
+
+Use middleware like [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) to throttle incoming requests.
+
+```
+const rateLimit = require('express-rate-limit');
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+app.use('/api', limiter);
+```
+
+## 9\. Error Leakage in Production
+
+Node.js apps often log helpful errors — but in production, these can reveal too much.
+
+> The Risk:
+
+Attackers can learn your app’s structure, libraries, or even secrets through stack traces or verbose errors.
+
+### What to Do:
+
+- Don’t expose stack traces or raw errors to users.
+- Use centralized logging (e.g., Winston, Pino) and error monitoring (e.g., Sentry).
+- Always set `NODE_ENV=production` in real deployments.
+
+## 10\. CORS Misconfiguration
+
+Improper handling of CORS can expose your APIs to unauthorized cross-origin requests.
+
+> The Risk:
+
+Anyone can interact with your APIs if CORS is open to `*`, including malicious frontends.
+
+### What to Do:
+
+Use the [cors](https://www.npmjs.com/package/cors) middleware carefully:
+
+```
+app.use(cors({
+  origin: 'https://yourfrontend.com',
+  credentials: true
+}));
+```
+
+Never allow unrestricted origins in production unless it’s intentional and secure.
+
+## Final Thoughts
+
+Securing a Node.js app is not just about using the right libraries — it’s about **knowing where your risks are** and **designing your system to reduce them**.
+
+## Get Volodymyr Loban’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+Here’s a quick checklist to keep your app safer:
+
+- Keep dependencies updated
+- Use environment variables for secrets
+- Validate all user input
+- Set security headers and cookies
+- Implement rate limiting and logging
+
+Security is an ongoing process — not a one-time setup. The earlier you bake it into your app, the safer you and your users will be.
+
+[Security](https://medium.com/tag/security?source=post_page-----51d334d42223---------------------------------------)
+
+[Nodejs](https://medium.com/tag/nodejs?source=post_page-----51d334d42223---------------------------------------)
+
+[Typescript](https://medium.com/tag/typescript?source=post_page-----51d334d42223---------------------------------------)
+
+[Software Engineering](https://medium.com/tag/software-engineering?source=post_page-----51d334d42223---------------------------------------)
+
+[JavaScript](https://medium.com/tag/javascript?source=post_page-----51d334d42223---------------------------------------)
+
+[![Volodymyr Loban](https://miro.medium.com/v2/resize:fill:48:48/1*bvo9kup5WPQyceKHKMyc6g.png)](https://medium.com/@vloban?source=post_page---post_author_info--51d334d42223---------------------------------------)
+
+[![Volodymyr Loban](https://miro.medium.com/v2/resize:fill:64:64/1*bvo9kup5WPQyceKHKMyc6g.png)](https://medium.com/@vloban?source=post_page---post_author_info--51d334d42223---------------------------------------)
+
+Follow
+
+[**Written by Volodymyr Loban**](https://medium.com/@vloban?source=post_page---post_author_info--51d334d42223---------------------------------------)
+
+[38 followers](https://medium.com/@vloban/followers?source=post_page---post_author_info--51d334d42223---------------------------------------)
+
+· [6 following](https://medium.com/@vloban/following?source=post_page---post_author_info--51d334d42223---------------------------------------)
+
+Follow
+
+## No responses yet
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40vloban%2Fcommon-security-issues-in-node-js-applications-51d334d42223&source=---post_responses--51d334d42223---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----51d334d42223---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----51d334d42223---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----51d334d42223---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----51d334d42223---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----51d334d42223---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----51d334d42223---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----51d334d42223---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----51d334d42223---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----51d334d42223---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: Thoughts on env variables ? : r/node - Reddit
+I understand that a more secure way would be to use a Vault or a Secrets manager but generally is it still secure to use env vars to store ...

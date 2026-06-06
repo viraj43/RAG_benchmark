@@ -1,0 +1,833 @@
+Title: Networking overview - Docker Docs
+Start a new chat
+
+### What can I help you with?
+
+I'm Gordon, your AI assistant for Docker and documentation
+questions.
+
+Try asking
+
+Get started with Docker
+
+Docker Hardened Images
+
+MCP Toolkit
+
+Create an org
+
+### What can I help you with?
+
+I'm Gordon, your AI assistant for Docker and documentation
+questions.
+
+Try asking
+
+Get started with Docker
+
+Docker Hardened Images
+
+MCP Toolkit
+
+Create an org
+
+Was this helpful?
+
+HelpfulNot quite
+
+Copy
+
+remaining in this thread.
+
+You've reached the maximum of
+questions per thread. For
+better answer quality, start a new thread.
+
+Start a new thread
+
+When enabled, Gordon considers the current page you're viewing
+to provide more relevant answers.
+
+[Share feedback](https://github.com/docker/docs/issues/23966)
+
+Answers are generated based on the documentation.
+
+Back
+
+[Manuals](https://docs.docker.com/manuals/)
+
+- [Get started](https://docs.docker.com/get-started/)
+- [Guides](https://docs.docker.com/guides/)
+- [Reference](https://docs.docker.com/reference/)
+
+# Networking overview
+
+Copy as Markdown
+
+Open MarkdownAsk Docs AIClaudeOpen in Claude
+
+Table of contents
+
+* * *
+
+Container networking refers to the ability for containers to connect to and
+communicate with each other, and with non-Docker network services.
+
+Containers have networking enabled by default, and they can make outgoing
+connections. A container has no information about what kind of network it's
+attached to, or whether its network peers are also Docker containers. A
+container only sees a network interface with an IP address, a gateway, a
+routing table, DNS services, and other networking details.
+
+This page describes networking from the point of view of the container,
+and the concepts around container networking.
+
+When Docker Engine on Linux starts for the first time, it has a single
+built-in network called the "default bridge" network. When you run a
+container without the `--network` option, it is connected to the default
+bridge.
+
+Containers attached to the default bridge have access to network services
+outside the Docker host. They use "masquerading" which means, if the
+Docker host has Internet access, no additional configuration is needed
+for the container to have Internet access.
+
+For example, to run a container on the default bridge network, and have
+it ping an Internet host:
+
+```console
+$ docker run --rm -ti busybox ping -c1 docker.com
+PING docker.com (23.185.0.4): 56 data bytes
+64 bytes from 23.185.0.4: seq=0 ttl=62 time=6.564 ms
+
+--- docker.com ping statistics ---
+1 packets transmitted, 1 packets received, 0% packet loss
+round-trip min/avg/max = 6.564/6.564/6.564 ms
+```
+
+## [User-defined networks](https://docs.docker.com/engine/network/\#user-defined-networks)
+
+With the default configuration, containers attached to the default
+bridge network have unrestricted network access to each other using
+container IP addresses. They cannot refer to each other by name.
+
+It can be useful to separate groups of containers that should have full
+access to each other, but restricted access to containers in other groups.
+
+You can create custom, user-defined networks, and connect groups of containers
+to the same network. Once connected to a user-defined network, containers
+can communicate with each other using container IP addresses or container names.
+
+The following example creates a network using the `bridge` network driver and
+runs a container in that network:
+
+```console
+$ docker network create -d bridge my-net
+$ docker run --network=my-net -it busybox
+```
+
+### [Drivers](https://docs.docker.com/engine/network/\#drivers)
+
+Docker Engine has a number of network drivers, as well as the default "bridge".
+On Linux, the following built-in network drivers are available:
+
+| Driver | Description |
+| --- | --- |
+| [bridge](https://docs.docker.com/engine/network/drivers/bridge/) | The default network driver. |
+| [host](https://docs.docker.com/engine/network/drivers/host/) | Remove network isolation between the container and the Docker host. |
+| [none](https://docs.docker.com/engine/network/drivers/none/) | Completely isolate a container from the host and other containers. |
+| [overlay](https://docs.docker.com/engine/network/drivers/overlay/) | Swarm Overlay networks connect multiple Docker daemons together. |
+| [ipvlan](https://docs.docker.com/engine/network/drivers/ipvlan/) | Connect containers to external VLANs. |
+| [macvlan](https://docs.docker.com/engine/network/drivers/macvlan/) | Containers appear as devices on the host's network. |
+
+More information can be found in the network driver specific pages, including
+their configuration options and details about their functionality.
+
+Native Windows containers have a different set of drivers, see
+[Windows container network drivers](https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies).
+
+### [Connecting to multiple networks](https://docs.docker.com/engine/network/\#connecting-to-multiple-networks)
+
+Connecting a container to a network can be compared to connecting an Ethernet
+cable to a physical host. Just as a host can be connected to multiple Ethernet
+networks, a container can be connected to multiple Docker networks.
+
+For example, a frontend container may be connected to a bridge network
+with external access, and a
+[`--internal`](https://docs.docker.com/reference/cli/docker/network/create/#internal) network
+to communicate with containers running backend services that do not need
+external network access.
+
+A container may also be connected to different types of network. For example,
+an `ipvlan` network to provide internet access, and a `bridge` network for
+access to local services.
+
+Containers can also share networking stacks, see [Container networks](https://docs.docker.com/engine/network/#container-networks).
+
+When sending packets, if the destination is an address in a directly connected
+network, packets are sent to that network. Otherwise, packets are sent to
+a default gateway for routing to their destination. In the example above,
+the `ipvlan` network's gateway must be the default gateway.
+
+The default gateway is selected by Docker, and may change whenever a
+container's network connections change.
+To make Docker choose a specific default gateway when creating the container
+or connecting a new network, set a gateway priority. See option `gw-priority`
+for the
+[`docker run`](https://docs.docker.com/reference/cli/docker/container/run/) and
+[`docker network connect`](https://docs.docker.com/reference/cli/docker/network/connect/) commands.
+
+The default `gw-priority` is `0` and the gateway in the network with the
+highest priority is the default gateway. So, when a network should always
+be the default gateway, it is enough to set its `gw-priority` to `1`.
+
+```console
+$ docker run --network name=gwnet,gw-priority=1 --network anet1 --name myctr myimage
+$ docker network connect anet2 myctr
+```
+
+## [Published ports](https://docs.docker.com/engine/network/\#published-ports)
+
+When you create or run a container using `docker create` or `docker run`, all
+ports of containers on bridge networks are accessible from the Docker host and
+other containers connected to the same network. Ports are not accessible from
+outside the host or, with the default configuration, from containers in other
+networks.
+
+Use the `--publish` or `-p` flag to make a port available outside the host,
+and to containers in other bridge networks.
+
+For more information about port mapping, including how to disable it and use
+direct routing to containers, see
+[port publishing](https://docs.docker.com/engine/network/port-publishing/).
+
+## [IP address and hostname](https://docs.docker.com/engine/network/\#ip-address-and-hostname)
+
+When creating a network, IPv4 address allocation is enabled by default, it
+can be disabled using `--ipv4=false`. IPv6 address allocation can be enabled
+using `--ipv6`.
+
+```console
+$ docker network create --ipv6 --ipv4=false v6net
+```
+
+By default, the container gets an IP address for every Docker network it attaches to.
+A container receives an IP address out of the IP subnet of the network.
+The Docker daemon performs dynamic subnetting and IP address allocation for containers.
+Each network also has a default subnet mask and gateway.
+
+You can connect a running container to multiple networks,
+either by passing the `--network` flag multiple times when creating the container,
+or using the `docker network connect` command for already running containers.
+In both cases, you can use the `--ip` or `--ip6` flags to specify the container's IP address on that particular network.
+
+In the same way, a container's hostname defaults to be the container's ID in Docker.
+You can override the hostname using `--hostname`.
+When connecting to an existing network using `docker network connect`,
+you can use the `--alias` flag to specify an additional network alias for the container on that network.
+
+### [Subnet allocation](https://docs.docker.com/engine/network/\#subnet-allocation)
+
+Docker networks can use either explicitly configured subnets or automatically allocated ones from default pools.
+
+#### [Explicit subnet configuration](https://docs.docker.com/engine/network/\#explicit-subnet-configuration)
+
+You can specify exact subnets when creating a network:
+
+```console
+$ docker network create --ipv6 --subnet 192.0.2.0/24 --subnet 2001:db8::/64 mynet
+```
+
+#### [Automatic subnet allocation](https://docs.docker.com/engine/network/\#automatic-subnet-allocation)
+
+When no `--subnet` option is provided, Docker automatically selects a subnet from predefined "default address pools".
+These pools can be configured in `/etc/docker/daemon.json`. Docker's built-in default is equivalent to:
+
+```json
+{
+  "default-address-pools": [\
+    { "base": "172.17.0.0/16", "size": 16 },\
+    { "base": "172.18.0.0/16", "size": 16 },\
+    { "base": "172.19.0.0/16", "size": 16 },\
+    { "base": "172.20.0.0/14", "size": 16 },\
+    { "base": "172.24.0.0/14", "size": 16 },\
+    { "base": "172.28.0.0/14", "size": 16 },\
+    { "base": "192.168.0.0/16", "size": 20 }\
+  ]
+}
+```
+
+- `base`: The subnet that can be allocated from.
+- `size`: The prefix length used for each allocated subnet.
+
+When an IPv6 subnet is required and there are no IPv6 addresses in `default-address-pools`, Docker allocates
+subnets from a Unique Local Address (ULA) prefix. To use specific IPv6 subnets instead, add them to your
+`default-address-pools`. See [Dynamic IPv6 subnet allocation](https://docs.docker.com/engine/daemon/ipv6/#dynamic-ipv6-subnet-allocation)
+for more information.
+
+Docker attempts to avoid address prefixes already in use on the host. However, you may need to customize
+`default-address-pools` to prevent routing conflicts in some network environments.
+
+The default pools use large subnets, which limits the number of networks you can create. You can divide base
+subnets into smaller pools to support more networks.
+
+For example, this configuration allows Docker to create 256 networks from `172.17.0.0/16`.
+Docker will allocate subnets `172.17.0.0/24`, `172.17.1.0/24`, and so on, up to `172.17.255.0/24`:
+
+```json
+{
+  "default-address-pools": [{ "base": "172.17.0.0/16", "size": 24 }]
+}
+```
+
+You can also request a subnet with a specific prefix length from the default pools by using unspecified
+addresses in the `--subnet` option:
+
+```console
+$ docker network create --ipv6 --subnet ::/56 --subnet 0.0.0.0/24 mynet
+6686a6746b17228f5052528113ddad0e6d68e2e3905d648e336b33409f2d3b64
+$ docker network inspect mynet -f '{{json .IPAM.Config}}' | jq .
+[\
+  {\
+    "Subnet": "172.19.0.0/24",\
+    "Gateway": "172.19.0.1"\
+  },\
+  {\
+    "Subnet": "fdd3:6f80:972c::/56",\
+    "Gateway": "fdd3:6f80:972c::1"\
+  }\
+]
+```
+
+> Note
+>
+> Support for unspecified addresses in `--subnet` was introduced in Docker 29.0.0.
+> If Docker is downgraded to an older version, networks created in this way will become unusable.
+> They can be removed and re-created, or will function again if the daemon is restored to 29.0.0 or later.
+
+## [DNS services](https://docs.docker.com/engine/network/\#dns-services)
+
+Containers use the same DNS servers as the host by default, but you can
+override this with `--dns`.
+
+By default, containers inherit the DNS settings as defined in the
+`/etc/resolv.conf` configuration file.
+Containers that attach to the default `bridge` network receive a copy of this file.
+Containers that attach to a
+[custom network](https://docs.docker.com/engine/network/drivers/bridge/#use-user-defined-bridge-networks)
+use Docker's embedded DNS server.
+The embedded DNS server forwards external DNS lookups to the DNS servers configured on the host.
+The embedded DNS server address is `127.0.0.11`.
+There is no IPv6 equivalent; the IPv4 address works even in IPv6-only containers.
+If an application requires an explicit DNS server address, use `127.0.0.11`.
+
+You can configure DNS resolution on a per-container basis, using flags for the
+`docker run` or `docker create` command used to start the container.
+The following table describes the available `docker run` flags related to DNS
+configuration.
+
+| Flag | Description |
+| --- | --- |
+| `--dns` | The IP address of a DNS server. To specify multiple DNS servers, use multiple `--dns` flags. DNS requests will be forwarded from the container's network namespace so, for example, `--dns=127.0.0.1` refers to the container's own loopback address. |
+| `--dns-search` | A DNS search domain to search non-fully qualified hostnames. To specify multiple DNS search prefixes, use multiple `--dns-search` flags. |
+| `--dns-opt` | A key-value pair representing a DNS option and its value. See your operating system's documentation for `resolv.conf` for valid options. |
+| `--hostname` | The hostname a container uses for itself. Defaults to the container's ID if not specified. |
+
+### [Custom hosts](https://docs.docker.com/engine/network/\#custom-hosts)
+
+Your container will have lines in `/etc/hosts` which define the hostname of the
+container itself, as well as `localhost` and a few other common things. Custom
+hosts, defined in `/etc/hosts` on the host machine, aren't inherited by
+containers. To pass additional hosts into a container, refer to
+[add entries to\\
+container hosts file](https://docs.docker.com/reference/cli/docker/container/run/#add-host) in the
+`docker run` reference documentation.
+
+## [Container networks](https://docs.docker.com/engine/network/\#container-networks)
+
+In addition to user-defined networks, you can attach a container to another
+container's networking stack directly, using the `--network container:<name|id>` flag format.
+
+The following flags aren't supported for containers using the `container:`
+networking mode:
+
+- `--add-host`
+- `--hostname`
+- `--dns`
+- `--dns-search`
+- `--dns-option`
+- `--mac-address`
+- `--publish`
+- `--publish-all`
+- `--expose`
+
+The following example runs a Redis container, with Redis binding to
+127.0.0.1, then running the `redis-cli` command and connecting to the Redis
+server over 127.0.0.1.
+
+```console
+$ docker run -d --name redis redis --bind 127.0.0.1
+$ docker run --rm -it --network container:redis redis redis-cli -h 127.0.0.1
+```
+
+Search this siteResults will appear as you typeClear
+
+Start typing to search the documentation
+
+---
+
+Title: Docker Networking Explained (After 3 Days of Pulling My Hair Out)
+[Sitemap](https://bhavyansh001.medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Member-only story
+
+# Docker Networking Explained (After 3 Days of Pulling My Hair Out)
+
+## A brutally honest guide to understanding Docker networking, written by someone who just survived three days of debugging hell. No fluff, just the lessons that actually matter.
+
+[![Bhavyansh](https://miro.medium.com/v2/resize:fill:32:32/1*TLG_ttKNfbVv6buYUynNOA.jpeg)](https://bhavyansh001.medium.com/?source=post_page---byline--7b91fa623802---------------------------------------)
+
+[Bhavyansh](https://bhavyansh001.medium.com/?source=post_page---byline--7b91fa623802---------------------------------------)
+
+Follow
+
+6 min read
+
+·
+
+Oct 11, 2025
+
+26
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D7b91fa623802&operation=register&redirect=https%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802&source=---header_actions--7b91fa623802---------------------post_audio_button------------------)
+
+Share
+
+Last week, I spent three days debugging a microservices application. The culprit? Docker networking. Or more accurately, my complete lack of understanding of how Docker networking actually works.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*Y8ovLE9aG86gUlM8ws4wcA.png)
+
+You know that moment when you’re convinced the universe is conspiring against you? That was me, staring at `connection refused` errors at 2 AM, wondering why my frontend container couldn't talk to my backend container despite them being in the same compose file. Spoiler alert: they weren't actually on the same network. But I'm getting ahead of myself.
+
+## The Problem That Started It All
+
+I had a simple setup — or so I thought. A React frontend, a Node.js backend, and a PostgreSQL database. All defined in a `docker-compose.yml` file. Everything should "just work," right?
+
+Wrong.
+
+The frontend kept throwing network errors. The backend couldn’t connect to the database. And I was one Stack Overflow tab away from…
+
+Here’s what I learned after those three days of pain, so you don’t have to go through the same hell.
+
+## Docker Networks: The Basics Nobody Tells You Properly
+
+Docker creates isolated networks for containers. When you spin up a container, it doesn’t just float in the void — it gets attached to a network. By default, it’s the `bridge` network, but here's the kicker: containers on the default bridge network can't communicate using container names.
+
+Let me say that again because it’s important: **containers on the default bridge network can only talk to each other using IP addresses, not names**.
+
+This is why your `fetch('http://backend:3000/api')` call is failing. The DNS resolution doesn't work on the default bridge network.
+
+## The Network Types You Actually Need to Know
+
+## Create an account to read the full story.
+
+The author made this story available to Medium members only.
+
+If you’re new to Medium, create a new account to read this story on us.
+
+[Continue in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3Dregwall&source=-----7b91fa623802---------------------post_regwall------------------)
+
+Or, continue in mobile web
+
+[Sign up with Google](https://medium.com/m/connect/google?state=google-%7Chttps%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802%3Fsource%3D-----7b91fa623802---------------------post_regwall------------------%26skipOnboarding%3D1%7Cregister%7Cremember_me&source=-----7b91fa623802---------------------post_regwall------------------)
+
+[Sign up with Facebook](https://medium.com/m/connect/facebook?state=facebook-%7Chttps%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802%3Fsource%3D-----7b91fa623802---------------------post_regwall------------------%26skipOnboarding%3D1%7Cregister%7Cremember_me&source=-----7b91fa623802---------------------post_regwall------------------)
+
+Sign up with email
+
+Already have an account? [Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802&source=-----7b91fa623802---------------------post_regwall------------------)
+
+[![Bhavyansh](https://miro.medium.com/v2/resize:fill:48:48/1*TLG_ttKNfbVv6buYUynNOA.jpeg)](https://bhavyansh001.medium.com/?source=post_page---post_author_info--7b91fa623802---------------------------------------)
+
+[![Bhavyansh](https://miro.medium.com/v2/resize:fill:64:64/1*TLG_ttKNfbVv6buYUynNOA.jpeg)](https://bhavyansh001.medium.com/?source=post_page---post_author_info--7b91fa623802---------------------------------------)
+
+Follow
+
+[**Written by Bhavyansh**](https://bhavyansh001.medium.com/?source=post_page---post_author_info--7b91fa623802---------------------------------------)
+
+[1.7K followers](https://bhavyansh001.medium.com/followers?source=post_page---post_author_info--7b91fa623802---------------------------------------)
+
+· [3 following](https://bhavyansh001.medium.com/following?source=post_page---post_author_info--7b91fa623802---------------------------------------)
+
+Hey I write about Tech. Join me as I share my tech learnings and insights. 🚀 Building [flux8labs.com](http://flux8labs.com/)
+
+Follow
+
+## No responses yet
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fbhavyansh001.medium.com%2Fdocker-networking-explained-after-3-days-of-pulling-my-hair-out-7b91fa623802&source=---post_responses--7b91fa623802---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----7b91fa623802---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----7b91fa623802---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----7b91fa623802---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----7b91fa623802---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----7b91fa623802---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----7b91fa623802---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----7b91fa623802---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----7b91fa623802---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----7b91fa623802---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: What is Docker networking? - Sysdig
+[< lcn home](https://www.sysdig.com/learn-cloud-native)
+
+# What is Docker networking?
+
+Published Date: Mar 31, 2026
+
+share:
+
+[![Facebook logo (square) 1](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/6863ec7e8d1b0208ff27ecd1_Facebook_logo_(square)%201.svg)](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#)[![Vector](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/6863ec7e2229061f343f1a53_Vector.svg)](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#)[![Twitter 1](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/6863ec7efbd5016e5a6307e2_twitter%201.svg)](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#)
+
+Table of contents
+
+[Docker network drivers](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#docker-network-drivers)
+
+[Exposing container ports to the host](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#exposing-container-ports-to-the-host)
+
+[Creating a bridged network](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#creating-a-bridged-network)
+
+[Creating overlay networks](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#creating-overlay-networks)
+
+[Using host networking with containers](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#using-host-networking-with-containers)
+
+[Conclusion](https://www.sysdig.com/learn-cloud-native/what-is-docker-networking#conclusion)
+
+This is the block containing the component that will be injected inside the Rich Text. You can hide this block if you want.
+
+![Hassaan qaiser bKfkhVRAJTQ unsplash](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/681a1c8f5b6ebfc0f8529652_63da7b29ef9e6444889d95cf_hassaan-qaiser-bKfkhVRAJTQ-unsplash.jpg)
+
+Docker networking allows the different Docker containers, services and components connect them together and with external components and workloads abstracting the platform where they are running on.
+
+Stay tuned and introduce yourself into the docker networking overview, learning components, its processes and how it works.
+
+## Docker network drivers
+
+The networking functionality that is part of Docker is built with extensibility in mind and supports the ability to load different drivers depending on the exact network functionality that is required.
+
+These plugins are called drivers, and five of them are available as part of the standard Docker installation. The standard drivers currently available are:
+
+- **Host** shares the same network stack that the host operating system is using. This is the easiest approach, but provides no isolation and makes things like port conflicts more likely.
+- **Bridge** is the default driver and is commonly used because it creates isolated networks that individual containers (or swarms of containers) can share. This allows the swarms of containers to interconnect while providing isolation from the networks of other groups of containers on the same host.
+- **Overlay** allows multiple Docker daemons to interconnect, which provides container-to-container networking since it removes the reliance on the host operating system to do any routing.
+- **IPvlan** operates at layer 2 and provides direct access to configure the IP stack and manage which VLAN the container traffic is tagged with.
+- **MacVLAN** goes a step further than IPvlan and actually makes the container look like it has a unique mac address on the physical network.
+- **None**. For those containers that require no networking.
+
+## Exposing container ports to the host
+
+The fastest way to allow a host to connect to a Docker container running on it is to expose (or publish) a port to the host machine. This can be done by using the **_–expose_** flag, which is available as part of the **docker run** command (which anyone using Docker will get extremely familiar with):
+
+`docker run ...> --expose host_port:container_portCode language: HTML, XML (xml)`
+
+`For example:`
+
+`$ docker run --name mynginx --expose 80:80 -d nginx`
+
+- `--expose 80:80: binds the port 80 inside the container to the port 80 on 127.0.0.1`
+- `--name mynginx: names the container as mynginx.`
+- `-d nginx: use nginx container image as a daemon.`
+
+## `Creating a bridged network`
+
+`Since bridged networking is the default network driver, we'll show you how to create a user-defined bridged network and also how to have containers use it when they are running.`
+
+`It is good to note that a bridge can only connect containers running on the same host, which is a very common scenario for development environments. There is a default bridge that will be set up and available for use by containers if no network is identified when starting the container.`
+
+`This is great for simple use cases, but in many cases, having everything on the same bridge can cause conflicts and other anomalies. Therefore, it can be useful to know how to create user-defined bridged networks.`
+
+`To create a user-defined network, use the following command, which will create a bridged network named` **_`abc`_**`:`
+
+`$ docker network create abc`
+
+`Next, launch a container specifying the exact network that we want to use:`
+
+`$ docker run --name mynginx --network abc -d nginx`
+
+![Hassaan qaiser bKfkhVRAJTQ unsplash](https://cdn.prod.website-files.com/681a1c8e5b6ebfc0f8529533/681a1c8f5b6ebfc0f8529652_63da7b29ef9e6444889d95cf_hassaan-qaiser-bKfkhVRAJTQ-unsplash.jpg)
+
+## `Creating overlay networks`
+
+`As we mentioned in the section on bridged networks, this is good for single-host scenarios. In this case, overlay networks start to really add value in multi-host scenarios. An overlay will allow traffic to flow between containers on different Docker hosts without needing to do any configuration like routing at the host level once the overlay network is running.`
+
+`You will see overlay networks often in enterprise and cloud deployments, where container orchestration solutions like Kubernetes are in play.`
+
+`From a user point of view, creating and using an overlay network is not much different than working with a bridged network. This really shows the value of the network driver model, as it abstracts most of the complexity away and gives the user a consistent experience.`
+
+`First, we create an overlay network called` **_`def`_**` which allows standalone containers to connect to it:`
+
+`$ docker network create -d overlay --attachable def`
+
+`If it is a Linux host, you can also have the Docker overlay network driver encrypt traffic automatically:`
+
+`$ docker network create -d overlay --attachable --opt encrypted def`
+
+`Next is the same` **`run`**` command specifying the network that we want to use:`
+
+`$ docker run --name mynginx --network def -d nginx`
+
+`That same` **`run`**` command could be executed on every host in the cluster and all of the nginx instances would be able to interact on the network as soon as they are running.`
+
+`Note: If you are using an overlay network across multiple hosts with Docker, then it is best to create a swarm across the hosts first, then run the` **`create network`**` command on the swarm manager.`
+
+## `Using host networking with containers`
+
+`There are scenarios where networking capabilities are needed and it would make sense to share the network stack with the Docker host. This could be to avoid any kind of NAT, which could happen with overlay or bridged networks, or to prevent port conflicts if the container only has outbound connections.`
+
+`Another scenario would be for management processes that run outside of a Swarm or Kubernetes cluster that actually manage the networks they use.`
+
+`Using the host's networking is basically the same concept we discussed earlier, except that we need to explicitly instruct the container to use the host for its type of network.`
+
+`$ docker run --name mynginx --net=host -d nginx`
+
+`Note: Using the` _`–expose`_` option for the` **`run`**` command does not do anything when you're using host networking. Since the ports are already open on the host's network stack, the` _`–expose`_` flag is simply ignored.`
+
+## `Conclusion`
+
+`As we discussed in this article, Docker provides extensive capabilities for managing the networking layer for containers on a host and even for spanning hosts using overlay networks. Other solutions have not yet caught up with these capabilities.`
+
+`The official` [`network documentation`](https://docs.docker.com/network/)` is available on Docker's documentation site, and it includes more architectural and related technical content as well as links to third-party network drivers that can provide additional functionality.`
+
+## FAQs
+
+No items found.
+
+## Like what you see?
+
+[GET A DEMO](https://www.sysdig.com/request-a-demo)
+
+---
+
+Title: How Docker Desktop Networking Works Under the Hood
+[Skip to content](https://www.docker.com/blog/how-docker-desktop-networking-works-under-the-hood/#main-content)
+
+# How Docker Desktop Networking Works Under the Hood
+
+Posted Jan 25, 2022
+
+
+![](https://www.docker.com/app/uploads/2019/12/djs55-285x285.jpg)
+
+[David Scott](https://www.docker.com/contributors/david-scott/)
+
+Modern applications make extensive use of networks. At build time it’s common to `apt-get/dnf/yum/apk install` a package from a Linux distribution’s package repository. At runtime an application may wish to `connect()` to an internal [postgres](https://github.com/docker/awesome-compose/tree/master/nginx-golang-postgres) or [mysql](https://github.com/docker/awesome-compose/tree/master/sparkjava-mysql) database to persist some state, while also calling `listen()` and `accept()` to expose APIs and UIs over TCP and UDP ports. Meanwhile developers need to be able to work from anywhere, whether in an office or at home or on mobile or on a VPN. Docker Desktop is designed to ensure that networking “just works” for all of these use-cases in all of these scenarios. This post describes the tools and techniques we use to make this happen, starting with everyone’s favorite protocol suite: TCP/IP.
+
+### TCP/IP
+
+When containers want to connect to the outside world, they will use TCP/IP. Since Linux containers require a Linux kernel, Docker Desktop includes a helper Linux VM. Traffic from containers therefore originates from the Linux VM rather than the host, which causes a serious problem.
+
+Many IT departments create VPN policies which say something like, “only forward traffic which originates from the **host** over the VPN”. The intention is to prevent the host accidentally acting as a router, forwarding insecure traffic from the Internet onto secure corporate networks. Therefore if the VPN software sees traffic from the Linux VM, it will **not** be routed via the VPN, preventing containers from accessing resources such as internal registries.
+
+Docker Desktop avoids this problem by forwarding all traffic at user-level via [vpnkit](https://github.com/moby/vpnkit), a TCP/IP stack written in [OCaml](https://ocaml.org/) on top of the network protocol libraries of the [MirageOS Unikernel project](https://mirage.io/). The following diagram shows the flow of packets from the helper VM, through vpnkit and to the Internet:
+
+![1 TCPIP 1](https://www.docker.com/app/uploads/2022/01/1-TCPIP-1.png)
+
+When the VM boots it requests an address using DHCP. The ethernet frame containing the request is transmitted from the VM to the host over shared memory, either through a [virtio device](https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html) on Mac or through a “hypervisor socket” ( [AF\_VSOCK](https://www.man7.org/linux/man-pages/man7/vsock.7.html)) on Windows. Vpnkit contains a virtual ethernet switch ( [mirage-vnetif](https://github.com/mirage/mirage-vnetif)) which forwards the request to the DHCP ( [mirage/charrua](https://github.com/mirage/charrua)) server.
+
+Once the VM receives the DHCP response containing the VM’s IP address and the IP of the gateway, it sends an ARP request to discover the ethernet address of the gateway ( [mirage/arp](https://github.com/mirage/arp)). Once it has received the ARP response it is ready to send a packet to the Internet.
+
+When vpnkit sees an outgoing packet with a new destination IP address, it creates a virtual TCP/IP stack to represent the remote machine ( [mirage/mirage-tcpip](https://github.com/mirage/mirage-tcpip)). This stack acts as the peer of the one in Linux, accepting connections and exchanging packets. When a container calls `connect()` to establish a TCP connection, Linux sends a TCP packet with the SYNchronize flag set. Vpnkit observes the SYNchronize flag and calls` connect()` itself from the host. If the `connect()` succeeds, vpnkit replies to Linux with a TCP SYNchronize packet which completes the TCP handshake. In Linux the `connect()` succeeds and data is proxied in both directions ( [mirage/mirage-flow](https://github.com/mirage/mirage-flow)). If the `connect()` is rejected, vpnkit replies with a TCP RST (reset) packet which causes the `connect()` inside Linux to return an error. UDP and ICMP are handled similarly.
+
+In addition to low-level TCP/IP, vpnkit has a number of built-in high-level network services, such as a DNS server ( [mirage/ocaml-dns](https://github.com/mirage/ocaml-dns)) and HTTP proxy ( [mirage/cohttp](https://github.com/mirage/ocaml-cohttp)). These services can be addressed directly via a virtual IP address / DNS name, or indirectly by matching on outgoing traffic and redirecting dynamically, depending on the configuration.
+
+TCP/IP addresses are difficult to work with directly. The next section describes how Docker Desktop uses the Domain Name System (DNS) to give human-readable names to network services.
+
+### DNS
+
+Inside Docker Desktop there are multiple DNS servers:
+
+![2 DNS](https://www.docker.com/app/uploads/2022/01/2-DNS-1110x546.png)
+
+DNS requests from containers are first processed by a server inside `dockerd`, which recognises the names of other containers on the same internal network. This allows containers to easily talk to each other without knowing their internal IP addresses. For example in the diagram there are 3 containers: “nginx”, “golang” and “postgres”, taken from the [docker/awesome-compose example](https://github.com/docker/awesome-compose/tree/master/nginx-golang-postgres). Each time the application is started, the internal IP addresses might be different, but containers can still easily connect to each other by human-readable name thanks to the internal DNS server inside `dockerd`.
+
+All other name lookups are sent to [CoreDNS](https://coredns.io/) (from the [CNCF](https://www.cncf.io/)). Requests are then forwarded to one of two different DNS servers on the host, depending on the domain name. The domain `docker.internal` is special and includes the DNS name `host.docker.internal` which resolves to a valid IP address for the current host. Although we prefer if everything is fully containerized, sometimes it makes sense to run part of an application as a plain old host service. The special name `host.docker.internal` allows containers to contact these host services in a portable way, without worrying about hardcoding IP addresses.
+
+The second DNS server on the host handles all other requests by resolving them via standard OS system libraries. This ensures that, if a name resolves correctly in the developer’s web-browser, it will also resolve correctly in the developer’s containers. This is particularly important in sophisticated setups, such as pictured in the diagram where some requests are sent over a corporate VPN (e.g. `internal.registry.mycompany`) while other requests are sent to the regular Internet (e.g. `docker.com`).
+
+Now that we’ve described DNS, let’s talk about HTTP.
+
+### HTTP(S) proxies
+
+Some organizations block direct Internet access and require all traffic to be sent via HTTP proxies for filtering and logging. This affects pulling images during build as well as outgoing network traffic generated by containers.
+
+The simplest method of using an HTTP proxy is to explicitly point the Docker engine at the proxy via environment variables. This has the disadvantage that if the proxy needs to be changed, the Docker engine process must be restarted to update the variables, causing a noticeable glitch. Docker Desktop avoids this by running a custom HTTP proxy inside vpnkit which forwards to the upstream proxy. When the upstream proxy changes, the internal proxy dynamically reconfigures which avoids having to restart the Docker engine.
+
+On Mac Docker Desktop monitors the proxy settings stored in system preferences. When the computer switches network (e.g. between WiFi networks or onto cellular), Docker Desktop automatically updates the internal HTTP proxy so everything continues to work without the developer having to take any action.
+
+This just about covers containers talking to each other and to the Internet. How do developers talk to the containers?
+
+### Port forwarding
+
+When developing applications, it’s useful to be able to expose UIs and APIs on host ports, accessible by debug tools such as web-browsers. Since Docker Desktop runs Linux containers inside a Linux VM, there is a disconnect: the ports are open in the VM but the tools are running on the host. We need something to forward connections from the host into the VM.
+
+![3 ports](https://www.docker.com/app/uploads/2022/01/3-ports.png)
+
+Consider debugging a web-application: the developer types `docker run -p 80:80` to request that the container’s port 80 is exposed on the host’s port 80 to make it accessible via [http://localhost](http://localhost/). The Docker API call is written to `/var/run/docker.sock` on the host as normal. When Docker Desktop is running Linux containers, the Docker engine (`dockerd` in the diagram above) is a Linux program running inside the helper Linux VM, not natively on the host. Therefore Docker Desktop includes a Docker API proxy which forwards requests from the host to the VM. For security and reliability, the requests are not forwarded directly over TCP over the network. Instead Docker Desktop forwards Unix domain socket connections over a secure low-level transport such as shared-memory hypervisor sockets via processes labeled `vpnkit-bridge` in the diagram above.
+
+The Docker API proxy can do more than simply forward requests back and forth. It can also decode and transform requests and responses, to improve the developer’s experience. When a developer exposes a port with `docker run -p 80:80`, the Docker API proxy decodes the request and uses an internal API to request a port forward via the `com.docker.backend` process. If something on the host is already listening on that port, a human-readable error message is returned to the developer. If the port is free, the com.docker.backend process starts accepting connections and forwarding them to the container via the process `vpnkit-forwarder`, running on top of `vpnkit-bridge`.
+
+Docker Desktop does not run with “root” or “Administrator” on the host. A developer can use `docker run –privileged` to become root inside the helper VM but the hypervisor ensures the host remains completely protected at all times. This is great for security but it causes a usability problem on macOS: how can a developer expose port 80 (`docker run -p 80:80`) when this is considered a “privileged port” on Unix i.e. a port number < 1024? The solution is that Docker Desktop includes a tiny helper privileged service which does run as root from `launchd`and which exposes a “please bind this port” API. This raises the question: “is it safe to allow a non-root user to bind privileged ports?”
+
+Originally the notion of a privileged port comes from a time when ports were used to authenticate services: it was safe to assume you were talking to the host’s HTTP daemon because it had bound to port 80, which requires root, so the admin must have arranged it. The modern way to authenticate a service is via TLS certificates and `ssh` fingerprints, so as long as system services have bound their ports before Docker Desktop has started – macOS arranges this by binding ports on boot with `launchd` –  there can be no confusion or denial of service. Accordingly, modern macOS has made binding privileged ports on all IPs (`0.0.0.0` or `INADDR_ANY`) an unprivileged operation. There is only one case where Docker Desktop still needs to use the privileged helper to bind ports: when a specific IP is requested (e.g. `docker run -p 127.0.0.1:80:80`), which still requires root on macOS.
+
+### Summary
+
+Applications need reliable network connections for lots of everyday activities including: pulling Docker images, installing Linux packages, communicating with database backends, exposing APIs and UIs and much more. Docker Desktop runs in many different network environments: in the office, at home and while traveling on unreliable wifi. Some machines have restrictive firewall policies installed. Other machines have sophisticated VPN configurations. For all these use-cases in all these environments, Docker Desktop aims to “just work”, so the developer can focus on building and testing their application (rather than debugging ours!)
+
+If building this kind of tooling sounds interesting, come and make Docker Desktop networking even better, we are hiring see [https://www.docker.com/career-openings](https://www.docker.com/career-openings)
+
+### DockerCon2022
+
+_Join us for DockerCon2022 on Tuesday, May 10. DockerCon is a free, one day virtual event that is a unique experience for developers and development teams who are building the next generation of modern applications. If you want to learn about how to go from code to cloud fast and how to solve your development challenges, DockerCon 2022 offers engaging live content to help you build, share and run your applications. Register today at_ [_https://www.docker.com/dockercon/_](https://www.docker.com/dockercon/)
+
+[Docker Desktop](https://www.docker.com/blog/tag/docker-desktop/)[Engineering](https://www.docker.com/blog/category/engineering/)
+
+Table of contents
+
+[Visit this Linkedin profile](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.docker.com%2Fblog%2Fhow-docker-desktop-networking-works-under-the-hood%2F "Visit this Linkedin profile")[Visit this X profile](https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.docker.com%2Fblog%2Fhow-docker-desktop-networking-works-under-the-hood%2F "Visit this X profile")[Visit this Facebook profile](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.docker.com%2Fblog%2Fhow-docker-desktop-networking-works-under-the-hood%2F "Visit this Facebook profile")
+
+## Related Posts
+
+- [Mar 31, 2026\\
+\\
+**Docker Sandboxes: Run Agents in YOLO Mode, Safely** \\
+\\
+Agents have crossed a threshold. Over a quarter of all production code is now AI-authored, and developers who use agents are merging roughly 60% more pull requests. But these gains only come when you let agents run autonomously. And to unlock that, you have to get out of the way. That means letting agents run…\\
+\\
+![](https://www.docker.com/app/uploads/2025/11/eric.jpeg)\\
+\\
+![](https://www.docker.com/app/uploads/2025/10/headshot-srini-sekaran-square-64x70.jpeg)\\
+\\
+![](https://www.docker.com/app/uploads/2026/03/timi-64x64.png)\\
+\\
+Eric Jia,\\
+\\
+Srini Sekaran,\\
+\\
+\\
+and\\
+\\
+\\
+\\
+Timir Karia\\
+\\
+Read now](https://www.docker.com/blog/docker-sandboxes-run-agents-in-yolo-mode-safely/)
+- [Apr 30, 2026\\
+\\
+**From Security Blocked to Prod Ready: ClickHouse on Docker Hardened Images** \\
+\\
+Learn how Docker Hardened Images help run ClickHouse in production by reducing CVEs and improving container security without changing your workflow.\\
+\\
+![Headshot image of Ajeet Raina](https://www.docker.com/app/uploads/2025/10/ajeet-raina-profile-image-e1762367410747.jpg)\\
+\\
+![](https://www.docker.com/app/uploads/2026/04/IMG_2829-e1776797066708-64x64.png)\\
+\\
+Ajeet Singh Raina\\
+\\
+\\
+and\\
+\\
+\\
+\\
+Siddhant Agarwal\\
+\\
+Read now](https://www.docker.com/blog/from-security-blocked-to-prod-ready-clickhouse-on-docker-hardened-images/)
+- [Apr 23, 2026\\
+\\
+**Trivy, KICS, and the shape of supply chain attacks so far in 2026** \\
+\\
+We caught a malicious image pushed to checkmarx/kics on Docker Hub, the image was quarantined, and we coordinated response with Socket and Checkmarx. This blog walks through what happened and why we believe open, fast collaboration is the key to responding to this new pattern of emerging supply chain attacks.\\
+\\
+![](https://www.docker.com/app/uploads/2023/10/docker-team-blog.png)\\
+\\
+Docker Security\\
+\\
+Read now](https://www.docker.com/blog/trivy-kics-and-the-shape-of-supply-chain-attacks-so-far-in-2026/)
+- [Apr 16, 2026\\
+\\
+**Why MicroVMs: The Architecture Behind Docker Sandboxes** \\
+\\
+Last week, we launched Docker Sandboxes with a bold goal: to deliver the strongest agent isolation in the market. This post unpacks that claim, how microVMs enable it, and some of the architectural choices we made in this approach. The Problem With Every Other Approach Every sandboxing model asks you to give something up. We…\\
+\\
+![](https://www.docker.com/app/uploads/2025/10/headshot-srini-sekaran-square-64x70.jpeg)\\
+\\
+![](https://www.docker.com/app/uploads/2026/04/craig-64x64.jpeg)\\
+\\
+Srini Sekaran\\
+\\
+\\
+and\\
+\\
+\\
+\\
+Craig Gumbley\\
+\\
+Read now](https://www.docker.com/blog/why-microvms-the-architecture-behind-docker-sandboxes/)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: Is there an "Explain like I'm 5" tutorial for docker networking? Cannot ...
+The docker engine will make sure that the port is available on the Host OS' IP regardless of the docker internal IP. From the information ...

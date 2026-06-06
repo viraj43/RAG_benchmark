@@ -1,0 +1,208 @@
+Title: Networking overview - Docker Docs
+**Definition:** Docs AI
+
+Open in ClaudeTable of contentsContainer networking refers to the ability for containers to connect to and
+communicate with each other, and with non-Docker network services.
+
+**Key Points:** BackManuals
+
+Get startedGuidesReferenceNetworking overview
+
+Copy as Markdown
+
+Open Markdown
+
+Ask Docs AI
+
+Open in ClaudeTable of contentsContainer networking refers to the ability for containers to connect to and
+communicate with each other, and with non-Docker network services. A container has no information about what kind of network it's
+attached to, or whether its network peers are also Docker containers. Just as a host can be connected to multiple Ethernet
+networks, a container can be connected to multiple Docker networks.
+
+| Driver | Description | 
+|---|---|
+| bridge | The default network driver. | 
+| host | Remove network isolation between the con | 
+| none | Completely isolate a container from the  | 
+| overlay | Swarm Overlay networks connect multiple  | 
+| ipvlan | Connect containers to external VLANs. | 
+| macvlan | Containers appear as devices on the host | 
+
+
+| Flag | Description | 
+|---|---|
+| --dns | The IP address of a DNS server. To speci | 
+| --dns-search | A DNS search domain to search non-fully  | 
+| --dns-opt | A key-value pair representing a DNS opti | 
+| --hostname | The hostname a container uses for itself | 
+
+
+```bash
+$ docker run --rm -ti busybox ping -c1 docker.com
+PING docker.com (23.185.0.4): 56 data bytes
+64 bytes from 23.185.0.4: seq=0 ttl=62 time=6.564 ms
+
+--- docker.com ping statistics ---
+1 packets transmitted, 1 packets received, 0% packet loss
+round-trip min/avg/max = 6.564/6.564/6.564 ms
+```
+
+```bash
+$ docker network create -d bridge my-net
+$ docker run --network=my-net -it busybox
+```
+
+```bash
+$ docker run --network name=gwnet,gw-priority=1 --network anet1 --name myctr myimage
+$ docker network connect anet2 myctr
+```
+
+## Networking overview
+Copy as Markdown
+
+
+
+
+Open Markdown
+
+
+
+Ask Docs AI
+
+
+Claude
+Open in Claudefunction getCurrentPlaintextUrl(){const e=window.location.href.split("#")[0].replace(/\/$/,"");return`${e}.md`}function copyMarkdown(){fetch(getCurrentPlaintextUrl()).then(e=>e.text()).then(e=>{navigator.clipboard.writeText(e).then(()=>{const e=document.querySelector('[data-heap-id="copy-markdown-button"]');if(!e)return;const t=e.querySelectorAll(".icon-svg"),n=t[0],s=t[1];n.classList.add("hidden"),s.classList.remove("hidden"),setTimeout(()=>{n.classList.remove("hidden"),s.classList.add("hidden")},2e3)})}).catch(e=>{console.error("Error copying markdown:",e)})}function viewPlainText(){window.open(getCurrentPlaintextUrl(),"_blank")}function openInDocsAI(){const e=document.querySelector(".open-kapa-widget");e?e.click():alert("Couldn't find Docs AI.")}function openInClaude(){const e=getCurrentPlaintextUrl(),t=`Read ${e} so I can ask questions about it.`,n=encodeURIComponent(t),s=`https://claude.ai/new?q=${n}`;window.open(s,"_blank")}
+
+
+## Connecting to multiple networks
+Connecting a container to a network can be compared to connecting an Ethernet
+cable to a physical host. Just as a host can be connected to multiple Ethernet
+networks, a container can be connected to multiple Docker networks.
+For example, a frontend container may be connected to a bridge network
+with external access, and a
+--internal network
+to communicate with containers running backend services that do not need
+external network access.
+A container may also be connected to different types of network. For example,
+an ipvlan network to provide internet access, and a bridge network for
+access to local services.
+Containers can also share networking stacks, see Container networks.
+When sending packets, if the destination is an address in a directly connected
+network, packets are sent to that network. Otherwise, packets are sent to
+a default gateway for routing to their destination. In the example above,
+the ipvlan network's gateway must be the default gateway.
+The default gateway is selected by Docker, and may change whenever a
+container's network connections change.
+To make Docker choose a specific default gateway when creating the container
+or connecting a new network, set a gateway priority. See option gw-priority
+for the
+docker run and
+docker network connect commands.
+The default gw-priority is 0 and the gateway in the network with the
+highest priority is the default gateway. So, when a network should always
+be the default gateway, it is enough to set its gw-priority to 1.
+$ docker run --network name=gwnet,gw-priority=1 --network anet1 --name myctr myimage
+$ docker network connect anet2 myctr
+
+
+## User-defined networks
+With the default configuration, containers attached to the default
+bridge network have unrestricted network access to each other using
+container IP addresses. They cannot refer to each other by name.
+It can be useful to separate groups of containers that should have full
+access to each other, but restricted access to containers in other groups.
+You can create custom, user-defined networks, and connect groups of containers
+to the same network. Once connected to a user-defined network, containers
+can communicate with each other using container IP addresses or container names.
+The following example creates a network using the bridge network driver and
+runs a container in that network:
+$ docker network create -d bridge my-net
+$ docker run --network=my-net -it busybox
+
+
+## Container networks
+In addition to user-defined networks, you can attach a container to another
+container's networking stack directly, using the --network container:<name|id> flag format.
+The following flags aren't supported for containers using the container:
+networking mode:
+--add-host--hostname--dns--dns-search--dns-option--mac-address--publish--publish-all--expose
+The following example runs a Redis container, with Redis binding to
+127.0.0.1, then running the redis-cli command and connecting to the Redis
+server over 127.0.0.1.
+$ docker run -d --name redis redis --bind 127.0.0.1
+$ docker run --rm -it --network container:redis redis redis-cli -h 127.0.0.1
+
+
+
+
+---
+
+Title: How Docker Desktop Networking Works Under the Hood
+**Definition:** Docker Desktop is designed to ensure that networking “just works” for all of these use-cases in all of these scenarios.
+
+**Key Points:** When Docker Desktop is running Linux containers, the Docker engine (dockerd in the diagram above) is a Linux program running inside the helper Linux VM, not natively on the host. When a developer exposes a port with docker run -p 80:80, the Docker API proxy decodes the request and uses an internal API to request a port forward via the com. Docker Security
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ Read now 
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ Apr 16, 2026
+ 
+ 
+
+ 
+ 
+
+ 
+ Why MicroVMs: The Architecture Behind Docker Sandboxes
+ 
+ Last week, we launched Docker Sandboxes with a bold goal: to deliver the strongest agent isolation in the market.
+
+## Why MicroVMs: The Architecture Behind Docker Sandboxes
+Last week, we launched Docker Sandboxes with a bold goal: to deliver the strongest agent isolation in the market. This post unpacks that claim, how microVMs enable it, and some of the architectural choices we made in this approach. The Problem With Every Other Approach Every sandboxing model asks you to give something up. We…
+
+
+## DockerCon2022
+Join us for DockerCon2022 on Tuesday, May 10. DockerCon is a free, one day virtual event that is a unique experience for developers and development teams who are building the next generation of modern applications. If you want to learn about how to go from code to cloud fast and how to solve your development challenges, DockerCon 2022 offers engaging live content to help you build, share and run your applications. Register today at https://www.docker.com/dockercon/
+
+
+## From Security Blocked to Prod Ready: ClickHouse on Docker Hardened Images
+Learn how Docker Hardened Images help run ClickHouse in production by reducing CVEs and improving container security without changing your workflow.
+
+
+## Docker Sandboxes: Run Agents in YOLO Mode, Safely
+Agents have crossed a threshold. Over a quarter of all production code is now AI-authored, and developers who use agents are merging roughly 60% more pull requests. But these gains only come when you let agents run autonomously. And to unlock that, you have to get out of the way. That means letting agents run…
+
+
+
+
+---
+
+Title: Docker Networking Overview - DEV Community
+**Definition:** Docker networking refers to the set of technologies and functionalities within Docker that enable communication between containers, between containers and the host machine, and between containers and external networks.
+
+**Key Points:** Service Discovery and Load Balancing: Docker networking integrates with service discovery and load balancing mechanisms, such as Docker Swarm’s built-in DNS-based service discovery and load balancing features. Network Security: Docker networking provides security features such as network segmentation, firewall rules, and network policies to control inbound and outbound traffic, ensuring secure communication between containers and networks. Overlay networking in Docker, especially in Docker Swarm, is used to facilitate communication between containers across different Docker hosts or nodes within a Swarm cluster.
+
+                                       Docker networking refers to the set of technologies and functionalities within Docker that enable communication between containers, between containers and the host machine, and between containers and external networks. It allows containers to interact with each other and with external systems securely and efficiently. Container networking refers to the ability for containers to connect to and communicate with each other, or to non-Docker workloads. Containers have networking enabled by default, and they can make outgoing connections. A container has no information about what kind of network it’s attached to, or whether their peers are also Docker workloads or not. A container only sees a network interface with an IP address, a gateway, a routing table, DNS services, and other networking details. That is, unless the container uses the none network driver. 👉 Here are the key points to understand about Docker networking:  Container Communication: Docker networking enables containers running on the same host to communicate with each other using IP addresses or DNS names. This communication can be established within a single Docker host or across multiple Docker hosts in a cluster. Network Isolation: Docker networking provides network isolation between containers, ensuring that each container has its own network stack and IP address. Default Bridge Network: When you install Docker, it automatically creates a default bridge network called bridge. Containers connected to this network can communicate with each other using container names as DNS names. The default bridge network is suitable for most development and testing scenarios. Custom Networks: Docker allows users to create custom networks using the docker network create command. This feature enables better control over networking configurations such as IP address ranges, subnets, and DNS settings. Networking Drivers: Docker supports different networking drivers such as bridge, host, overlay, macvlan, and none. Each driver has specific use cases and functionalities, providing flexibility in how containers interact with networks. Container-to-Container Communication: Containers within the same network can communicate with each other using their container names as hostnames. Docker’s built-in DNS server resolves container names to their respective IP addresses within the network. Container-to-External Network Communication: Docker containers can communicate with external networks and services through port mappings or by connecting containers to external networks using custom bridge networks or host networking mode. Service Discovery and Load Balancing: Docker networking integrates with service discovery and load balancing mechanisms, such as Docker Swarm’s built-in DNS-based service discovery and load balancing features. This allows containers to discover and communicate with services running on different containers or nodes in a cluster. Network Security: Docker networking provides security features such as network segmentation, firewall rules, and network policies to control inbound and outbound traffic, ensuring secure communication between containers and networks. Scalability and Orchestration: Docker networking is scalable and integrates seamlessly with container orchestration platforms like Docker Swarm and Kubernetes, allowing for dynamic network configurations and efficient management of containerized applications.  👉 Types of networking in Docker Bridge Network:
+Bridge network is a default network created automatically when you deploy a container. Bridge network uses a software bridge that allows containers connected to the same bridge network to communicate. Bridge networks used on containers that are running on the same Docker daemon host. The bridge network creates a private internal isolated network to the host so containers on this network can communicate. The Bridge Network in Docker is a default networking mode that enables communication between containers on the same Docker host. It provides network isolation, giving each container its own IP address and DNS configuration. Containers connected to the bridge network can communicate using their IP addresses or container names, facilitated by Docker’s built-in DNS server. Additionally, bridge networking allows containers to access the internet through NAT rules. It’s commonly used in development and testing environments for local container communication. However, for more complex networking needs or distributed systems across multiple hosts, other Docker networking modes may be preferred.  Host Network:
+The Host Network mode in Docker allows containers to share the host’s networking stack directly, bypassing Docker’s network isolation. In this mode, containers use the host’s IP address, network interfaces, and routing table, resulting in improved networking performance. Containers on the host network can access external networks and services without the overhead of network address translation (NAT) or port mapping. However, this mode lacks network isolation between containers and may not be suitable for scenarios requiring strict network segmentation. Host networking is commonly used for applications requiring maximum network performance or direct access to host networking interfaces, such as network-intensive services or legacy applications.  Overlay Network:
+Overlay networking is used if container on node A wants to talk to node B then to make communication between them we use Overlay networking. Overlay networking uses VXLAN to create an Overlay network. This has the advantage of providing maximum portability across various cloud and on-premises networks. By default, the Overlay network is encrypted with the AES algorithm. Overlay networking in Docker, especially in Docker Swarm, is used to facilitate communication between containers across different Docker hosts or nodes within a Swarm cluster. When a container on one node (let’s say node A) needs to communicate with a container on another node (node B), overlay networking comes into play. Overlay networking leverages technologies like VXLAN (Virtual Extensible LAN) to create a virtual network overlay that spans all nodes in the Swarm cluster. This overlay network enables seamless communication between containers regardless of their physical host, providing a unified network environment for distributed applications. One of the key advantages of overlay networking is its portability across various cloud environments and on-premises networks. Containers can communicate across different infrastructure setups without needing to worry about underlying network configurations, thanks to the abstraction provided by overlay networking.  Macvlan Network:
+Macvlan network is used to connect applications directly to the physical network. By using the macvlan network driver to assign a MAC address to each container, also allow having full TCP/Ip stack. Then, the Docker daemon routes traffic to containers by their MAC addresses. You can isolate your macvlan networks using different physical network interfaces. This is used in legacy applications which require MAC address. Macvlan networking in Docker is a mode that gives each container its own MAC address, making them appear as separate physical devices on the network. This enables containers to directly communicate with external networks without going through the Docker host’s network stack. Macvlan networking is beneficial for scenarios where containers require direct access to the underlying network infrastructure, such as when running network-intensive applications or services that need to expose specific ports. It provides improved network performance, isolation, and flexibility compared to bridge networking, making it suitable for applications needing container-to-network communication without network address translation (NAT) overhead.  ipvlan:
+IPvlan networks give users total co

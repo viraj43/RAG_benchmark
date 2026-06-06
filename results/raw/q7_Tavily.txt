@@ -1,0 +1,2254 @@
+Title: Building Scalable Flask Applications with Blueprints and Application Factories | Leapcell
+[![logo](https://cdn.leapcellcdn.com/_next/static/media/logo.b0ae21dc.svg)Leapcell0.3](/)
+
+[Docs](https://docs.leapcell.io)[Pricing](/pricing)[Blog](/blog)[Contact Us](https://discord.gg/qF7efny8x2)
+
+[Log in](/login)[Sign up  for FREE](/signup)
+
+[Back to Tech Articles](/articles)
+
+# Building Scalable Flask Applications with Blueprints and Application Factories
+
+Aug 05, 2025
+
+# Go
+
+James Reed
+
+Infrastructure Engineer · Leapcell
+
+This post is also available in [日本語](https://jp.leapcell.io/blog/burupuriant-to-apuri-ke-shon-fakutori-de-su-ke-rabulina-furasshu-apuri-ke-shon-o-gou-chiku-suru), [한국어](https://kr.leapcell.io/blog/beuluruint-mit-aepeullikeisyeon-paektoreureul-sayonghan-haksip-ganeunghan-Flask-aepeullikeisyeon-geongtuk), and [Deutsch](https://de.leapcell.io/blog/aufbau-skalierbarer-flask-anwendungen-mit-blueprints-und-application-factories)
+
+![Cover of ](https://cdn1.leapcell.io/art20250911-37.png)
+
+When developing web applications, especially as they grow in complexity and user base, scalability and maintainability become paramount concerns. A small, monolithic Flask application might be easy to start, but without a clear architecture, it quickly devolves into a tangled mess. This often leads to “spaghetti code,” making it difficult to add new features, fix bugs, or onboard new developers. The challenge lies in structuring your application in a way that promotes modularity, separation of concerns, and efficient growth. This is where Flask's powerful features—Blueprints and the application factory pattern—shine. They provide the fundamental building blocks for creating robust, maintainable, and scalable Flask applications that can evolve gracefully over time.
+
+At its core, a well-structured Flask application leverages these patterns to decouple different parts of the system. Imagine a large e-commerce platform; it might have distinct modules for user management, product catalogs, order processing, and payment gateways. Tossing all these functionalities into a single `app.py` file would be chaotic. Blueprints allow you to organize these distinct functionalities into self-contained components, each with its own routes, templates, static files, and error handlers. They are essentially a way to define collections of operations that can be registered on an application instance later. An application factory, on the other hand, is a function that creates and configures your Flask application instance. This pattern is crucial for testing, handling different configurations (development, testing, production), and managing multiple application instances within a single process. Together, Blueprints and the application factory pattern form a powerful architectural foundation for any serious Flask project, moving beyond the simple "Hello World" to enterprise-grade solutions.
+
+Let's first understand Blueprints. A Blueprint is not a complete application; rather, it’s a blueprint (hence the name) for building parts of an application. You can think of it as a mini-application that can be registered on a main application instance. For example, consider an authentication module. Instead of putting all authentication routes (`/login`, `/register`, `/logout`) directly into your main `app.py`, you can create an `auth` Blueprint.
+
+Here's a simple example of a Blueprint:
+
+```
+
+
+```
+# project/auth/routes.py   from  flask import  Blueprint,  render_template,  request,  redirect,  url_for,  flash auth_bp =  Blueprint('auth',  __name__,  url_prefix ='/auth')   @auth_bp. route('/register',  methods =['GET',  'POST'])   def  register():   if  request. method ==  'POST':   username =  request. form['username']   password =  request. form['password']   # In a real app, you'd add validation and database storage   if  username ==  'user'  and  password ==  '123':   flash('Registration successful!',  'success')   return  redirect(url_for('auth.login'))   else:   flash('Invalid registration details.',  'danger')   return  render_template('auth/register.html')   @auth_bp. route('/login',  methods =['GET',  'POST'])   def  login():   if  request. method ==  'POST':   username =  request. form['username']   password =  request. form['password']   if  username ==  'test'  and  password ==  'password':  # Simple check   flash('Logged in successfully!',  'success')   return  redirect(url_for('main.index'))  # Assuming a 'main' blueprint or root route   else:   flash('Invalid username or password.',  'danger')   return  render_template('auth/login.html')   @auth_bp. route('/logout')   def  logout():   flash('Logged out successfully.',  'info')   return  redirect(url_for('auth.login'))
+```
+
+
+```
+
+Notice the `url_prefix='/auth'` in the Blueprint definition. This means all routes defined within `auth_bp` will automatically be prefixed with `/auth`. So, `/register` becomes `/auth/register`. This helps in organizing URLs and avoiding conflicts.
+
+Now, let's look at the application factory pattern. The standard way to initialize a Flask application globally: `app = Flask(__name__)` is problematic for testing, where you might need multiple instances with different configurations, or when you want to run your application in a WSGI server that manages multiple child processes (like Gunicorn). An application factory solves this by encapsulating the application creation logic within a function.
+
+Here's how an application factory would look, integrating our `auth_bp`:
+
+```
+
+
+```
+# project/__init__.py   from  flask import  Flask  def  create_app(config_object ='project.config.DevelopmentConfig'):   app =  Flask(__name__)   app. config. from_object(config_object)   # Database initialization if using ORMs like SQLAlchemy   # db.init_app(app)   # Register Blueprints   from  project. auth. routes import  auth_bp  app. register_blueprint(auth_bp)   # Example of another blueprint   from  project. main. routes import  main_bp  app. register_blueprint(main_bp)   # You can also add more configurations, extensions, etc. here   # For instance, setting up a database, logging, etc.   return  app
+```
+
+
+```
+
+And your configuration file:
+
+```
+
+
+```
+# project/config.py   class  BaseConfig:   SECRET_KEY =  'your_super_secret_key'   DEBUG =  False   TESTING =  False   class  DevelopmentConfig(BaseConfig):   DEBUG =  True   SQLALCHEMY_DATABASE_URI =  'sqlite:///dev.db'   class  TestingConfig(BaseConfig):   TESTING =  True   SQLALCHEMY_DATABASE_URI =  'sqlite:///test.db'   class  ProductionConfig(BaseConfig):   # More robust settings for production   SQLALCHEMY_DATABASE_URI =  'postgresql://user:password@localhost/prod_db'
+```
+
+
+```
+
+And finally, to run your application using this factory, you would typically use a `wsgi.py` or `run.py` file:
+
+```
+
+
+```
+# wsgi.py or run.py   from  project import  create_app  from  project. config import  DevelopmentConfig app =  create_app(DevelopmentConfig)   if  __name__ ==  '__main__':   app. run(debug = True)
+```
+
+
+```
+
+In this setup, to run the application in development mode, you run `wsgi.py`. When deploying to production with Gunicorn, you might use `gunicorn wsgi:app -c config/gunicorn.py`, where `gunicorn.py` perhaps calls `create_app` with `ProductionConfig`. For testing, your test suite can call `create_app(TestingConfig)` to get a fresh, isolated application instance for each test run, ensuring tests don't interfere with each other or persistent data.
+
+The benefits of this approach are substantial. First, **modularity**. Each Blueprint can represent a distinct feature or module, making the codebase easier to navigate and understand. Teams can work on different Blueprints in parallel without significant merge conflicts. Second, **reusability**. A Blueprint can potentially be reused across multiple Flask applications. For example, a common authentication Blueprint could be dropped into different projects. Third, **testability**. The application factory enables the creation of multiple application instances with different configurations, which is ideal for isolated unit and integration testing. You can easily set up a test database for testing purposes without affecting your development or production database. Fourth, **scalability and maintainability**. As your application grows, adding new features simply means creating new Blueprints and registering them with the application factory. This structured approach prevents the application from becoming a monolithic giant, making it easier to maintain in the long run.
+
+In conclusion, leveraging Flask's Blueprints for modularity and the application factory pattern for flexible configuration and instance management are critical best practices for building scalable and maintainable Flask applications. These patterns empower developers to structure complex projects into manageable, independent components, fostering a robust and future-proof architecture that promotes collaboration and simplifies growth.
+
+### Share this article
+
+[![x icon](data:image/svg+xml;utf8,<svg xmlns=)">](https://twitter.com/intent/tweet?url=https%3A%2F%2Fleapcell.io%2Fblog%2Fbuilding-scalable-flask-applications-with-blueprints-and-application-factories&text=Building+Scalable+Flask+Applications+with+Blueprints+and+Application+Factories&hashtags=Leapcell&via=LeapcellHQ)[![facebook icon](data:image/svg+xml;utf8,<svg xmlns=)">](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fleapcell.io%2Fblog%2Fbuilding-scalable-flask-applications-with-blueprints-and-application-factories)[![linkedin icon](data:image/svg+xml;utf8,<svg xmlns=)">](https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fleapcell.io%2Fblog%2Fbuilding-scalable-flask-applications-with-blueprints-and-application-factories&title=Building+Scalable+Flask+Applications+with+Blueprints+and+Application+Factories&summary=Explore+how+Blueprints+and+the+application+factory+pattern+enhance+the+scalability+and+maintainability+of+Flask+applications%2C+providing+practical+examples.&source=leapcell.io)[![reddit icon](data:image/svg+xml;utf8,<svg xmlns=)">](https://reddit.com/submit?url=https%3A%2F%2Fleapcell.io%2Fblog%2Fbuilding-scalable-flask-applications-with-blueprints-and-application-factories&title=Building+Scalable+Flask+Applications+with+Blueprints+and+Application+Factories)[![telegram icon](data:image/svg+xml;utf8,<svg xmlns=)">](https://telegram.me/share/url?url=https%3A%2F%2Fleapcell.io%2Fblog%2Fbuilding-scalable-flask-applications-with-blueprints-and-application-factories&text=Building+Scalable+Flask+Applications+with+Blueprints+and+Application+Factories)[![HackerNews](https://cdn.leapcellcdn.com/_next/static/media/icon.e532e80f.svg)](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fleapcell.io%2Fblog%2Fbuilding-scalable-flask-applications-with-blueprints-and-application-factories&t=Building%20Scalable%20Flask%20Applications%20with%20Blueprints%20and%20Application%20Factories)
+
+## More Posts from Leapcell
+
+[![cover](https://cdn1.leapcell.io/art20250911-36.png)
+
+## Mastering Dependency Injection in FastAPI](/blog/mastering-dependency-injection-in-fastapi)[![cover](https://cdn1.leapcell.io/art20250911-38.png)
+
+## Gin Framework Middleware Deep Dive From Logging to Recovery](/blog/gin-framework-middleware-deep-dive-from-logging-to-recovery)
+
+## Popular Posts
+
+* [How to Use `random.choice()` in Python](/blog/how-to-use-random-choice-in-python)
+* [Understanding Weak Pointers in Go 1.24](/blog/understanding-weak-pointers-in-go-1-24)
+* [HTTP Caching 101: Things You Need to Know](/blog/http-caching-101)
+* [Implementing Queues in Go](/blog/implementing-queues-in-go)
+* [More Posts](/articles)
+
+---
+
+Title: Modular Applications with Blueprints — Flask Documentation (3.1.x)
+### Navigation
+
+* [index](../genindex/ "General Index")
+* [modules](../py-modindex/ "Python Module Index") |
+* [next](../extensions/ "Extensions") |
+* [previous](../reqcontext/ "The Request Context") |
+* [Flask Documentation (3.1.x)](../) »
+* Modular Applications with Blueprints
+
+# Modular Applications with Blueprints[¶](#modular-applications-with-blueprints "Link to this heading")
+
+ Changelog
+
+Added in version 0.7.
+
+Flask uses a concept of *blueprints* for making application components and supporting common patterns within an application or across applications. Blueprints can greatly simplify how large applications work and provide a central means for Flask extensions to register operations on applications. A [`Blueprint`](../api/#flask.Blueprint "flask.Blueprint") object works similarly to a [`Flask`](../api/#flask.Flask "flask.Flask") application object, but it is not actually an application. Rather it is a *blueprint* of how to construct or extend an application.
+
+## Why Blueprints?[¶](#why-blueprints "Link to this heading")
+
+Blueprints in Flask are intended for these cases:
+
+* Factor an application into a set of blueprints. This is ideal for larger applications; a project could instantiate an application object, initialize several extensions, and register a collection of blueprints.
+* Register a blueprint on an application at a URL prefix and/or subdomain. Parameters in the URL prefix/subdomain become common view arguments (with defaults) across all view functions in the blueprint.
+* Register a blueprint multiple times on an application with different URL rules.
+* Provide template filters, static files, templates, and other utilities through blueprints. A blueprint does not have to implement applications or view functions.
+* Register a blueprint on an application for any of these cases when initializing a Flask extension.
+
+A blueprint in Flask is not a pluggable app because it is not actually an application – it’s a set of operations which can be registered on an application, even multiple times. Why not have multiple application objects? You can do that (see [Application Dispatching](../patterns/appdispatch/)), but your applications will have separate configs and will be managed at the WSGI layer.
+
+Blueprints instead provide separation at the Flask level, share application config, and can change an application object as necessary with being registered. The downside is that you cannot unregister a blueprint once an application was created without having to destroy the whole application object.
+
+## The Concept of Blueprints[¶](#the-concept-of-blueprints "Link to this heading")
+
+The basic concept of blueprints is that they record operations to execute when registered on an application. Flask associates view functions with blueprints when dispatching requests and generating URLs from one endpoint to another.
+
+## My First Blueprint[¶](#my-first-blueprint "Link to this heading")
+
+This is what a very basic blueprint looks like. In this case we want to implement a blueprint that does simple rendering of static templates:
+
+```
+ from  flask  import Blueprint, render_template, abort from  jinja2  import TemplateNotFound simple_page = Blueprint('simple_page', __name__, template_folder = 'templates') @simple_page. route('/', defaults ={'page': 'index'}) @simple_page. route('/') def  show(page): try: return render_template(f'pages/{page}.html') except TemplateNotFound: abort(404)
+```
+
+When you bind a function with the help of the `@simple_page.route` decorator, the blueprint will record the intention of registering the function `show` on the application when it’s later registered. Additionally it will prefix the endpoint of the function with the name of the blueprint which was given to the [`Blueprint`](../api/#flask.Blueprint "flask.Blueprint") constructor (in this case also `simple_page`). The blueprint’s name does not modify the URL, only the endpoint.
+
+## Registering Blueprints[¶](#registering-blueprints "Link to this heading")
+
+So how do you register that blueprint? Like this:
+
+```
+ from  flask  import Flask from  yourapplication.simple_page  import simple_page app = Flask(__name__) app. register_blueprint(simple_page)
+```
+
+If you check the rules registered on the application, you will find these:
+
+```
+>>> app. url_mapMap([' (HEAD, OPTIONS, GET) -> static>, ' (HEAD, OPTIONS, GET) -> simple_page.show>,  simple_page.show>])
+```
+
+The first one is obviously from the application itself for the static files. The other two are for the `show` function of the `simple_page` blueprint. As you can see, they are also prefixed with the name of the blueprint and separated by a dot (`.`).
+
+Blueprints however can also be mounted at different locations:
+
+```
+ app. register_blueprint(simple_page, url_prefix ='/pages')
+```
+
+And sure enough, these are the generated rules:
+
+```
+>>> app. url_mapMap([' (HEAD, OPTIONS, GET) -> static>, ' (HEAD, OPTIONS, GET) -> simple_page.show>,  simple_page.show>])
+```
+
+On top of that you can register blueprints multiple times though not every blueprint might respond properly to that. In fact it depends on how the blueprint is implemented if it can be mounted more than once.
+
+## Nesting Blueprints[¶](#nesting-blueprints "Link to this heading")
+
+It is possible to register a blueprint on another blueprint.
+
+```
+ parent = Blueprint('parent', __name__, url_prefix ='/parent') child = Blueprint('child', __name__, url_prefix ='/child') parent. register_blueprint(child) app. register_blueprint(parent)
+```
+
+The child blueprint will gain the parent’s name as a prefix to its name, and child URLs will be prefixed with the parent’s URL prefix.
+
+```
+ url_for('parent.child.create')/ parent/ child/ create
+```
+
+In addition a child blueprint’s will gain their parent’s subdomain, with their subdomain as prefix if present i.e.
+
+```
+ parent = Blueprint('parent', __name__, subdomain = 'parent') child = Blueprint('child', __name__, subdomain = 'child') parent. register_blueprint(child) app. register_blueprint(parent) url_for('parent.child.create', _external = True)"child.parent.domain.tld"
+```
+
+Blueprint-specific before request functions, etc. registered with the parent will trigger for the child. If a child does not have an error handler that can handle a given exception, the parent’s will be tried.
+
+## Blueprint Resources[¶](#blueprint-resources "Link to this heading")
+
+Blueprints can provide resources as well. Sometimes you might want to introduce a blueprint only for the resources it provides.
+
+### Blueprint Resource Folder[¶](#blueprint-resource-folder "Link to this heading")
+
+Like for regular applications, blueprints are considered to be contained in a folder. While multiple blueprints can originate from the same folder, it does not have to be the case and it’s usually not recommended.
+
+The folder is inferred from the second argument to [`Blueprint`](../api/#flask.Blueprint "flask.Blueprint") which is usually `__name__`. This argument specifies what logical Python module or package corresponds to the blueprint. If it points to an actual Python package that package (which is a folder on the filesystem) is the resource folder. If it’s a module, the package the module is contained in will be the resource folder. You can access the [`Blueprint.root_path`](../api/#flask.Blueprint.root_path "flask.Blueprint.root_path") property to see what the resource folder is:
+
+```
+>>> simple_page. root_path'/Users/username/TestProject/yourapplication'
+```
+
+To quickly open sources from this folder you can use the [`open_resource()`](../api/#flask.Blueprint.open_resource "flask.Blueprint.open_resource") function:
+
+```
+ with simple_page. open_resource('static/style.css') as f: code = f. read()
+```
+
+### Static Files[¶](#static-files "Link to this heading")
+
+A blueprint can expose a folder with static files by providing the path to the folder on the filesystem with the `static_folder` argument. It is either an absolute path or relative to the blueprint’s location:
+
+```
+ admin = Blueprint('admin', __name__, static_folder = 'static')
+```
+
+By default the rightmost part of the path is where it is exposed on the web. This can be changed with the `static_url_path` argument. Because the folder is called `static` here it will be available at the `url_prefix` of the blueprint + `/static`. If the blueprint has the prefix `/admin`, the static URL will be `/admin/static`.
+
+The endpoint is named `blueprint_name.static`. You can generate URLs to it with [`url_for()`](../api/#flask.url_for "flask.url_for") like you would with the static folder of the application:
+
+```
+ url_for('admin.static', filename ='style.css')
+```
+
+However, if the blueprint does not have a `url_prefix`, it is not possible to access the blueprint’s static folder. This is because the URL would be `/static` in this case, and the application’s `/static` route takes precedence. Unlike template folders, blueprint static folders are not searched if the file does not exist in the application static folder.
+
+### Templates[¶](#templates "Link to this heading")
+
+If you want the blueprint to expose templates you can do that by providing the `template_folder` parameter to the [`Blueprint`](../api/#flask.Blueprint "flask.Blueprint") constructor:
+
+```
+ admin = Blueprint('admin', __name__, template_folder = 'templates')
+```
+
+For static files, the path can be absolute or relative to the blueprint resource folder.
+
+The template folder is added to the search path of templates but with a lower priority than the actual application’s template folder. That way you can easily override templates that a blueprint provides in the actual application. This also means that if you don’t want a blueprint template to be accidentally overridden, make sure that no other blueprint or actual application template has the same relative path. When multiple blueprints provide the same relative template path the first blueprint registered takes precedence over the others.
+
+So if you have a blueprint in the folder `yourapplication/admin` and you want to render the template `'admin/index.html'` and you have provided `templates` as a `template_folder` you will have to create a file like this: `yourapplication/admin/templates/admin/index.html`. The reason for the extra `admin` folder is to avoid getting our template overridden by a template named `index.html` in the actual application template folder.
+
+To further reiterate this: if you have a blueprint named `admin` and you want to render a template called `index.html` which is specific to this blueprint, the best idea is to lay out your templates like this:
+
+```
+ yourpackage/ blueprints/ admin/ templates/ admin/ index. html __init__. py
+```
+
+And then when you want to render the template, use `admin/index.html` as the name to look up the template by. If you encounter problems loading the correct templates enable the `EXPLAIN_TEMPLATE_LOADING` config variable which will instruct Flask to print out the steps it goes through to locate templates on every `render_template` call.
+
+## Building URLs[¶](#building-urls "Link to this heading")
+
+If you want to link from one page to another you can use the [`url_for()`](../api/#flask.url_for "flask.url_for") function just like you normally would do just that you prefix the URL endpoint with the name of the blueprint and a dot (`.`):
+
+```
+ url_for('admin.index')
+```
+
+Additionally if you are in a view function of a blueprint or a rendered template and you want to link to another endpoint of the same blueprint, you can use relative redirects by prefixing the endpoint with a dot only:
+
+This will link to `admin.index` for instance in case the current request was dispatched to any other admin blueprint endpoint.
+
+## Blueprint Error Handlers[¶](#blueprint-error-handlers "Link to this heading")
+
+Blueprints support the `errorhandler` decorator just like the [`Flask`](../api/#flask.Flask "flask.Flask") application object, so it is easy to make Blueprint-specific custom error pages.
+
+Here is an example for a “404 Page Not Found” exception:
+
+```
+ @simple_page. errorhandler(404) def  page_not_found(e): return render_template('pages/404.html')
+```
+
+Most errorhandlers will simply work as expected; however, there is a caveat concerning handlers for 404 and 405 exceptions. These errorhandlers are only invoked from an appropriate `raise` statement or a call to `abort` in another of the blueprint’s view functions; they are not invoked by, e.g., an invalid URL access. This is because the blueprint does not “own” a certain URL space, so the application instance has no way of knowing which blueprint error handler it should run if given an invalid URL. If you would like to execute different handling strategies for these errors based on URL prefixes, they may be defined at the application level using the `request` proxy object:
+
+```
+ @app. errorhandler(404) @app. errorhandler(405) def  _handle_api_error(ex): if request. path. startswith('/api/'): return jsonify(error = str(ex)), ex. code else: return ex
+```
+
+See [Handling Application Errors](../errorhandling/).
+
+[![Logo of Flask](../_static/flask-logo.svg)](../)
+
+### Contents
+
+* [Modular Applications with Blueprints](#)
+  + [Why Blueprints?](#why-blueprints)
+  + [The Concept of Blueprints](#the-concept-of-blueprints)
+  + [My First Blueprint](#my-first-blueprint)
+  + [Registering Blueprints](#registering-blueprints)
+  + [Nesting Blueprints](#nesting-blueprints)
+  + [Blueprint Resources](#blueprint-resources)
+    - [Blueprint Resource Folder](#blueprint-resource-folder)
+    - [Static Files](#static-files)
+    - [Templates](#templates)
+  + [Building URLs](#building-urls)
+  + [Blueprint Error Handlers](#blueprint-error-handlers)
+
+### Navigation
+
+* [Overview](../)
+  + Previous: [The Request Context](../reqcontext/ "previous chapter")
+  + Next: [Extensions](../extensions/ "next chapter")
+
+### Quick search
+
+© Copyright 2010 Pallets. Created using [Sphinx](https://www.sphinx-doc.org/) 8.2.3.
+
+ 
+
+---
+
+Title: How To Structure a Large Flask Application with Flask Blueprints and Flask-SQLAlchemy | DigitalOcean
+Featured AI Products
+
+Compute
+
+Build, deploy, and scale cloud compute resources
+
+Containers and Images
+
+Safely store and manage containers and backups
+
+Managed Databases
+
+Fully managed resources running popular database engines
+
+Management and Dev Tools
+
+Control infrastructure and gather insights
+
+Networking
+
+Secure and control traffic to apps
+
+Security
+
+Help protect your account and resources with these security features
+
+Storage
+
+Store and access any amount of data reliably in the cloud
+
+### 
+
+AI/ML
+
+CMS
+
+Data and IoT
+
+Developer Tools
+
+Gaming and Media
+
+GPU
+
+Hosting
+
+Security and Networking
+
+Startups and SMBs
+
+Web and App Platforms
+
+### 
+
+Community
+
+Documentation
+
+Developer Tools
+
+Get Involved
+
+Utilities and Help
+
+### 
+
+Become a Partner
+
+Marketplace
+
+### 
+
+## Report this
+
+## Table of contents
+
+# How To Structure a Large Flask Application with Flask Blueprints and Flask-SQLAlchemy
+
+![Abdelhadi Dyouri](https://www.gravatar.com/avatar/25fa7c01cef5adb2b17a3e566a93a3d2b6f1b596a804473a2ad379520ec69ec8?default=retro&size=256)
+![Caitlin Postal](https://www.gravatar.com/avatar/e182ccd5480c98ce2717f039867899be36373cf5b613beba80bb5495f96ccb60?default=retro&size=256)
+
+By [Abdelhadi Dyouri](/community/users/adyouri) and [Caitlin Postal](/community/users/caitlinpostal)
+
+![How To Structure a Large Flask Application with Flask Blueprints and Flask-SQLAlchemy](https://www.digitalocean.com/api/static-content/v1/images?src=https%3A%2F%2Fdeved-images.nyc3.cdn.digitaloceanspaces.com%2FCART-68467%2Fhow-to-code-in-flask.png&width=1920 "How To Structure a Large Flask Application with Flask Blueprints and Flask-SQLAlchemy")
+
+*The author selected the [Free and Open Source Fund](https://www.brightfunds.org/funds/foss-nonprofits) to receive a donation as part of the [Write for DOnations](https://do.co/w4do-cta) program.*
+
+### [Introduction](#introduction)
+
+[Flask](https://palletsprojects.com/p/flask/) is a lightweight Python web framework with useful tools and features for creating web applications in Python. [SQLAlchemy](https://www.sqlalchemy.org/) is an SQL toolkit that offers efficient and high-performing database access for relational databases. It supplies ways to interact with several database engines, such as SQLite, MySQL, and PostgreSQL, by providing access to the database’s SQL functionalities. This toolkit also gives you an Object Relational Mapper (ORM), which enables you to make queries and handle data using simple Python objects and methods. [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/) is a Flask extension that makes using SQLAlchemy with Flask easier, providing tools and methods to interact with your database in your Flask applications.
+
+Flask provides a way to build a small web application quickly with one Python file. However, a small application can grow into a large application with multiple database tables, hundreds of routes, and complex features. Writing the code for a large application in one file will quickly become messy and hard to manage. Flask allows you to organize your application’s code base by splitting each of the application’s major parts into specific directories and files for a better-organized application.
+
+For example, in a social media application, you might have the routes for users in a file called `routes.py` inside a directory called `users`, and you might then collect the database models for users inside a module called `users.py` inside a `models` directory. Then you can do the same for posts, followers, hashtags, questions, answers, ads, the marketplace, payments, and other features in your large social media application. If you want to edit some business logic into the payments code, you can change the database code for payments in a file located at `mysocialapp/models/payment.py`, then change the business logic in a file located at `mysocialapp/payments/routes.py`. Each part of the application will have its code isolated in different files and directories, effectively splitting the application into easy-to-manage components. This structure also helps familiarize new developers with your application so they know where to troubleshoot an issue or add a new feature.
+
+`routes.py`
+`users`
+`users.py`
+`models`
+`mysocialapp/models/payment.py`
+`mysocialapp/payments/routes.py`
+
+Flask provides a feature called [*blueprints*](https://flask.palletsprojects.com/en/2.2.x/blueprints/) for making application components. In the prior example, you can use blueprints to structure your large social media application with different blueprints, such as a users’ blueprint, a blueprint for posts, one for followers, and so on for each feature.
+
+In this tutorial, you’ll use Flask blueprints to structure a web application with three components: the main blueprint containing the home page and other main routes, a posts blueprint for managing blog posts, and a questions blueprint for questions and answers.
+
+## [Prerequisites](#prerequisites)
+
+A local Python 3 programming environment, which you can set up by following the tutorial for your distribution in [How To Install and Set Up a Local Programming Environment for Python 3](/community/tutorial_series/how-to-install-and-set-up-a-local-programming-environment-for-python-3) series. In this tutorial, we’ll call our project directory `flask_app`.
+
+`flask_app`
+
+An understanding of basic Flask concepts, such as routes, view functions, and templates. If you are not familiar with Flask, check out [How to Create Your First Web Application Using Flask and Python](/community/tutorials/how-to-create-your-first-web-application-using-flask-and-python-3) and [How to Use Templates in a Flask Application](/community/tutorials/how-to-use-templates-in-a-flask-application).
+
+An understanding of basic HTML concepts. You can review our [How To Build a Website with HTML](/community/tutorial_series/how-to-build-a-website-with-html) tutorial series for background knowledge.
+
+An understanding of basic Flask-SQLAlchemy concepts, such as setting up a database, creating database models, and inserting data into the database. See [How to Use Flask-SQLAlchemy to Interact with Databases in a Flask Application](/community/tutorials/how-to-use-flask-sqlalchemy-to-interact-with-databases-in-a-flask-application) for background knowledge.
+
+## [The Target Application Structure](#the-target-application-structure)
+
+By the end of the tutorial, you will have built a Flask application with the following structure:
+
+`.
+└── flask_app
+├── app
+│ ├── extensions.py
+│ ├── __init__.py
+│ ├── main
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── models
+│ │ ├── post.py
+│ │ └── question.py
+│ ├── posts
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── questions
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ └── templates
+│ ├── base.html
+│ ├── index.html
+│ ├── posts
+│ │ ├── categories.html
+│ │ └── index.html
+│ └── questions
+│ └── index.html
+├── app.db
+└── config.py`
+
+Inside your `flask_app` directory, you’ll have an `app.db` database file and a `config.py` configuration file for your Flask application. The main Flask application will be in the `app` directory, which will have an `__init__.py` special file to make it a package for imports to work properly, and it will contain a function for creating the Flask application instance.
+
+`flask_app`
+`app.db`
+`config.py`
+`app`
+`__init__.py`
+
+The `app` directory will contain an `extensions.py` file for managing the Flask extensions you’ll use in your application (in this tutorial, Flask-SQLAlchemy is the example of using a Flask extension). You will also have the following directories:
+
+`app`
+`extensions.py`
+`main`
+`posts`
+`questions`
+`models`
+`templates`
+
+## [Step 1 — Installing Flask and Flask-SQLAlchemy](#step-1-installing-flask-and-flask-sqlalchemy)
+
+In this step, you’ll install the necessary packages for your application.
+
+In your `flask_app` directory, active your virtual environment:
+
+`flask_app`
+`1. source my_env/bin/activate`
+
+With your virtual environment activated, use `pip` to install Flask and Flask-SQLAlchemy:
+
+`pip`
+`1. pip install Flask Flask-SQLAlchemy`
+
+Once the installation has finished, the output will print a line similar to the following:
+
+`Output
+
+Successfully installed Flask-2.1.2 Flask-SQLAlchemy-2.5.1 Jinja2-3.1.2 MarkupSafe-2.1.1 SQLAlchemy-1.4.39 Werkzeug-2.1.2 click-8.1.3 greenlet-1.1.2 itsdangerous-2.1.2`
+
+With the required Python packages installed, you’ll set up a configuration file to manage your Flask application’s settings in the next step.
+
+## [Step 2 — Creating a Configuration File](#step-2-creating-a-configuration-file)
+
+In this step, you’ll create a configuration file for your Flask application, separating your application settings from the rest of the application and making changing settings easier. The configuration file will configure things such as [the secret key](https://flask.palletsprojects.com/en/2.2.x/api/#sessions), the [SQLAlchemy database URI](/community/tutorials/how-to-use-flask-sqlalchemy-to-interact-with-databases-in-a-flask-application#step-2-setting-up-the-database-and-model), and so on.
+
+In your `flask_app` directory, open a new file called `config.py`. This file will hold your Flask application’s configuration:
+
+`flask_app`
+`config.py`
+`1. nano config.py`
+
+Add the following code to it:
+
+`import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+class Config:
+SECRET_KEY = os.environ.get('SECRET_KEY')
+SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI')\
+or 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_TRACK_MODIFICATIONS = False`
+
+Save and close the file.
+
+You import the `os` module to access your file system. You use `os` to establish the base directory with `os.path.abspath(os.path.dirname(__file__))` to correctly set up the path of the database file.
+
+`os`
+`os`
+`os.path.abspath(os.path.dirname(__file__))`
+
+You use a class called `Config` and set configuration values using class variables. Here, you set three configurations:
+
+`Config`
+
+`SECRET_KEY`: A long random string used by Flask as a *secret key*, or a key used to secure the sessions that remember information from one request to another. The user can access the information stored in the session but cannot modify it unless they have the secret key, so you must never allow anyone to access your secret key. See the [Flask documentation on sessions](https://flask.palletsprojects.com/en/2.2.x/api/#sessions) for more information. Other Flask extensions often use this secret key to secure data. See [Step 3 of How To Use Web Forms in a Flask Application](/community/tutorials/how-to-use-web-forms-in-a-flask-application#step-3-handling-form-requests) for more information on how to create a secure secret key. When developing your Flask applications, you should set the secret key with an environment variable called `SECRET_KEY`. To get its value in this `config.py` file and save it in a class variable called `SECRET_KEY`, you access the environment variable’s value via the [`os.environ`](https://docs.python.org/3/library/os.html#os.environ) object using its `get()` method. (Though you do not need to set a secret key to follow this tutorial, you can review the note at the end of this list for instructions on how to set a secret key.)
+
+`SECRET_KEY`
+`SECRET_KEY`
+`config.py`
+`SECRET_KEY`
+`os.environ`
+`get()`
+
+`SQLALCHEMY_DATABASE_URI`: The database URI specifies the database you want to establish a connection with using SQLAlchemy. In this case, you either get it from a `DATABASE_URI` environment variable or you set a default value. The default URI value here follows the format `sqlite:///path/to/app.db`. You use the `os.path.join()` function to join the base directory you constructed and stored in the `basedir` variable and the `app.db` file name. With this, creating a Flask application without setting a `DATABASE_URI` environment variable will connect to an `app.db` database file in your `flask_app` directory by default. The file will be created when you create your database tables. If you’d like to set a database URI for a different SQL engine, see [Step 2 of How to Use Flask-SQLAlchemy to Interact with Databases in a Flask Application](/community/tutorials/how-to-use-flask-sqlalchemy-to-interact-with-databases-in-a-flask-application#step-2-setting-up-the-database-and-model).
+
+`SQLALCHEMY_DATABASE_URI`
+`DATABASE_URI`
+`sqlite:///path/to/app.db`
+`os.path.join()`
+`basedir`
+`app.db`
+`DATABASE_URI`
+`app.db`
+`flask_app`
+
+`SQLALCHEMY_TRACK_MODIFICATIONS`: A configuration to enable or disable tracking modifications of objects. You set it to `False` to disable tracking and use less memory. For more, you can read [the configuration page](https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/) in the Flask-SQLAlchemy documentation.
+
+`SQLALCHEMY_TRACK_MODIFICATIONS`
+`False`
+
+**Note:** You will not set a secret key in this tutorial because you will not use functionality that needs a secret key. However, if you need to set a secret key, you can set it as follows (for Windows, use `set` instead of `export`):
+
+`set`
+`export`
+`1. export SECRET_KEY="your secret key"`
+
+Similarly, you can set a database URI like so (use `set` on Windows):
+
+`set`
+`1. export DATABASE_URI="postgresql://username:password@host:port/database_name"`
+
+You have now set up a configuration file for your application. Next, you’ll set up a Flask application instance and create a few blueprints that represent different components of your Flask application.
+
+## [Step 3 — Creating a Flask Application Factory](#step-3-creating-a-flask-application-factory)
+
+In this step, you’ll create a [*Flask application factory*](https://flask.palletsprojects.com/en/2.2.x/patterns/appfactories/), which is a Python function that sets up a Flask application instance.
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+└── config.py`
+
+Your application’s core code will live inside a project directory, which will be a Python package. In this tutorial, we’ll call it `app`, but you can use your project’s name or another common directory name such as `src`, `core`, or something similar.
+
+`app`
+`src`
+`core`
+
+You’ll make the folder containing the application’s core code a Python package so that imports work correctly throughout the code base and to increase its maintainability.
+
+To make the `app` project directory a Python package, you’ll create a special `__init__.py` file inside of it, which marks directories as Python packages. This `__init__.py` file will hold code for your *Flask factory function*, which is a function you’ll use to set and create the Flask application instance where you link all your Flask blueprints together. Think of the factory function as the central function in which all your Flask components (blueprints) are combined into one application and that you can use to create different Flask application instances for different purposes with different configurations. For example, you could use the factory function to create a Flask application instance for testing with proper configurations for testing.
+
+`app`
+`__init__.py`
+`__init__.py`
+
+Inside your `flask_app` directory, create this new `app` directory:
+
+`flask_app`
+`app`
+`1. mkdir app`
+
+Then open a new `__init__.py` file inside the `app` directory:
+
+`__init__.py`
+`app`
+`1. nano app/__init__.py`
+
+Add the following code to it:
+
+`from flask import Flask
+from config import Config
+def create_app(config_class=Config):
+app = Flask(__name__)
+app.config.from_object(config_class)
+# Initialize Flask extensions here
+# Register blueprints here
+@app.route('/test/')
+def test_page():
+return '<h1>Testing the Flask Application Factory Pattern</h1>'
+return app`
+
+Save and close the file.
+
+In this file, you import the `Flask` class from the `flask` package. Then you import the `Config` configuration class from the `config.py` file you created in the `flask_app` directory in the previous step.
+
+`Flask`
+`flask`
+`Config`
+`config.py`
+`flask_app`
+
+The `create_app()` function is the [*Flask application factory function*](https://flask.palletsprojects.com/en/2.2.x/patterns/appfactories/). It creates an application instance called `app` from the `Flask()` class using the familiar `app = Flask(__name__)` line. You configure the application by importing configuration values from an object using the `app.config.from_object()` method, passing it the value of the `config_class` parameter, which holds the `Config` class as a default value. You will initialize your Flask extensions below the `# Initialize Flask extensions here` comment and register your application blueprints below the `# Register blueprints here` comment once you create them.
+
+`create_app()`
+`app`
+`Flask()`
+`app = Flask(__name__)`
+`app.config.from_object()`
+`config_class`
+`Config`
+`# Initialize Flask extensions here`
+`# Register blueprints here`
+
+You create a test route using the `app.route()` decorator inside the factory function to demonstrate how to register routes inside application factories. In this case, the `test_page()` view function returns the heading `Testing the Flask Application Factory Pattern`.
+
+`app.route()`
+`test_page()`
+`Testing the Flask Application Factory Pattern`
+
+Lastly, the `create_app()` factory function returns the application instance you constructed with the line `return app`.
+
+`create_app()`
+`return app`
+
+Flask will automatically detect the `create_app()` factory function in your `app` package and use it to create an application instance. But you’ll need to set the environment variables required to run your Flask application in development mode first.
+
+`create_app()`
+`app`
+
+While in your `flask_app` directory with your virtual environment activated, you will tell Flask where the factory function is by passing the core application’s directory name `app` as a value to the `FLASK_APP` environment variable. Then you will set the `FLASK_ENV` environment variable to `development` to run the application in development mode and get access to the debugger. For more information about the Flask debugger, see [How To Handle Errors in a Flask Application](/community/tutorials/how-to-handle-errors-in-a-flask-application).
+
+`flask_app`
+`app`
+`FLASK_APP`
+`FLASK_ENV`
+`development`
+
+First, set the `app` package as the place where Flask should look for the `create_app()` factory function:
+
+`app`
+`create_app()`
+`1. export FLASK_APP=app`
+
+You may be used to building your Flask applications in a single Python file called `app.py`. In that case, you also use the same command to tell Flask where to locate your application. The difference here is that `app` in the preceding command is for the project’s core directory, where you have your `__init__.py` file.
+
+`app.py`
+`app`
+`__init__.py`
+
+Set the `FLASK_ENV` environment variable to run the application in development mode:
+
+`FLASK_ENV`
+`1. export FLASK_ENV=development`
+
+Then run the application:
+
+`1. flask run`
+
+With the development server running, visit the following URL using your browser:
+
+`http://127.0.0.1:5000/test/`
+
+The site will load with a `Testing the Flask Application Factory Pattern` heading.
+
+`Testing the Flask Application Factory Pattern`
+
+You have now created a Flask application factory function. Next, you’ll create Flask blueprints and register them in this factory function.
+
+## [Step 4 — Creating Flask Blueprints](#step-4-creating-flask-blueprints)
+
+In this step, you will create a blueprint for the main routes that will manage the main component of your Flask application, and then you will register the blueprint on your factory function. You’ll create another blueprint each for blog posts, questions, and answers. You’ll add a few routes to each blueprint and render templates for each route with a `templates` directory for each blueprint.
+
+`templates`
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+├── app
+│ └── __init__.py
+└── config.py`
+
+### [Creating the Main Blueprint and Rendering its Templates](#creating-the-main-blueprint-and-rendering-its-templates)
+
+You will now create the main blueprint for the application and render its templates.
+
+Leave the development server you started in the previous step running, and open a new terminal.
+
+Navigate to your `flask_app` directory in the new terminal. Then create a directory called `main` for your main blueprint inside the `app` directory:
+
+`flask_app`
+`main`
+`app`
+`1. mkdir app/main`
+
+Next, open a new `__init__.py` main file inside the new `main` directory:
+
+`__init__.py`
+`main`
+`1. nano app/main/__init__.py`
+
+This is where you’ll create your main blueprint. Add the following code to this file:
+
+`from flask import Blueprint
+bp = Blueprint('main', __name__)`
+
+Save and close the file.
+
+Here, you import the [`Blueprint`](https://flask.palletsprojects.com/en/2.2.x/api/#flask.Blueprint) class from the `flask` package. Then you use this class to create a blueprint object `bp`, passing it two arguments: a name (`'main'` in this case) and the `__name__` special variable, which holds the name of the current Python module.
+
+`Blueprint`
+`flask`
+`bp`
+`'main'`
+`__name__`
+
+You now have a blueprint object, which will later have routes and functions you can plug into the Flask application you create using the `create_app()` factory function you’ve written in the previous step.
+
+`create_app()`
+
+Next, you’ll create a `routes.py` file inside your `main` blueprint directory, which will hold the routes of the main blueprint. Open a new `routes.py` file inside your main blueprint directory:
+
+`routes.py`
+`main`
+`routes.py`
+`1. nano app/main/routes.py`
+
+You’ll create routes using the `bp` object. Add the following route inside the new file:
+
+`bp`
+`from app.main import bp
+@bp.route('/')
+def index():
+return 'This is The Main Blueprint'`
+
+Save and close the file.
+
+Here, you import the `bp` blueprint object from the main blueprint, which you access through `app.main`. In the import line, `app` is the project’s package, `main` is the main blueprint package, and `bp` is the object you declared in the main blueprint’s `__init__.py` file.
+
+`bp`
+`app.main`
+`app`
+`main`
+`bp`
+`__init__.py`
+
+You use the `bp` object to create a `/` route and an `index()` view function with the `bp.route()` decorator, similar to the familiar `app.route()` decorator.
+
+`bp`
+`/`
+`index()`
+`bp.route()`
+`app.route()`
+
+For Flask to use these routes and to make them importable directly from the blueprint, you’ll need to import this `routes.py` file in your blueprint’s `__init__.py` file. Open it for editing:
+
+`routes.py`
+`__init__.py`
+`1. nano app/main/__init__.py`
+
+Add the highlighted import line at the end of the file:
+
+`from flask import Blueprint
+bp = Blueprint('main', __name__)
+from app.main import routes`
+
+Save and close the file.
+
+With this addition, registering a blueprint will also register its routes.
+
+Now that you’ve created a blueprint and added a route, you’ll need to tell Flask about this new blueprint so that it can be treated as part of your Flask application. To do this, you’ll register the blueprint inside your Flask application factory function.
+
+Open the `app/__init__.py` file to edit your factory function:
+
+`app/__init__.py`
+`1. nano app/__init__.py`
+
+Edit the `create_app()` factory function to match the following block, adding the highlighted lines:
+
+`create_app()`
+`...
+def create_app(config_class=Config):
+app = Flask(__name__)
+app.config.from_object(config_class)
+# Initialize Flask extensions here
+# Register blueprints here
+from app.main import bp as main_bp
+app.register_blueprint(main_bp)
+@app.route('/test/')
+def test_page():
+return '<h1>Testing the Flask Application Factory Pattern</h1>'
+return app`
+
+Save and close the file.
+
+You import the `bp` blueprint object from the main blueprint and rename it to `main_bp` for readability. Then you use the `app.register_blueprint()` method to register this main blueprint for Flask to treat as part of the application.
+
+`bp`
+`main_bp`
+`app.register_blueprint()`
+
+With the development server running, navigate to the following URL:
+
+`http://127.0.0.1:5000/`
+
+The page will load with the text **This is The Main Blueprint**, which is the text you returned in the main route.
+
+You now have a blueprint with a route in your application. Next, you will edit the main route in the main blueprint to render an HTML template, which will demonstrate how to render templates when working with Flask blueprints.
+
+Open the `routes.py` file of the main blueprint for modification:
+
+`routes.py`
+`1. nano app/main/routes.py`
+
+Edit the file with the highlighted lines:
+
+`from flask import render_template
+from app.main import bp
+@bp.route('/')
+def index():
+return render_template('index.html')`
+
+Save and close the file.
+
+Here, you import the `render_template()` function and use it in the route to render a template file called `index.html`.
+
+`render_template()`
+`index.html`
+
+You’ll now have to create a templates directory and base template that all other templates will share to avoid code repetition.
+
+Create a templates directory inside your `app` directory:
+
+`app`
+`1. mkdir app/templates`
+
+Open a new file called `base.html` to act as the base template:
+
+`base.html`
+`1. nano app/templates/base.html`
+
+Add the following code to the new file:
+
+`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{% block title %} {% endblock %} - FlaskApp</title>
+<style>
+h2 {
+width: 100%;
+}
+.title {
+margin: 5px;
+width: 100%;
+}
+.content {
+margin: 5px;
+width: 100%;
+display: flex;
+flex-direction: row;
+flex-wrap: wrap;
+}
+.post {
+flex: 20%;
+padding: 10px;
+margin: 5px;
+background-color: #f3f3f3;
+inline-size: 100%;
+}
+.title a {
+color: #00a36f;
+text-decoration: none;
+}
+nav a {
+color: #d64161;
+font-size: 3em;
+margin-left: 50px;
+text-decoration: none;
+}
+</style>
+</head>
+<body>
+<nav>
+<a href="{{ url_for('main.index') }}">FlaskApp</a>
+<a href="#">Posts</a>
+<a href="#">Categories</a>
+<a href="#">Questions</a>
+</nav>
+<hr>
+<div class="content">
+{% block content %} {% endblock %}
+</div>
+</body>
+</html>`
+
+Save and close the file.
+
+This base template features HTML boilerplate that you will reuse in your other templates.
+
+The base template has a title block, some CSS, a navigation bar to link to different parts of your application, and a content block. For more on base templates, see [How To Use Templates in a Flask Application](/community/tutorials/how-to-use-templates-in-a-flask-application).
+
+You use the syntax `blueprint_name.view_function_name` to link to a route when using the `url_for()` function with blueprints. The index page is handled by the `index()` view function in the main blueprint; therefore, you pass `main.index` to the `url_for()` function to build a link.
+
+`blueprint_name.view_function_name`
+`url_for()`
+`index()`
+`main.index`
+`url_for()`
+
+Now, create the `index.html` file you rendered in the `index()` view function of the main blueprint:
+
+`index.html`
+`index()`
+`1. nano app/templates/index.html`
+
+Add the following code to the newly created file:
+
+`{% extends 'base.html' %}
+{% block content %}
+<span class="title"><h1>{% block title %} The Home Page of FlaskApp {% endblock %}</h1></span>
+<div class="content">
+<h2>This is the main Flask blueprint</h2>
+</div>
+{% endblock %}`
+
+Save and close the file.
+
+Here, you extend the base template. You replace the content block, using an `<h1>` heading that also serves as a title and an `<h2>` heading to indicate the index page is part of the main Flask blueprint.
+
+`<h1>`
+`<h2>`
+
+With the development server running, visit the index page using your browser or refresh it if it’s already open:
+
+`http://127.0.0.1:5000/`
+
+A page similar to the following image will load:
+
+![Main Blueprint](https://deved-images.nyc3.cdn.digitaloceanspaces.com/CART-68467/Main%20Blueprint.png)
+
+![Main Blueprint](https://deved-images.nyc3.cdn.digitaloceanspaces.com/CART-68467/Main%20Blueprint.png)
+
+You have now set up a blueprint, added a route to its `routes.py` file, registered it on the application, and rendered templates for it. Next, you’ll create another blueprint for blog posts.
+
+`routes.py`
+
+### [Creating the Posts Blueprint and Rendering its Templates](#creating-the-posts-blueprint-and-rendering-its-templates)
+
+Now you’ll create the blueprint for blog posts, register it, and render its templates.
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+├── app
+│ ├── __init__.py
+│ ├── main
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ └── templates
+│ ├── base.html
+│ └── index.html
+└── config.py`
+
+To create a new blueprint for blog posts, you’ll follow the same steps as in the previous section.
+
+First, create a new `posts` directory to hold the blueprint’s files:
+
+`posts`
+`1. mkdir app/posts`
+
+Next, open a new `__init__.py` file inside the new `posts` directory:
+
+`__init__.py`
+`posts`
+`1. nano app/posts/__init__.py`
+
+Create a `bp` blueprint object and import the routes that you’ll create into the blueprint’s `routes.py` file:
+
+`bp`
+`routes.py`
+`from flask import Blueprint
+bp = Blueprint('posts', __name__)
+from app.posts import routes`
+
+Save and close the file.
+
+In the preceding code block, you use `posts` as the blueprint’s name. You also import the routes from a `routes.py` file, which you haven’t created yet.
+
+`posts`
+`routes.py`
+
+Next, open the new `routes.py` file where you’ll put the routes for the posts blueprint:
+
+`routes.py`
+`1. nano app/posts/routes.py`
+
+Add the following routes to this file:
+
+`from flask import render_template
+from app.posts import bp
+@bp.route('/')
+def index():
+return render_template('posts/index.html')
+@bp.route('/categories/')
+def categories():
+return render_template('posts/categories.html')`
+
+Save and close the file.
+
+Here, you have two routes: a route for the index page of the posts component of the application and a route for categories, which will be part of the posts component.
+
+In the `index` route, you render a template file with the path `posts/index.html` which means that Flask will look for a directory called `posts` in the `templates` directory and then look for an `index.html` file inside of the `posts` directory.
+
+`index`
+`posts/index.html`
+`posts`
+`templates`
+`index.html`
+`posts`
+
+In the `categories` route, you render a `categories.html` template, which will also be inside a `posts` directory inside the `templates` folder.
+
+`categories`
+`categories.html`
+`posts`
+`templates`
+
+Now create the new `posts` directory inside your templates directory:
+
+`posts`
+`1. mkdir app/templates/posts`
+
+Next, create the new `index.html` file inside the `posts` directory. This is the file you render in the `index()` view function of the posts blueprint:
+
+`index.html`
+`posts`
+`index()`
+`1. nano app/templates/posts/index.html`
+
+Add the following code to the newly created file:
+
+`{% extends 'base.html' %}
+{% block content %}
+<span class="title"><h1>{% block title %} The Posts Page {% endblock %}</h1></span>
+<div class="content">
+<h2>This is the posts Flask blueprint</h2>
+</div>
+{% endblock %}`
+
+Save and close the file.
+
+Here you extend the base template. You also set an `<h1>` heading as a title and an `<h2>` heading to mark the page as part of the posts blueprint.
+
+`<h1>`
+`<h2>`
+
+Next, create a new `categories.html` file inside the `posts` directory. This is the file you rendered in the `categories()` view function of the posts blueprint:
+
+`categories.html`
+`posts`
+`categories()`
+`1. nano app/templates/posts/categories.html`
+
+Add the following code to the newly created file:
+
+`{% extends 'base.html' %}
+{% block content %}
+<span class="title"><h1>{% block title %} Categories {% endblock %}</h1></span>
+<div class="content">
+<h2>This is the categories page within the posts blueprint</h2>
+</div>
+{% endblock %}`
+
+Save and close the file.
+
+You extend the base template and set an `<h1>` heading as a title and a `<h2>` heading to mark the page as part of the posts blueprint.
+
+`<h1>`
+`<h2>`
+
+You’ve created the posts blueprint, added routes, and made the rendered templates. You will now register this blueprint in your factory function for Flask to recognize it as part of the application.
+
+Open the `app/__init__.py` file to edit your factory function:
+
+`app/__init__.py`
+`1. nano app/__init__.py`
+
+Edit the `create_app()` factory function by adding the highlighted lines:
+
+`create_app()`
+`def create_app(config_class=Config):
+app = Flask(__name__)
+app.config.from_object(config_class)
+# Initialize Flask extensions here
+# Register blueprints here
+from app.main import bp as main_bp
+app.register_blueprint(main_bp)
+from app.posts import bp as posts_bp
+app.register_blueprint(posts_bp, url_prefix='/posts')
+@app.route('/test/')
+def test_page():
+return '<h1>Testing the Flask Application Factory Pattern</h1>'
+return app`
+
+Save and close the file.
+
+Here you imported the `bp` blueprint object from the posts blueprint package and renamed it `posts_bp` for readability.
+
+`bp`
+`posts_bp`
+
+You register the posts blueprint using the `app.register_blueprint()` method by passing it the `posts_bp` blueprint object. You also pass it a value `'/posts'` for the `url_prefix` parameter, which will prefix the blueprint’s routes with this string. For example, the main `/` route of the posts blueprint will become accessible via `/posts/`, and the `/categories` route will be at `/posts/categories/`.
+
+`app.register_blueprint()`
+`posts_bp`
+`'/posts'`
+`url_prefix`
+`/`
+`/posts/`
+`/categories`
+`/posts/categories/`
+
+With your new posts blueprint registered and your development server running, use your browser to navigate to the following URLs:
+
+`http://127.0.0.1:5000/posts/
+http://127.0.0.1:5000/posts/categories/`
+
+The **The Posts Page** heading will load for the `http://127.0.0.1:5000/posts/` page. A **Categories** heading will load for the `http://127.0.0.1:5000/posts/categories/` page.
+
+`http://127.0.0.1:5000/posts/`
+`http://127.0.0.1:5000/posts/categories/`
+
+To make the **Posts** and **Categories** links in the navigation bar functional, open the base template for modification:
+
+`1. nano app/templates/base.html`
+
+Modify the `<nav>` tag with the highlighted expressions:
+
+`<nav>`
+ `<nav>
+<a href="{{ url_for('main.index') }}">FlaskApp</a>
+<a href="{{ url_for('posts.index') }}">Posts</a>
+<a href="{{ url_for('posts.categories') }}">Categories</a>
+<a href="#">Questions</a>
+</nav>`
+
+Save and close the file.
+
+You link to the posts index with the `url_for('posts.index')` function call and the categories page with `url_for('posts.categories')`.
+
+`url_for('posts.index')`
+`url_for('posts.categories')`
+
+Refresh any page in your application to enable the **Posts** and **Categories** link functionality.
+
+You now have a posts blueprint registered in your application. Next, you’ll add a blueprint for questions and answers.
+
+### [Creating the Questions Blueprint and Rendering its Templates](#creating-the-questions-blueprint-and-rendering-its-templates)
+
+Now you’ll create the questions blueprint, register it, and render its templates.
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+├── app
+│ ├── __init__.py
+│ ├── main
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── posts
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ └── templates
+│ ├── base.html
+│ ├── index.html
+│ └── posts
+│ ├── categories.html
+│ └── index.html
+└── config.py`
+
+To create a new blueprint for questions and answers, create a new `questions` directory to hold the blueprint’s files:
+
+`questions`
+`1. mkdir app/questions`
+
+Next, open a new `__init__.py` file inside the new `questions` directory:
+
+`__init__.py`
+`questions`
+`1. nano app/questions/__init__.py`
+
+Create a `bp` blueprint object and import the routes that you’ll later create in the blueprint’s `routes.py` file:
+
+`bp`
+`routes.py`
+`from flask import Blueprint
+bp = Blueprint('questions', __name__)
+from app.questions import routes`
+
+Save and close the file.
+
+In the preceding code block, you use `questions` as the blueprint’s name. You also import the routes from a `routes.py` file, which you haven’t created yet.
+
+`questions`
+`routes.py`
+
+Next, open the new `routes.py` file where you’ll put the routes for the questions blueprint:
+
+`routes.py`
+`1. nano app/questions/routes.py`
+
+Add the following routes to this file:
+
+`from flask import render_template
+from app.questions import bp
+@bp.route('/')
+def index():
+return render_template('questions/index.html')`
+
+Save and close the file.
+
+You create a `/` route using the `questions` blueprint object, rendering a template file called `index.html` inside a directory called `questions`, which you’ll create inside the templates folder.
+
+`/`
+`questions`
+`index.html`
+`questions`
+
+Create the `questions` directory inside the templates directory, and then open an `index.html` file in it:
+
+`questions`
+`index.html`
+`1. mkdir app/templates/questions
+2. nano app/templates/questions/index.html`
+
+Add the following code to the new file:
+
+`{% extends 'base.html' %}
+{% block content %}
+<span class="title">
+<h1>{% block title %} Questions {% endblock %}</h1>
+</span>
+<div class="questions">
+<h2>Questions Blueprint</h2>
+</div>
+{% endblock %}`
+
+Save and close the file.
+
+Here, you set a title and a subheading, similar to the previous index templates in the other blueprints.
+
+Now open `app/__init__.py` to register the questions blueprint in the `create_app()` factory function:
+
+`app/__init__.py`
+`create_app()`
+`1. nano app/__init__.py`
+
+Edit the `create_app()` factory function by adding the highlighted lines:
+
+`create_app()`
+`def create_app(config_class=Config):
+app = Flask(__name__)
+app.config.from_object(config_class)
+# Initialize Flask extensions here
+# Register blueprints here
+from app.main import bp as main_bp
+app.register_blueprint(main_bp)
+from app.posts import bp as posts_bp
+app.register_blueprint(posts_bp, url_prefix='/posts')
+from app.questions import bp as questions_bp
+app.register_blueprint(questions_bp, url_prefix='/questions')
+@app.route('/test/')
+def test_page():
+return '<h1>Testing the Flask Application Factory Pattern</h1>'
+return app`
+
+Save and close the file.
+
+You register the questions blueprint as you did with the posts blueprint, adding a `/questions` prefix to its routes.
+
+`/questions`
+
+With your development server running, use your browser to navigate to the following URL:
+
+`http://127.0.0.1:5000/questions/`
+
+The **Questions** and **Questions Blueprint** headings will be displayed on the page.
+
+You will now make the **Questions** link functional. Open the base template to edit the navigation bar:
+
+`1. nano app/templates/base.html`
+
+Modify the `<nav>` tag with the highlighted expression:
+
+`<nav>`
+ `<nav>
+<a href="{{ url_for('main.index') }}">FlaskApp</a>
+<a href="{{ url_for('posts.index') }}">Posts</a>
+<a href="{{ url_for('posts.categories') }}">Categories</a>
+<a href="{{ url_for('questions.index') }}">Questions</a>
+</nav>`
+
+Save and close the file.
+
+Here, you link to the questions index page using the `url_for('questions.index')` function call.
+
+`url_for('questions.index')`
+
+Refresh any page in your application to enable the **Questions** link functionality in the navigation bar.
+
+You have created several blueprints to manage different components of your application. You registered the blueprints on your factory function and rendered templates for each route. Next, you’ll add Flask-SQLAlchemy to your application to manage and organize large databases in your Flask application.
+
+## [Step 5 — Adding Flask-SQLAlchemy Models to your Flask Application](#step-5-adding-flask-sqlalchemy-models-to-your-flask-application)
+
+In this step, you’ll integrate Flask-SQLAlchemy with your application, add a directory for database models, and create a model for posts and one for questions. You’ll insert a few blog posts into the posts table, then edit the posts’ index route to display all posts in the database. You will also insert a few questions and answers into the questions table to display them on the questions’ index page, alongside a new web form for adding further questions and answers to the database.
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+├── app
+│ ├── __init__.py
+│ ├── main
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── posts
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── questions
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ └── templates
+│ ├── base.html
+│ ├── index.html
+│ ├── posts
+│ │ ├── categories.html
+│ │ └── index.html
+│ └── questions
+│ └── index.html
+└── config.py`
+
+### [Creating a File for Managing Flask Extensions and Integrating Flask-SQLAlchemy](#creating-a-file-for-managing-flask-extensions-and-integrating-flask-sqlalchemy)
+
+To add the Flask-SQLAlchemy extension to your application, you’ll first add a Python module called `extensions.py`, in which you’ll set up your various Flask extensions, to your `app` directory.
+
+`extensions.py`
+`app`
+
+Open a new `extensions.py` file inside your `app` directory:
+
+`extensions.py`
+`app`
+`1. nano app/extensions.py`
+
+Add the following code to the newly created file:
+
+`from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()`
+
+Save and close the file.
+
+Here, you import the `SQLAlchemy()` class from the Flask-SQLAlchemy package, and then you use it to create a `db` database object with no arguments.
+
+`SQLAlchemy()`
+`db`
+
+You will use this `db` object to integrate SQLAlchemy with the Flask application you construct in your factory function. Open your `app/__init__.py` file to edit the factory function:
+
+`db`
+`app/__init__.py`
+`1. nano app/__init__.py`
+
+Edit the file to import and initialize the database object:
+
+`from flask import Flask
+from config import Config
+from app.extensions import db
+def create_app(config_class=Config):
+app = Flask(__name__)
+app.config.from_object(config_class)
+# Initialize Flask extensions here
+db.init_app(app)
+# Register blueprints here
+from app.main import bp as main_bp
+app.register_blueprint(main_bp)
+from app.posts import bp as posts_bp
+app.register_blueprint(posts_bp, url_prefix='/posts')
+from app.questions import bp as questions_bp
+app.register_blueprint(questions_bp, url_prefix='/questions')
+@app.route('/test/')
+def test_page():
+return '<h1>Testing the Flask Application Factory Pattern</h1>'
+return app`
+
+Here, you import the `db` database object from the `app.extensions` module you created earlier. Before registering blueprints, you connect the database object to the `app` application instance using the `db.init_app()` method. With this, you can use your `db` object to create and interact with Flask-SQLAlchemy models in your application.
+
+`db`
+`app.extensions`
+`app`
+`db.init_app()`
+`db`
+
+Remember that you’ve configured Flask-SQLAlchemy using the `Config` object in the `config.py` file inside your `flask_app` directory. You can open this file for a quick reminder:
+
+`Config`
+`config.py`
+`flask_app`
+`1. nano config.py`
+`import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+class Config:
+SECRET_KEY = os.environ.get('SECRET_KEY')
+SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI')\
+or 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_TRACK_MODIFICATIONS = False`
+
+If you don’t set up a `DATABASE_URI` environment variable, the `db` object will, by default, connect to an SQLite file called `app.db` that will appear in your `flask_app` directory once you create your database tables. Close the file when finished reviewing it.
+
+`DATABASE_URI`
+`db`
+`app.db`
+`flask_app`
+
+You can check that the database was registered correctly using the Flask shell. First, with your virtual environment activated, make sure you’ve set up your Flask environment variables in your `flask_app` directory:
+
+`flask_app`
+`1. export FLASK_APP=app
+2. export FLASK_ENV=development`
+
+Open the Flask shell:
+
+`1. flask shell`
+
+Import the `db` object from the `app.extensions` module, then print it:
+
+`db`
+`app.extensions`
+`1. from app.extensions import db
+2. print(db)`
+
+You’ll receive the path of your database, similar to the following:
+
+`Output
+
+<SQLAlchemy engine=sqlite:///your_path_to_flask_app/app.db>`
+
+This output means that the `db` object was properly registered. If you get an error running the code in the Flask shell, ensure you’ve correctly registered the `db` object in your factory function before moving to the next section. You can exit the Flask shell by typing `exit()`.
+
+`db`
+`db`
+`exit()`
+
+### [Creating and Interacting with the Post Model](#creating-and-interacting-with-the-post-model)
+
+In large applications, you may have hundreds of database tables, which means you would need to write hundreds of SQLAlchemy models to manage them. Putting all your models in one file will make your application hard to maintain, so you will split your models into separate Python files inside a `models` directory. Each file will hold the models and functions related to a specific part of your application. For example, you may put models and functions for managing posts inside a `post.py` file in a directory called `models` in the `app` directory.
+
+`models`
+`post.py`
+`models`
+`app`
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+├── app
+│ ├── extensions.py
+│ ├── __init__.py
+│ ├── main
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── posts
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── questions
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ └── templates
+│ ├── base.html
+│ ├── index.html
+│ ├── posts
+│ │ ├── categories.html
+│ │ └── index.html
+│ └── questions
+│ └── index.html
+└── config.py`
+
+To create a database model for posts in its own file, first create a directory called `models` inside your `app` directory:
+
+`models`
+`app`
+`1. mkdir app/models`
+
+Then, open a new file called `post.py` inside your models directory:
+
+`post.py`
+`1. nano app/models/post.py`
+
+Add the following code to the newly created file:
+
+`from app.extensions import db
+class Post(db.Model):
+id = db.Column(db.Integer, primary_key=True)
+title = db.Column(db.String(150))
+content = db.Column(db.Text)
+def __repr__(self):
+return f'<Post "{self.title}">'`
+
+Save and close the file.
+
+You import the `db` database object from the `app.extensions` module. Then you create a Flask-SQLAlchemy database model called `Post` using the `db.Model` class. In the model, you have an ID integer column as a primary key (`id`), a column to hold strings for the post title (`title`), and a text column for content (`content`). You use the special `__repr__()` method to provide a string representation for each post object using its title. For more on Flask-SQLAlchemy, you can review [How to Use Flask-SQLAlchemy to Interact with Databases in a Flask Application](/community/tutorials/how-to-use-flask-sqlalchemy-to-interact-with-databases-in-a-flask-application).
+
+`db`
+`app.extensions`
+`Post`
+`db.Model`
+`id`
+`title`
+`content`
+`__repr__()`
+
+Next, open the Flask shell to create the post table based on the post model:
+
+`1. flask shell`
+
+Run the following code to create the posts table:
+
+`1. from app.extensions import db
+2. from app.models.post import Post
+3. db.create_all()`
+
+You import the `db` object from the `app.extensions` module and the `Post` model from the `app.models.post` module. Then you use the `create_all()` method to create the posts table.
+
+`db`
+`app.extensions`
+`Post`
+`app.models.post`
+`create_all()`
+
+The code should execute without an output. If you receive an error, check your `app/extensions.py` and `app/models/post.py` files, and review the previous steps to ensure you have followed them as written.
+
+`app/extensions.py`
+`app/models/post.py`
+
+**Note:** The `db.create_all()` function does not recreate or update a table if it already exists. For example, if you want to modify your model by adding a new column and so you run the `db.create_all()` function, the change you make to the model will not be applied to the table if the table already exists in the database. The solution is to delete all existing database tables with the `db.drop_all()` function and then recreate them with the `db.create_all()` function like so:
+
+`db.create_all()`
+`db.create_all()`
+`db.drop_all()`
+`db.create_all()`
+`1. db.drop_all()
+2. db.create_all()`
+
+These commands will apply the modifications you make to your models and will delete all the existing data in the database. To update the database and preserve existing data, you’ll need to use [*schema migration*](https://en.wikipedia.org/wiki/Schema_migration), which allows you to modify your tables and preserve data. You can use the [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/index.html) extension to perform SQLAlchemy schema migrations through the Flask command-line interface.
+
+Next, run the following code to create ten random posts:
+
+`1. import random
+3. for i in range(0, 10):
+4. random_num = random.randrange(1, 1000)
+5. post = Post(title=f'Post #{random_num}',
+6. content=f'Content #{random_num}')
+7. db.session.add(post)
+8. print(post)
+9. print(post.content)
+10. print('--')
+11. db.session.commit()`
+
+You import the `db` database object, the `Post` database model, and the [`random`](https://docs.python.org/3/library/random.html) Python module. You’ll use this module to generate random numbers to create sample posts with different titles and contents. You use a `for` loop with the `range()` Python function to repeat a code block ten times.
+
+`db`
+`Post`
+`random`
+`for`
+`range()`
+
+In the `for` loop, you use the [`random.randrange()`](https://docs.python.org/3/library/random.html#random.randrange) method to generate a random integer number between `1` and `1000` and save it to a variable called `random_num`. You then create a post object using the `Post` model and use the random number in the `random_num` variable to generate a sample post title and content.
+
+`for`
+`random.randrange()`
+`1`
+`1000`
+`random_num`
+`Post`
+`random_num`
+
+You then add the post object to the database session, print the object itself and its content, and commit the transaction.
+
+You’ll receive an output similar to the following but with different numbers:
+
+`Output
+
+<Post "Post #58">
+Content #58
+--
+<Post "Post #55">
+Content #55
+--
+<Post "Post #994">
+Content #994
+--
+<Post "Post #394">
+Content #394
+--
+<Post "Post #183">
+Content #183
+--
+<Post "Post #633">
+Content #633
+--
+<Post "Post #790">
+Content #790
+--
+<Post "Post #883">
+Content #883
+--
+<Post "Post #259">
+Content #259
+--
+<Post "Post #581">
+Content #581
+--`
+
+Each post has a randomly generated number attached to it. These posts will now be in your database.
+
+Leave the Flask shell running and open a new terminal window. Source your environment and navigate to your application folder.
+
+Now that you have some sample posts in your table, you can display them on the posts’ index page. First, open the posts routes file to modify the index route:
+
+`1. nano app/posts/routes.py`
+
+Edit the imports and the index route by adding the highlighted lines:
+
+`from flask import render_template
+from app.posts import bp
+from app.extensions import db
+from app.models.post import Post
+@bp.route('/')
+def index():
+posts = Post.query.all()
+return render_template('posts/index.html', posts=posts)`
+
+Save and close the file.
+
+You import the `db` database object and the `Post` model. You get all the posts in the database and then pass them to the posts’ index template.
+
+`db`
+`Post`
+
+Open the posts’ index template for modification to display the posts you passed to it:
+
+`1. nano app/templates/posts/index.html`
+
+Edit the file by adding the highlighted lines:
+
+`{% extends 'base.html' %}
+{% block content %}
+<span class="title"><h1>{% block title %} The Posts Page {% endblock %}</h1></span>
+<div class="content">
+<h2>This is the posts Flask blueprint</h2>
+{% for post in posts %}
+<div class="post">
+<p><b>#{{ post.id }}</b></p>
+<p class="title">
+<b>
+<a href="#">
+{{ post.title }}
+</a>
+</b>
+</p>
+<div class="content">
+<p>{{ post.content }}</p>
+</div>
+<hr>
+</div>
+{% endfor %}
+</div>
+{% endblock %}`
+
+Save and close the file.
+
+Here, you loop through posts and display each post’s ID, title, and content.
+
+With the development server running, visit the posts’ index page or refresh it if you have it open:
+
+`http://127.0.0.1:5000/posts/`
+
+The sample posts you’ve generated will be displayed on the index page, similar to the following image:
+
+![The Posts Page](https://deved-images.nyc3.cdn.digitaloceanspaces.com/CART-68467/The%20Posts%20Page.png)
+
+![The Posts Page](https://deved-images.nyc3.cdn.digitaloceanspaces.com/CART-68467/The%20Posts%20Page.png)
+
+You now have a database model for posts. You can now add features to your application with new routes and templates, such as creating, editing, and deleting posts.
+
+### [Creating and Interacting with the Question Model](#creating-and-interacting-with-the-question-model)
+
+You’ve created a posts model and interacted with it in your posts blueprint. You will now add the questions database model for managing questions and answers.
+
+At this point in the tutorial, your `flask_app` directory structure is as follows (excluding the virtual environment’s directory):
+
+`flask_app`
+`.
+├── flask_app
+├── app
+│ ├── extensions.py
+│ ├── __init__.py
+│ ├── main
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── models
+│ │ └── post.py
+│ ├── posts
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ ├── questions
+│ │ ├── __init__.py
+│ │ └── routes.py
+│ └── templates
+│ ├── base.html
+│ ├── index.html
+│ ├── posts
+│ │ ├── categories.html
+│ │ └── index.html
+│ └── questions
+│ └── index.html
+├── app.db
+└── config.py`
+
+To create a questions database model, open a new file called `question.py` inside your models directory:
+
+`question.py`
+`1. nano app/models/question.py`
+
+Add the following code:
+
+`from app.extensions import db
+class Question(db.Model):
+id = db.Column(db.Integer, primary_key=True)
+content = db.Column(db.Text)
+answer = db.Column(db.Text)
+def __repr__(self):
+return f'<Question {self.content}>'`
+
+Save and close the file.
+
+Here, you import the `db` database object from the `app.extensions` module. Then you create a model called `Question` using the `db.Model` class. In the model, you have an ID integer column as a primary key (`id`), a text column for the question’s content (`content`), and a text column for its answer (`answer`). Then you use the special `__repr__()` method to represent each question using its content.
+
+`db`
+`app.extensions`
+`Question`
+`db.Model`
+`id`
+`content`
+`answer`
+`__repr__()`
+
+In the terminal session that is running the Flask shell, run the following code to create the questions table based on the questions model:
+
+`1. flask shell`
+
+Run the following code to create the questions table and add a few questions and answers to it:
+
+`1. from app.extensions import db
+2. from app.models.question import Question
+3. db.create_all()
+5. q1 = Question(content='Why is the sky blue?', answer='Because... Why not?')
+6. q2 = Question(content='What is love?', answer='A portal to the underworld.')
+7. db.session.add_all([q1, q2])
+8. db.session.commit()`
+
+The code should execute without an output. If you receive an error, check your `app/models/question.py` file to ensure your code is written with the correct syntax.
+
+`app/models/question.py`
+
+You import the database object and the questions model, then use `db.create_all()` to create the table, and finally you add two question objects to the database session and commit the transaction.
+
+`db.create_all()`
+
+Exit the Flask shell:
+
+`1. exit()`
+
+You can now interact with the new questions model in your questions blueprint. To do so, open the questions blueprint’s `routes.py` file for a modification to query and display the questions you have in your questions table:
+
+`routes.py`
+`1. nano app/questions/routes.py`
+
+Edit the file by adding the highlighted lines:
+
+`from flask import render_template
+from app.questions import bp
+from app.models.question import Question
+@bp.route('/')
+def index():
+questions = Question.query.all()
+return render_template('questions/index.html', questions=questions)`
+
+Save and close the file.
+
+Here, you import the questions model, get all the questions in the database, and then pass them to the questions’ index template.
+
+Next, you’ll display the questions you passed to the questions’ index template and add a web form to allow users to add new questions. Open the `index.html` file in the questions’ template directory:
+
+`index.html`
+`1. nano app/templates/questions/index.html`
+
+Edit the file by adding the highlighted lines:
+
+`{% extends 'base.html' %}
+{% block content %}
+<span class="title">
+<h1>{% block title %} Questions {% endblock %}</h1>
+</span>
+<div class="questions">
+<h2>Questions Blueprint</h2>
+<div class="question">
+<div class="new-question">
+<form method="POST">
+<p>
+<textarea id="q-content"
+name="content"
+placeholder="Question"
+cols="30" rows="3"></textarea>
+</p>
+<textarea id="q-answer"
+name="answer"
+placeholder="Answer"
+cols="30" rows="3"></textarea>
+<p><input type="submit"></p>
+</form>
+</div>
+<div class="questions-list">
+{% for question in questions %}
+<div class="question">
+<h4>{{ question.content }}</h4>
+<p>{{ question.answer }}</p>
+<hr>
+</div>
+{% endfor %}
+</div>
+</div>
+</div>
+{% endblock %}`
+
+Save and close the file.
+
+Here, you create a form with two text areas: one for the question’s content and one for its answer. Then you add a submit button for the form.
+
+Below the form, you loop through the `questions` variable you passed from the questions’ index route, displaying each question’s content and answer.
+
+`questions`
+
+With your development server running, use your browser to navigate to the questions index page:
+
+`http://127.0.0.1:5000/questions/`
+
+The page will load with the blueprint heading, the submission form, and two sample questions:
+
+![Questions Index](https://deved-images.nyc3.cdn.digitaloceanspaces.com/CART-68467/Questions%20Index.png)
+
+![Questions Index](https://deved-images.nyc3.cdn.digitaloceanspaces.com/CART-68467/Questions%20Index.png)
+
+However, filling in and submitting the form will result in a `405 Method Not Allowed` HTTP error because the form sends a `POST` request to the questions’ index route, but the route does not accept nor handle `POST` requests. To resolve this issue and make the form functional, you’ll modify the index route of the questions blueprint and use the form data to add new questions to the database.
+
+`405 Method Not Allowed`
+`POST`
+`POST`
+
+Open the questions blueprint’s `routes.py` file:
+
+`routes.py`
+`1. nano app/questions/routes.py`
+
+Edit the file by adding the highlighted lines:
+
+`from flask import render_template, request, url_for, redirect
+from app.questions import bp
+from app.models.question import Question
+from app.extensions import db
+@bp.route('/', methods=('GET', 'POST'))
+def index():
+questions = Question.query.all()
+if request.method == 'POST':
+new_question = Question(content=request.form['content'],
+answer=request.form['answer'])
+db.session.add(new_question)
+db.session.commit()
+return redirect(url_for('questions.index'))
+return render_template('questions/index.html', questions=questions)`
+
+Save and close the file.
+
+You allow the `GET` and `POST` methods by passing the `('GET', 'POST')` tuple to the `methods` parameter. You handle `POST` requests in the `if request.method == 'POST':` condition. In it, you create a new question object using the content and answer the user submits, which you get from the `request.form` object. You add the new question to the database session, commit the transaction, and then redirect the user to the questions index page.
+
+`GET`
+`POST`
+`('GET', 'POST')`
+`methods`
+`POST`
+`if request.method == 'POST':`
+`request.form`
+
+The form will now work, and you can add new questions and answers to your database. You can test this functionality at the `http://127.0.0.1:5000/questions/` URL.
+
+`http://127.0.0.1:5000/questions/`
+
+You have integrated Flask-SQLAlchemy with your application, adding a directory for models to organize your code.
+
+You can compare your final files against the code held in [the DigitalOcean community repository](https://github.com/adyouri/large-flask-app-template).
+
+## [Conclusion](#conclusion)
+
+You’ve structured a large Flask application using blueprints and organized it with templates and models. You set it up so that each component has its own routes, templates, and models.
+
+The example web application now has three major components that can be expanded upon in different ways:
+
+The main blueprint: You can add an about page or a contact page for users to contact the application owner.
+
+The posts blueprint: You can add pages for creating, editing, deleting, and sorting posts. You can also add tags to posts using a [Many-to-Many database relationship with Flask-SQLAlchemy](/community/tutorials/how-to-use-many-to-many-database-relationships-with-flask-sqlalchemy).
+
+The questions blueprint: You can add pages for managing questions and use a [One-to-Many database relationship with Flask-SQLAlchemy](/community/tutorials/how-to-use-one-to-many-database-relationships-with-flask-sqlalchemy) to create another table for answers so that a question can have multiple solutions.
+
+You can also add more blueprints for features such as authentication, payments, administration, and more.
+
+If you want to read more about Flask, check out the other tutorials in the [How To Build Web Applications with Flask](/community/tutorial_series/how-to-create-web-sites-with-flask) series.
+
+Thanks for learning with the DigitalOcean Community. Check out our offerings for compute, storage, networking, and managed databases.
+
+[Learn more about our products](/products "Learn more about our products")
+
+### Tutorial Series: How To Build Web Applications with Flask
+
+![Flask banner image](https://assets.digitalocean.com/articles/how-to-code-in-flask-banner/how-to-code-in-flask.png)
+
+![Flask banner image](https://assets.digitalocean.com/articles/how-to-code-in-flask-banner/how-to-code-in-flask.png)
+
+Flask is a lightweight Python web framework that provides useful tools and features for creating web applications in the Python Language. It gives developers flexibility and is an accessible framework for new developers because you can build a web application quickly using only a single Python file. Flask is also extensible and doesn’t force a particular directory structure or require complicated boilerplate code before getting started. Learning Flask will allow you to quickly create web applications in Python. You can take advantage of Python libraries to add advanced features to your web application, like storing your data in a database, or validating web forms.
+
+Browse Series: 13 tutorials
+
+### About the author(s)
+
+![Abdelhadi Dyouri](https://www.gravatar.com/avatar/25fa7c01cef5adb2b17a3e566a93a3d2b6f1b596a804473a2ad379520ec69ec8?default=retro&size=256)
+
+Abdelhadi Dyouri
+
+Author
+
+Web developer.
+I mostly use Python & JavaScript. I like Flask and I am currently learning React.
+You can say hi on Twitter :)
+
+![Caitlin Postal](https://www.gravatar.com/avatar/e182ccd5480c98ce2717f039867899be36373cf5b613beba80bb5495f96ccb60?default=retro&size=256)
+
+Caitlin Postal
+
+Editor
+
+Technical Editor
+
+#### Still looking for an answer?
+
+This textbox defaults to using Markdown to format your answer.
+
+You can type !ref in this text area to quickly search our full set of tutorials, documentation & marketplace offerings and insert the link!
+
+![Muwawu Moses](https://www.gravatar.com/avatar/66fd525c93d4d31c39bd982ee041de72f9c236356b946037ff5a8edf0094d1a1?default=retro)
+
+!ref connecting sqlalchemy to MySQL
+
+![Marco Caspers](https://www.gravatar.com/avatar/1263ab756e6aa4a2fad3ed4fd0212cc6b3477b27a26e4448f4bcd14a0ba41e58?default=retro)
+
+This comment has been deleted
+
+![11e52da4562a4d30acb60b5d7495a0](https://www.gravatar.com/avatar/b311a93ba116ae1074e6ffcedd311e8362f9970817641f2eefc8bf7663c0c924?default=retro)
+
+This is a very good in-depth tutorial. Many sites show how Blueprint works, but it shows how to properly build the app’s architecture and the interaction between Blueprint and SQLAlchemy.
+Very useful to me.
+
+![Luis Morrissey](https://www.gravatar.com/avatar/2d8524a696629f38faddee41dc4f679ced39e9b4aa7655e187836d87b4465ea9?default=retro)
+
+Very well written. I really enjoyed this!!! Thanks!!
+
+![Creative Commons](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fcreativecommons.c0a877f1.png&width=384)
+
+## Deploy on DigitalOcean
+
+## Popular Topics
+
+## Featured tutorials
+
+##### Join the Tech Talk
+
+Please complete your information!
+
+## Deploy on DigitalOcean
+
+## Popular Topics
+
+## Featured tutorials
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Ftutorials-2-tulip.764b9f59.svg&width=1920)
+
+## Become a contributor for community
+
+Get paid to write technical tutorials and select a tech-focused charity to receive a matching donation.
+
+[Sign Up](/community/pages/write-for-digitalocean)
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fdocs-2-kiwi.239a03ef.svg&width=1920)
+
+## DigitalOcean Documentation
+
+Full documentation for every DigitalOcean product.
+
+[Learn more](https://docs.digitalocean.com)
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fblogs-1-lavender.495d1f00.svg&width=1920)
+
+## Resources for startups and AI-native businesses
+
+The Wave has everything you need to know about building a business, from raising funding to marketing your product.
+
+[Learn more](/resources)
+
+## Get our newsletter
+
+Stay up to date by signing up for DigitalOcean’s Infrastructure as a Newsletter.
+
+New accounts only. By submitting your email you agree to our [Privacy Policy](/legal/privacy-policy)
+
+## The developer cloud
+
+Scale up as you grow — whether you're running one virtual machine or ten thousand.
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fclouds-mobile.5d14bead.svg&width=3840)
+
+## Start building today
+
+From GPU-powered inference and Kubernetes to managed databases and storage, get everything you need to build, scale, and deploy intelligent applications.
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fwaves-mobile.a054c63e.svg&width=3840)
+
+## Company
+
+## Products
+
+## Resources
+
+## Solutions
+
+## Contact
+
+## Company
+
+## Products
+
+## Resources
+
+## Solutions
+
+## Contact
+
+---
+
+Title: Flask Blueprints and Large App Structure - A Blog
+###### Powered by
+
+# Flask Blueprints and Large App Structure
+
+I was curious about how larger Flask applications were structured, so I checked out the section on A Better Application Structure.
+
+Link to original tutorial: [Miguel Grinberg’s Flask Mega Tutorial - part XV](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xv-a-better-application-structure)
+
+From the basic application structure I’ve learned so far to create the simplest Flask application, all the routes and controller actions existed in one file, all the model definitions existed in another, and all the templates existed in one directory.
+
+This would get unwieldy quickly, as more features and components are added to an application. I wanted to see how larger applications would be organized, as it differs greatly from how Rails generators create scaffolding.
+
+Large Flask apps can be organized with Blueprints. It’s an extension of flask that must be imported and initialized, and creates a structure that represents a feature of your application, for example user authentication. It would be a directory inside your app that encompass all the routes and form templates needed and then be registered as a component with your main application.
+
+One benefit of this is that it makes code more reusable between projects. Another is that you can change all the decorators (route definers, etc.) so that they rely on the blueprint `@bp.route` instead of a global application instance `@app.route`. This comes in handy for testing, as you can then create an application factory function to create new instances of your application as needed, with controlled configurations and ensuring your tests do not affect each other.
+
+`@bp.route`
+`@app.route`
+
+Blueprints is an interesting way to organize an application. If I were to compare it to Rails, it may seem harder to read because the files are more densely filled with code, but there are also fewer files to go through, which makes it a little easier.
+
+I like that Rails is a full stack framework and you can complete a project from back to front end using one framework. Flask is similar in this way, and it also has all the features and extensions you need to make a full application.
+
+The main difference is that Flask gives you much more freedom to choose how to build and organize your projects. I think experienced Flask developers probably really appreciate that Flask starts up very simply, and doesn’t make choices for you that you may need to undo or work around if they don’t suit your needs. The trade off is that you have to make your own decisions, and choose what tools you will rely on and how you will build out the application structure on your own.
+
+Copyright © Jenny Kam 2019
+
+---
+
+Title: Application Factories — Flask Documentation (3.1.x)
+### Navigation
+
+* [index](../../genindex/ "General Index")
+* [modules](../../py-modindex/ "Python Module Index") |
+* [next](../appdispatch/ "Application Dispatching") |
+* [previous](../packages/ "Large Applications as Packages") |
+* [Flask Documentation (3.1.x)](../../) »
+* [Patterns for Flask](../) »
+* Application Factories
+
+# Application Factories[¶](#application-factories "Link to this heading")
+
+If you are already using packages and blueprints for your application ([Modular Applications with Blueprints](../../blueprints/)) there are a couple of really nice ways to further improve the experience. A common pattern is creating the application object when the blueprint is imported. But if you move the creation of this object into a function, you can then create multiple instances of this app later.
+
+So why would you want to do this?
+
+1. Testing. You can have instances of the application with different settings to test every case.
+2. Multiple instances. Imagine you want to run different versions of the same application. Of course you could have multiple instances with different configs set up in your webserver, but if you use factories, you can have multiple instances of the same application running in the same application process which can be handy.
+
+So how would you then actually implement that?
+
+## Basic Factories[¶](#basic-factories "Link to this heading")
+
+The idea is to set up the application in a function. Like this:
+
+```
+ def  create_app(config_filename): app = Flask(__name__) app. config. from_pyfile(config_filename) from  yourapplication.model  import db db. init_app(app) from  yourapplication.views.admin  import admin from  yourapplication.views.frontend  import frontend app. register_blueprint(admin) app. register_blueprint(frontend) return app
+```
+
+The downside is that you cannot use the application object in the blueprints at import time. You can however use it from within a request. How do you get access to the application with the config? Use [`current_app`](../../api/#flask.current_app "flask.current_app"):
+
+```
+ from  flask  import current_app, Blueprint, render_template admin = Blueprint('admin', __name__, url_prefix ='/admin') @admin. route('/') def  index(): return render_template(current_app. config['INDEX_TEMPLATE'])
+```
+
+Here we look up the name of a template in the config.
+
+## Factories & Extensions[¶](#factories-extensions "Link to this heading")
+
+It’s preferable to create your extensions and app factories so that the extension object does not initially get bound to the application.
+
+Using [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/), as an example, you should not do something along those lines:
+
+```
+ def  create_app(config_filename): app = Flask(__name__) app. config. from_pyfile(config_filename) db = SQLAlchemy(app)
+```
+
+But, rather, in model.py (or equivalent):
+
+```
+ db = SQLAlchemy()
+```
+
+and in your application.py (or equivalent):
+
+```
+ def  create_app(config_filename): app = Flask(__name__) app. config. from_pyfile(config_filename) from  yourapplication.model  import db db. init_app(app)
+```
+
+Using this design pattern, no application-specific state is stored on the extension object, so one extension object can be used for multiple apps. For more information about the design of extensions refer to [Flask Extension Development](../../extensiondev/).
+
+## Using Applications[¶](#using-applications "Link to this heading")
+
+To run such an application, you can use the **flask** command:
+
+Flask will automatically detect the factory if it is named `create_app` or `make_app` in `hello`. You can also pass arguments to the factory like this:
+
+Then the `create_app` factory in `hello` is called with the keyword argument `local_auth=True`. See [Command Line Interface](../../cli/) for more detail.
+
+## Factory Improvements[¶](#factory-improvements "Link to this heading")
+
+The factory function above is not very clever, but you can improve it. The following changes are straightforward to implement:
+
+1. Make it possible to pass in configuration values for unit tests so that you don’t have to create config files on the filesystem.
+2. Call a function from a blueprint when the application is setting up so that you have a place to modify attributes of the application (like hooking in before/after request handlers etc.)
+3. Add in WSGI middlewares when the application is being created if necessary.
+
+[![Logo of Flask](../../_static/flask-logo.svg)](../../)
+
+### Contents
+
+* [Application Factories](#)
+  + [Basic Factories](#basic-factories)
+  + [Factories & Extensions](#factories-extensions)
+  + [Using Applications](#using-applications)
+  + [Factory Improvements](#factory-improvements)
+
+### Navigation
+
+* [Overview](../../)
+  + [Patterns for Flask](../)
+    - Previous: [Large Applications as Packages](../packages/ "previous chapter")
+    - Next: [Application Dispatching](../appdispatch/ "next chapter")
+
+### Quick search
+
+© Copyright 2010 Pallets. Created using [Sphinx](https://www.sphinx-doc.org/) 8.2.3.
+
+ 

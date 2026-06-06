@@ -1,0 +1,445 @@
+Title: LLM Fundamentals | Microsoft Learn
+Key Highlights:
+A large language model is a neural network trained on massive amounts of text data to predict the next token in a sequence. Through this simple training objective — given all the previous tokens, what comes next? — the model learns language structure and world knowledge.
+[...]
+1. Model weights — billions of numerical parameters learned during training that encode the model's knowledge.
+[...]
+2. Architecture code — the neural network structure (typically a Transformer) that runs the weights to produce output.
+[...]
+LLMs don't process raw text character by character — they work with tokens. A tokenizer splits input text into tokens, which are sub-word units from a fixed vocabulary. A token might be a full word (`"hello"`), part of a word (`"un"` + `"believ"` + `"able"`), a single character, or punctuation.
+[...]
+to a number (an ID in the model's vocabulary), and the model
+[...]
+entirely on these numbers — not on text. When the model produces output
+[...]
+it generates token IDs that
+[...]
+then decoded back into text
+[...]
+Modern LLMs go through multiple stages of training, each building on the last to produce increasingly capable and useful models.
+[...]
+Pretraining is where the model learns the bulk of its knowledge. The model is fed massive amounts of text from the internet — books, articles, code, websites — and learns to predict the next token given all previous tokens. This stage requires enormous compute (thousands of GPUs for weeks or months) and produces a base model.
+[...]
+Post-training transforms a base model into a useful assistant. This stage happens in multiple phases:
+[...]
+Supervised Fine-Tuning (SFT) — The model is trained on curated datasets of high-quality conversations: human-written examples of ideal assistant behavior. These examples show the model how to follow instructions, answer questions helpfully, decline harmful requests, and format responses clearly. SFT teaches the model the role of a helpful assistant.
+[...]
+Reinforcement Learning from Human Feedback (RLHF) — After SFT, human raters compare pairs of model responses and indicate which is better. This preference data trains a reward model, which is then used with reinforcement learning to further tune the LLM toward responses that humans prefer. RLHF helps the model learn subtle quality distinctions that are hard to capture in static examples — like being concise vs. thorough, or knowing when to ask for clarification. This usually works in unverifiable domains, where there is no single correct answer, unlike problems with a clear objective or ground truth, such as arithmetic.
+[...]
+More recently, reinforcement learning techniques have been applied to teach models to reason step by step before producing a final answer. Rather than immediately responding, these models learn to generate a chain of thought — breaking problems into sub-steps, exploring alternatives, and verifying their work.
+[...]
+This is the
+[...]
+behind reasoning models (such as OpenAI
+[...]
+significantly better at math, logic, coding, and
+[...]
+at the cost of higher latency and token usage (the
+[...]
+detailed overview:
+[...]
+most powerful approach as it allows
+[...]
+This approach usually
+[...]
+in verifiable domains, such as mathematics, logic, and
+[...]
+When you send a request to an LLM, the model generates its response one token at a time through a process called autoregressive generation:
+[...]
+1. Your full prompt (system message, conversation history, user input) is converted into tokens and fed into the model.
+2. The model processes all input tokens and produces a probability distribution over its vocabulary — predicting which token is most likely to come next.
+3. A token is selected from that distribution (influenced by temperature and other sampling parameters).
+4. That new token is appended to the full sequence, and the entire updated sequence is fed back into the model to generate the next token.
+5. This repeats until the model produces a stop token or reaches a length limit.
+[...]
+This iterative process means that conceptually, the model considers the entire token sequence for every token it generates. This is why LLMs have a fixed context window — a maximum number of tokens the model can handle. Everything must fit: your prompt, the conversation history, any injected context, and the tokens the model is generating as its response.
+[...]
+Because inference is autoregressive (one token at a time), longer responses take proportionally longer to generate. Each token requires a full forward pass through the model. This is why streaming — sending tokens to the client as they're generated rather than waiting for the complete response — is a common pattern in agent applications.
+[...]
+The model processes all messages in the context window and generates the next assistant response. This stateless request-response pattern is the foundation that agents build upon.
+[...]
+LLMs can
+[...]
+they can't browse the web, query a database, or call an API on their own
+[...]
+The answer is
+[...]
+and external code
+[...]
+output and does the actual work
+[...]
+Remember that an LLM generates output one token at a time. During post-training, models are fine-tuned on examples that include tool interactions. These examples teach the model a structured format — when the model determines that it needs to use a tool, instead of generating a natural language response, it generates tokens that follow a specific schema, such as:
+[...]
+To the model, this isn't fundamentally different from generating any other text. It's still predicting the next token. But because it was trained on thousands of examples of when and how to produce these structured outputs, it learns when a tool would be helpful, which tool to use, and what arguments to provide — all expressed as a sequence of tokens.
+[...]
+During training, the model sees tool definitions included in the prompt — each tool described by a name, a description of what it does, and the parameters it accepts. The training examples demonstrate the pattern:
+[...]
+. The model generates a
+[...]
+— because the training data showed that this is the correct behavior when the model doesn't have the information itself.
+[...]
+. A tool result appears in the
+[...]
+(provided by external
+[...]
+during training data collection).
+[...]
+. The model generates a final response that incorporates the tool result
+[...]
+Through this training, the model learns the judgment of when to call a tool (vs. answering from its own knowledge), which tool to select from the available options, and how to formulate the arguments based on the user's request.
+
+---
+
+Title: LLMs: What's a large language model?  |  Machine Learning  |  Google for Developers
+Key Highlights:
+A newer technology,
+large language models (LLMs)
+predict a token or sequence of tokens, sometimes many paragraphs worth of
+predicted tokens. Remember that a token can be a word, a subword (a subset of
+a word), or even a single character. LLMs make much better predictions
+than N-gram language models or recurrent neural networks because:
+[...]
+- LLMs contain far more parameters than recurrent models.
+- LLMs gather far more context.
+[...]
+This section introduces the most successful and widely used architecture
+for building LLMs: the Transformer.
+[...]
+state-of-the-art architecture for a wide variety of
+[...]
+language model applications, such
+[...]
+Full transformers consist of an encoder and a decoder:
+[...]
+- An encoder converts input text into an intermediate representation. An encoder is an enormous neural net.
+- A decoder converts that intermediate representation into useful text. A decoder is also an enormous neural net.
+[...]
+both an encoder
+and a decoder
+[...]
+- Encoder-only architectures map input text into an intermediate representation (often, an embedding layer). Use cases for encoder-only architectures include: Predicting any token in the input sequence (which is the conventional role of language models). Creating a sophisticated embedding, which could serve as the input for another system, such as a classifier.
+[...]
+- Decoder-only architectures generate new tokens from the text already generated. Decoder-only models typically excel at generating sequences; modern decoder-only models can use their generation power to create continuations of dialog histories and other prompts.
+[...]
+To enhance context, Transformers rely heavily on a concept called
+self-attention.
+Effectively, on behalf of each token of input, self-attention asks
+the following question:
+[...]
+The "self" in "self-attention" refers to the input sequence. Some attention
+mechanisms weigh relations of input tokens to tokens in an output sequence like
+a translation or to tokens in some other sequence. But self-attention only
+weighs the importance of relations between tokens in the input sequence.
+[...]
+Some self-attention mechanisms are bidirectional , meaning that they
+calculate relevance scores for tokens preceding and following the word being
+attended to. For example, in Figure 3, notice that words on both sides of
+it are examined. So, a bidirectional self-attention mechanism can gather
+context from words on either side of the word being attended to. By contrast, a
+unidirectional self-attention mechanism can only gather context from words
+on one side of the word being attended to. Bidirectional self-attention is
+especially useful for generating representations of whole sequences, while
+applications that generate sequences token-by-token require unidirectional
+self-attention. For this reason, encoders use bidirectional self-attention,
+while decoders use unidirectional.
+[...]
+Each self-attention layer is typically comprised of multiple self-attention
+heads. The output of a layer is a mathematical operation (for example,
+weighted average or dot product) of the output of the different heads.
+[...]
+Since the parameters of each head are initialized to random values, different
+heads can learn different relationships between each word being attended to and
+the nearby words. For example, the
+[...]
+described in the previous
+section
+[...]
+which noun the pronoun it referred to
+[...]
+A complete transformer model stacks multiple self-attention layers on top of
+one another. The output from the previous layer becomes the input for the next.
+This stacking allows the model to build progressively more complex and abstract
+understandings of the text. While earlier layers might focus on basic syntax,
+deeper layers can integrate that information to grasp more nuanced concepts like
+sentiment, context, and thematic links across the entire input.
+[...]
+The primary ingredient in building an LLM is a phenomenal amount
+of training data (text), typically somewhat filtered. The first phase
+of training is usually some form of
+unsupervised
+learning on that training data.
+Specifically, the model trains on masked predictions, meaning that
+certain tokens in the training data are intentionally hidden. The model trains
+by trying to predict those missing tokens. For example, assume the following
+sentence is part of the training data:
+[...]
+An LLM is just a neural net, so loss (the number of masked tokens the
+model correctly considered) guides the degree to which backpropagation updates
+parameter values.
+[...]
+A Transformer-based model trained to predict missing data gradually
+learns to detect patterns and higher-order structures in the data to get clues
+about the missing token. Consider the following example masked instance:
+[...]
+Extensive training on enormous numbers of masked examples enable an LLM
+to learn that "harvested" or "picked" are high probability matches for the
+first token and "oranges" or "they" are good choices for the second token.
+[...]
+An optional further training step called instruction
+tuning can improve an LLM's ability to follow instructions.
+[...]
+Transformers contain hundreds of billion or even trillions of
+parameters.
+[...]
+After all, a
+[...]
+parameters uses fewer resources
+[...]
+to make predictions than a
+[...]
+However, research shows that Transformers with more parameters
+[...]
+consistently outperform Transformers with fewer parameters.
+[...]
+You've seen how researchers train LLMs to predict a missing word or two, and you
+might be unimpressed. After all, predicting a word or two is essentially the
+autocomplete feature built into various text, email, and authoring software.
+You might be wondering how LLMs can generate sentences or paragraphs or
+haikus about arbitrage.
+[...]
+In fact, LLMs are essentially autocomplete mechanisms that can automatically
+predict (complete) thousands of tokens. For example, consider a sentence
+followed by a masked sentence:
+[...]
+A sufficiently large LLM can generate probabilities for paragraphs and entire
+essays. You can think of a user's questions to an LLM as the "given" sentence
+followed by an imaginary mask. For example:
+[...]
+As another example, an LLM trained on a massive
+[...]
+of doing sophisticated
+[...]
+However, those LLMs are basically just aut
+[...]
+ting a word
+[...]
+LLMs can generate clear, easy-to-understand text for a wide
+variety of target audiences. LLMs can make predictions on tasks they are
+explicitly trained on. Some researchers claim that LLMs can also make
+predictions for input they were not explicitly trained on, but other
+researchers have refuted this claim.
+[...]
+inference, though the
+[...]
+LLMs can exhibit all sorts of
+
+---
+
+Title: A jargon-free explanation of how AI large language models work - Ars Technica
+Key Highlights:
+We’ll start by explaining word vectors, the surprising way language models represent and reason about language. Then we’ll dive deep into the transformer, the basic building block for systems like ChatGPT. Finally, we’ll explain how these models are trained and explore why good performance requires such phenomenally large quantities of data.
+[...]
+GPT-3, a 2020 predecessor to the language models that power ChatGPT, is organized into dozens of layers. Each layer takes a sequence of vectors as inputs—one vector for each word in the input text—and adds information to help clarify the meaning of that word and better predict which word might come next.
+[...]
+The transformer figures out that wants and cash are both verbs (both words can also be nouns). We’ve represented this added context as red text in parentheses, but in reality, the model would store it by modifying the word vectors in ways that are difficult for humans to interpret. These new vectors, known as a hidden state, are passed to the next transformer in the stack.
+[...]
+John. The second
+[...]
+Research suggests that the first few layers focus on understanding the sentence’s syntax and resolving ambiguities like we’ve shown above. Later layers (which we’re not showing to keep the diagram a manageable size) work to develop a high-level understanding of the passage as a whole.
+[...]
+Researchers don’t understand exactly how LLMs keep track of this information, but logically speaking, the model must be doing it by modifying the hidden state vectors as they get passed from one layer to the next. It helps that in modern LLMs, these vectors are extremely large.
+[...]
+For example, the most powerful version of GPT-3 uses word vectors with 12,288 dimensions—that is, each word is represented by a list of 12,288 numbers. That’s 20 times larger than Google’s 2013 word2vec scheme. You can think of all those extra dimensions as a kind of “scratch space” that GPT-3 can use to write notes to itself about the context of each word. Notes made by earlier layers can be read and modified by later layers, allowing the model to gradually sharpen its understanding of the passage as a whole.
+[...]
+Now let’s talk about what happens inside each transformer. The transformer has a two-step process for updating the hidden state for each word of the input passage:
+[...]
+1. In the attention step, words “look around” for other words that have relevant context and share information with one another.
+2. In the feed-forward step, each word “thinks about” information gathered in previous attention steps and tries to predict the next word.
+[...]
+You can think of the attention mechanism as a matchmaking service for words. Each word makes a checklist (called a query vector) describing the characteristics of words it is looking for. Each word also makes a checklist (called a key vector) describing its own characteristics. The network compares each key vector to each query vector (by computing a dot product) to find the words that are the best match. Once it finds a match, it transfers information from the word that produced the key vector to the word that produced the query vector.
+[...]
+Each attention layer has several “attention heads,” which means that this information-swapping process happens several times (in parallel) at each layer. Each attention head focuses on a different task:
+[...]
+in sequence, with
+[...]
+they called Name
+[...]
+information from the
+[...]
+to the final
+[...]
+vector (for
+[...]
+word “to”). GPT
+[...]
+the information in
+[...]
+predict the next word.
+[...]
+In short, these nine attention
+[...]
+enabled GPT-2 to figure out that “John gave a drink to John” doesn’t make sense and choose “John gave a drink to Mary” instead.
+[...]
+After the attention heads transfer information between word vectors, there’s a feed-forward network that “thinks about” each word vector and tries to predict the next word. No information is exchanged between words at this stage: the feed-forward layer analyzes each word in isolation. However, the feed-forward layer does have access to any information that was previously copied by an attention head. Here’s the structure of the feed-forward layer in the largest version of GPT-3:
+[...]
+What makes the feed-forward layer powerful is its huge number of connections. We’ve drawn this network with three neurons in the output layer and six neurons in the hidden layer, but the feed-forward layers of GPT-3 are much larger: 12,288 neurons in the output layer (corresponding to the model’s 12,288-dimensional word vectors) and 49,152 neurons in the hidden layer.
+[...]
+billion * 96 =
+[...]
+116 billion
+[...]
+thirds of GPT-3
+[...]
+s overall total of
+[...]
+175 billion
+[...]
+In a 2020 paper, researchers from Tel Aviv University found that feed-forward layers work by pattern matching: Each neuron in the hidden layer matches a specific pattern in the input text. Here are some of the patterns that were matched by neurons in a 1
+[...]
+-layer version of GPT
+[...]
+When a neuron matches one of these patterns, it adds information to the word vector. While this information isn’t always easy to interpret, in many cases, you can think of it as a tentative prediction about the next word.
+[...]
+researchers found that the
+[...]
+Indeed, one way to think about the feed-forward layers is as a database of information the
+[...]
+has learned from its training data. The
+[...]
+layers are more likely
+[...]
+facts related to specific words, such as “
+[...]
+comes after Donald.” Later layers
+[...]
+more complex relationships like “add this
+[...]
+to convert a country to its capital.”
+[...]
+A key innovation of LLMs is that they don’t need explicitly labeled data. Instead, they learn by trying to predict the next word in ordinary passages of text. Almost any written material—from Wikipedia pages to news articles to computer code—is suitable for training these models.
+[...]
+Traditionally, a major challenge for building language models was figuring out the most useful way of representing different words—especially because the meanings of many words depend heavily on context. The next-word prediction approach allows researchers to sidestep this thorny theoretical puzzle by turning it into an empirical problem. It turns out that if we provide enough data and computing power, language models end up learning a lot about how human language works simply by figuring out how to best predict the next word. The downside is that we wind up with systems whose inner workings we don’t fully understand.
+
+---
+
+Title: How Do Large Language Models Work? How AI Understands and Generates Text | Coursera
+Key Highlights:
+Large language models (LLMs), like OpenAI’s GPT-3, are artificial intelligence programs that generate text in natural language in response to a user prompt. These models work by consulting a vast amount of training data to predict the most likely response to any given request. They can create new, unique content, provide sentiment analysis, function as a help desk, and form the basis of other types of technology.
+[...]
+Large language models use several different layers of other technology, including deep learning, transformer models, and, specifically, the autoregressive models within the transformer models. Take a closer look at these topics and how they work together to power large language models.
+[...]
+Large language models can generate text that looks natural using deep learning. Deep learning is a type of machine learning that uses neural networks to analyze their own responses against a vast array of training data to learn how to give a better answer. It is different from other kinds of machine learning because it uses neural networks with huge amounts of layers that replicate the complicated process that the human brain undertakes when it thinks.
+[...]
+The type of neural networks that LLMs use are transformer models, skilled at understanding the context of words and how words relate to one another. Transformer architecture allows LLMs to generate text by understanding what words are most likely to come next, using principles of natural language processing. This makes the LLM better able to understand the nuances of both the prompt you offer and the sentences or paragraphs it generates as a response.
+[...]
+If you zoom in on an even closer level and look inside the transformer model, you can find another technology contributing to LLMs: the autoregressive model. The autoregressive model is found within transformer architecture and helps the LLM determine the best words to use in its response based on predictions it gathers from its training material. For example, imagine you ask an LLM, “What color is grass?” The LLM isn’t looking through its training material the way you might flip through a textbook to find the answer. Instead, it uses autoregressive models to determine that “grass is green” is statistically the answer you’re looking for.
+[...]
+Large language models offer many benefits to us, but they also bring challenges for researchers and AI professionals to overcome. Large language models are good at what they do and are flexible enough that you can adapt them to lots of different use cases. You can fine-tune a model to perform a specific function, which can improve its performance and accuracy. However, one of the more exciting aspects of LLMs is what comes next. This foundational technology can lay the framework for even more advanced technology in the future.
+[...]
+At the same time, it’s important to remember that the technology faces challenges in its current state. First of all, a model is only as good as the data it trains on, which can mean that AI models regurgitate bias or ethical concerns present in training materials and present those biases as fact. LLMs can also “hallucinate,” or make up answers that aren’t factual.
+[...]
+environmental impact of
+[...]
+AI and large language models
+[...]
+a benefit and a challenge
+[...]
+power consumption required
+[...]
+operate a large
+[...]
+model prompt is substantial
+[...]
+LLMs could also offer
+[...]
+benefits, such as an increased ability to promote
+[...]
+education, reducing language barriers
+[...]
+, and increasing human productivity. Researchers and AI professionals should weigh
+[...]
+risks and benefits of these technologies
+
+---
+
+Title: What are Large Language Models (LLMs)? | DigitalOcean
+Key Highlights:
+Large Language Models (LLMs) are advanced AI systems trained on massive amounts of text data to understand context and generate human-like language.
+[...]
+LLMs (like GPT-4 and similar models) can perform a variety of language tasks, including answering questions, writing content, translating languages, and summarizing text, by predicting and assembling words based on patterns they learned during training.
+[...]
+An LLM is a language model designed to understand, generate, and process natural language. Built using deep learning architectures and transformer models, LLMs are pre-trained on vast amounts of text data to predict the next word in a sequence or solve other language-related tasks. These models use neural networks with billions of parameters, which helps them learn complex patterns, structures, and semantic relationships in human language.
+[...]
+LLMs are initially trained as a general-purpose model and later fine-tuned for specific scenarios. The process starts with vast training data, including structured data (e.g., metadata, tables, and code snippets) and unstructured data (e.g., books, articles, social media posts, and conversational transcripts). Some advanced LLMs also incorporate multimodal data, such as images paired with descriptive text, to handle tasks like image captioning or visual question answering.
+[...]
+The training process involves selecting appropriate learning methods depending on the use case and implementing them on large-scale transformer models (like generative pre-trained transformer (GPT) and bidirectional encoder representations from transformers (BERT)) :
+[...]
+| Trains the model using
+[...]
+the next word
+[...]
+language structure.
+[...]
+| Uses data where parts of the input are used to predict other parts (e.g.,
+[...]
+large models on vast amounts of data efficiently. |
+[...]
+The neural networks deploy self-attention mechanisms (which focus on the relationships between words in a sentence regardless of their position) to understand patterns in the input text, such as human language and its contextual relationships. Fine-tuning is then applied to smaller datasets for specific tasks like question-answering or customer service chatbots.
+[...]
+LLMs process natural language through a series of computational steps that use deep learning, transformer architectures, and vast training data to process and generate human language.
+[...]
+LLMs tokenize the input text into smaller units, such as words or subwords, to represent the input data numerically. These tokens are embedded into high-dimensional vectors that capture semantic (word meanings and context) and syntactic information (grammatical structure and word arrangement).
+[...]
+Since transformer models lack inherent sequential awareness, positional encodings are added to the input embeddings. These encodings provide context about the position of tokens in the input text, enabling the model to consider word order.
+[...]
+The self-attention mechanism calculates the relationships between tokens by assigning weights based on relevance. This allows the model to focus on important words or phrases in the input while processing natural language.
+[...]
+The input data passes through multiple stacked transformer layers, each consisting of self-attention and feed-forward neural networks. These layers learn hierarchical representations of the input text, capturing both local and global dependencies.
+[...]
+5. Contextual
+[...]
+As the input data moves through multiple transformer layers, each layer generates hidden states—intermediate text representations that are progressively refined. Using deep learning architectures like feed-forward neural networks, the hidden states, combined with token embeddings, positional encodings, and self-attention outputs, help the model build a deeper contextual understanding of the text. Now, the LLM can interpret the meaning of words and phrases based on their context within the sentence.
+[...]
+The final layer predicts the most likely next word or token based on the input sequence and learned patterns. Probability distributions over the vocabulary, guided by the training dataset, calculate the likelihood of various words or phrases in the input context and select the one with the highest probability.
+[...]
+In *specific use cases, pre-trained LLMs undergo fine-tuning task-specific data to refine their output generation. Fine-tuning models adjust weights and improve performance for applications like question answering or text classification. LLMs adapt to user-provided prompts or examples by analyzing patterns and context within the input.
+[...]
+The processed and generated text is decoded from numerical representations back into human language by using a tokenizer. The tokens, which represent words or subwords as numbers or vectors, are mapped back to actual words by referencing the model’s vocabulary. The grammatical and contextual consistency of the output is maintained during the text generation process, where the model samples tokens based on probability distributions learned during training. Finally, a coherent and human-understandable output is presented.
+[...]
+series by OpenAI
+[...]
+-3 and GPT-4, are among
+[...]
+largest models with hundreds of billions of parameters
+[...]
+models excel in
+[...]
+rely on transformer architecture and in
+[...]
+with minimal examples
+[...]
+developed by Google
+[...]
+designed for bidirectional
+[...]
+of text. It
+[...]
+widely used for text
+[...]
+analysis, and question-answering. BERT’s focus on bidirectional context improves its ability
+[...]
+capture complex relationships
+[...]
+By analyzing patterns in vast training datasets, they
+[...]
+relationships, tone, and meaning, which
+[...]
+answering and natural language generation
+[...]
+components, process
+[...]
+simultaneously across multiple nodes, and
+[...]
+Large Language Models (LLMs) are advanced AI systems built using deep learning architectures and transformer models that can understand, generate, and process natural language. They use neural networks with billions of parameters to learn complex patterns, structures, and semantic relationships in human language from vast amounts of training data.
+[...]
+LLMs work through a series of computational steps including tokenization, embedding, positional encoding, self-attention mechanisms, and transformer layers. They tokenize input text into smaller units, convert them to high-dimensional vectors, and use self-attention to understand relationships between words to predict the most likely next word or token.

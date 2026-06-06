@@ -1,0 +1,1341 @@
+Title: Ubuntu 24.04 LTS release notes
+
+# Ubuntu 24.04 LTS release notes¶
+
+These release notes for **Ubuntu 24.04 LTS **(Noble Numbat) provide an overview of the release and document the known issues with Ubuntu and its flavors. 
+
+For details of the changes applied since 24.04, refer to the following changelogs: 
+
+For the release schedule of Ubuntu 24.04 LTS and its point releases, refer to: 
+
+## Support lifespan¶
+
+Ubuntu 24.04 LTS will be security maintained for 5 years until 31 May 2029. Users can choose to extend this to 10 years with [Ubuntu Pro](https://ubuntu.com/pro)or 12 years with the [Legacy add-on](https://ubuntu.com/blog/canonical-expands-long-term-support-to-12-years-starting-with-ubuntu-14-04-lts). 
+
+## Upgrades¶
+
+Users of Ubuntu 23.10 have been offered an automatic upgrade to 24.04 since shortly after the release. Users of 22.04 LTS will also start being offered the automatic upgrade now that 24.04.1 LTS has been released. 
+
+## Changes since 22.04 LTS¶
+
+If you’re upgrading from Ubuntu 22.04 LTS to 24.04 LTS, you get all the changes that happened in the six months since Ubuntu 23.10, as well as the changes in all the interim releases between 22.04 LTS and 24.04 LTS. 
+
+For details, see the complete interim release notes: [22.10](https://discourse.ubuntu.com/t/kinetic-kudu-release-notes/27976), [23.04](https://discourse.ubuntu.com/t/lunar-lobster-release-notes/31910)and [23.10](https://discourse.ubuntu.com/t/mantic-minotaur-release-notes/35534). Finally, review the following changes since Ubuntu 23.10. 
+
+## New features in 24.04 LTS¶
+
+### Year 2038 support for the armhf architecture¶
+
+Ubuntu 24.04 LTS solves the [Year 2038 problem](https://en.wikipedia.org/wiki/Year_2038_problem)that existed on armhf. More than a thousand packages have been updated to handle time using a 64-bit value rather than a 32-bit one, making it possible to handle times up to 292 billion years in the future. 
+
+### Updated Packages¶
+
+### Linux kernel 🐧¶
+
+Ubuntu 24.04 LTS includes the new 6.8 Linux kernel that brings many new features. 
+
+Detailed changes are reported in the [Noble Kernel Release Notes](https://discourse.ubuntu.com/t/introducing-kernel-6-8-for-the-24-04-noble-numbat-release)post. 
+
+### systemd v255.4¶
+
+The init system was updated to systemd v255.4. See the [upstream changelog](https://github.com/systemd/systemd/releases/tag/v255)for more information about individual features. 
+
+### Netplan v1.0 🌐¶
+
+The network stack was updated to [Netplan version 1.0](https://github.com/canonical/netplan/releases/tag/1.0). Supporting simultaneous WPA2 & WPA3, Mellanox VF-LAG for high-performance SR-IOV networking and VXLAN improvements. It also provides a [stable libnetplan1 API](https://netplan.readthedocs.io/en/stable/apidoc/)and a new `netplan status --diff`sub-command to find differences between configuration and system state. For more information please see the [Introducing Netplan v1.0](https://ubuntu.com/blog/introducing-netplan-v1)blog post. 
+
+### Toolchain Upgrades 🛠️¶
+
+#### OpenJDK¶
+
+OpenJDK LTS 21 is the default in Ubuntu 24.04 LTS while maintaining support for versions 17, 11, and 8. OpenJDK 17 and 21 are also TCK certified, which means they adhere to Java standards and ensure interoperability with other Java platforms. A special FIPS-compliant OpenJDK 11 package is also available for Ubuntu Pro users. 
+
+#### .NET¶
+
+With the introduction of .NET 8, Ubuntu is taking a significant step forward in supporting the .NET community. .NET 8 will be fully supported on Ubuntu 24.04 LTS and 22.04 LTS for the entire lifecycle of both releases. This enables developers to upgrade their applications to newer .NET versions before upgrading their Ubuntu release. Starting with 24.04 LTS the .NET support has also been extended to the IBM System Z platform. 
+
+.NET 6 and .NET 7 packages with limited support are available via a [PPA](https://launchpad.net/~dotnet/+archive/ubuntu/backports). 
+
+#### Apport¶
+
+Apport added integration with systemd-coredump to handle crashes. Developers on Ubuntu can co-install systemd-coredump now and use coredumpctl to analyze crash data. Apport will continue to collect crash information and submit it to the Ubuntu Error Tracker and Launchpad. 
+
+### Security Improvements 🔒¶
+
+#### Unprivileged user namespace restrictions¶
+
+In combination with the `apparmor`package, the Ubuntu kernel now restricts the use of unprivileged user namespaces. This affects all programs on the system that are unprivileged and unconfined. A default AppArmor profile is provided that allows the use of user namespaces for unprivileged and unconfined applications but will deny the subsequent use of any capabilities within the user namespace. A common use-case for unprivileged user namespaces is applications that construct their own sandboxes or work with styles of container workloads. As such, AppArmor profiles that allow the use of unprivileged user namespaces are also provided for common applications and frameworks that come from the Ubuntu archive, as well as popular third party applications like Google Chrome, Discord and others. This is a subsequent step towards trying to mitigate the larger attack surface presented by unprivileged user namespaces (the first being the introduction of this feature in Ubuntu 23.10 where it was not enabled by default). 
+
+Whilst significant effort has been expended to try and identify all applications that may require such profiles, it is expected that there may be cases where additional profiles are required. 
+
+In this case, there are several options if you run into problems: 
+
+#### TLS 1.0, 1.1 and DTLS 1.0 are forcefully disabled¶
+
+#### More consistent application of openssl and gnutls system configurations¶
+
+Some libraries do not raise errors when their configuration is not accessible; this could happen when AppArmor does not allow access to the configuration files. Due to how widespread openssl and gnutls are, the AppArmor rules now grant access to their configuration files by default. Their system-wide configuration will therefore be followed better. 
+
+#### Deprecation and disablement of 1024-bit RSA APT repository signing keys¶
+
+APT in 24.04 requires repositories to be signed with the RSA keys no smaller than 2048 bits, Ed25519, or Ed448. As work to resign old Launchpad PPAs with a stronger keys is still ongoing for some weeks, this is initially only a warning. 
+
+Once Launchpad PPAs have been resigned, you will need to manually migrate any affected PPAs to new signing keys by removing and re-adding them to quiesce the warning. 
+
+The final APT 2.8.0 release that converts the warning to an error should be published as a stable release update some time after the resigning is complete. 
+
+#### pptpd removed¶
+
+#### OpenSSH with reduced dependencies¶
+
+As per the XZ-utils backdoor, `openssh`in Ubuntu does not depend anymore on libsystemd, reducing the number of dependencies and making it less prone to future security issues. 
+
+#### Package security-hardening improvements¶
+
+Packages are now built with security-hardening features which stop many undiscovered security vulnerabilities, rendering them unexploitable. 
+
+The [gcc compiler](https://wiki.ubuntu.com/ToolChain/CompilerFlags)and dpkg now defaults to `-D_FORTIFY_SOURCE=3`instead of `-D_FORTIFY_SOURCE=2`which greatly increases buffer overflow detection and mitigation. 
+
+dpkg now defaults to use `-mbranch-protection=standard`which mitigates code reuse attacks on arm64. 
+
+### Performance ⚡¶
+
+#### Performance Engineering tools¶
+
+A set of performance engineering tools is installed by default on relevant Ubuntu systems. Additionally, a performance-tools metapackage has been created to assist in debugging performance and reliability issues. See [specification](https://discourse.ubuntu.com/t/spec-include-performance-tooling-in-ubuntu/43134)for more details. 
+
+### Default configuration changes ⚙️¶
+
+As always there are many changes to defaults, mostly by newer versions of
+packages. But a few are worth spelling out if your former automation,
+configuration and tuning relied on those settings being one or the other way. 
+
+#### Apt priority of the proposed pocket¶
+
+The proposed pocket is used as a staging area for software updates. These
+updates land in the proposed pocket before they are released to the wider
+public userbase. 
+
+But in the past, if someone enabled the proposed pocket for testing they often
+got into trouble by getting their system flooded with everything that is in the
+proposed pocket.
+If just one of the packages in there was weirdly broken you’d have been broken
+by that as well - and it might have been unrelated to what you really care about
+and made your regular testing consume more effort and thereby less attractive. 
+
+By changing the default priority, users are less likely to install potentially
+unstable updates unintentionally. Therefore the default apt priority of the
+proposed pocket was reduced from 500 to 100. This change already happened in
+Ubuntu Lunar, but Noble is the first Ubuntu LTS to pick it up and therefore
+there is much more time of consumption from the proposed pocket in front of it. 
+
+With the change, users can now selectively install packages from the proposed
+pocket. This allows for more conscious selection and testing of updates.
+You can always see the new versions of the packages e.g. via `apt-cache policy`but they will no more auto-install.
+To install a package from proposed you’d now need to select from which pocket
+you want to install like `apt install <package>/<release>-proposed`
+
+The above helps a lot for the conscious testing of changes. But on the other
+hand having automation and people testing (almost) all new package versions
+regularly can provide great signal. Especially in canary setup with their very
+own workload it can prevent breaking these specific setup unintentionally as
+it might be different from what is tested elsewhere. 
+
+Therefore in those situations if you want to go back to the old behavior of
+just getting everything from proposed all the time, you’d need to bump the apt
+pin priority back up to 500 so the versions from the proposed pocket compete on
+the same level with the rest of the Ubuntu Archive. To do that you could put
+the following in a file like `/etc/apt/preferences.d/bump-proposed-prio`: 
+
+```
+# Consider proposed all the time, set default priority 500
+Package: *
+Pin: release a=noble-proposed
+Pin-Priority: 500
+```
+
+#### deb822 sources management¶
+
+The sources configuration for Ubuntu has moved from `/etc/apt/sources.list`to `/etc/apt/sources.list.d/ubuntu.sources`in the more featureful deb822 format, aligning with PPAs that already migrated to deb822 last year. See [the specification](https://discourse.ubuntu.com/t/spec-apt-deb822-sources-by-default/29333/19)for more details. 
+
+#### Services restart on unattended-upgrade¶
+
+The `needrestart`package has been modified to systematically restart services
+if affected by a library upgrade, including in non-interactive scenarios such
+as `unattended-upgrade`. The reason for this change is that `unattended-upgrade`defaults to security updates only, and failing to
+restarting services means that those running daemons will still be exposed to
+the security issues fixed by the update. 
+
+It is possible to exclude specific services from automatic restart by adding
+them to the `override_rc`section of `/etc/needrestart/needrestart.conf`. 
+
+See [this Discourse post](https://discourse.ubuntu.com/t/needrestart-changes-in-ubuntu-24-04-service-restarts/44671/1)for more details. 
+
+#### irqbalance no more installed and enabled by default¶
+
+The `irqbalance`service is designed to distribute hardware interrupts across
+processors on a multiprocessor system to increase performance. This is
+particularly useful in server configurations where multiple devices will be
+competing for the CPU’s attention. And in doing so it has served Ubuntu well
+being default enabled since 14 years based on [a discussion](https://lists.ubuntu.com/archives/ubuntu-devel/2010-January/029939.html)and related to
+the [kernel actively delegating this to userspace](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8b8e8c1bf7275eca859fe551dfa484134eaf013b). 
+
+But evolution of the wider ecosystem has outpaced irqbalance in most situations. `Irqbalance`can still be useful, but unless the admin configures it, the policy
+it provides is not a discernible improvement over the in-kernel default policy. 
+
+At the same time a few cases have been reported where `irqbalance`causes issues, [hence discussions have been ongoing for quite a while](https://bugs.launchpad.net/ubuntu/+source/ubuntu-meta/+bug/1833322). It does usually not make
+as much sense for virtual guests, it might conflict with manual tuning and other
+power consumption or latency targets. Furthermore the kernel and in particular many device
+drivers evolved since then and often do an equal or better job now. 
+
+This change is just not installing it by default, `irqbalance`will stay available and
+anyone that benefits or even just want to experiment with it can use it as
+before. 
+
+Some specific scenarios, like particular cloud images, already had `irqbalance`disabled by default before. In a similar fashion some have been (and more might
+be) identified which will keep it enabled by default as there has been evidence
+that on this platform it is more helpful. 
+
+### tzdata package split¶
+
+The tzdata package was split into tzdata, tzdata-icu, and tzdata-legacy. The tzdata package ships only timezones that follow the current rules of geographical region (continent or ocean) and city name. All legacy timezone symlinks (old or merged timezones mentioned in the upstream backward file) were moved to tzdata-legacy. This includes the US/* timezones. 
+
+Please install tzdata-legacy in case you need the legacy timezones or to restore the previous behavior. This might be needed in case the system provides timezone-aware data over the network (e. g. SQL databases). 
+
+### Ubuntu Desktop¶
+
+#### Installer and Upgrades¶
+
+#### New Store¶
+
+#### GNOME 👣¶
+
+#### Default app changes¶
+
+#### Updated Ubuntu font¶
+
+A more modern slimmer version of the Ubuntu font family is now shipped as standard. Anyone wishing to return to the older Ubuntu font used in 22.04 can do so by installing the `fonts-ubuntu-classic`package. 
+
+#### Updated Applications¶
+
+#### Updated Subsystems¶
+
+### Ubuntu WSL¶
+
+#### Cloud-init support¶
+
+`cloud-init`is the *industry standard *multi-distribution method for cross-platform cloud instance initialisation. It is supported across all major public cloud providers, provisioning systems for private cloud infrastructure, and bare-metal installations. 
+
+With `cloud-init`on WSL you can now automatically and reproducibly configure your WSL instances on first boot. Make the first steps with [this tutorial](https://canonical-ubuntu-wsl.readthedocs-hosted.com/en/latest/tutorials/cloud-init/). 
+
+#### New documentation¶
+
+The documentation specific to [Ubuntu on WSL is available on Read the Docs](https://canonical-ubuntu-wsl.readthedocs-hosted.com/en/latest/). This evolving project is regularly updated with new content about Ubuntu’s specifics on WSL. 
+
+#### Enhancements¶
+
+### Ubuntu Server¶
+
+#### Apache2¶
+
+The Apache2 package has been updated to version 2.4.58. Here are the
+major changes since Ubuntu Jammy: 
+
+More information on the changes in Apache2 2.4.53 through 2.4.58, now included in Ubuntu can be found at: [https://www.apachelounge.com/changelog-2.4.html](https://www.apachelounge.com/changelog-2.4.html)
+
+#### Clamav¶
+
+The clamav anti-virus toolkit saw a 1.0.0 release between Ubuntu 22.04 LTS and now. Some of the major changes since Ubuntu Jammy include: 
+
+The full list of changes for the ClamAV 1.0.0 LTS release can be found at [https://blog.clamav.net/2022/11/clamav-100-lts-released.html](https://blog.clamav.net/2022/11/clamav-100-lts-released.html). For details on subsequent bugfix releases in the 1.0 branch, including 1.0.5, see Clamav’s blog at [https://blog.clamav.net/](https://blog.clamav.net/). 
+
+#### Chrony¶
+
+Chrony is updated to 4.5, which adds support for systemd socket activation, multiple refclocks on one PHC, corrections from PTP transparent clocks, AES-GCM-SIV in GnuTLS, and AES-GCM-SIV with Nettle >= 3.9 to shorten NTScookies to avoid some length-specific blocking of NTP. DSCP is set for IPv6 packets. New options include maxpoll for the hwtimestamp directive to improve PHC tracking with low packet rates, maxdelayquant for adding long-term quantile-based filtering to the server/pool/peer directive, and a local option to the refclock directive to stabilise system clock with more stable free-running clock (e.g. TCXO, OCXO). A new hwtstimeout directive has been added to configure timeout for late timestamps, and a selectopts command to modify source-specific selection options. 
+
+More information about the 4.5 and other releases can be found at Chrony’s news page, at [https://chrony-project.org/news.html](https://chrony-project.org/news.html). 
+
+#### cloud-init v.24.1.3¶
+
+Notable features: 
+
+Breaking changes: 
+
+Features since Ubuntu Jammy: (details in [cloud-init’s Github releases page](https://github.com/canonical/cloud-init/releases/)) 
+
+#### Containerd¶
+
+The containerd package was updated to version 1.7.12. It contains a bunch of bug fixes, adding support to newer Golang version, updating dependencies and so on. The two features below are new in this version since the last Ubuntu release: 
+
+Some features were marked as deprecated, please try to not use them anymore. Deprecation warnings: 
+
+For more information, please see [the upstream changelog](https://github.com/containerd/containerd/releases). 
+
+#### Django¶
+
+Django was updated to version 4.2.11, providing the latest LTS bug and security fixes. For more information see the upstream changelogs for [4.2.5](https://docs.djangoproject.com/en/4.2/releases/4.2.5/)- [4.2.11](https://docs.djangoproject.com/en/4.2/releases/4.2.11/). 
+
+#### Docker¶
+
+The [docker.io](http://docker.io)package was updated to version 24.0.7. It contains many bug fixes and dependencies update. Some highlights are the fix of data corruption with zstd output and many improvements to the containerd storage backend. For more information, please see [the upstream changelog](https://docs.docker.com/engine/release-notes/24.0/). 
+
+Note 
+
+There is a AppArmor related bug where containers cannot be promptly stopped due to the recently added AppArmor profile for `runc`. The containers are always killed with `SIGKILL`due to the denials when trying to receive a signal. More details about this bug can be found [here](https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/2063099), and a workaround is described [here](https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/2063099/comments/4). 
+
+#### Dovecot¶
+
+Dovecot received several micro-point updates from 2.3.16 in Ubuntu Jammy, to 2.3.21 in this new LTS. 
+
+There is also a new dsync_features=no-header-hashes setting, which enables an optimization that assumes identical IMAP UIDs contain the same mail contents. This is useful on IMAP servers that don’t cache the Date/Message-ID headers. 
+
+For more detailed information on the changes since Ubuntu Jammy, see Dovecot’s release announcements for [2.3.17](https://dovecot.org/pipermail/dovecot-news/2021-October/000465.html), [2.3.18](https://dovecot.org/pipermail/dovecot-news/2021-December/000468.html), [2.3.19](https://dovecot.org/list/dovecot-news/2022-May/000473.html), [2.3.20](https://dovecot.org/pipermail/dovecot-news/2022-December/000479.html), and [2.3.21](https://dovecot.org/mailman3/archives/list/dovecot-news@dovecot.org/thread/KYDR7WWPEQOBZA3IA4NL5XDSLODZLG6N/). 
+
+#### Exim4¶
+
+The exim4 mail transport agent was updated to version 4.97. This brings numerous fixes to syntax parsing including ${run…}, ${if} and ${filter } constructions. Query-style lookups are now checked for quoting; for now issues are just logged but will be treated as errors in a future release. An expansion operator for wrapping long header lines has been added. 
+
+Other notable changes include: 
+
+Please note that the default configuration (/etc/default/exim4) generated for fresh installations differs from past practices, and a number of settings (QFLAGS, QUEUEINTERVAL, COMMONOPTIONS, QUEUERUNNEROPTIONS and SMTPLISTENEROPTIONS) have been replaced. As well, the `update-exim4defaults`script is no longer used for setting run parameters for the Exim daemon; users are encouraged to edit /etc/default/exim4 directly to customize. Also, the internal (but exposed in logs, Received: headers and Message-ID: headers) identifier used for messages is longer than in the previous release. 
+
+For more information on the changes introduced in Exim4 4.96 and 4.97, please see the [Exim4 project’s ChangeLog](https://github.com/Exim/exim/blob/master/doc/doc-txt/ChangeLog). 
+
+#### GlusterFS¶
+
+The GlusterFS clustering filesystem package was updated to version [11.1](https://lists.gluster.org/pipermail/gluster-devel/2023-February/058414.html). Following this update, some changes were made to the packaging layout of GlusterFS and dependent packages: 
+
+The following packages were changed: 
+
+Note that since GlusterFS is no longer available for 32 bit architectures (see [LP: #2052734](https://bugs.launchpad.net/ubuntu/+source/glusterfs/+bug/2052734)), the two new packages mentioned above do not exist on armhf. 
+
+#### Upgrade considerations for qemu and samba¶
+
+If you have a deployment of qemu or samba that used the glusterfs storage or VFS modules, then there are considerations to be made. In other words, if you: 
+
+Then the release upgrade to Ubuntu Noble will replace those packages with the new versions that DO NOT have the glusterfs modules. In such cases, you will have to install the new packages manually after the release upgrade is completed: 
+
+Considerations were made ( [ubuntu-devel mailing list thread](https://lists.ubuntu.com/archives/ubuntu-devel/2024-January/042872.html)) to perhaps include this logic in the Ubuntu release upgrade tool, but it was decided to not increase the complexity of the upgrader at this time. If you have a different scenario where this will have a big impact on your deployments, then please comment on the [LP: #2045063](https://bugs.launchpad.net/ubuntu/+source/glusterfs/+bug/2045063)bug. 
+
+#### HAProxy¶
+
+The [HAProxy](https://www.haproxy.org)package was updated to version 2.8.5. This new version includes several improvements and bug fixes. For more information, please see [the upstream changelog](https://www.haproxy.org/download/2.8/src/CHANGELOG). 
+
+#### Kea¶
+
+The [Kea](https://www.isc.org/kea/)package was updated to version 2.4.1. This is now the supported DHCP server in Ubuntu, replacing ISC DHCP, which has been discontinued by ISC. 
+
+`keama`a new binary package to aid migrating ISC DHCP configuration files to Kea was also made available in noble. 
+
+Here are some of the major changes in Kea since Ubuntu Jammy. 
+
+For more details, please see the upstream release notes for [version 2.4](https://downloads.isc.org/isc/kea/2.4.0/Kea-2.4.0-ReleaseNotes.txt)and for [version 2.2](https://downloads.isc.org/isc/kea/2.2.0/Kea-2.2.0-ReleaseNotes.txt)
+
+#### libvirt¶
+
+The [libvirt](https://libvirt.org)package was updated to version 10.0.0. Here are the changes since Ubuntu Jammy. 
+
+For more details, please see [the upstream changelog](https://www.libvirt.org/news.html). 
+
+#### LXD¶
+
+Keeping with the theme of further streamlining Ubuntu, starting with this release, LXD snap won’t be pre-installed in the Ubuntu server by default. Instead, we will be applying the same logic as with the ubuntu-minimal images, where we use a small script ( `lxd-installer`) to install LXD on first use. 
+
+LXD 5.21.0 LTS has been released with a number of useful features and a few other operational changes. For more information, please read [the full release announcement](https://discourse.ubuntu.com/t/lxd-5-21-0-lts-has-been-released/42476/1). 
+
+#### Monitoring Plugins¶
+
+Four micro-version release updates to monitor-plugins brings it to
+version 2.3.5 in this Ubuntu LTS release, providing a number of fixes
+and enhancements. A few items of note: 
+
+For more detail, see the release announcements for [2.3.2](https://www.monitoring-plugins.org/news/release-2-3-2.html), [2.3.3](https://www.monitoring-plugins.org/news/release-2-3-3.html), [2.3.4](https://www.monitoring-plugins.org/news/release-2-3-4.html), and [2.3.5](https://www.monitoring-plugins.org/news/release-2-3-5.html). 
+
+#### Net SNMP¶
+
+The [Net SNMP](http://www.net-snmp.org/)package was updated to version 5.9.4. 
+
+In addition to a few security and stability fixes, support is now included for recognizing Docker’s overlay filesystem such as when running `snmpwalk`against a Docker container. 
+
+For more details, please see [the upstream changelog](https://github.com/net-snmp/net-snmp/blob/v5.9.4/CHANGES). 
+
+#### Nginx¶
+
+The Nginx web server has been updated to version 1.24 in Ubuntu 24.04 LTS, marking a major jump from version 1.18 in the previous LTS. This brings OpenSSL 3.0 compatibility, support for the PCRE2 library, protocol TLSv1.3 enabled by default, Application-Layer Protocol Negotiation (ALPN) support for the stream module, Online Certificate Status Protocol (OCSP) validation of client SSL certificates, and improved HTTP/2 support among other things. 
+
+For a complete listing of changes, please see the release notices for Nginx [1.20](https://nginx.org/en/CHANGES-1.20), [1.22](https://nginx.org/en/CHANGES-1.22), and [1.24](https://nginx.org/en/CHANGES-1.24). 
+
+#### OpenLDAP¶
+
+The [OpenLDAP](https://openldap.org)package was updated to version 2.6.7, which brings several bug fixes. For more details, please see [the upstream changelog](https://www.openldap.org/software/release/changes.html). 
+
+#### OpenVmTools¶
+
+open-vm-tools moves to 12.3.5 in Ubuntu 24.04 LTS. Intermediate versions resolved a few critical problems, vulnerabilities, and Coverity issues. In addition, it brings support for managing Salt Minion, and for gathering and publishing lists of containers running inside Linux guests. A tools.conf configuration setting is also available to temporarily direct Linux quiesced snapshots to restore pre open-vm-tools 12.2.0 behavior of ignoring file systems already frozen. 
+
+The announcements for 12.3.5 and other releases since 11.3.5 can be found on the [open-vm-tools Github releases page](https://github.com/vmware/open-vm-tools/releases). 
+
+#### PAM¶
+
+`pam_lastlog.so`has [been removed](https://bugs.launchpad.net/ubuntu/+source/shadow/+bug/2060676)because it was not Year 2038 compliant. 
+
+#### Percona Xtrabackup¶
+
+Percona Xtrabackup has been added as a new package, working alongside MySQL 8.0.x. It is a tool for creating and restoring backups of MySQL databases while maintaining availability. For more information see Percona Xtrabackup’s [upstream documentation](https://docs.percona.com/percona-xtrabackup/8.0/). 
+
+#### PHP¶
+
+The [PHP](https://php.net)package was updated to version 8.3.6. Here are the major changes since Ubuntu Jammy. 
+
+Moreover, an apache2 change now ensures that the apache2 service will restart after the PHP package is upgraded. This is a change in the package behavior. Before, needrestart would inform the user of the need to restart the service, but the service would not restart automatically. Please see [LP: #2038912](https://bugs.launchpad.net/ubuntu/+source/apache2/+bug/2038912)for additional context on this change. 
+
+For more details, please see the [upstream changelog](https://www.php.net/ChangeLog-8.php#PHP_8_3)
+
+#### PostgreSQL¶
+
+The [PostgreSQL](https://www.postgresql.org)package was updated to version 16.2. The new version includes several performance improvements. Here are some of the major changes included since Ubuntu Jammy. 
+
+For details on the above changes or to get a complete list of changes introduced in PostgreSQL 16, please refer to the [upstream release notes](https://www.postgresql.org/docs/16/release-16.html). 
+
+#### QEMU¶
+
+The [QEMU](https://qemu.org)package was updated to version 8.2.1. Here are the changes since Ubuntu Jammy. 
+
+For more details, please see related upstream changelogs: 
+
+#### Ruby 3.2¶
+
+The default ruby interpreter was updated to version 3.2.3. There are many new features and bug fixes, some highlights are: 
+
+There are some constants and methods that were already deprecated and now they are removed, when migrating to this ruby version be careful with the following: 
+
+All the above was removed from Ruby 3.2 and cannot be used anymore. For more information, please see [the upstream release announcement](https://www.ruby-lang.org/en/news/2022/12/25/ruby-3-2-0-released/). 
+
+#### runc¶
+
+The runc package was updated to version 1.1.12. It contains bug fixes specially related to the cgroup v2 support, and most importantly, it adds support for riscv64. For more information, please see [the upstream changelog](https://github.com/opencontainers/runc/releases). 
+
+For users/developers willing to customize the runc package, the source package is now split into `runc`(library package) and `runc-app`(application package). This was done to follow what was done in containerd and [docker.io](http://docker.io), and therefore, ease the future maintenance, including backports to stable releases. 
+
+#### Samba¶
+
+The Samba package has been updated to the 4.19.x series. Here are the upstream release notes for 4.19.0: [https://www.samba.org/samba/history/samba-4.19.0.html](https://www.samba.org/samba/history/samba-4.19.0.html)
+
+Due to the GlusterFS demotion (see [LP: #2045063](https://bugs.launchpad.net/ubuntu/+source/glusterfs/+bug/2045063)and the GlusterFS section of these release notes), the samba packaging had to be changed a bit to accommodate this change. 
+
+The GlusterFS VFS modules which were previously shipped in the binary `samba-vfs-modules`package, are now shipped in the new binary package called `samba-vfs-modules-extra`. Specifically, these modules (and their respective manual pages) were moved to `samba-vfs-modules-extra`: 
+
+The `fuse`module does not depend on the gluster libraries, but was moved together with `glusterfs.so`for consistency. 
+
+If you are upgrading from an Ubuntu release that used either of those two VFS modules, you should install `samba-vfs-modules-extra`after the upgrade: 
+
+```
+sudo apt install samba-vfs-modules-extra
+```
+
+If you are doing a fresh install of Ubuntu Noble, and want to use the glusterfs VFS modules with samba, you should also install `samba-vfs-modules-extra`. 
+
+#### Spamassassin¶
+
+Apache SpamAssassin 4.0.0 contains numerous tweaks and bug fixes over the past releases. In particular, it includes major changes that significantly improve the handling of text in international language. 
+
+As with any major release, there are countless functional patches and improvements to upgrade to 4.0.0. Apache SpamAssassin 4.0.0 includes several years of fixes that significantly improve classification and performance. 
+
+New plugins include ExtractText, DMARC, and DecodeShortURLs. The HashCash module, which had been deprecated previously, is now fully removed. Mail::SPF::Query use is deprecated, along with settings do_not_use_mail_spf, do_not_use_mail_spf_query. Mail::SPF is now the only supported module used by the SPF plugin. 
+
+Other notable changes include: 
+
+The [SpamAssassin 4.0.0 release announcement](https://svn.apache.org/repos/asf/spamassassin/trunk/build/announcements/4.0.0.txt)provides more details about these changes. 
+
+#### Squid¶
+
+The [Squid](http://www.squid-cache.org)package was updated to version 6.6. Here are some of the major changes since Ubuntu Jammy. 
+
+For more details, please see [the upstream release notes](http://www.squid-cache.org/Versions/v6/squid-6.6-RELEASENOTES.html). 
+
+#### SSSD¶
+
+The [SSSD](https://sssd.io)package was updated to version 2.9.4. Here are the changes since Ubuntu Jammy. 
+
+### Intel® QuickAssist Technology (Intel® QAT)¶
+
+Intel® QAT is a built-in accelerator on 4th Gen and newer Intel® Xeon® Scalable Processors that offloads critical data compression and decompression, encryption and decryption, and public key data encryption tasks from the CPU cores and accelerates those operations to help improve performance and save valuable compute resources. 
+
+The components enabled on Ubuntu 24.04 LTS are: 
+
+#### Subiquity¶
+
+A new version of the Subiquity server installer has been released. Please read the full [release notes for 24.04.1](https://github.com/canonical/subiquity/releases/tag/24.04.1)on GitHub. 
+
+#### OpenSSH¶
+
+Since Ubuntu 22.10, `openssh-server`is configured to use systemd socket activation by default. In Ubuntu 24.04 LTS, the implementation changed so that settings from `/etc/ssh/sshd_config`(and snippets from `/etc/ssh/sshd_config.d/`) are read by a systemd generator to configure the `ssh.socket`unit accordingly. See the [original discourse post](https://discourse.ubuntu.com/t/sshd-now-uses-socket-based-activation-ubuntu-22-10-and-later/30189/1)for more details. 
+
+#### Ubuntu HA/Clustering¶
+
+#### Pacemaker¶
+
+The [Pacemaker](https://clusterlabs.org/pacemaker/)package was updated to version 2.1.6. There are several fixes, API changes and new features introduced since jammy. For more details, please see [the upstream changelog](https://github.com/ClusterLabs/pacemaker/releases). 
+
+#### Resource Agents¶
+
+The [Resource Agents](https://github.com/ClusterLabs/resource-agents)package was updated to version 4.13.0. 
+
+A noteworthy change is the upstream improvements on PostgreSQL support. The pgsql agent was moved to the resource-agents-base package and is now part of our curated set of resource agents. 
+
+Moreover, the transitional resource-agents package was removed. You should now install resource agents through the resource-agents-base package or through the resource-agents-extra package. The agents available in each of these packages are listed in the package descriptions. 
+
+For further information, please refer to [the upstream changelog](https://github.com/ClusterLabs/resource-agents/blob/main/ChangeLog). 
+
+#### OpenStack¶
+
+OpenStack has been updated to the [2024.1 (Caracal) release](https://releases.openstack.org/caracal/). This includes packages for Aodh, Barbican, Ceilometer, Designate, Glance, Heat, Horizon, Ironic, Keystone, Magnum, Manila, Masakari, Mistral, Neutron, Nova, Octavia, Swift, Watcher and Zaqar. 
+
+Murano, Senlin, Sahara, Freezer and Solum where all [declared inactive](https://governance.openstack.org/tc/reference/emerging-technology-and-inactive-projects.html#current-inactive-projects)as of the 2024.1 cycle and have been removed from Ubuntu. 
+
+This release is also provided for Ubuntu 22.04 LTS via the Ubuntu Cloud Archive. 
+
+#### Ceph¶
+
+[Ceph](http://ceph.com)has been updated to a snapshot in preparation for the 19.2.0 (Squid) release which will be provided via a [stable release update](https://bugs.launchpad.net/ubuntu/+source/ceph/+bug/2065515). 
+
+This release is also provided for Ubuntu 22.04 LTS via the Ubuntu Cloud Archive. 
+
+#### Open vSwitch (OVS) and Open Virtual Network (OVN)¶
+
+[Open vSwitch](https://www.openvswitch.org/)has been updated to the 3.3.0 release. 
+
+[Open Virtual Network](https://www.ovn.org/)has been updated to the 24.03 release. 
+
+These releases are also provided for Ubuntu 22.04 LTS via the Ubuntu Cloud Archive. 
+
+### Platforms¶
+
+#### Public Cloud / Cloud images¶
+
+#### All¶
+
+#### Vagrant¶
+
+Starting in Ubuntu 24.04 LTS, Ubuntu no longer produces Vagrant images. Documentation regarding creating an Ubuntu Base Image from scratch is provided at [https://documentation.ubuntu.com/public-images/en/latest/public-images-how-to/build-vagrant-with-bartender/](https://documentation.ubuntu.com/public-images/en/latest/public-images-how-to/build-vagrant-with-bartender/). 
+
+#### Public Images (cloud-images.ubuntu.com) images¶
+
+#### AWS EC2¶
+
+#### Microsoft Azure¶
+
+```
+network:
+ version: 2
+ ethernets:
+ ephemeral:
+ dhcp4: true
+ dhcp4-overrides:
+ use-dns: false
+ match:
+ driver: hv_netvsc
+ name: '!eth0'
+ optional: true
+ hotpluggedeth0:
+ dhcp4: true
+ match:
+ driver: hv_netvsc
+ name: 'eth0'
+```
+
+Users should then reboot the instance for the netplan configuration to take effect. 
+
+#### Google¶
+
+#### Oracle¶
+
+#### How to report any issues resulting from these changes¶
+
+If you notice any unexpected changes or bugs in the minimal images, create a new bug in [cloud-images](https://bugs.launchpad.net/cloud-images). 
+
+#### Raspberry Pi 🍓¶
+
+#### Pi 5 LTS¶
+
+24.04 (noble) will be the first LTS release supporting the Raspberry Pi 5 with both arm64 server and desktop images. 
+
+#### Browser Acceleration¶
+
+The Firefox browser now supports 3D acceleration after mesa 23.2 was backported to 22.04 (jammy) which permitted the necessary content snaps to be regenerated. The classic [aquarium sample](https://webglsamples.org/aquarium/aquarium.html)can be used to test the performance of the new graphics stack, which can achieve a smooth 40+fps full-screen on a Pi 5 at a resolution of 1080p. 
+
+#### Power monitoring¶
+
+On the Pi 5, the [pemmican](https://pemmican.readthedocs.io/)package will now provide monitoring of the power supply. 
+
+On server images, the MOTD on login will indicate if the power supply failed to negotiate the 5A expected for unlimited operation, or if brownout was the cause of the last reset. Kernel messages will warn of undervolt or overcurrent situations. 
+
+On desktop images, a desktop notification will be displayed for these issues, with options for further information or suppression of future warnings of this type. 
+
+#### No 32-bit (armhf) images¶
+
+From 24.04 (noble), we will no longer be producing 32-bit (armhf) images for the Raspberry Pi. The only images produced will be 64-bit (arm64). For the avoidance of doubt, this does *not *mean that armhf is no longer supported as an architecture on Raspberry Pi; it will remain supported as a foreign architecture in noble (see below). 
+
+To add armhf as a foreign architecture to an arm64 image, use the following commands: 
+
+```
+sudo dpkg --add-architecture armhf
+sudo apt update
+```
+
+Thereafter, to install an armhf package: 
+
+```
+sudo apt install SOME-PACKAGE:armhf
+```
+
+Please note, there will be no armhf kernels (primarily because the Pi 5 does not support 32-bit kernels), and users who are currently on armhf images *will not *be able to upgrade directly to noble. 
+
+#### Simpler Bluetooth on server¶
+
+There is no longer a need to install the `pi-bluetooth`package in order to enable Bluetooth functionality on server images. Simply install the regular `bluez`package and Bluetooth will be configured by the kernel. 
+
+#### arm64¶
+
+The new arm64+largemem ISO includes a kernel with 64k page size. A larger page size can increase throughput, but comes at the cost of increased memory use, making this option more suitable for servers with plenty of memory. Typical use cases for this ISO include: machine learning, databases with many large entries, high performance computing. 
+
+#### IBM Z and LinuxONE¶
+
+#### IBM POWER (ppc64el)¶
+
+KVM running in IBM PowerVM LPARs:
+Ubuntu Server 24.04 has now the required technology enablement and support for running KVM in a PowerVM LPAR.
+This technology enables expanded open-source based innovations and solutions for Ubuntu Server on the IBM Power platform.
+Below are the firmware and hardware requirements: 
+
+Note: KVM virtualization continues to be supported on POWER9 bare-metal / OPAL based systems. 
+
+#### RISC-V¶
+
+Ubuntu 24.04 LTS is the first LTS release for the StarFive VisionFive 2 board.
+For an overview of Canonical supported boards see [https://ubuntu.com/download/risc-v/canonical-built](https://ubuntu.com/download/risc-v/canonical-built). 
+
+The RISC-V Ubuntu userland is compatible with all RVA20 hardware. 
+
+## Known Issues¶
+
+As is to be expected with any release, there are some significant known bugs that users may encounter with this release of Ubuntu. The ones we know about at this point (and some of the workarounds) are documented here, so you don’t need to spend time reporting these bugs again: 
+
+### General¶
+
+#### sysstat enablement state mismatches intent¶
+
+In 24.04, we shipped sysstat by default as part of a wider performance engineering effort. The idea is that relevant performance engineering tooling is already present and available when a user finds themselves needing to solve a performance engineering problem. 
+
+In some cases the sysstat services are not actually enabled. This will be fixed in a future update. When the update arrives, sysstat will become enabled in situations where it wasn’t enabled before, to realign with our intended defaults. If you do not wish sysstat services to ever run, you may remove the sysstat package in advance. 
+
+See [LP: #2073285](https://launchpad.net/bugs/2073285)and [LP: #2073284](https://launchpad.net/bugs/2073284)for details. 
+
+### Linux kernel¶
+
+In 24.04.4: 
+
+### Ubuntu Desktop¶
+
+### Ubuntu Server¶
+
+#### freeradius¶
+
+The [freeradius](https://launchpad.net/ubuntu/+source/freeradius)package will be accidentally removed by the release upgrade tool on upgrades from Ubuntu 22.04 LTS to Ubuntu 24.04 LTS. The removal is reported in the upgrade summary before any action is taken, but might be missed.
+This is being tracked in [LP: #2114224](https://bugs.launchpad.net/ubuntu/+source/freeradius/+bug/2114224). 
+
+#### Installer¶
+
+```
+apt:
+ fallback: offline-install
+```
+
+#### samba apparmor profile¶
+
+Due to [bug LP: #2063079](https://bugs.launchpad.net/ubuntu/+source/samba/+bug/2063079), the samba `smbd.service`unit file is no longer calling out to the helper script to dynamically create apparmor profile snippets according to the existing shares. 
+
+By default, the `smbd`service from samba is not confined. To be affected by this bug, users have to: 
+
+Therefore, only users who have taken those steps and upgrade to Noble, will be affected by this bug. An SRU to fix it will be done shortly after release. 
+
+#### rrdtool on armhf¶
+
+`rrdtool`is a very popular package used by monitoring and graphing tools such as [cacti](https://www.cacti.net/), [munin](https://munin-monitoring.org/), [mrtg](https://oss.oetiker.ch/mrtg/), and others. 
+
+Due to the Ubuntu 24.04 LTS `time_t`change from 32bits to 64bits in the armhf architecture, to fix the [Year 2038 problem](https://discourse.ubuntu.com/t/ubuntu-24-04-lts-noble-numbat-release-notes/39890#year-2038-support-for-the-armhf-architecture)mentioned elsewhere in these Release Notes, the `rrd`databases produced by `rrdtool`in armhf in Ubuntu releases before Noble are not binary compatible with `rrdtool`in Ubuntu 24.04 LTS and later. 
+
+If such `rrd`files are attempted to be read by `rrdtool`from Ubuntu 24.04 LTS or later, it will fail with an error that can be similar to this: 
+
+```
+ERROR: 'database-file.rrd' is too small (should be 1032 bytes)
+```
+
+This essentially prevents the database from being opened, read, or written to. 
+
+To correctly upgrade such systems, each `rrd`database needs to be dumped into xml using the tool from the system before the upgrade, and restored into `rrd`from that xml on the upgraded system. This is a manual process and there is no automated tooling for this available at the moment. 
+
+To dump a `rrd`file into xml: 
+
+```
+rrdtool dump file.rrd > file.xml
+```
+
+To later restore it on the new upgraded system: 
+
+```
+rrdtool restore file.xml file.rrd
+```
+
+For more details, please see the [rrddump](https://manpages.ubuntu.com/manpages/noble/man1/rrddump.1.html)and [rrdrestore](https://manpages.ubuntu.com/manpages/noble/man1/rrdrestore.1.html)manpages. 
+
+#### Raspberry Pi¶
+
+#### RISC–V¶
+
+#### Google Compute Platform¶
+
+#### Microsoft Azure¶
+
+## Official flavors¶
+
+Find the release notes for the official flavors at the following links: 
+
+## More information¶
+
+Refer to [Release policy and schedule](../#release-policy-and-schedule)and [Project and community](../#project-and-community).
+
+---
+
+Title: Ubuntu release cycle
+
+Thank you for contacting us. A member of our team will be in touch shortly. Close
+
+You have successfully unsubscribed! Close
+
+Thank you for signing up for our newsletter! 
+In these regular emails you will find the latest updates about
+ Ubuntu and upcoming events where you can meet our team. Close
+
+Your preferences have been successfully updated. Close notification
+
+Please try again or [file a bug report.](https://github.com/canonical/ubuntu.com/issues/new?template=ISSUE_TEMPLATE.yaml)Close
+
+[About Ubuntu](/about)
+
+# Know what's supported
+
+Find out which versions of Ubuntu and Canonical products are supported, for how long, and what's best for your deployment – from LTS versions to available security coverage options. 
+
+## Find out your current coverage
+
+Not sure if your product version is still supported? Let's walk through a few simple questions to help you find out. 
+
+| | Standard | Ubuntu Pro
+ 
+ Subscribe to Ubuntu Pro to stay secure and supported. Start a 30-day Ubuntu Pro free trial › | 
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Version | Standard security
+ 
+ maintenance | Expanded security
+ 
+ maintenance | Break/bug support | Legacy add on for security maintenance and support | 
+| 26.04 LTS
+ 
+ 
+ 
+ 
+ | May 2031 | Apr 2036 | Apr 2036 | Apr 2041 | 
+| 25.10
+ 
+ 
+ 
+ 
+ 
+ | Jul 2026 | Not applicable | Not applicable | Not applicable | 
+| 24.04 LTS
+ 
+ 
+ 
+ 
+ | May 2029 | Apr 2034 | Apr 2034 | Apr 2039 | 
+| 22.04 LTS
+ 
+ 
+ 
+ 
+ | May 2027 | Apr 2032 | Apr 2032 | Apr 2037 | 
+| 20.04 LTS
+ 
+ 
+ 
+ 
+ | May 2025
+ 
+ 
+ 
+ | Apr 2030 | Apr 2030 | Apr 2035 | 
+| 18.04 LTS
+ 
+ 
+ 
+ 
+ | May 2023
+ 
+ 
+ 
+ | Apr 2028 | Apr 2028 | Apr 2033 | 
+| 16.04 LTS
+ 
+ 
+ 
+ 
+ | Apr 2021
+ 
+ 
+ 
+ | Apr 2026
+ 
+ 
+ | Apr 2026
+ 
+ 
+ 
+ 
+ | Apr 2031 | 
+| 14.04 LTS
+ 
+ 
+ 
+ 
+ | Apr 2019
+ 
+ 
+ 
+ | Apr 2024
+ 
+ 
+ | Apr 2024
+ 
+ 
+ 
+ 
+ | Apr 2029 | 
+
+| Version | Standard | Ubuntu Pro
+ 
+ Subscribe to Ubuntu Pro to stay secure and supported. Start a 30-day Ubuntu Pro free trial › | 
+|---|---|---|---|---|---|
+| 26.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ May 2031 | Expanded security maintenance
+ 
+ 
+ | 
+| 25.10
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ Jul 2026 | Expanded security maintenance
+ 
+ 
+ | 
+| 24.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ May 2029 | Expanded security maintenance
+ 
+ 
+ | 
+| 22.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ May 2027 | Expanded security maintenance
+ 
+ 
+ | 
+| 20.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ May 2025
+ | Expanded security maintenance
+ 
+ 
+ | 
+| 18.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ May 2023
+ | Expanded security maintenance
+ 
+ 
+ | 
+| 16.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ Apr 2021
+ | Expanded security maintenance
+ 
+ 
+ | 
+| 14.04 LTS
+ 
+
+ 
+ 
+ 
+
+ | Standard security maintenance
+ Apr 2019
+ | Expanded security maintenance
+ 
+ 
+ | 
+
+## Canonical Ubuntu lifecycle
+ 
+ and release cadence key concepts
+
+Canonical publishes new releases of Ubuntu and other products in our portfolio on a regular cadence, enabling the community, businesses and developers to plan their roadmaps with the certainty of access to newer open source upstream capabilities. 
+
+### Ubuntu release cycle
+
+Ubuntu releases a new version every six months. Releases of Ubuntu get a development codename ('Resolute Raccoon') and are versioned by the year and month of delivery – for example, Ubuntu 26.04 was released in April 2026. 
+
+Each version includes the latest features, updates, and security patches during its supported lifecycle. 
+
+[The Ubuntu Releases wiki has current information on previous and upcoming versions ›](https://wiki.ubuntu.com/Releases)
+
+### Interim releases
+
+Ubuntu's interim releases are designed for users and teams who move fast and need access to the latest kernels, languages, and toolchains. They provide cutting-edge features and hardware support every six months, but with only 9 months of updates. For long-term stability, production environments should use the LTS version, while interim releases suit those prioritizing speed and rapid feature testing. 
+
+### LTS releases
+
+LTS are released every two years and receive 5 years of standard security maintenance. 
+
+LTS releases are the go-to choice for users who value stability and extended support. These versions are security maintained for 5 years with CVE patches for packages in the Main repository. They are recommended for production environments, enterprises, and long-term projects. 
+
+### Ubuntu Pro
+
+Ubuntu Pro is Canonical's enhanced security and support subscription for Ubuntu systems. It includes up to 15 years of security coverage (ESM and Legacy add-on), Kernel Livepatch, Landscape, FIPS 140-3 certified packages, and CIS hardening, and optional enterprise-grade support. 
+
+Ubuntu Pro subscriptions are free for personal use on up to five machines. 
+
+[Learn more about Ubuntu Pro ›](/pro)
+
+### Ubuntu package categories
+
+Ubuntu packages are grouped into four main categories: 'Main' and 'Restricted' (the base system), and 'Universe' and 'Multiverse' (community and extra packages). 'Main' and 'Universe' are open source, while 'Restricted' and 'Multiverse' contain some non-open source software. 
+
+### Expanded Security Maintenance (ESM)
+
+ESM extends the life of LTS releases by providing 10 years of security updates for the 'Main' repository and also adds 10 years of security coverage for the 'Universe' repository. 
+
+Available through Ubuntu Pro, it provides continued critical and high security patches after standard security maintenance ends for packages in Main, and for thousands of open-source packages in the Universe repository. 
+
+### Support
+
+Full phone and ticketing break and bug fix support is available for Ubuntu Main and Universe repositories and the full open source stack, from infrastructure to applications, with Ubuntu Pro + Support. 
+
+### Legacy add-on
+
+At the end of the 10 year ESM period, the Legacy add-on can be purchased to cover additional 5 years of the lifetime of Ubuntu LTS, giving a total of 15 years security maintenance and support for LTS releases. 
+
+### Security and support coverage for LTS releases
+
+![Schematic representation of the maintenance and support window for Ubuntu LTS releases: five years of standard security maintenance, five years of Expanded Security Maintenance (ESM) through Ubuntu Pro, and five years of additional coverage with the Legacy add-on to Ubuntu Pro, with optional break/bug fix support throughout the 15 years.](https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_2748/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Ffb862411-chart.png)
+
+#### 1-5 years
+
+Security: 
+
+Support: 
+
+#### 6-10 years
+
+Security: 
+
+Support: 
+
+#### 11-15 years
+
+Security: 
+
+Support: 
+
+### Deb packages
+
+At the core of every Ubuntu release is a collection of 'deb' packages. Carefully tested for compatibility, debs use structured dependency management so all necessary software is installed and works together seamlessly. 
+
+### Snap packages
+
+Ubuntu supports 'snap' packages, ideal for apps and tools that update frequently and independently from the main system. Snaps offer access to the latest versions of popular software, with strong security and easy version control. 
+
+Snaps can run in a secure, confined environment with limited system access, or as 'classic' snaps with broader access – similar to debs. Choose snaps from trusted publishers, especially when using classic confinement. 
+
+### Charms
+
+Charms are software operators – business logic encapsulated in reusable software packages that automate every aspect of an application's life. 
+
+### Rocks
+
+Rocks are minimal, optimized container images built from Debian packages, designed for secure, stable, and efficient containerized deployments. They are compatible with popular container tools like Docker and Kubernetes, helping administrators manage infrastructure with lightweight, focused images that reduce vulnerabilities and overhead. 
+
+Chiseled Rocks take this approach further by removing shells, package managers, and other non-essential components, offering ultra-minimal images with an even smaller attack surface for high-security, production-grade environments. 
+
+### Ubuntu Classic
+
+Ubuntu comes in various editions and minimal installs. “Classic” Ubuntu uses deb packages and supports snaps for specific apps, available across different desktop flavors and server/cloud images. 
+
+### Ubuntu Core
+
+Ubuntu Core is an all-snap edition designed for appliances and IoT. With a lightweight, strictly confined architecture, it's highly secure and reliable – perfect for large-scale, embedded deployments. 
+
+[Learn more about Ubuntu Core ›](/core)
+
+### Ubuntu Minimal
+
+Ubuntu Minimal is a lightweight image that includes only the essential packages, making it ideal for building custom environments or optimizing deployments for performance and footprint. It provides an efficient foundation for containers, virtual machines, and specialized workloads requiring fine-grained control. Ubuntu Minimal images are available for all major public clouds, including AWS, Google Cloud and Azure. 
+
+### Ubuntu Flavors
+
+Ubuntu flavors are community-maintained variants that offer different desktop environments and user experiences. The release cycle for flavours may differ from those described here. For release details and support policies specific to a flavor, please consult its official website or documentation. 
+
+[Learn more about Ubuntu flavors ›](/desktop/flavors)
+
+---
+
+Title: Ubuntu 24.04 LTS
+
+Thank you for contacting us. A member of our team will be in touch shortly. Close
+
+You have successfully unsubscribed! Close
+
+Thank you for signing up for our newsletter! 
+In these regular emails you will find the latest updates about
+ Ubuntu and upcoming events where you can meet our team. Close
+
+Your preferences have been successfully updated. Close notification
+
+Please try again or [file a bug report.](https://github.com/canonical/ubuntu.com/issues/new?template=ISSUE_TEMPLATE.yaml)Close
+
+[Blog](/blog)
+
+# Ubuntu 24.04 LTS
+
+### Hardening automation for CIS benchmarks now available for Ubuntu 24.04 LTS
+
+*by [Henry Coggill](/blog/author/henrycoggill)on 20 March 2025 *
+
+Article 
+
+### Experience Edge AI use cases with Canonical at Mobile World Congress Barcelona 2025
+
+*by [Serdar Vural](/blog/author/serdarvural80)on 27 February 2025 *
+
+Article 
+
+### Upgrade your desktop: Ubuntu 24.04.1 LTS is now available
+
+*by [Richard Ferreira](/blog/author/richard-ferreira)on 29 August 2024 *
+
+Article 
+
+### Ubuntu Pro 24.04 LTS Lands on Google Cloud: Power Up Your Cloud Experience
+
+*by [Hugo Huang](/blog/author/hugohuangtao)on 13 May 2024 *
+
+Ubuntu Pro 
+
+### Canonical releases Landscape 24.04 LTS
+
+*by [Canonical](/blog/author/canonical)on 1 May 2024 *
+
+Article 
+
+### What’s New in Ubuntu 24.04 LTS for Microsoft/Azure Users
+
+*by [Jehudi](/blog/author/jota-ce)on 29 April 2024 *
+
+Article 
+
+### Canonical releases Ubuntu 24.04 LTS Noble Numbat
+
+*by [Canonical](/blog/author/canonical)on 25 April 2024 *
+
+Article 
+
+### Ubuntu Desktop 24.04 LTS: Noble Numbat deep dive
+
+*by [Oliver Smith](/blog/author/local-optimum)on 25 April 2024 *
+
+Article 
+
+### What’s new in security for Ubuntu 24.04 LTS?
+
+*by [Alex Murray](/blog/author/alexmurray)on 24 April 2024 *
+
+
+---
+
+Title: Ubuntu 24.04.4 LTS Update verfügbar - LinuxNews.de
+Zum Inhalt springen![Ubuntu 24.04.4 LTS](https://linuxnews.de/wp-content/uploads/2024/08/ubuntu_24.04-900x400.png)
+
+Auf [Ubuntu 24.04.3](https://linuxnews.de/ubuntu-24-04-3-lts-mit-kernel-6-14-freigegeben/)vom August 2025 folgt jetzt mit Ubuntu 24.04.4 die nächste periodische Aktualisierung des derzeitigen LTS-Release. 
+
+## Neues HWE verfügbar
+
+Die beiden aktualisierten Hauptkomponenten des neuen Hardware-Enablement-Stack (HWE), auf die sich Ubuntu-Anwender freuen können, sind Kernel 6.17 und Mesa 25.2.7. Beides sind signifikante Neuerungen seit Ubuntu 24.04.3 mit Kernel 6.14 und Mesa 25.0. Obendrauf legen die Entwickler bei Canonical Wayland Protocols 1.45 und Intels VAAPI-Treiber in Version 2.4.1. 
+
+## Frische ISOs am 12. Februar
+
+Ubuntu-Anwender können die Aktualisierung als normales Update einspielen. Für neue Installationen stellt Canonical am 12. Februar frische Abbilder für Ubuntu 24.04.4 bereit. Die aktualisierten Komponenten stammen aus dem Interim-Release Ubuntu 25.10. Für Ubuntu 24.04 wird es ein weiteres HWE vermutlich im Herbst geben, was dann Kernel und den Mesa-Stack aus Ubuntu 26.04 LTS für den Rest der Laufzeit von 24.04 bereitstellt. 
+
+## Kernel 6.20 für Ubuntu 26.04 LTS
+
+Da wir gerade beim Kernel sind: Die Entwickler planen für das am 23. April erwartete Ubuntu 26.04 LTS die Auslieferung von Kernel 6.20/7.0. Dabei ist derzeit unklar, ob Linux 6.20/7.0 bis zum Kernel-Freeze für 26.04 am 9. April stabil veröffentlicht ist. Der am 8. Februar erwartete Kernel 6.19 erhielt wegen der zurückliegenden Feiertage einen achten Release-Kandidaten. Wenn auch 6.20/7.0 einen rc8 benötigen sollte, schiebt das die Veröffentlichung um einige Tage über den Kernel-Freeze hinaus auf den 19. April. 
+
+![Second half of development cycle](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+
+Die stabile Veröffentlichung des Kernels soll dann einige Tage später nachgereicht werden, wie das bereits bei 24.10 »Questing Quokka« gehandhabt wurde. Dieses Vorgehen beruht auf der im August 2024 beschlossenen [Änderung der Kernel-Release-Richtlinie](https://linuxnews.de/aktuellere-kernel-fuer-ubuntu/). 
+
+#### Teilt den Beitrag, falls ihr mögt
+
+### Kommentar hinterlassen Antwort abbrechen
+
+Du musst [angemeldet](https://linuxnews.de/wp-login.php?redirect_to=https%3A%2F%2Flinuxnews.de%2Fubuntu-24-04-4-lts-update-verfuegbar%2F)sein, um einen Kommentar abzugeben.
+
+---
+
+Title: Ubuntu 24.04 LTS: 20 Major Changes to Look Out For
+Skip to content![White text that says Ubuntu 22.04 to 24.04 - 20 major changes](https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/04/LTS-to-LTS-wm.jpg?fit=2400%2C1260&ssl=1)
+
+**If you plan to upgrade to [Ubuntu 24.04 LTS](https://www.omgubuntu.co.uk/2024/04/ubuntu-24-04-released)from Ubuntu 22.04 you’re in for a treat because an impressive set of improvements are on offer to you. **
+
+This is because in addition to what’s new in Ubuntu 24.04, everyone who upgrades from the last LTS also receives the new features added in the Ubuntu 22.10, 23.04, and 23.10 releases respectively. 
+
+> Those upgrading from the previous LTS will find 2 years worth of changes on offer in Ubuntu 24.04
+
+*—a cumulative set that amounts to a lot. *
+
+To help you get up-to-speed, I compiled a lis of 20 of the biggest changes Ubuntu 24.04 LTS offers versus the previous LTS — an **LTS to LTS feature spotting guide **to take in the sights. 
+
+If you’re coming from Ubuntu 23.10 then my 24.04 release post gives an overview of what’s new *since *23.10 (only). 
+
+But as the majority of people who run Ubuntu use an LTS version… 
+
+Well, there’s 2 years worth of improvements to get swot up on, so let’s get to it! 
+
+## 20 Major Changes in Ubuntu 24.04 LTS
+
+### 1. New Installer
+
+Automated installations have arrived – plus other changes 
+
+If you upgrade to Ubuntu 24.04 LTS from 22.04 directly (which will be possible in June when the Ubuntu 24.04.1 release arrives and the upgrade channel opens) you won’t get to see the new Ubuntu installer. 
+
+But if you plan to do a fresh install of Ubuntu 24.04 then you’ll get to go hands-on with an all-new Ubuntu installer built in Flutter and underpinned by *Subiquity *and *Curtin *, Ubuntu’s powerful server-based installer technologies. 
+
+We’re talking revamped visuals through, improved wording to make each step make more sense, and a handful of new features such as the ability to use “provisioning” (though a `.yaml`file) to automate installation and configure accessibility options prior to install. 
+
+Plus there are dangling carrots to entice the adventurous, such as ZFS guided installations and experimental TPM-backed full-disk encryption for the security-conscious. 
+
+### 2. Minimal by default
+
+Not so much: all the software Ubuntu 24.04 LTS comes with 
+
+Ubuntu’s new installer makes it a breeze to install the distro (including alongside Windows in a dual-boot if you need) and set things up the way you want. But if you’re coming from 22.04 LTS there’s a big change you should be aware of: Ubuntu now defaults to a *minimal *install. 
+
+So if you’re doing a fresh install don’t idly breeze through the steps clicking next, next, next and expect to have a complete, comprehensive suite of software waiting for you at the other end. 
+
+If you want apps like like *LibreOffice *, *Thunderbird *, *Rhythmbox *, *Calendar *and others ready to use, right away, straight after install you must select the “expanded installation” option during installation. 
+
+But if you’re happy with ‘just the essentials’, the minimal install provides an excellent “blank canvas” or staring point. You can then install the apps *you *want yourself using… 
+
+### 3. New ‘App Center’
+
+Snap-first store but you can install DEBs from the repos too 
+
+*App Center *replaces the *Ubuntu Software *app as the recommended way to install software in Ubuntu 24.04 LTS. It’s a decent swap, with App Center offering a clean, modern look. 
+
+You’re able to search, browse, install, remove, and update snap apps or DEB packages in the Ubuntu archive, but you can’t use *App Center *to install DEB packages you download yourself — no, not even the likes of *Google Chrome *, *Steam *, *Zoom *, *Discord *etc. 
+
+To “sideload” DEBs in Ubuntu 24.04 LTS you will have to to install and use the *Gdebi *tool (available in the repos) or open the *Terminal *and run the `sudo apt install ./debname.deb`command instead — easy enough. 
+
+### 4. Meet Quick Settings
+
+Quick Settings (or toggle central as I like to call it) 
+
+It’s easier to turn Wi-Fi, Bluetooth and other features on and off in Ubuntu 24.04 LTS using the revamped *Quick Settings *menu. 
+
+*Quick Settings *uses pill-shaped controls you can click to toggle hardware features. Pods also relay status (e.g., name of active network), while sub-menus unfurl so you can take actions, like picking a wi-fi network or changing keyboard backlight brightness. 
+
+Other handy shortcuts include a button to take screenshots, and the volume slider now lets you change audio output device directly from within the menu — no need to open the *Sound *settings panel. 
+
+Finally, if you use Flatpak apps you will start to see a ***Background Apps *section **appear whenever a (compatible) app is running with no window open. 
+
+### 5. Dynamic Workspace Indicator
+
+A workspace indicator *and *switcher in one 
+
+Another (more recent) GNOME Shell change will catch the eye of those upgrading from Ubuntu 22.04 LTS — the dynamic workspace indicator in the top bar. 
+
+This dotted indicator replaces the “ *Activities *” label in the top bar (you can still click it to open the workspace switcher) and tells you how many virtual workspaces are open and which one you’re on. You can hover over the indicator and use the mouse scroll wheel to slide between workspaces. 
+
+### 6. Window tiling assistant
+
+Window snapping on steroids 
+
+Ubuntu 24.04 is the first LTS release to support quarter tiling out the box! While the distro has always let you snap windows so they take up half the available screen space it’s lacked the ability to tile windows to corners. Advanced window tiling features are now built-in. 
+
+In addition to supporting more window snapping locations the new *Ubuntu Tiling Assistant *also offers an auto-suggest prompt as you tile windows. This suggests other open apps to tile neatly alongside the one you’re snapping — no need to manually drag them where you want them. 
+
+Configure (or disable) *Ubuntu Tiling Assistant *from the (new) *Ubuntu Desktop *section in *Settings *. 
+
+### 7. New ‘Firmware Updater’ tool
+
+Ubuntu’s new firmware update tool 
+
+Keeping hardware firmware updated in Ubuntu has always been easy-ish but it’s arguably even easier in Ubuntu 24.04 thanks to the inclusion of a new Flutter-baser *Firmware Updater *tool. 
+
+It’s not flashy but it doesn’t need to be: it shows info on existing firmware for supported/upgradeable devices, displays firmware updates, and is able to upgrade firmware too — all fetched from the LVFS, of course. 
+
+### 8. App additions & removals
+
+Clocks is included by default, unlocking a cool integration 
+
+The *GNOME Clocks *app is now part of the default software set in both default (minimal) and expanded installations. This app lets see the time, create alarms, run timers, and setup world clocks (which then show in the calendar applet/message tray). 
+
+In an Ubuntu install [Thunderbird is now a snap](https://www.omgubuntu.co.uk/2024/02/thunderbird-snap-in-ubuntu-24-04)app (and the DEB in the repo is a transition package that will install the snap version; on upgrades the snap version will be replaced). 
+
+[Snapshot replaces Cheese](https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-swaps-cheese-snapshot-webcam-app)as the camera app; and [GNOME Games were removed](https://www.omgubuntu.co.uk/2024/02/ubuntu-24-04-drops-games)from all installs so you won’t find *Aisleriot Solitaire, Mines, *et al out of the box (they remain available to install). 
+
+### 9. PipeWire now default sound server
+
+Pipewire is the default sound server in Ubuntu 24.04 LTS. Both PipeWire and PulseAudio were included in Ubuntu 22.04 but PipeWire only handled video whereas now (well, since 22.10) PipeWire handles all audio duties — and very well, I might add. 
+
+PipeWire offers a host of benefits, not least of which is improved hardware compatibility, backwards compatibility with JACK, reduced CPU usage, a modern, more agile code base, and better handling of modern Bluetooth audio equipment like sound bars. 
+
+### 10. Nautilus feature-fest
+
+It’s hard to screenshot ALL the changes – but I tried! 
+
+*Nautilus *, the file manager, is more powerful, capable, and faster in Ubuntu 24.04 LTS. GNOME devs have lavished attention on this essential app over the the past few years and for LTS upgraders in particular the fruits of that effort is evident, especially in overall speed. 
+
+You can now drag items onto tabs; paste images copied to the clipboard as a new file; set/revert custom folder icons easily; password protect ZIPs; use text search to find options in *Nautilus *preferences; switch view with instant loading; use ‘rubber banding’ selection in list view, and more. 
+
+Ever wished the file chooser that appears in apps could display a thumbnail view? With the new version of *Nautilus *available in this version of Ubuntu, it can: 
+
+Thumbnail view in the file chooser – at long last 
+
+Finally, **substantial upgrades to search **in *Nautilus *mean it’s easier and faster than ever to find files. The search button will perform a global search across all indexed locations, while the ‘search in current folder’ mode stays local — both support search filters. 
+
+### 11. Share Wi-Fi passwords
+
+Wan to share a Wi-Fi password to another device? In the Settings > Wi-Fi panel you’ll find an option to generate a QR code so you can quickly share network credentials without having to copy/paste the real password into (potentially insecure) chat apps, etc. 
+
+On a related note, it’s also possible to edit (or removed) saved Wi-Fi networks when Wi-Fi is turned off — which sounds like something you’d never need to do *until *that one time you do need to! 
+
+### 12. Libadwaita everywhere
+
+Fresh look to GNOME core apps 
+
+You may notice that a lot of core apps, such as *Nautilus *, *Settings *, *Clocks *, etc have a modern look thanks to GTK4/libadwaita, the latest toolkit most GNOME apps are using. These apps resize nicely, scale better and look sharper on hi-res screens, and follow consistent design patterns. 
+
+They also sport snazzy full-height sidebars that I think look *swish *as heck. 
+
+### 13. Thinner Ubuntu font
+
+The Ubuntu desktop uses (surprise) the Ubuntu font by default and in Ubuntu 24.04 LTS you’ll notice that it’s thinner (and arguably sharper) than the version in Ubuntu 22.04 LTS. It’s not magic, it’s not your eyes, it’s an [intentional change](https://www.omgubuntu.co.uk/2023/03/new-ubuntu-font-testing). 
+
+### 14. Improved mouse & touchpad settings
+
+Configure your input devices with more precision 
+
+GNOME developers have updated the look, layout, and options presented in the ***Mouse & Touchpad ***panel — a huge improvement over the short stack of options found in 22.04 LTS. 
+
+Animations (which play on mouse over) demonstrate how each scrolling direction option operates; you’re able to configure how right-click is triggered on touchpads; and there’s a toggle to disable auto-disabling the touchpad when typing — a pet peeve of many! 
+
+Also, on a related note, tap to click is now enabled for touchscreens *and *touchpads by default. 
+
+### 15. WireGuard VPN
+
+WireGuard VPN connections can now be setup and configured from the *Network *panel (and once added you can toggle VPN connections on/off using the *Quick Settings *menu). 
+
+### 16. Larger login screen pods
+
+It might not look it but that circle is larger than before… 
+
+Yes, your user account picture really is bigger on the login screen now. No, not a groundbreaking change but it helps balance the login screen a bit better. On huge displays the smaller avatars in 22.04 were dwarfed by the expanse of blankness around. 
+
+### 17. Remote RDP login
+
+![Remote Login via RDP in Ubuntu 24.04 LTS](https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/04/remote-login-RDP-1.jpg?resize=750%2C394&ssl=1)Remote login is easy to set up 
+
+RDP support in general has improved since Ubuntu 22.04 LTS but a key new feature (courtesy of the GNOME 46 release) is the ability to remote login to your Ubuntu session from another device using RDP – though only when it’s not in use (it’s remote *login *, after all). 
+
+To set this head to the *Settings > System > Sharing > Remote Login *and enter the details. Then using an RDP client on another device you can input the details to connect to, login, and navigate your Ubuntu desktop from afar – though as this is RDP do expect lag! #burn 
+
+### 18. Microsoft OneDrive file access
+
+OneDrive file access in Nautilus as a network share 
+
+The *Online Accounts *section in *Settings *now allows you to add **WebDAV accounts **so you can access online your contacts, calendars and files in desktop apps. It also adds a new ***Microsoft 365 ***account type which, when setup, enables access OneDrive files through *Nautilus *. 
+
+### 19. Improved notifications
+
+Notifications can be expanded/collapsed 
+
+Notifications toasts (the ones you see appear on screen, and those which appear in the message tray) now use headers to let you know which app the notification comes from, and buttons to collapse/expand notifications to hide/show more info, action buttons, etc. 
+
+### 20. Linux Kernel 6.8
+
+The biggest feature in any version of Ubuntu is the Linux kernel. It’s what powers everything. From hardware support, security, raw performance, and file systems. 
+
+Ubuntu 24.04 LTS ships with [Linux 6.8](https://www.omgubuntu.co.uk/2024/03/linux-kernel-6-8-new-features). This is is the latest version at the time of release and adds a fair few things of note, including support for more gamepads and controllers, P-State driver tweaks, better swap memory handling and more. 
+
+#### More to enjoy
+
+The above list is by no means exhaustive and I’ve chosen to focus mostly on changes you can spot or see. Naturally, lots of apps, packages, libraries, tooling and so on has been updated too and those will include their own new features. 
+
+So consider this a taster; there’s lots more to enjoy in the latest LTS including more power efficiency improvements, gaming improvements, out-of-the-box support for HEIC images, more accessible Ubuntu Pro integration, and so on. 
+
+If you use Ubuntu 22.04 LTS do let me know which features I spotlighted above have you itching to upgrade ASAP by leaving a comment below. 
+
+[Noble](https://www.omgubuntu.co.uk/tag/noble)[Ubuntu 24.04 LTS](https://www.omgubuntu.co.uk/tag/ubuntu-24-04-lts)

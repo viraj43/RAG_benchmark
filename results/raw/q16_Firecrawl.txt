@@ -1,0 +1,1423 @@
+Title: Install and configure Nginx - Ubuntu
+[Skip to main content](https://ubuntu.com/tutorials/install-and-configure-nginx#main-content)
+
+Your submission was sent successfully!
+[_Close_](https://ubuntu.com/tutorials/install-and-configure-nginx#)
+
+Thank you for contacting us. A member of our team will be in touch shortly.
+[_Close_](https://ubuntu.com/tutorials/install-and-configure-nginx#)
+
+You have successfully unsubscribed!
+[_Close_](https://ubuntu.com/tutorials/install-and-configure-nginx#)
+
+Thank you for signing up for our newsletter!
+
+
+In these regular emails you will find the latest updates about
+Ubuntu and upcoming events where you can meet our team. [_Close_](https://ubuntu.com/tutorials/install-and-configure-nginx#)
+
+Your preferences have been successfully updated. [_Close notification_](https://ubuntu.com/tutorials/install-and-configure-nginx#)
+
+
+
+Please try again or
+[file a bug report.](https://github.com/canonical/ubuntu.com/issues/new?template=ISSUE_TEMPLATE.yaml) [_Close_](https://ubuntu.com/tutorials/install-and-configure-nginx#)
+
+- [Canonical](https://canonical.com/)
+
+
+
+
+
+Get to know Canonical, the company behind the products.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M13.864%202.244a2.244%202.244%200%201%201-4.489-.002%202.244%202.244%200%200%201%204.489.002ZM4.49%207.17A2.244%202.244%200%201%201%200%207.169a2.244%202.244%200%200%201%204.489.001Zm2.83%205.787a5.484%205.484%200%200%201-3.738-2.848%203.226%203.226%200%200%201-1.924.239%207.328%207.328%200%200%200%205.269%204.413c.522.11%201.063.165%201.594.165a3.241%203.241%200%200%201-.66-1.877l-.07-.011c-.153-.024-.312-.049-.47-.08Zm6.03.01a2.244%202.244%200%201%201-4.488-.002%202.244%202.244%200%200%201%204.488.002Zm.89-.825a7.35%207.35%200%200%200%20.367-8.626A3.215%203.215%200%200%201%2013.34%205a5.557%205.557%200%200%201%20.523%203.736%205.544%205.544%200%200%201-.697%201.74%203.184%203.184%200%200%201%201.072%201.666ZM2.15%203.942a1.007%201.007%200%200%201-.08.005A7.402%207.402%200%200%201%209.044.238a3.173%203.173%200%200%200-.614%201.319c-.027.165-.055.33-.064.503a5.508%205.508%200%200%200-4.417%202.363%203.352%203.352%200%200%200-1.026-.412%203.343%203.343%200%200%200-.678-.073c-.033%200-.064.002-.094.004Z%27%20fill%3D%27%23E95420%27%2F%3E%3C%2Fsvg%3E)Ubuntu](https://ubuntu.com/)
+
+
+
+
+
+The world's favourite Linux OS for servers, desktops and IoT.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M13.864%202.244a2.244%202.244%200%201%201-4.489-.002%202.244%202.244%200%200%201%204.489.002ZM4.49%207.17A2.244%202.244%200%201%201%200%207.169a2.244%202.244%200%200%201%204.489.001Zm2.83%205.787a5.484%205.484%200%200%201-3.738-2.848%203.226%203.226%200%200%201-1.924.239%207.328%207.328%200%200%200%205.269%204.413c.522.11%201.063.165%201.594.165a3.241%203.241%200%200%201-.66-1.877l-.07-.011c-.153-.024-.312-.049-.47-.08Zm6.03.01a2.244%202.244%200%201%201-4.488-.002%202.244%202.244%200%200%201%204.488.002Zm.89-.825a7.35%207.35%200%200%200%20.367-8.626A3.215%203.215%200%200%201%2013.34%205a5.557%205.557%200%200%201%20.523%203.736%205.544%205.544%200%200%201-.697%201.74%203.184%203.184%200%200%201%201.072%201.666ZM2.15%203.942a1.007%201.007%200%200%201-.08.005A7.402%207.402%200%200%201%209.044.238a3.173%203.173%200%200%200-.614%201.319c-.027.165-.055.33-.064.503a5.508%205.508%200%200%200-4.417%202.363%203.352%203.352%200%200%200-1.026-.412%203.343%203.343%200%200%200-.678-.073c-.033%200-.064.002-.094.004Z%27%20fill%3D%27%23E95420%27%2F%3E%3C%2Fsvg%3E)Ubuntu Pro](https://ubuntu.com/pro)
+
+
+
+
+
+One subscription for security maintenance, support, FIPS and other compliance certifications.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cg%20clip-path%3D%27url(%23a)%27%20fill%3D%27%23E95420%27%3E%3Cpath%20d%3D%27m15.839%205.293-1.447-2.8a.136.136%200%200%200-.051-.055.144.144%200%200%200-.074-.02h-5.8a.143.143%200%200%200-.091.03.13.13%200%200%200-.034.17.138.138%200%200%200%20.072.06l7.251%202.8a.144.144%200%200%200%20.17-.054.13.13%200%200%200%20.007-.13l-.003-.001ZM11.839%204.945.073.223A.073.073%200%200%200%20.026.221a.07.07%200%200%200-.038.027.065.065%200%200%200%20.007.086l7.962%208.182a.069.069%200%200%200%20.049.022.072.072%200%200%200%20.047-.019l3.805-3.461a.066.066%200%200%200%20.02-.061.065.065%200%200%200-.014-.03.07.07%200%200%200-.028-.02l.003-.002ZM5.382%207.183a.071.071%200%200%200-.062-.022.07.07%200%200%200-.03.011.067.067%200%200%200-.023.025l-4.13%207.696a.065.065%200%200%200-.005.046.068.068%200%200%200%20.027.038.072.072%200%200%200%20.09-.006L7.13%209.18a.066.066%200%200%200%200-.087l-1.75-1.91Z%27%2F%3E%3C%2Fg%3E%3Cdefs%3E%3CclipPath%20id%3D%27a%27%3E%3Cpath%20fill%3D%27%23fff%27%20d%3D%27M0%200h15.83v15.21H0z%27%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3C%2Fsvg%3E)Snapcraft](https://snapcraft.io/)
+
+
+
+
+
+The app store for Linux: secure packages and ultra-reliable updates.
+
+- [![](data:image/svg+xml,%3C%3Fxml%20version%3D%271.0%27%20encoding%3D%27UTF-8%27%3F%3E%0A%3Csvg%20data-name%3D%27Layer%201%27%20viewBox%3D%27125%20163%201%20190%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%0A%3Cg%20fill%3D%27%23E95420%27%3E%0A%3Cpath%20d%3D%27m173.07%20243.26v-47.87l-46.86-27.1-46.86%2027.1v47.87l-41.66%2024.05v54.19l46.86%2027.1%2041.66-24.16%2041.66%2024.05%2046.86-27.1v-54.19l-41.66-23.94zm-46.86-62.77%2036.36%2021v41.77l-36.36%2021.11-36.47-21v-41.77l36.47-21.11zm-41.66%20155.92-36.36-21v-42l36.24-20.89%2036.58%2021.11v41.77l-36.47%2021zm119.68-21-36.36%2021-36.36-21v-41.77l36.58-21.11%2036.24%2020.89v42h-0.11z%27%20stroke%3D%27%23E95420%27%20stroke-width%3D%278%27%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A)LXD](https://ubuntu.com/lxd)
+
+
+
+
+
+A pure-container hypervisor. Run system containers and VMs at scale.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cg%20clip-path%3D%27url(%23a)%27%20fill%3D%27%23E95420%27%3E%3Cpath%20d%3D%27M1.936%202.592c.668%200%201.21-.515%201.21-1.151S2.604.29%201.936.29C1.267.29.726.805.726%201.44c0%20.637.541%201.152%201.21%201.152ZM14.56.576H3.404a1.587%201.587%200%200%201%20.024%201.69l-.026.04h11.156a.56.56%200%200%200%20.386-.15.518.518%200%200%200%20.16-.369v-.692a.502.502%200%200%200-.16-.369.543.543%200%200%200-.386-.15ZM1.936%206.701c.668%200%201.21-.515%201.21-1.15%200-.637-.542-1.152-1.21-1.152-.669%200-1.21.515-1.21%201.151s.541%201.151%201.21%201.151ZM14.56%204.685H3.404a1.612%201.612%200%200%201%20.242%201.083c-.03.215-.105.421-.219.608l-.026.04h11.157a.56.56%200%200%200%20.386-.15.518.518%200%200%200%20.16-.37v-.692a.5.5%200%200%200-.16-.369.542.542%200%200%200-.386-.15ZM1.936%2010.81c.668%200%201.21-.515%201.21-1.15%200-.637-.542-1.152-1.21-1.152-.669%200-1.21.515-1.21%201.151s.541%201.151%201.21%201.151ZM14.56%208.795H3.404a1.611%201.611%200%200%201%20.243%201.082%201.581%201.581%200%200%201-.245.648h11.156a.559.559%200%200%200%20.386-.15.517.517%200%200%200%20.16-.37v-.692a.502.502%200%200%200-.16-.368.543.543%200%200%200-.386-.15ZM1.936%2014.92c.668%200%201.21-.515%201.21-1.15%200-.637-.542-1.152-1.21-1.152-.669%200-1.21.515-1.21%201.151s.541%201.151%201.21%201.151ZM14.56%2012.904H3.404a1.611%201.611%200%200%201%20.242%201.082%201.58%201.58%200%200%201-.219.608l-.026.04h11.157a.562.562%200%200%200%20.386-.15.517.517%200%200%200%20.16-.37v-.692a.5.5%200%200%200-.16-.369.543.543%200%200%200-.386-.15Z%27%2F%3E%3C%2Fg%3E%3Cdefs%3E%3CclipPath%20id%3D%27a%27%3E%3Cpath%20fill%3D%27%23fff%27%20d%3D%27M0%200h15.83v15.21H0z%27%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3C%2Fsvg%3E)MAAS](https://maas.io/)
+
+
+
+
+
+Build a bare metal cloud with super fast server provisioning.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M13.864%202.244a2.244%202.244%200%201%201-4.489-.002%202.244%202.244%200%200%201%204.489.002ZM4.49%207.17A2.244%202.244%200%201%201%200%207.169a2.244%202.244%200%200%201%204.489.001Zm2.83%205.787a5.484%205.484%200%200%201-3.738-2.848%203.226%203.226%200%200%201-1.924.239%207.328%207.328%200%200%200%205.269%204.413c.522.11%201.063.165%201.594.165a3.241%203.241%200%200%201-.66-1.877l-.07-.011c-.153-.024-.312-.049-.47-.08Zm6.03.01a2.244%202.244%200%201%201-4.488-.002%202.244%202.244%200%200%201%204.488.002Zm.89-.825a7.35%207.35%200%200%200%20.367-8.626A3.215%203.215%200%200%201%2013.34%205a5.557%205.557%200%200%201%20.523%203.736%205.544%205.544%200%200%201-.697%201.74%203.184%203.184%200%200%201%201.072%201.666ZM2.15%203.942a1.007%201.007%200%200%201-.08.005A7.402%207.402%200%200%201%209.044.238a3.173%203.173%200%200%200-.614%201.319c-.027.165-.055.33-.064.503a5.508%205.508%200%200%200-4.417%202.363%203.352%203.352%200%200%200-1.026-.412%203.343%203.343%200%200%200-.678-.073c-.033%200-.064.002-.094.004Z%27%20fill%3D%27%23E95420%27%2F%3E%3C%2Fsvg%3E)OpenStack](https://ubuntu.com/openstack)
+
+
+
+
+
+Upgrades, maintenance, support, and fully managed options for long-term, low-cost infra.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M13.864%202.244a2.244%202.244%200%201%201-4.489-.002%202.244%202.244%200%200%201%204.489.002ZM4.49%207.17A2.244%202.244%200%201%201%200%207.169a2.244%202.244%200%200%201%204.489.001Zm2.83%205.787a5.484%205.484%200%200%201-3.738-2.848%203.226%203.226%200%200%201-1.924.239%207.328%207.328%200%200%200%205.269%204.413c.522.11%201.063.165%201.594.165a3.241%203.241%200%200%201-.66-1.877l-.07-.011c-.153-.024-.312-.049-.47-.08Zm6.03.01a2.244%202.244%200%201%201-4.488-.002%202.244%202.244%200%200%201%204.488.002Zm.89-.825a7.35%207.35%200%200%200%20.367-8.626A3.215%203.215%200%200%201%2013.34%205a5.557%205.557%200%200%201%20.523%203.736%205.544%205.544%200%200%201-.697%201.74%203.184%203.184%200%200%201%201.072%201.666ZM2.15%203.942a1.007%201.007%200%200%201-.08.005A7.402%207.402%200%200%201%209.044.238a3.173%203.173%200%200%200-.614%201.319c-.027.165-.055.33-.064.503a5.508%205.508%200%200%200-4.417%202.363%203.352%203.352%200%200%200-1.026-.412%203.343%203.343%200%200%200-.678-.073c-.033%200-.064.002-.094.004Z%27%20fill%3D%27%23E95420%27%2F%3E%3C%2Fsvg%3E)Ceph](https://ubuntu.com/ceph)
+
+
+
+
+
+Software-defined storage that lowers your total cost of ownership.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M13.864%202.244a2.244%202.244%200%201%201-4.489-.002%202.244%202.244%200%200%201%204.489.002ZM4.49%207.17A2.244%202.244%200%201%201%200%207.169a2.244%202.244%200%200%201%204.489.001Zm2.83%205.787a5.484%205.484%200%200%201-3.738-2.848%203.226%203.226%200%200%201-1.924.239%207.328%207.328%200%200%200%205.269%204.413c.522.11%201.063.165%201.594.165a3.241%203.241%200%200%201-.66-1.877l-.07-.011c-.153-.024-.312-.049-.47-.08Zm6.03.01a2.244%202.244%200%201%201-4.488-.002%202.244%202.244%200%200%201%204.488.002Zm.89-.825a7.35%207.35%200%200%200%20.367-8.626A3.215%203.215%200%200%201%2013.34%205a5.557%205.557%200%200%201%20.523%203.736%205.544%205.544%200%200%201-.697%201.74%203.184%203.184%200%200%201%201.072%201.666ZM2.15%203.942a1.007%201.007%200%200%201-.08.005A7.402%207.402%200%200%201%209.044.238a3.173%203.173%200%200%200-.614%201.319c-.027.165-.055.33-.064.503a5.508%205.508%200%200%200-4.417%202.363%203.352%203.352%200%200%200-1.026-.412%203.343%203.343%200%200%200-.678-.073c-.033%200-.064.002-.094.004Z%27%20fill%3D%27%23E95420%27%2F%3E%3C%2Fsvg%3E)Kubernetes](https://ubuntu.com/kubernetes)
+
+
+
+
+
+App portability for K8s on VMware, Amazon, Azure, Google, Oracle, IBM and bare metal.
+
+- [![](data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20fill%3D%27none%27%20viewBox%3D%270%200%2016%2016%27%3E%3Cg%20clip-path%3D%27url(%23a)%27%20fill%3D%27%23E95420%27%3E%3Cpath%20d%3D%27M9.618.272c-.634%200-1.243.243-1.691.674-.448.43-.7%201.015-.701%201.624v4.221a1.9%201.9%200%200%201%201.362%200v-4.22a.955.955%200%200%201%20.291-.72%201.067%201.067%200%200%201%201.479%200%20.955.955%200%200%201%20.29.719v.962h1.363V2.57c0-.61-.253-1.194-.702-1.625A2.445%202.445%200%200%200%209.618.272ZM9.017%208.433c0%20.21-.065.417-.187.593a1.102%201.102%200%200%201-.499.393c-.203.08-.426.102-.642.06a1.125%201.125%200%200%201-.568-.292%201.055%201.055%200%200%201-.304-.547%201.028%201.028%200%200%201%20.064-.616c.084-.195.226-.362.41-.479a1.143%201.143%200%200%201%201.401.133c.103.1.185.217.24.347.057.129.085.268.085.408ZM2.773%205.855c-.634.001-1.242.244-1.69.674C.633%206.96.381%207.545.38%208.154v4.082a1.901%201.901%200%200%201%201.363%200V8.154a.955.955%200%200%201%20.29-.719%201.067%201.067%200%200%201%201.479%200%20.955.955%200%200%201%20.29.719v.962h1.363v-.962c0-.61-.253-1.194-.702-1.625a2.444%202.444%200%200%200-1.69-.674ZM2.166%2013.878c0%20.21-.065.415-.186.59-.121.174-.294.31-.496.39-.202.08-.424.102-.638.06a1.119%201.119%200%200%201-.565-.29%201.049%201.049%200%200%201-.302-.543c-.043-.206-.02-.42.063-.614.084-.194.225-.36.407-.476a1.136%201.136%200%200%201%201.394.133%201.024%201.024%200%200%201%20.323.75Z%27%2F%3E%3Cpath%20d%3D%27M14.752%204.76a1.789%201.789%200%200%201-.681-.126v2.411a.972.972%200%200%201-.312.682c-.193.179-.45.28-.718.28-.268%200-.526-.101-.718-.28a.972.972%200%200%201-.312-.682V4.32h-1.363v2.726c0%20.61.252%201.195.7%201.626a2.443%202.443%200%200%200%201.692.673c.635%200%201.244-.242%201.692-.673.449-.431.7-1.016.7-1.626v-2.41a1.9%201.9%200%200%201-.68.125ZM15.858%202.822c.037.225%200%20.455-.107.658a1.1%201.1%200%200%201-.49.472%201.161%201.161%200%200%201-1.302-.198%201.04%201.04%200%200%201-.206-1.251%201.1%201.1%200%200%201%20.492-.47%201.161%201.161%200%200%201%201.299.199c.166.16.276.366.314.59ZM7.907%2010.2c-.233%200-.465-.042-.681-.126V12.6a.97.97%200%200%201-.302.7%201.05%201.05%200%200%201-.728.29%201.05%201.05%200%200%201-.728-.29.97.97%200%200%201-.302-.7V9.845H3.804V12.6c0%20.61.252%201.194.7%201.625a2.443%202.443%200%200%200%201.692.674c.634%200%201.243-.243%201.692-.674.448-.43.7-1.015.7-1.625v-2.526a1.887%201.887%200%200%201-.68.127Z%27%2F%3E%3C%2Fg%3E%3Cdefs%3E%3CclipPath%20id%3D%27a%27%3E%3Cpath%20fill%3D%27%23fff%27%20d%3D%27M0%200h15.83v15.21H0z%27%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3C%2Fsvg%3E)Juju](https://juju.is/)
+
+
+
+
+
+Deploy, integrate and manage applications at any scale, on any infrastructure.
+
+
+* * *
+
+Also from Canonical
+
+[Anbox Cloud](https://anbox-cloud.io/)
+
+Stream Android applications to any device.
+
+[Launchpad](https://launchpad.net/)
+
+The software collaboration platform behind Ubuntu.
+
+[Ubuntu on public clouds](https://ubuntu.com/download/cloud)
+
+Optimised Ubuntu for public clouds.
+
+[Multipass](https://multipass.run/)
+
+Spin up Ubuntu VMs on Windows, Mac and Linux.
+
+[Cloud-init](https://cloud-init.io/)
+
+Control and customise your cloud instances.
+
+[Landscape](https://ubuntu.com/landscape)
+
+Systems management and security patching for Ubuntu.
+
+[Netplan](http://www.netplan.io/)
+
+Simplify and standardise complex network configuration.
+
+[Charmed Kubeflow](https://charmed-kubeflow.io/)
+
+AI and MLOps at any scale, on any cloud.
+
+[MicroCloud](https://microcloud.is/)
+
+Deploy a fully functional cloud in minutes.
+
+* * *
+
+About
+
+- [Canonical](https://canonical.com/)
+- [Press centre](https://canonical.com/press-centre)
+- [Careers](https://canonical.com/careers)
+- [Blog](https://canonical.com/blog)
+- [Documentation](https://docs.ubuntu.com/)
+- [Resources](https://ubuntu.com/engage)
+- [Partners](https://canonical.com/partners)
+- [Contact us](https://canonical.com/contact-us)
+
+[![](https://assets.ubuntu.com/v1/82818827-CoF_white.svg)\\
+Tutorials](https://ubuntu.com/tutorials)
+
+[Toggle navigation](https://ubuntu.com/tutorials/install-and-configure-nginx# "Toggle navigation")
+
+# Install and configure Nginx
+
+## 1\. Overview
+
+Nginx (pronounced as “Engine-X”) is an open source web server that is often used as reverse proxy or HTTP cache. It is available for Linux for free.
+
+In this tutorial we’ll install Nginx and set up a basic site.
+
+### [What you’ll learn](https://ubuntu.com/tutorials/install-and-configure-nginx\#p-39328-what-youll-learn)
+
+- How to set up Nginx
+- Some basic Nginx configuration
+
+### [What you’ll need](https://ubuntu.com/tutorials/install-and-configure-nginx\#p-39328-what-youll-need)
+
+- A computer running Ubuntu Server 16.04 LTS
+- Some basic knowledge of command line use
+
+_Originally authored by Nicole Mikołajczyk_
+
+* * *
+
+## 2\. Installing Nginx
+
+To install Nginx, use following command:
+
+```plaintext
+sudo apt update
+sudo apt install nginx
+```
+
+After installing it, you already have everything you need.
+
+You can point your browser to your server IP address. You should see this page:
+
+[![Welcome to nginx](https://ubuntucommunity.s3.us-east-2.amazonaws.com/optimized/2X/7/7504d83a9fe8c09d861b2f7c49e144ac773f0c0d_2_800x334.png)](https://ubuntucommunity.s3.us-east-2.amazonaws.com/original/2X/7/7504d83a9fe8c09d861b2f7c49e144ac773f0c0d.png "Welcome to nginx")
+
+If you see this page, you have successfully installed Nginx on your web server.
+
+* * *
+
+## 3\. Creating our own website
+
+Default page is placed in `/var/www/html/` location. You can place your static pages here, or use virtual host and place it other location.
+
+Virtual host is a method of hosting multiple domain names on the same server.
+
+Let’s create simple HTML page in `/var/www/tutorial/` (it can be anything you want). Create `index.html` file in this location.
+
+```plaintext
+cd /var/www
+sudo mkdir tutorial
+cd tutorial
+sudo "${EDITOR:-vi}" index.html
+```
+
+Paste the following to the `index.html` file:
+
+```
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Hello, Nginx!</title>
+</head>
+<body>
+    <h1>Hello, Nginx!</h1>
+    <p>We have just configured our Nginx web server on Ubuntu Server!</p>
+</body>
+</html>
+```
+
+Save this file. In next step we are going to set up virtual host to make Nginx use pages from this location.
+
+* * *
+
+## 4\. Setting up virtual host
+
+To set up virtual host, we need to create file in `/etc/nginx/sites-enabled/` directory.
+
+For this tutorial, we will make our site available on 81 port, not the standard 80 port. You can change it if you would like to.
+
+```plaintext
+cd /etc/nginx/sites-enabled
+sudo "${EDITOR:-vi}" tutorial
+```
+
+```
+server {
+       listen 81;
+       listen [::]:81;
+
+       server_name example.ubuntu.com;
+
+       root /var/www/tutorial;
+       index index.html;
+
+       location / {
+               try_files $uri $uri/ =404;
+       }
+}
+```
+
+`root` is a directory where we have placed our .html file. `index` is used to specify file available when visiting root directory of site. `server_name` can be anything you want, because you aren’t pointing it to any real domain by now.
+
+* * *
+
+## 5\. Activating virtual host and testing results
+
+To make our site working, simply restart Nginx service.
+
+```plaintext
+sudo service nginx restart
+```
+
+Let’s check if everything works as it should. Open our newly created site in web browser. Remember that we used :81 port.
+
+[![Final](https://ubuntucommunity.s3.us-east-2.amazonaws.com/optimized/2X/c/c541cea4fdab6269a04523060021728a0965e93e_2_800x334.png)](https://ubuntucommunity.s3.us-east-2.amazonaws.com/original/2X/c/c541cea4fdab6269a04523060021728a0965e93e.png "Final")
+
+Congratulations! Everything works as it should. We have just configured Nginx web server.
+
+* * *
+
+## 6\. That’s all!
+
+I hope that this tutorial explained you the basics of working with Nginx. Of course, it’s much more powerful tool. You can find more in official resources, available on Nginx site.
+
+If you need more guidance on using Nginx, help is always at hand:
+
+- [Ask Ubuntu](https://askubuntu.com/)
+- [Ubuntu Forums](https://ubuntuforums.org/)
+- [IRC-based support](https://wiki.ubuntu.com/IRC/ChannelList)
+
+### [Further reading:](https://ubuntu.com/tutorials/install-and-configure-nginx\#p-39328-further-reading)
+
+- [Nginx Begineer’s Guide](http://nginx.org/en/docs/beginners_guide.html)
+- [The Complete NGINX Cookbook – free e-book from O’Reilly](https://www.nginx.com/resources/library/complete-nginx-cookbook/)
+
+Was this tutorial useful?
+
+- ![Positive response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Faca5f600-Helpful-yes.svg)![positive](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2F784c0dc9-Helpful-yes-green.svg)
+
+- ![Neutral response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2F5dacff00-Helpful-unsure.svg)![Neutral response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Fb601b52c-Helpful-unsure-orange.svg)
+
+- ![Negative response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2F4ff77e8e-Helpful-no.svg)![Negative response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Fb45bf2a3-Helpful-no-red.svg)
+
+
+Thank you for your feedback.
+
+* * *
+
+* * *
+
+© 2026 Canonical Ltd.
+
+Ubuntu and Canonical are registered trademarks of Canonical Ltd.
+
+* * *
+
+---
+
+Title: How To Configure Nginx as a Reverse Proxy on Ubuntu | DigitalOcean
+## Report this
+
+What is the reason for this report?
+
+This undefined is spam
+
+This undefined is offensive
+
+This undefined is off-topic
+
+This undefined is other
+
+Submit
+
+[Tutorial](https://www.digitalocean.com/community/tutorials?subtype=tutorial)
+
+# How To Configure Nginx as a Reverse Proxy on Ubuntu
+
+Updated on October 6, 2025
+
+[Share to X (Twitter)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&text=&via=digitalocean "Share to X (Twitter)")[Share to Facebook](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&t= "Share to Facebook")[Share to LinkedIn](https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&title= "Share to LinkedIn")[Share to YCombinator](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&t= "Share to YCombinator")
+
+[Nginx](https://www.digitalocean.com/community/tags/nginx)
+
+[Ubuntu 22.04](https://www.digitalocean.com/community/tags/ubuntu-22-04)
+
+![Tony Tran](https://www.gravatar.com/avatar/9e398be78819dace9747161327c2638a6e1ec881e9bf4ed30df4d77133b0dc14?default=retro&size=256)![Vinayak Baranwal](https://www.gravatar.com/avatar/9356eb1fb0a8794fbdae4304edafe6ccb73d1ee2275a4db2f755d6188e48f737?default=retro&size=256)
+
+By[Tony Tran](https://www.digitalocean.com/community/users/tonytran) and [Vinayak Baranwal](https://www.digitalocean.com/community/users/vinayakbaranwal)
+
+![How To Configure Nginx as a Reverse Proxy on Ubuntu](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fintro-to-cloud.d49bc5f7.jpeg&width=1920)
+
+Table of contents
+
+Popular topics
+
+### [Introduction](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#introduction)
+
+A reverse proxy is the recommended method to expose an application server to the internet. Whether you are running a [Node.js](https://www.digitalocean.com/community/tags/node-js) application in production or a minimal built-in web server with Flask, these application servers will often bind to `localhost` with a TCP port. This means by default, your application will only be accessible locally on the machine it resides on. While you can specify a different bind point to force access through the internet, these application servers are designed to be served from behind a reverse proxy in production environments. This provides security benefits in isolating the application server from direct internet access, the ability to centralize firewall protection, and a minimized attack plane for common threats such as denial of service attacks.
+
+From a client’s perspective, interacting with a reverse proxy is no different from interacting with the application server directly. It is functionally the same, and the client cannot tell the difference. A client requests a resource and then receives it, without any extra configuration required by the client.
+
+This tutorial will demonstrate how to set up a reverse proxy using [Nginx](https://www.digitalocean.com/community/tags/nginx), a popular web server and reverse proxy solution. You will install Nginx, configure it as a reverse proxy using the `proxy_pass` directive, and forward the appropriate headers from your client’s request. If you don’t have an application server on hand to test, you will optionally set up a test application with the WSGI server Gunicorn.
+
+### [Key Takeaways](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#key-takeaways)
+
+- **Nginx as a Reverse Proxy for Security and Scalability:** Deploying [Nginx](https://www.digitalocean.com/community/tags/nginx) as a reverse proxy protects your application servers from direct internet exposure, centralizes SSL/TLS management, and enables advanced features like WebSocket support, load balancing, and multi-application hosting. This approach is widely recommended for production environments to enhance both security and performance.
+
+- **Universal Compatibility Across Ubuntu LTS Versions:** The configuration steps and commands in this guide are fully compatible with [Ubuntu 22.04 LTS](https://www.digitalocean.com/community/tags/ubuntu-22-04), 24.04 LTS, and future LTS releases. Nginx package names, configuration file locations, and service management commands remain consistent, ensuring a smooth experience regardless of your chosen Ubuntu version.
+
+- **Automated, Production-Ready SSL with Certbot and Let’s Encrypt:** Secure your reverse proxy with HTTPS by integrating Certbot and Let’s Encrypt. This combination provides free, automated SSL certificates and seamless renewals, meeting modern security standards and reducing manual maintenance for your web infrastructure.
+
+- **Critical Header Forwarding for Accurate Client Information:** Properly forwarding headers such as `Host`, `X-Forwarded-For`, `X-Real-IP`, and `X-Forwarded-Proto` ensures your backend applications receive accurate client IP addresses and protocol details. This is essential for logging, security, and application logic that depends on original client information.
+
+- **Advanced Features: WebSocket Support and Load Balancing:** Nginx can be configured to handle WebSocket connections and distribute traffic across multiple backend servers using upstream blocks. These advanced capabilities enable real-time communication and horizontal scaling, making your infrastructure robust and responsive to high traffic loads.
+
+- **AI-Enhanced Workflows with FastMCP Proxy Integration:** For developers leveraging [AI tools](https://www.digitalocean.com/resources/articles/ai-tools-web-development), integrating [FastMCP](https://gofastmcp.com/getting-started/welcome) Proxy allows you to bridge different transport protocols and compose remote tool servers into your local development workflow. This streamlines AI-assisted configuration generation and testing, accelerating DevOps and MLOps processes with modern, flexible proxying solutions.
+
+
+### [Version Compatibility](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#version-compatibility)
+
+> **Note:** This tutorial has been validated on **Ubuntu 22.04 LTS** and **Ubuntu 24.04 LTS**, and is **generally applicable to later LTS releases** without changes.
+
+## [Prerequisites](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#prerequisites)
+
+To complete this tutorial, you will need:
+
+- An **Ubuntu 22.04 or 24.04 LTS (and later)** server, set up according to our [Initial Server Setup with Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-22-04)
+- The address of the application server you want to proxy, this will be referred to as app\_server\_address throughout the tutorial. This can be an IP address with TCP port (such as the Gunicorn default of `http://127.0.0.1:8000`), or a unix domain socket (such as `http://unix:/tmp/pgadmin4.sock` for pgAdmin). If you do not have an application server set up to test with, you will be guided through setting up a Gunicorn application which will bind to `http://127.0.0.1:8000`.
+- A domain name pointed at your server’s public IP. This will be configured with Nginx to proxy your application server.
+
+## [Step 1 — Installing Nginx](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#step-1-installing-nginx)
+
+Nginx is available for installation with `apt` through the default repositories. For details, see [How to Install Nginx on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-20-04). Update your repository index, then install Nginx:
+
+```bash
+sudo apt update
+
+sudo apt install nginx
+```
+
+Copy
+
+Press `Y` to confirm the installation. If you are asked to restart services, press `ENTER` to accept the defaults.
+
+You need to allow access to Nginx through your firewall. Having set up your server according to the initial server prerequisites, add the following rule with `ufw`:
+
+```bash
+sudo ufw allow 'Nginx HTTP'
+```
+
+Copy
+
+Now you can verify that Nginx is running:
+
+```bash
+systemctl status nginx
+```
+
+Copy
+
+```
+Output
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2022-08-29 06:52:46 UTC; 39min ago
+       Docs: man:nginx(8)
+   Main PID: 9919 (nginx)
+      Tasks: 2 (limit: 2327)
+     Memory: 2.9M
+        CPU: 50ms
+     CGroup: /system.slice/nginx.service
+             ├─9919 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             └─9920 "nginx: worker process
+```
+
+Next you will add a custom server block with your domain and app server proxy.
+
+## [Step 2 — Configuring your Server Block](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#step-2-configuring-your-server-block)
+
+It is recommended practice to create a custom configuration file for your new server block additions, instead of editing the default configuration directly. Create and open a new Nginx configuration file using `nano` or your preferred text editor:
+
+```bash
+sudo nano /etc/nginx/sites-available/your_domain
+```
+
+Copy
+
+Insert the following into your new file, making sure to replace `your_domain` and `app_server_address`. If you do not have an application server to test with, default to using `http://127.0.0.1:8000` for the optional Gunicorn server setup in **Step 3**:
+
+/etc/nginx/sites-available/your\_domain
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name your_domain www.your_domain;
+
+    location / {
+        proxy_pass app_server_address;
+        include proxy_params;
+    }
+}
+```
+
+Copy
+
+Save and exit, with `nano` you can do this by hitting `CTRL+O` then `CTRL+X`.
+
+This configuration file begins with a standard Nginx setup, where Nginx will listen on port `80` and respond to requests made to your\_domain and `www.your_domain`. Reverse proxy functionality is enabled through Nginx’s `proxy_pass` directive. With this configuration, navigating to your\_domain in your local web browser will be the same as opening app\_server\_address on your remote machine. While this tutorial will only proxy a single application server, Nginx is capable of serving as a proxy for multiple servers at once. By adding more location blocks as needed, a single server name can combine multiple application servers through proxy into one cohesive web application.
+
+All HTTP requests come with headers, which contain information about the client who sent the request. This includes details like IP address, cache preferences, cookie tracking, authorization status, and more. Nginx provides some recommended header forwarding settings you have included as `proxy_params`, and the details can be found in `/etc/nginx/proxy_params`:
+
+/etc/nginx/proxy\_params
+
+```nginx
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+```
+
+Copy
+
+With reverse proxies, your goal is to pass on relevant information about the client, and sometimes information about your reverse proxy server itself. There are use cases where a proxied server would want to know which reverse proxy server handled the request, but generally the important information is from the original client’s request. In order to pass on these headers and make information available in locations where it is expected, Nginx uses the `proxy_set_header` directive.
+
+By default, when Nginx acts as a reverse proxy it alters two headers, strips out all empty headers, then passes on the request. The two altered headers are the `Host` and `Connection` header. There are many HTTP headers available, and you can check this [detailed list of HTTP headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) for more information on each of their purposes, though the relevant ones for reverse proxies will be covered here later.
+
+Here are the headers forwarded by `proxy_params` and the variables it stores the data in:
+
+- Host: This header contains the original host requested by the client, which is the website domain and port. Nginx keeps this in the `$http_host` variable.
+- X-Forwarded-For: This header contains the IP address of the client who sent the original request. It can also contain a list of IP addresses, with the original client IP coming first, then a list of all the IP addresses of the reverse proxy servers that passed the request through. Nginx keeps this in the `$proxy_add_x_forwarded_for` variable.
+- X-Real-IP: This header always contains a single IP address that belongs to the remote client. This is in contrast to the similar X-Forwarded-For which can contain a list of addresses. If X-Forwarded-For is not present, it will be the same as X-Real-IP.
+- X-Forwarded-Proto: This header contains the protocol used by the original client to connect, whether it be HTTP or HTTPS. Nginx keeps this in the `$scheme` variable.
+
+Next, enable this configuration file by creating a link from it to the `sites-enabled` directory that Nginx reads at startup:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/your_domain /etc/nginx/sites-enabled/
+```
+
+Copy
+
+You can now test your configuration file for syntax errors:
+
+```bash
+sudo nginx -t
+```
+
+Copy
+
+With no problems reported, restart Nginx to apply your changes:
+
+```bash
+sudo systemctl restart nginx
+```
+
+Copy
+
+Nginx is now configured as a reverse proxy for your application server, and you can access it from a local browser if your application server is running. If you have an intended application server but do not have it running, you can proceed to starting your intended application server. You can skip the remainder of this tutorial.
+
+Otherwise, proceed to setting up HTTPS with Let’s Encrypt or testing your reverse proxy with Gunicorn.
+
+## [Step 3 — Enabling HTTPS with Let’s Encrypt (Certbot)](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#step-3-enabling-https-with-let-s-encrypt-certbot)
+
+Securing your reverse proxy with HTTPS is essential for protecting data in transit, establishing user trust, and supporting modern SEO best practices. Let’s Encrypt provides free SSL/TLS certificates that can be easily installed and automatically renewed using Certbot. For a complete LEMP stack setup that includes Nginx, [PHP](https://www.digitalocean.com/community/tags/php), and [MySQL](https://www.digitalocean.com/community/tags/mysql), refer to [How to Install the LEMP Stack on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-install-linux-nginx-mysql-php-lemp-stack-on-ubuntu).
+
+### [Installing Certbot and the Nginx Plugin](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#installing-certbot-and-the-nginx-plugin)
+
+First, update your package list and install Certbot along with the Nginx plugin:
+
+```bash
+sudo apt update
+sudo apt install certbot python3-certbot-nginx
+```
+
+Copy
+
+### [Obtaining an SSL Certificate](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#obtaining-an-ssl-certificate)
+
+Run Certbot to obtain and install a certificate for your domain. Replace `your_domain.com` with your actual domain name (do not include angle brackets):
+
+```bash
+sudo certbot --nginx -d your_domain.com -d www.your_domain.com
+```
+
+Copy
+
+Certbot will automatically modify your Nginx configuration to enable SSL, redirect HTTP traffic to HTTPS, and reload Nginx.
+
+### [Verifying Auto-Renewal](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#verifying-auto-renewal)
+
+Let’s Encrypt certificates are valid for 90 days. Certbot sets up a systemd timer or cron job to renew certificates automatically. You can test the renewal process with:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+Copy
+
+If no errors occur, your certificates will renew automatically before expiration.
+
+### [Importance of SSL for Security and Trust](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#importance-of-ssl-for-security-and-trust)
+
+Using SSL/TLS encrypts all data between clients and your server, protecting sensitive information from interception or tampering. It also enables browsers to display secure padlocks, which enhance user confidence. Additionally, many modern web features require HTTPS to function properly.
+
+By enabling HTTPS with Let’s Encrypt and Certbot, you ensure your reverse proxy setup is secure, trustworthy, and compliant with best practices.
+
+## [Step 4 — Testing your Reverse Proxy with Gunicorn (Optional)](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#step-4-testing-your-reverse-proxy-with-gunicorn-optional)
+
+If you had an application server prepared and running before beginning this tutorial, you can visit it in your browser now:
+
+```
+your_domain
+```
+
+However, if you don’t have an application server on hand to test your reverse proxy, you can go through the following steps to install Gunicorn along with a test application. Gunicorn is a Python WSGI server that is often paired with an Nginx reverse proxy.
+
+Update your `apt` repository index and install `gunicorn`:
+
+```bash
+sudo apt update
+
+sudo apt install gunicorn
+```
+
+Copy
+
+You also have the option to install Gunicorn through `pip` with PyPI for the latest version that can be paired with a Python virtual environment, but `apt` is used here as a quick test bed.
+
+Next, you’ll write a Python function to return “Hello World!” as an HTTP response that will render in a web browser. Create `test.py` using `nano` or your preferred text editor:
+
+```bash
+nano test.py
+```
+
+Copy
+
+Insert the following Python code into the file:
+
+```python
+def app(environ, start_response):
+    start_response("200 OK", [])
+    return iter([b"Hello, World!"])
+```
+
+Copy
+
+This is the minimum required code by Gunicorn to start an HTTP response that renders a string of text in your web browser. After reviewing the code, save and close your file.
+
+Now start your Gunicorn server, specifying the `test` Python module and the `app` function within it. Starting the server will take over your terminal:
+
+```bash
+gunicorn --workers=2 test:app
+```
+
+Copy
+
+```
+Output
+[2022-08-29 07:09:29 +0000] [10568] [INFO] Starting gunicorn 20.1.0
+[2022-08-29 07:09:29 +0000] [10568] [INFO] Listening at: http://127.0.0.1:8000 (10568)
+[2022-08-29 07:09:29 +0000] [10568] [INFO] Using worker: sync
+[2022-08-29 07:09:29 +0000] [10569] [INFO] Booting worker with pid: 10569
+[2022-08-29 07:09:29 +0000] [10570] [INFO] Booting worker with pid: 10570
+```
+
+The output confirms that Gunicorn is listening at the default address of `http://127.0.0.1:8000`. This is the address that you set up previously in your Nginx configuration to proxy. If not, go back to your `/etc/nginx/sites-available/your_domain` file and edit the app\_server\_address associated with the `proxy_pass` directive.
+
+Open your web browser and navigate to the domain you set up with Nginx:
+
+```
+your_domain
+```
+
+Your Nginx reverse proxy is now serving your Gunicorn web application server, displaying **“Hello World!”**.
+
+## [Common Use Cases for Nginx Reverse Proxy](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#common-use-cases-for-nginx-reverse-proxy)
+
+Nginx reverse proxy setups are versatile and commonly used in many production environments. Some typical use cases include:
+
+- **Load Balancing Across Multiple Application Servers:** Distribute incoming traffic evenly among several backend servers to improve performance and reliability.
+- **Hosting Multiple Domains or Applications with Server Blocks:** Use Nginx server blocks to serve different websites or apps from the same server and IP address.
+- **Reverse Proxy for Docker Containerized Applications:** Proxy requests to services running inside Docker containers, enabling easy management and isolation. See [Run Nginx in a Docker Container on Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/how-to-run-nginx-in-a-docker-container-on-ubuntu-22-04).
+- **SSL Termination to Offload HTTPS:** Handle SSL encryption and decryption at the proxy level, reducing the load on backend servers and simplifying certificate management.
+
+These use cases highlight the flexibility and power of Nginx as a reverse proxy in modern web infrastructure.
+
+## [Advanced Configurations: WebSocket and Load Balancing](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#advanced-configurations-websocket-and-load-balancing)
+
+Nginx’s flexibility extends far beyond basic reverse proxying. Two advanced scenarios frequently encountered in modern architectures are proxying WebSocket connections and load balancing across multiple backend servers.
+
+### [Configuring Nginx for WebSocket Connections](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#configuring-nginx-for-websocket-connections)
+
+WebSockets enable real-time, bidirectional communication between clients and servers. Unlike standard HTTP, WebSockets require special handling to upgrade the protocol and maintain persistent connections. Nginx supports WebSockets by forwarding the necessary headers.
+
+#### Example: WebSocket Reverse Proxy Configuration
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name <your_domain>;
+
+    ssl_certificate /etc/ssl/certs/your_domain.crt;
+    ssl_certificate_key /etc/ssl/private/your_domain.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    location /ws/ {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Copy
+
+#### When to Use WebSocket Reverse Proxying
+
+You should use this WebSocket reverse proxy configuration when your backend application provides a WebSocket endpoint—commonly at a path such as `/ws/`—and you want Nginx to seamlessly forward and maintain persistent, real-time connections between clients and your application server. This setup is essential for applications that require low-latency, bidirectional communication, such as chat systems, live notifications, collaborative tools, or real-time dashboards.
+
+By configuring Nginx to handle the WebSocket protocol upgrade and forward the necessary headers, you ensure that clients can establish and maintain WebSocket connections through your reverse proxy without interruption. This approach also allows you to centralize SSL termination, security controls, and logging at the proxy layer, while keeping your backend application isolated from direct internet exposure.
+
+Typical scenarios for this configuration include:
+
+- Real-time chat or messaging applications
+- Live data feeds and streaming dashboards
+- Online gaming servers requiring persistent connections
+- Collaborative editing tools (e.g., shared documents or whiteboards)
+- Any service where clients and servers need to exchange data instantly and continuously
+
+In summary, use this configuration whenever your application relies on WebSockets and you want Nginx to securely and efficiently proxy those connections from the public internet to your backend service.
+
+### [Load Balancing Multiple Backend Servers](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#load-balancing-multiple-backend-servers)
+
+To maximize scalability and reliability, Nginx can distribute incoming requests across a pool of backend servers using the `upstream` directive. This approach is fundamental for high-availability and horizontal scaling.
+
+#### Example: Load Balancing with Upstream Block
+
+```nginx
+upstream backend_nodes {
+    server 127.0.0.1:8001;
+    server 127.0.0.1:8002;
+    server 127.0.0.1:8003;
+}
+
+server {
+    listen 80;
+    server_name <your_domain>;
+
+    location / {
+        proxy_pass http://backend_nodes;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Copy
+
+#### When to Use
+
+This configuration is ideal when you operate multiple instances of your application (e.g., Node.js, Python, or containerized apps) and want Nginx to balance traffic between them, improving performance and fault tolerance.
+
+#### Additional Options
+
+Nginx supports advanced load balancing features such as session persistence (sticky sessions), health checks, and weighted backends. Review the [official Nginx documentation](https://nginx.org/en/docs/http/ngx_http_upstream_module.html) for further customization.
+
+## [AI Use Case Potential: Nginx Reverse Proxy Prompts](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#ai-use-case-potential-nginx-reverse-proxy-prompts)
+
+With the rise of [AI-powered code assistants](https://www.digitalocean.com/resources/articles/best-ai-coding-assistant), developers can rapidly generate and validate Nginx reverse proxy configurations for a wide range of scenarios. Here are example prompts you can use with AI tools to streamline your workflow:
+
+- **“Generate an Nginx reverse proxy config for WebSocket connections on port 8080.”**
+- **“Create a load balancing reverse proxy setup for three Node.js servers with sticky sessions.”**
+- **“Show me an Nginx config for proxying multiple domains with SSL termination.”**
+
+These prompts enable you to quickly obtain tailored configuration snippets for complex requirements, including WebSocket support, advanced load balancing, SSL offloading, or multi-domain setups.
+
+### [Best Practice](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#best-practice)
+
+Always adapt generated configurations to your infrastructure and security requirements, and verify them against the [official Nginx documentation](https://nginx.org/en/docs/) before deploying to production.
+
+## [Integrating FastMCP Proxy Server for AI Workflows](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#integrating-fastmcp-proxy-server-for-ai-workflows)
+
+If you use AI assistants (e.g., Claude Desktop) to scaffold Nginx configs, **FastMCP Proxy** lets you run a local MCP server that **proxies** to remote MCP servers while preserving advanced protocol features.
+
+**What proxying means (at a glance):** Your local FastMCP instance receives a request (like `tools/call`) and **forwards** it to a backend MCP server (local or remote, different transport), then **relays** the response back to your client—giving you a single, consistent endpoint.
+
+**Key benefits (developer‑focused):**
+
+- **Session isolation:** Each request in its own backend session for safe concurrency.
+- **Transport bridging:** Expose SSE/HTTP servers locally via stdio (or vice‑versa).
+- **Advanced MCP features forwarded:** sampling, elicitation, logging, and progress.
+- **Security & control:** Acts as a managed gateway to backend servers.
+- **Simplicity:** One endpoint even if backend location/transport changes.
+
+**Performance note:** Proxies to HTTP/SSE backends can add latency (hundreds of ms for `list_tools()` vs single‑digit ms locally). If ultra‑low latency is required, consider static composition (e.g., importing tools at startup) instead of runtime proxying.
+
+**Quick start (bridging remote SSE → local stdio):**
+
+Use when you have a remote MCP server exposed via SSE/HTTP and you want desktop clients to treat it as a local stdio server.
+
+```python
+from fastmcp import FastMCP
+from fastmcp.server.proxy import ProxyClient
+
+proxy = FastMCP.as_proxy(
+    ProxyClient("https://example.com/mcp/sse"),
+    name="Remote-to-Local Bridge"
+)
+
+if __name__ == "__main__":
+    proxy.run()  # runs via stdio for local clients
+```
+
+Copy
+
+**Local → HTTP exposure:**
+
+Use when you need to expose a local stdio‑based MCP server over HTTP on a chosen host and port so other machines can reach it.
+
+```python
+from fastmcp import FastMCP
+from fastmcp.server.proxy import ProxyClient
+
+local_proxy = FastMCP.as_proxy(
+    ProxyClient("local_server.py"),
+    name="Local-to-HTTP Bridge"
+)
+
+if __name__ == "__main__":
+    proxy = local_proxy
+    proxy.run(transport="http", host="0.0.0.0", port=8080)
+```
+
+Copy
+
+See **FastMCP Proxy Server docs**: [https://gofastmcp.com/servers/proxy](https://gofastmcp.com/servers/proxy)
+
+## [Troubleshooting Common Issues](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#troubleshooting-common-issues)
+
+Even with a correct setup, you may encounter common issues when configuring Nginx as a reverse proxy. Below are frequent problems and how to resolve them.
+
+### [502 Bad Gateway](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#502-bad-gateway)
+
+**Cause:** This error usually means Nginx cannot communicate with the backend application server. It might be down, misconfigured, or listening on a different port/socket.
+
+**Fixes:**
+
+- Ensure your application server is running and listening on the expected address and port.
+- Verify the `proxy_pass` directive in your Nginx config matches the backend address exactly.
+- Check firewall settings to confirm traffic is allowed between Nginx and the backend.
+- Review backend logs for errors.
+
+Example command to check if Gunicorn is listening:
+
+```bash
+ss -tuln | grep 8000
+```
+
+Copy
+
+Restart your backend server if needed.
+
+### [SSL Misconfiguration](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#ssl-misconfiguration)
+
+**Cause:** SSL errors can arise from expired, missing, or misconfigured certificates, or incorrect Certbot installation paths.
+
+**Fixes:**
+
+- Confirm your SSL certificate files exist in `/etc/letsencrypt/live/<your_domain>/`.
+- Use `sudo certbot certificates` to list installed certificates and their expiry.
+- Check Nginx SSL configuration blocks for correct paths to `ssl_certificate` and `ssl_certificate_key`.
+- Run `sudo certbot renew --dry-run` to test auto-renewal.
+- Review Nginx error logs for SSL-related messages.
+
+### [DNS Issues](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#dns-issues)
+
+**Cause:** Your domain may not resolve to your server’s IP, causing connection failures.
+
+**Fixes:**
+
+- Verify your domain’s A and AAAA records point to your server’s public IP.
+- Use DNS lookup tools to confirm:
+
+```bash
+dig +short your_domain
+nslookup your_domain
+```
+
+Copy
+
+- If DNS records were recently changed, allow time for propagation.
+- Check your domain registrar and DNS provider settings.
+
+By following these troubleshooting steps, you can quickly identify and resolve common problems encountered when setting up Nginx as a reverse proxy.
+
+## [FAQ](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#faq)
+
+**What is a reverse proxy, and why is Nginx recommended for this role?**
+
+A reverse proxy acts as an intermediary, forwarding client requests to backend application servers and returning responses. Nginx is widely trusted for this purpose due to its high performance, low resource usage, robust security features, and native support for SSL/TLS, caching, and load balancing. Using Nginx as a reverse proxy enhances security, scalability, and maintainability in production environments.
+
+**How do I install Nginx on Ubuntu 22.04 or 24.04 LTS?**
+
+To install Nginx on Ubuntu 22.04 or 24.04, update your package index with `sudo apt update` and install Nginx using `sudo apt install nginx`. The package name and service management commands are consistent across recent Ubuntu LTS releases, ensuring a straightforward and reliable installation process.
+
+**What is the purpose of the `proxy_pass` directive in Nginx?**
+
+The `proxy_pass` directive specifies the backend server to which Nginx should forward incoming client requests. This can be an IP address and port, a UNIX domain socket, or an upstream group for load balancing. Proper configuration of `proxy_pass` is essential for correct request routing and application availability.
+
+**How do I enable HTTPS on my Nginx reverse proxy?**
+
+Enable HTTPS by installing Certbot (`python3-certbot-nginx`) and running `sudo certbot --nginx -d your_domain -d www.your_domain` to obtain and configure a free SSL certificate from Let’s Encrypt. Test automatic renewals with `sudo certbot renew --dry-run` to ensure ongoing security and compliance with modern web standards.
+
+**Can Nginx proxy WebSocket connections?**
+
+Yes, Nginx fully supports proxying WebSocket connections. To enable this, set `proxy_http_version 1.1` and include the following headers in your configuration:
+
+```nginx
+proxy_http_version 1.1;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+```
+
+Copy
+
+**Can I use Nginx reverse proxy for multiple domains or apps?**
+
+Yes—create separate `server` blocks for each domain or application with distinct `server_name` values. You can also route by path within a single block, proxying requests to different upstreams as needed.
+
+**How do I troubleshoot Nginx reverse proxy errors?**
+
+Ensure your backend is listening on the correct address and port (`ss -tuln`). Validate your `proxy_pass` targets, run `sudo nginx -t` to check configs, monitor `/var/log/nginx/error.log`, and confirm SSL certificate files exist under `/etc/letsencrypt/live/<domain>/`.
+
+## [Conclusion](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#conclusion)
+
+With this tutorial you have configured Nginx as a reverse proxy to enable access to your application servers that would otherwise only be available locally. Additionally, you configured the forwarding of request headers, passing on the client’s header information.
+
+For examples of a complete solution using Nginx as a reverse proxy, check out [how to serve Flask applications with Gunicorn and Nginx on Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04) or [how to run a Meilisearch frontend using InstantSearch on Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/how-to-run-a-meilisearch-frontend-using-instantsearch-on-ubuntu-22-04).
+
+## [Related Tutorials](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04\#related-tutorials)
+
+- [How to Install Nginx on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-20-04)
+- [How to Install the LEMP Stack on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-install-linux-nginx-mysql-php-lemp-stack-on-ubuntu)
+- [How to Run Nginx in a Docker Container on Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/how-to-run-nginx-in-a-docker-container-on-ubuntu-22-04)
+
+Thanks for learning with the DigitalOcean Community. Check out our offerings for compute, storage, networking, and managed databases.
+
+[Learn more about our products](https://www.digitalocean.com/products "Learn more about our products")
+
+### About the author(s)
+
+![Tony Tran](https://www.gravatar.com/avatar/9e398be78819dace9747161327c2638a6e1ec881e9bf4ed30df4d77133b0dc14?default=retro&size=256)
+
+Tony Tran
+
+Author
+
+[See author profile](https://www.digitalocean.com/community/users/tonytran)
+
+[See author profile](https://www.digitalocean.com/community/users/tonytran)
+
+![Vinayak Baranwal](https://www.gravatar.com/avatar/9356eb1fb0a8794fbdae4304edafe6ccb73d1ee2275a4db2f755d6188e48f737?default=retro&size=256)
+
+Vinayak Baranwal
+
+Editor
+
+Technical Writer II
+
+[See author profile](https://www.digitalocean.com/community/users/vinayakbaranwal)
+
+Building future-ready infrastructure with Linux, Cloud, and DevOps. Full Stack Developer & System Administrator. Technical Writer @ DigitalOcean \| GitHub Contributor \| Passionate about Docker, PostgreSQL, and Open Source \| Exploring NLP & AI-TensorFlow \| Nailed over 50+ deployments across production environments.
+
+[See author profile](https://www.digitalocean.com/community/users/vinayakbaranwal)
+
+Category:
+
+[Tutorial](https://www.digitalocean.com/community/tutorials?subtype=tutorial)
+
+Tags:
+
+[Nginx](https://www.digitalocean.com/community/tags/nginx)
+
+[Ubuntu 22.04](https://www.digitalocean.com/community/tags/ubuntu-22-04)
+
+[Share to X (Twitter)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&text=&via=digitalocean "Share to X (Twitter)")[Share to Facebook](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&t= "Share to Facebook")[Share to LinkedIn](https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&title= "Share to LinkedIn")[Share to YCombinator](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04%3Futm_medium%3Dcommunity%26utm_source%3Dtwshare%26utm_content%3Dhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&t= "Share to YCombinator")
+
+#### Still looking for an answer?
+
+[Ask a question](https://www.digitalocean.com/community/questions) [Search for more help](https://www.digitalocean.com/community)
+
+Was this helpful?
+
+YesNo
+
+Comments(3)Follow-up questions(0)
+
+[Help](https://www.digitalocean.com/community/markdown "Help")
+
+﻿
+
+Leave a comment...
+
+This textbox defaults to usingMarkdownto format your answer.
+
+You can type!refin this text area to quickly search our full set oftutorials, documentation & marketplace offerings and insert the link!
+
+[Sign in/up to comment](https://www.digitalocean.com/api/dynamic-content/v1/login?success_redirect=https%3A%2F%2Fwww.digitalocean.com%2Fcommunity%2Ftutorials%2Fhow-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04&error_redirect=https%3A%2F%2Fwww.digitalocean.com%2Fauth-error&type=register)
+
+![Guillermo Chavez](https://www.gravatar.com/avatar/5ecd0e8caafed9234c505da3350a93bbb866270715b9c48e9179a692673b592b?default=retro)
+
+[Guillermo Chavez](https://www.digitalocean.com/community/users/guillermochavez)
+
+[October 5, 2023](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04?comment=199754)
+
+This comment has been deleted
+
+![micdroplet](https://www.gravatar.com/avatar/6c88c3aa220aa8e2bec712a982dc4029220ac9ed5734323457e78c24672df6ba?default=retro)
+
+[micdroplet](https://www.digitalocean.com/community/users/micdroplet)
+
+[November 11, 2023](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04?comment=200496)
+
+Show less
+
+If you get an error like this when testing the config:
+
+```
+nginx: [emerg] invalid URL prefix in /etc/nginx/sites-enabled/your_domain:8
+nginx: configuration file /etc/nginx/nginx.conf test failed
+```
+
+Check to make sure your app\_server\_address in the server block has the ‘http://’ prefix, like this:
+
+```
+proxy_pass http://your_IP
+```
+
+Reply
+
+![orvituhgo](https://www.gravatar.com/avatar/f7a1cf59679c61354b431910807189beecf1fe3150ad251b4189c61c8debcb60?default=retro)
+
+[orvituhgo](https://www.digitalocean.com/community/users/orvituhgo)
+
+[September 15, 2024](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04?comment=207269)
+
+Show less
+
+Very good
+
+Reply
+
+[![Creative Commons](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fcreativecommons.c0a877f1.png&width=384)](https://creativecommons.org/licenses/by-nc-sa/4.0/) This work is licensed under a Creative Commons Attribution-NonCommercial- ShareAlike 4.0 International License.
+
+##### Join the Tech Talk
+
+**Success!** Thank you! Please check your email for further details.
+
+Please complete your information!
+
+Table of contents
+
+- [Prerequisites](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#prerequisites)
+- [Step 1 — Installing Nginx](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#step-1-installing-nginx)
+- [Step 2 — Configuring your Server Block](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#step-2-configuring-your-server-block)
+- [Step 3 — Enabling HTTPS with Let’s Encrypt (Certbot)](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#step-3-enabling-https-with-let-s-encrypt-certbot)
+- [Step 4 — Testing your Reverse Proxy with Gunicorn (Optional)](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#step-4-testing-your-reverse-proxy-with-gunicorn-optional)
+- [Common Use Cases for Nginx Reverse Proxy](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#common-use-cases-for-nginx-reverse-proxy)
+- [Advanced Configurations: WebSocket and Load Balancing](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#advanced-configurations-websocket-and-load-balancing)
+- [AI Use Case Potential: Nginx Reverse Proxy Prompts](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#ai-use-case-potential-nginx-reverse-proxy-prompts)
+- [Integrating FastMCP Proxy Server for AI Workflows](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#integrating-fastmcp-proxy-server-for-ai-workflows)
+- [Troubleshooting Common Issues](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#troubleshooting-common-issues)
+- [FAQ](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#faq)
+- [Conclusion](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#conclusion)
+- [Related Tutorials](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04#related-tutorials)
+
+- ## Deploy on DigitalOcean
+
+Click below to sign up for DigitalOcean's virtual machines, Databases, and AIML products.
+
+
+
+[Sign up](https://cloud.digitalocean.com/registrations/new?refcode=f6fcd01aaffb)
+
+
+
+
+
+
+
+
+
+### Connect on Discord
+
+Join the conversation in our Discord to connect with fellow developers
+
+
+
+[Visit Discord](https://discord.gg/digitalocean)
+
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Ftutorials-2-tulip.764b9f59.svg&width=1920)
+
+## Become a contributor for community
+
+Get paid to write technical tutorials and select a tech-focused charity to receive a matching donation.
+
+[Sign Up](https://www.digitalocean.com/community/pages/write-for-digitalocean)
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fdocs-2-kiwi.239a03ef.svg&width=1920)
+
+## DigitalOcean Documentation
+
+Full documentation for every DigitalOcean product.
+
+[Learn more](https://docs.digitalocean.com/)
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fblogs-1-lavender.495d1f00.svg&width=1920)
+
+## Resources for startups and AI-native businesses
+
+The Wave has everything you need to know about building a business, from raising funding to marketing your product.
+
+[Learn more](https://www.digitalocean.com/resources)
+
+## Get our newsletter
+
+Stay up to date by signing up for DigitalOcean’s Infrastructure as a Newsletter.
+
+Submit
+
+Submit
+
+New accounts only. By submitting your email you agree to our [Privacy Policy](https://www.digitalocean.com/legal/privacy-policy)
+
+## The developer cloud
+
+Scale up as you grow — whether you're running one virtual machine or ten thousand.
+
+[View all products](https://www.digitalocean.com/products)
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fclouds-mobile.5d14bead.svg&width=3840)
+
+## Start building today
+
+From GPU-powered inference and Kubernetes to managed databases and storage, get everything you need to build, scale, and deploy intelligent applications.
+
+[Sign up](https://cloud.digitalocean.com/registrations/new)
+
+![](https://www.digitalocean.com/api/static-content/v1/images?src=%2F_next%2Fstatic%2Fmedia%2Fwaves-mobile.a054c63e.svg&width=3840)
+
+Dark mode is coming soon.
+
+This site uses cookies and related technologies, as described in our [privacy policy](https://www.digitalocean.com/legal/privacy-policy/), for purposes that may include site operation, analytics, enhanced user experience, or advertising. You may choose to consent to our use of these technologies, or manage your own preferences. Please visit our [cookie policy](https://www.digitalocean.com/legal/cookie-policy) for more information.
+
+Agree & ProceedDecline AllManage Choices
+
+Loading...
+
+## Community
+
+## Product Docs
+
+## Marketplace
+
+## DigitalOcean Blog
+
+navigategoexit
+
+---
+
+Title: How to Setup Nginx as a Reverse Proxy on Ubuntu 22.04 LTS - Reddit
+In the tutorial I show how to use "proxy_pass" to point a secondary webserver to a subfolder of the primary.
+
+---
+
+Title: How to Configure NGINX Reverse Proxy on Ubuntu! - YouTube
+![Thumbnail (1920x1080)](https://i.ytimg.com/vi_webp/DwI4Z5W5yok/maxresdefault.webp)
+# [How to Configure NGINX Reverse Proxy on Ubuntu!](https://www.youtube.com/watch?v=DwI4Z5W5yok)
+
+**Visibility**: Public
+**Uploaded by**: [BTNHD](http://www.youtube.com/@bjtechnewshd)
+**Uploaded at**: 2020-08-30T04:00:05-07:00
+**Published at**: 2020-08-30T04:00:05-07:00
+**Length**: 03:38
+**Views**: 18347
+**Likes**: 190
+**Category**: Science & Technology
+
+## Description
+
+```
+Quick how to video on how to configure NGINX reverse proxy on Ubuntu. Very simple process in creating a NGINX reverse proxy server. Enjoy and be safe. 
+
+Chapters
+0:00 Introduction
+0:08 Benefits of Nginx Reverse Proxy
+0:44 Nginx Reverse Proxy Lab Setup
+0:55 Basic Apache Web Server Setup
+1:20 Nginx Server Setup 
+1:50 Install Nginx Server
+2:12 Unlink Nginx Default Site
+2:15 Create Reverse Proxy Configuration File
+2:49 Link Reverse Proxy to Site Enabled 
+3:01 Test Nginx Configuration File
+3:08 Restart Nginx Services
+3:12 Check Nginx Status 
+3:24 Conclusion
+
+#NGINX #Servers #BTNHD
+
+Don't forget guys, if you like this video please "Like", "Favorite", and "Share" it with your friends to show your support - it really helps us out! If there's something you'd like to see on the channel, tweet us about it! See you next time :)
+
+********************************************************
+The Music I Use: https://btnhd.com/BTNHDMUSIC
+Stock Images & Video I use: https://btnhd.com/BNTHDVIDEONPHOTOS
+BTNHD GitHub Repo - https://btnhd.com/BTNHDGitHub
+Join Newsletter - https://btnhd.com/JoinBTNHDNewsLetter
+
+Follow Me at Twitter: http://twitter.com/bjtechnews
+Hang Out: https://www.periscope.tv/bjtechnews
+Tech Site: http://bjtechnews.org
+Twitch.tv: http://www.twitch.tv/t3chz3ro
+Instagram: http://instagram.com/bjtechnews#
+Facebook: http://facebook.com/bjtechnews
+```
+
+## Transcript
+
+What's going on guys it is Bernardo from the
+BTNHD and today is all about configuring reverse proxy within nginx, so let's get right into
+it. Okay, so today we are going to configure a
+reverse proxy within nginx using an Apache web server. Right. Super simple, I thought it was going to be
+an extreme like really hard intense process but it's not. So I have two virtual machines right now,
+one virtual machine is called btnhd dash Apache, and the other one is btnhd dash nginx. Now for my Apache server I already have just
+basic Apache web services up and running, but for your environment most likely you have
+an Apache server with a active web server. Now within the Apache server I did a if config
+command within the terminal to get the IP address. Now, most likely you're going to do this within
+your web server to get the IP address just jot it down, but you will need the public
+IP address. Now within my nginx server I ran sudo Su,
+and I hit Enter entered my password because I wanted to log in as a root, okay you don't
+really need to do this but for my environment I did. The next thing that I did was I ran it ping
+to the IP address to my Apache server I wanted to make sure that my nginx is able to connect
+or establish a connection to my Apache, so as you can see, everything is able to ping
+with no problem. The next command that we are going to run
+within the nginx server is apt get updates, make sure that it is fully up to date. Once a machine is fully up to date we are
+going to run apt get install nginx, we're going to hit enter here, it's going to ask
+you if you want to continue just hit Y for yes and hit Enter, and then it's going to
+install nginx within that server once nginx is fully installed on your server, we need
+to run the following command to unlink the site enabled default. Once you hit enter here, it's going to unlink
+it, and we need to create a reverse proxy configuration file, I ran the following command
+and hit enter now within this configuration file I enter the following server, listen
+to 80, because my Apache server is running on port 80, most likely within your environment
+you might have changed it to maybe 443, that is what you are going to enter here, your
+location will be the entire main root of the website, and you're going to call out proxy
+underscore path, you could use the IP address, or you can use the domain name. Once you do all that you want to save the
+file, and then within your terminal you're going to link, basically the reverse proxy
+within site available into sites enabled. Once you enter that command you're going to
+hit enter. You're done. We are going to do a config test your configuration
+file should pass with no problem, then we are going to restart nginx with the following
+command we're going to hit enter. If you want to check the status of your nginx
+just run systemctl status nginx hit Enter, and as you can see is active and running. And that's it. That is how we configure a reverse proxy within
+nginx, and that's it guys hopefully you guys enjoyed this video make sure to hit that thumbs
+up smash that subscribe button also hit that notification bell to get the latest and greatest
+from this guy and I catch you guys on the next one. Peace out.
+
+
+## Endscreen
+    
+- [How to Configure NGINX HTTPS with a SSL Certificate!](https://www.youtube.com/watch?v=z1t9Ko5afqs)
+
+---
+
+Title: NGINX Reverse Proxy | NGINX Documentation
+# NGINX Reverse Proxy
+
+This article describes the basic configuration of a proxy server. You will learn how to pass a request from NGINX to proxied servers over different protocols, modify client request headers that are sent to the proxied server, and configure buffering of responses coming from the proxied servers.
+
+## [Introduction](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/\#introduction "Introduction")
+
+Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.
+
+## [Passing a Request to a Proxied Server](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/\#passing-a-request-to-a-proxied-server "Passing a Request to a Proxied Server")
+
+When NGINX proxies a request, it:
+
+1. Sends the request to a specified proxy server
+2. Fetches the response
+3. Sends the response back to the client.
+
+It is possible to proxy requests to an HTTP server (another NGINX server or any other server) or a non-HTTP server (which can run an application developed with a specific framework, such as PHP or Python) using a specified protocol. Supported protocols include [FastCGI](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html), [uwsgi](https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html), [SCGI](https://nginx.org/en/docs/http/ngx_http_scgi_module.html), and [memcached](https://nginx.org/en/docs/http/ngx_http_memcached_module.html).
+
+To pass a request to an HTTP proxied server, the [proxy\_pass](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass) directive is specified inside a [location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location). For example:
+
+nginx
+
+Copy
+
+```nginx
+location /some/path/ {
+    proxy_pass http://www.example.com/link/;
+}
+```
+
+This example configuration results in passing all requests processed in this location to the proxied server at the specified address. This address can be specified as a domain name or an IP address. The address may also include a port:
+
+nginx
+
+Copy
+
+```nginx
+location ~ \.php {
+    proxy_pass http://127.0.0.1:8000;
+}
+```
+
+Note that in the first example above, the address of the proxied server is followed by a URI, `/link/`. If the URI is specified along with the address, it replaces the part of the request URI that matches the location parameter.
+
+For example, the request with the `/some/path/page.html` URI will be proxied to `http://www.example.com/link/page.html`. However, if the address is specified without a URI, or it is not possible to determine the part of URI to be replaced, the full request URI is passed (possibly, modified).
+
+To pass a request to a non-HTTP proxied server, the appropriate `**_pass` directive should be used:
+
+- [fastcgi\_pass](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass) passes a request to a FastCGI server
+- [uwsgi\_pass](https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_pass) passes a request to a uwsgi server
+- [scgi\_pass](https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_pass) passes a request to an SCGI server
+- [memcached\_pass](https://nginx.org/en/docs/http/ngx_http_memcached_module.html#memcached_pass) passes a request to a memcached server
+
+Note that in these cases, the rules for specifying addresses may be different. You may also need to pass additional parameters to the server (see the [reference documentation](https://nginx.org/en/docs/) for more detail).
+
+The [proxy\_pass](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass) directive can also be used to pass requests to a [named group](https://nginx.org/en/docs/http/load_balancing.html#algorithms) of servers. In this case, requests are distributed among the servers in the group according to the [specified method](https://www.nginx.com/resources/admin-guide/load-balancer/).
+
+## [Passing Request Headers](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/\#passing-request-headers "Passing Request Headers")
+
+By default, NGINX modifies two header fields in proxied requests, “Host” and “Connection”, and eliminates the header fields whose values are empty strings. “Host” is set to the value of the `$proxy_host` variable, and “Connection” is set to `close`.
+
+To change these settings, as well as modify other header fields, use the [proxy\_set\_header](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header) directive. This directive can be specified in a [location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location) or higher. It can also be specified in a particular [server](https://nginx.org/en/docs/http/ngx_http_core_module.html#server) context or in the [http](https://nginx.org/en/docs/http/ngx_http_core_module.html#http) block. For example:
+
+nginx
+
+Copy
+
+```nginx
+location /some/path/ {
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_pass http://localhost:8000;
+}
+```
+
+In this configuration the “Host” field is set to the [$host](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) variable.
+
+To prevent a header field from being passed to the proxied server, set it to an empty string as follows:
+
+nginx
+
+Copy
+
+```nginx
+location /some/path/ {
+    proxy_set_header Accept-Encoding "";
+    proxy_pass http://localhost:8000;
+}
+```
+
+## [Configuring Buffers](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/\#configuring-buffers "Configuring Buffers")
+
+By default NGINX buffers responses from proxied servers. A response is stored in the internal buffers and is not sent to the client until the whole response is received. Buffering helps to optimize performance with slow clients, which can waste proxied server time if the response is passed from NGINX to the client synchronously. However, when buffering is enabled NGINX allows the proxied server to process responses quickly, while NGINX stores the responses for as much time as the clients need to download them.
+
+The directive that is responsible for enabling and disabling buffering is [proxy\_buffering](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering). By default it is set to `on` and buffering is enabled.
+
+The [proxy\_buffers](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffers) and [proxy\_buffer\_size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) directives control how NGINX stores and buffers data.
+
+The [proxy\_buffers](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffers) directive controls the size and the number of buffers allocated for a request. The first part of the response from a proxied server is stored in a separate buffer, the size of which is set with the [proxy\_buffer\_size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) directive. This part usually contains a comparatively small response header and can be made smaller than the buffers for the rest of the response.
+
+In the following example, the default number of buffers is increased and the size of the buffer for the first portion of the response is made smaller than the default.
+
+nginx
+
+Copy
+
+```nginx
+location /some/path/ {
+    proxy_buffers 16 4k;
+    proxy_buffer_size 2k;
+    proxy_pass http://localhost:8000;
+}
+```
+
+If buffering is disabled, the response is sent to the client synchronously while it is receiving it from the proxied server. This behavior may be desirable for fast interactive clients that need to start receiving the response as soon as possible.
+
+To disable buffering in a specific location, place the [proxy\_buffering](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering) directive in the [location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location) with the `off` parameter, as follows:
+
+nginx
+
+Copy
+
+```nginx
+location /some/path/ {
+    proxy_buffering off;
+    proxy_pass http://localhost:8000;
+}
+```
+
+In this case NGINX uses only the buffer configured by [proxy\_buffer\_size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) to store the current part of a response.
+
+A common use of a reverse proxy is to provide load balancing. See [HTTP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) and [TCP and UDP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/tcp-udp-load-balancer/).
+
+## [Choosing an Outgoing IP Address](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/\#choosing-an-outgoing-ip-address "Choosing an Outgoing IP Address")
+
+If your proxy server has several network interfaces, sometimes you might need to choose a particular source IP address for connecting to a proxied server or an upstream. This may be useful if a proxied server behind NGINX is configured to accept connections from particular IP networks or IP address ranges.
+
+In such cases, you can specify the [proxy\_bind](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_bind) directive and the IP address of the necessary network interface:
+
+nginx
+
+Copy
+
+```nginx
+location /app1/ {
+    proxy_bind 127.0.0.1;
+    proxy_pass http://example.com/app1/;
+}
+
+location /app2/ {
+    proxy_bind 127.0.0.2;
+    proxy_pass http://example.com/app2/;
+}
+```
+
+The IP address can be also specified with a variable. For example, the [`$server_addr`](https://nginx.org/en/docs/http/ngx_http_core_module.html#var_server_addr) variable passes the IP address of the network interface that accepted the request:
+
+nginx
+
+Copy
+
+```nginx
+location /app3/ {
+    proxy_bind $server_addr;
+    proxy_pass http://example.com/app3/;
+}
+```
+
+[View source](https://github.com/nginx/documentation//tree/main/content/nginx/admin-guide/web-server/reverse-proxy.md)
+
+[Edit this page](https://github.com/nginx/documentation//edit/main/content/nginx/admin-guide/web-server/reverse-proxy.md)
+
+[Create a new issue](https://github.com/nginx/documentation//issues/new?title=NGINX%20Reverse%20Proxy&template=2-bug_report.md)

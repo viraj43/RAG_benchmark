@@ -1,0 +1,180 @@
+Title: Transformer vs Mamba: A Tale of Two LLM Architectures
+
+In the rapidly evolving field of artificial intelligence, language models have become increasingly sophisticated. Two architectures that have gained significant attention are the Transformer and the more recent Mamba. Let's dive into a comparison of these two approaches to building large language models (LLMs). 
+
+## Transformer Architecture
+
+The Transformer architecture, introduced in the landmark 2017 paper "Attention Is All You Need," has been the backbone of most modern LLMs, including GPT (Generative Pre-trained Transformer) models. 
+
+Features: 
+
+1. Self-Attention Mechanism: This allows the model to weigh the importance of different parts of the input sequence when processing each element. 
+
+2. Parallelization: Transformers can process all parts of the input sequence simultaneously, making them highly efficient for training on parallel hardware like GPUs. 
+
+3. Long-range Dependencies: Excels at capturing relationships between distant parts of the input, crucial for understanding context in language. 
+
+4. Scalability: Transformer models have shown impressive performance gains when scaled to larger sizes, leading to models with hundreds of billions of parameters. 
+
+Limitations: 
+
+- Quadratic Complexity: The self-attention mechanism's complexity grows quadratically with sequence length, limiting the context window for very long sequences. 
+
+- Memory Intensive: Large Transformer models require significant computational resources, both for training and inference. 
+
+## Mamba Architecture
+
+Mamba, introduced in late 2023, represents a novel approach to sequence modeling that aims to address some of the limitations of Transformers. 
+
+Features: 
+
+1. State Space Models: Mamba is based on structured state space models (SSMs), which can efficiently process long sequences. 
+
+2. Linear Time Complexity: Unlike Transformers, Mamba's complexity scales linearly with sequence length, potentially allowing for much longer context windows. 
+
+3. Hardware Efficiency: Mamba is designed to be more memory-efficient and faster during both training and inference. 
+
+4. Selective Updates: The architecture allows for selective state updates, potentially leading to better handling of long-term dependencies. 
+
+Potential Advantages: 
+
+- Longer Contexts: The linear scaling could allow Mamba models to handle much longer sequences than Transformers. 
+
+## Comparisons
+
+While Mamba has shown promising results in initial studies, it's important to note that it's still a very new architecture. Transformers have a significant head start in terms of research, optimization, and real-world applications. 
+
+The introduction of Mamba doesn't necessarily mean the end of Transformers. Instead, it opens up new avenues for research and potential hybrid approaches: 
+
+## Conclusion
+
+The Transformer architecture has been revolutionary in the field of NLP and beyond. However, the introduction of Mamba shows that there's still room for innovation in fundamental model architectures. As research progresses, we'll gain a clearer picture of Mamba's strengths and limitations compared to Transformers. 
+
+AI is the fastest-adopted technology in human history. ChatGPT hit 900 million weekly users in under three years. Nearly 40% of American adults now use generative AI regularly, a penetration rate the 
+
+Communication technology has been the single greatest amplifier of human cognitive capability across history — not by making individual brains larger, but by connecting them. Each breakthrough, from w 
+
+
+---
+
+Title: Mamba, A New Approach That May Outperform Transformers
+An architectural innovation improves upon transformers — up to 2 billion parameters, at least. 
+
+**What’s new: **Albert Gu at Carnegie Mellon University and Tri Dao at Princeton University developed the [Mamba](https://arxiv.org/abs/2312.00752?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY)architecture, a refinement of the earlier state space sequence architecture. A relatively small Mamba produced tokens five times faster and achieved better accuracy than a vanilla transformer of similar size while processing input up to a million tokens long. 
+
+**Structured State Space Sequence (S4) basics: **[S4s](https://arxiv.org/abs/2111.00396?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY), also known as structured SSMs, can be functionally similar to recurrent neural networks (RNNs): They can accept one token at time and produce a linear combination of the current token and an embedding that represents all previous tokens. Unlike RNNs and their extensions including LSTMs — but like transformers — they can also perform an equivalent computation in parallel during training. In addition, they are more computationally efficient than transformers. An S4’s computation and memory requirements rise linearly with input size, while a vanilla transformer’s rise quadratically — a heavy burden with long input sequences. 
+
+**Key insight: **S4s are more efficient than transformers but, while a transformer’s input length is limited only by processing and memory, an S4’s input length is limited by how well its hidden state can represent previously input tokens as new tokens arrive. A [gating mechanism](https://arxiv.org/abs/1612.08083?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY)that lets the model process the most important parts of an input and ignore the rest can enable it to process longer inputs. One viable gate: Typically S4s apply the same mathematical function to all input tokens, whose parameters consist of four learned matrices. Changing the matrices for each input enables the model to learn which tokens or parts of tokens are least important and can be ignored (set to zero). This condenses the input, enabling the modified S4 to process very long input sequences. 
+
+**How it works: **Mamba is made up of blocks, each of which includes a modified S4 (which the authors call a selective SSM). The authors pretrained different instances on a variety of tasks including generating tokens from [The Pile](https://arxiv.org/abs/2101.00027?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY)(a collection of text from the web) and predicting DNA base pairs in [HG38](https://www.nature.com/articles/s41592-021-01252-x?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY)(a single human genome) in sequences up to 1 million tokens long. 
+
+**Results: **Mamba achieved better speed and accuracy than transformers of similar size, including tasks that involved inputs of 1 million tokens. 
+
+**Yes, but: **The authors tested model sizes much smaller than current state-of-the-art large language models. 
+
+**Why it matters: **Google’s transformer-based Gemini 1.5 Pro offers context lengths up to 1 million tokens, but methods for building such models aren’t yet widely known. Mamba provides an alternative architecture that can accommodate very long input sequences while processing them more efficiently. Whether it delivers compelling benefits over large transformers and variations that provide higher efficiency and larger context is a question for further research 
+
+**We're thinking: **Research on Mamba is gaining momentum. Other teams are probing the architecture in projects like [Motion Mamba](https://arxiv.org/abs/2403.07487?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY), [Vision Mamba](https://arxiv.org/abs/2401.09417?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY), [MoE-Mamba](https://arxiv.org/abs/2401.04081?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY), [MambaByte](https://arxiv.org/abs/2401.13660?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY), and [Jamba](https://arxiv.org/abs/2403.19887?utm_campaign=The%20Batch&utm_source=hs_email&utm_medium=email&_hsenc=p2ANqtz-8Kh954rkXmE4vgpKvro3Klpjhn7IuT-Y_eXIYtgVIq9PTzwa5zFWX7FZZqv1tuDEEsTDuY). 
+
+## Subscribe to The Batch
+
+Stay updated with weekly AI News and Insights delivered to your inbox
+
+---
+
+Title: Mamba: New Selective State Space Model vs Transformer
+[ALLPCB](/)[Log In](/account/login?returnurl=https://www.allpcb.com/allelectrohub/mamba-new-selective-state-space-model-vs-transformer)[Sign Up](/account/register?returnurl=https://www.allpcb.com/allelectrohub/mamba-new-selective-state-space-model-vs-transformer)
+
+**Thank you very much for your valuable suggestion! 
+We will solve it as soon as possible! 
+
+![Panel For Example](/img/img/activity/pdf/close.png)![Panel For Example](/img/img/activity/pdf/banner.png)
+
+## 
+
+## Overview
+
+The Transformer architecture, dominant in large-scale AI models since its introduction in 2017, faces scalability limits as sequence lengths grow. A key bottleneck is that self-attention computation scales quadratically with context length, which can make processing very long sequences computationally inefficient. 
+
+## What Mamba Proposes
+
+Recent research introduces a new architecture called Mamba, based on a "selective state space model" (selective SSM). This design generalizes the earlier S4 architecture (Structured State Spaces for Sequence Modeling) by allowing the model to selectively attend to or ignore incoming inputs. The modification makes certain parameters functions of the input, a small change that the authors report yields significant benefits. 
+
+## Performance Claims
+
+According to the authors, Mamba can match or outperform Transformer models on language modeling tasks. It is reported to scale linearly with context length and to handle sequences up to million-token lengths in practice, with up to 5x inference throughput improvements in some settings. The authors also report state-of-the-art results across multiple modalities including language, audio, and genomics. Their Mamba-3B model is reported to outperform Transformer models of comparable size and to be competitive with Transformer models roughly twice its size on language modeling benchmarks. 
+
+## Relation to Prior Work
+
+S4 has previously demonstrated effectiveness on long-range dependency benchmarks such as Long Range Arena and Path-X. S4 and other state space model approaches relate to RNNs, CNNs, and classical state space models (SSM). The Mamba paper compares its approach against other SSM-based methods and efficient attention variants, including linear attention, H3, Hyena, RetNet, and RWKV, many of which are used as baselines in the study. 
+
+## Authors and Contributions
+
+The paper is authored by Albert Gu (Assistant Professor, Machine Learning, Carnegie Mellon University) and Tri Dao (Chief Scientist at Together.AI and incoming Assistant Professor of Computer Science at Princeton University). Albert Gu is credited with the selective SSM generalization of S4. Tri Dao is known for FlashAttention and subsequent work like Flash Attention v2 and Flash-Decoding, which optimize attention computation and memory usage for long-context inference. The two authors have collaborated previously. 
+
+## Resources
+
+Model code and pretrained checkpoints are available: https://github.com/state-spaces/mamba 
+
+Paper: https://arxiv.org/ftp/arxiv/papers/2312/2312.00752.pdf 
+
+**Share · · · · Recommended Reading [RK3576 Human Keypoint (Skeleton) Detection
+ 
+ 
+ February 26, 2026
+ 
+ 
+ Human keypoint detection guide covering API, model deployment, example code, 17-point keypoint mapping and benchmark runtime (53–93 ms) on EASY-EAI Orin-Nano.
+ 
+ Article](/allelectrohub/rk3576-human-keypoint-skeleton-detection)[MambaQuant: Post-Training Quantization for Mamba Models
+ 
+ 
+ February 25, 2026
+ 
+ 
+ MambaQuant: PTQ for Mamba models using KLT-enhanced and smoothed fused rotations to enable high-accuracy W8A8/W4A8 post-training quantization with <1% loss.
+ 
+ Article](/allelectrohub/mambaquant-post-training-quantization-for-mamba-models)[Manufacturers of China-made Differential Scanning Calorimeters
+ 
+ 
+ February 25, 2026
+ 
+ 
+ Technical overview of differential scanning calorimeter capabilities and selection: measuring polymers, metals, chemical kinetics, pharma and food stability, and DZ-DSC models.
+ 
+ Article](/allelectrohub/manufacturers-of-china-made-differential-scanning-calorimeters)[Build a Raspberry Pi Voice Assistant
+ 
+ 
+ December 15, 2025
+ 
+ 
+ Raspberry Pi AI guide: hardware, compatible frameworks (TensorFlow, OpenCV), and step-by-step instructions to build a voice assistant using SpeechRecognition and gTTS.
+ 
+ Article](/allelectrohub/build-a-raspberry-pi-voice-assistant)[AI, Machine Learning, and Edge AI: Concepts and Applications
+ 
+ 
+ April 13, 2026
+ 
+ 
+ Overview of machine learning paradigms, deep learning fundamentals, and Edge AI deployment—advantages, use cases, and implications for low-latency, on-device processing.
+ 
+ Article](/allelectrohub/ai-machine-learning-and-edge-ai-concepts-and-applications)[AI Potential of Agilex 5 System-on-Module
+ 
+ 
+ April 13, 2026
+ 
+ 
+ Technical overview of the iW-RainboW-G58M SoM with Intel Agilex 5 FPGA for edge AI, covering AI tensor acceleration, software toolchain and lifecycle support.
+ 
+ Article](/allelectrohub/ai-potential-of-agilex-5-system-on-module)Follow Us [Facebook](https://www.facebook.com/ALLPCBOfficial/)[Twitter](https://twitter.com/allpcb/)[Instagram](https://www.instagram.com/allpcbofficial/)[Linkedin](https://www.linkedin.com/company/allpcb-official/)[TikTok](https://www.tiktok.com/@allpcb)PCB Blog [PCB Manufacturing](/allelectrohub/category/pcb-manufacturing/)[PCB Design](/allelectrohub/category/pcb-design/)[PCB Knowledge](/allelectrohub/category/pcb-knowledge/)[PCB Assembly](/allelectrohub/category/pcb-assembly/)[PCB Ordering](/allelectrohub/category/pcb-ordering/)Design & Technology [Embedded Systems](/allelectrohub/category/embedded-systems/)[Analog & Power Technology](/allelectrohub/category/analog-and-power-technology/)[Wireless & RF Design](/allelectrohub/category/wireless-and-rf-design/)[Sensors & MEMS](/allelectrohub/category/sensors-and-mems/)[Microcontrollers & Control](/allelectrohub/category/microcontrollers-and-control/)[Memory & Storage Technology](/allelectrohub/category/memory-and-storage-technology/)[EMC/EMI & Signal Integrity](/allelectrohub/category/emcemi-and-signal-integrity/)[EDA & IC Design](/allelectrohub/category/eda-and-ic-design/)Industry & Applications [Automotive Electronics](/allelectrohub/category/automotive-electronics/)[Medical Electronics](/allelectrohub/category/medical-electronics/)[Industrial Automation & Control](/allelectrohub/category/industrial-automation-and-control/)[Smart Grid & New Energy](/allelectrohub/category/smart-grid-and-new-energy/)[IoT Applications](/allelectrohub/category/iot-applications/)[Wearable & Portable Devices](/allelectrohub/category/wearable-and-portable-devices/)[Communication & 5G](/allelectrohub/category/communication-and-5g/)[AI & Edge Computing](/allelectrohub/category/ai-and-edge-computing/)[VR & AR](/allelectrohub/category/vr-ar/)[Touch Sensor](/allelectrohub/category/touch-sensor/)
+
+---
+
+Title: Mamba or Transformer for Time Series Forecasting? Mixture of Universals (MoU) Is All You Need
+# Mamba or Transformer for Time Series Forecasting? Mixture of Universals (MoU) Is All You Need
+
+Authors: Sijia Peng, Yun Xiong, Yangyong Zhu, Zhiqiang Shen
+
+## Abstract
+
+Time series forecasting requires balancing short-term and long-term dependencies for accurate predictions. Existing methods mainly focus on long-term dependency modeling, neglecting the complexities of short-term dynamics, which may hinder performance. Transformers are superior in modeling long-term dependencies but are criticized for their quadratic computational cost. Mamba provides a near-linear alternative but is reported less effective in time series longterm forecasting due to potential information loss. Current architectures fall short in offering both high efficiency and strong performance for long-term dependency modeling. To address these challenges, we introduce Mixture of Universals (MoU), a versatile model to capture both short-term and long-term dependencies for enhancing performance in time series forecasting. MoU is composed of two novel designs: Mixture of Feature Extractors (MoF), an adaptive method designed to improve time series patch representations for short-term dependency, and Mixture of Architectures (MoA), which hierarchically integrates Mamba, FeedForward, Convolution, and Self-Attention architectures in a specialized order to model long-term dependency from a hybrid perspective. The proposed approach achieves state-of-the-art performance while maintaining relatively low computational costs. Extensive experiments on seven real-world datasets demonstrate the superiority of MoU. Code is available at https://github.com/lunaaa95/mou/.

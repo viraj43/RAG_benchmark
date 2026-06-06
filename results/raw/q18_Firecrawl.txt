@@ -1,0 +1,2166 @@
+Title: Containerize a Node.js application - Docker Docs
+Start a new chat
+
+### What can I help you with?
+
+I'm Gordon, your AI assistant for Docker and documentation
+questions.
+
+Try asking
+
+Get started with Docker
+
+Docker Hardened Images
+
+MCP Toolkit
+
+Create an org
+
+### What can I help you with?
+
+I'm Gordon, your AI assistant for Docker and documentation
+questions.
+
+Try asking
+
+Get started with Docker
+
+Docker Hardened Images
+
+MCP Toolkit
+
+Create an org
+
+Was this helpful?
+
+HelpfulNot quite
+
+Copy
+
+remaining in this thread.
+
+You've reached the maximum of
+questions per thread. For
+better answer quality, start a new thread.
+
+Start a new thread
+
+When enabled, Gordon considers the current page you're viewing
+to provide more relevant answers.
+
+[Share feedback](https://github.com/docker/docs/issues/23966)
+
+Answers are generated based on the documentation.
+
+Back
+
+[Guides](https://docs.docker.com/guides/)
+
+- [Get started](https://docs.docker.com/get-started/)
+- [Manuals](https://docs.docker.com/manuals/)
+- [Reference](https://docs.docker.com/reference/)
+
+[Node.js language-specific guide](https://docs.docker.com/guides/nodejs/)
+
+This guide explains how to containerize Node.js applications using Docker.
+
+![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg)JavaScript
+Docker Hardened Images
+
+20 minutes
+
+[1](https://docs.docker.com/guides/nodejs/containerize/)
+
+[Containerize](https://docs.docker.com/guides/nodejs/containerize/)
+
+[2](https://docs.docker.com/guides/nodejs/develop/)
+
+[Develop your app](https://docs.docker.com/guides/nodejs/develop/)
+
+[3](https://docs.docker.com/guides/nodejs/run-tests/)
+
+[Run your tests](https://docs.docker.com/guides/nodejs/run-tests/)
+
+[4](https://docs.docker.com/guides/nodejs/configure-github-actions/)
+
+[Automate your builds with GitHub Actions](https://docs.docker.com/guides/nodejs/configure-github-actions/)
+
+[5](https://docs.docker.com/guides/nodejs/deploy/)
+
+[Deploy your app](https://docs.docker.com/guides/nodejs/deploy/)
+
+[« Back to all guides](https://docs.docker.com/guides/)
+
+# Containerize a Node.js application
+
+Copy as Markdown
+
+Open MarkdownAsk Docs AIClaudeOpen in Claude
+
+Table of contents
+
+* * *
+
+## [Prerequisites](https://docs.docker.com/guides/nodejs/containerize/\#prerequisites)
+
+Before you begin, make sure the following tools are installed and available on your system:
+
+- You have installed the latest version of
+[Docker Desktop](https://docs.docker.com/get-started/get-docker/).
+- You have a [git client](https://git-scm.com/downloads). The examples in this section use a command-line based git client, but you can use any client.
+
+> **New to Docker?**
+>
+> Start with the
+> [Docker basics](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/) guide to get familiar with key concepts like images, containers, and Dockerfiles.
+
+* * *
+
+## [Overview](https://docs.docker.com/guides/nodejs/containerize/\#overview)
+
+This guide walks you through the complete process of containerizing a Node.js application with Docker. You’ll learn how to create a production-ready Docker image using best practices that enhance performance, security, scalability, and operational efficiency.
+
+By the end of this guide, you will:
+
+- Containerize a Node.js application using Docker.
+- Create and optimize a Dockerfile tailored for Node.js environments.
+- Use multi-stage builds to separate dependencies and reduce image size.
+- Configure the container for secure, efficient runtime using a non-root user.
+- Follow best practices for building secure, lightweight, and maintainable Docker images.
+
+## [Get the sample application](https://docs.docker.com/guides/nodejs/containerize/\#get-the-sample-application)
+
+Clone the sample application to use with this guide. Open a terminal, change
+directory to a directory that you want to work in, and run the following command
+to clone the git repository:
+
+```console
+$ git clone https://github.com/kristiyan-velkov/docker-nodejs-sample
+```
+
+## [Generate a Dockerfile](https://docs.docker.com/guides/nodejs/containerize/\#generate-a-dockerfile)
+
+Docker provides an interactive CLI tool called `docker init` that helps scaffold the necessary configuration files for containerizing your application. This includes generating a `Dockerfile`, `.dockerignore`, `compose.yaml`, and `README.Docker.md`.
+
+To begin, navigate to the root of your project directory:
+
+```console
+$ cd docker-nodejs-sample
+```
+
+Then run the following command:
+
+```console
+$ docker init
+```
+
+You’ll see output similar to:
+
+```text
+Welcome to the Docker Init CLI
+
+This utility will walk you through creating the following files with sensible defaults for your project:
+  - .dockerignore
+  - Dockerfile
+  - compose.yaml
+  - README.Docker.md
+
+Let's get started!
+```
+
+The CLI will prompt you with a few questions about your app setup.
+For consistency, use the same responses shown in the example following when prompted:
+
+| Question | Answer |
+| --- | --- |
+| What application platform does your project use? | Node |
+| What version of Node do you want to use? | 24.11.1-alpine |
+| Which package manager do you want to use? | npm |
+| Do you want to run "npm run build" before starting server? | yes |
+| What directory is your build output to? | dist |
+| What command do you want to use to start the app? | npm run dev |
+| What port does your server listen on? | 3000 |
+
+After completion, your project directory will contain the following new files:
+
+```text
+├── docker-nodejs-sample/
+│ ├── Dockerfile
+│ ├── .dockerignore
+│ ├── compose.yaml
+│ └── README.Docker.md
+```
+
+## [Create a Docker Compose file](https://docs.docker.com/guides/nodejs/containerize/\#create-a-docker-compose-file)
+
+While `docker init` generates a basic `compose.yaml` file, you'll need to create a more comprehensive configuration for this full-stack application. Replace the generated `compose.yaml` with a production-ready configuration.
+
+Create a new file named `compose.yml` in your project root:
+
+```yaml
+# ========================================
+# Docker Compose Configuration
+# Modern Node.js Todo Application
+# ========================================
+
+services:
+  # ========================================
+  # Development Service
+  # ========================================
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: todoapp-dev
+    ports:
+      - '${APP_PORT:-3000}:3000' # API server
+      - '${VITE_PORT:-5173}:5173' # Vite dev server
+      - '${DEBUG_PORT:-9229}:9229' # Node.js debugger
+    environment:
+      NODE_ENV: development
+      DOCKER_ENV: 'true'
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: todoapp
+      POSTGRES_USER: todoapp
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-todoapp_password}'
+      ALLOWED_ORIGINS: '${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}'
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json
+      - ./vite.config.ts:/app/vite.config.ts:ro
+      - ./tailwind.config.js:/app/tailwind.config.js:ro
+      - ./postcss.config.js:/app/postcss.config.js:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - '**/*.test.*'
+            - '**/__tests__/**'
+        - action: rebuild
+          path: ./package.json
+        - action: sync
+          path: ./vite.config.ts
+          target: /app/vite.config.ts
+        - action: sync
+          path: ./tailwind.config.js
+          target: /app/tailwind.config.js
+        - action: sync
+          path: ./postcss.config.js
+          target: /app/postcss.config.js
+    restart: unless-stopped
+    networks:
+      - todoapp-network
+
+  # ========================================
+  # Production Service
+  # ========================================
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: todoapp-prod
+    ports:
+      - '${PROD_PORT:-8080}:3000'
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: todoapp
+      POSTGRES_USER: todoapp
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-todoapp_password}'
+      ALLOWED_ORIGINS: '${ALLOWED_ORIGINS:-https://yourdomain.com}'
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: '${PROD_MEMORY_LIMIT:-2G}'
+          cpus: '${PROD_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: '${PROD_MEMORY_RESERVATION:-512M}'
+          cpus: '${PROD_CPU_RESERVATION:-0.25}'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    networks:
+      - todoapp-network
+    profiles:
+      - prod
+
+  # ========================================
+  # PostgreSQL Database Service
+  # ========================================
+  db:
+    image: postgres:18-alpine
+    container_name: todoapp-db
+    environment:
+      POSTGRES_DB: '${POSTGRES_DB:-todoapp}'
+      POSTGRES_USER: '${POSTGRES_USER:-todoapp}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-todoapp_password}'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-todoapp} -d ${POSTGRES_DB:-todoapp}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - todoapp-network
+
+# ========================================
+# Volume Configuration
+# ========================================
+volumes:
+  postgres_data:
+    name: todoapp-postgres-data
+    driver: local
+
+# ========================================
+# Network Configuration
+# ========================================
+networks:
+  todoapp-network:
+    name: todoapp-network
+    driver: bridge
+```
+
+This Docker Compose configuration includes:
+
+- **Development service** (`app-dev`): Full development environment with hot reload, debugging support, and bind mounts
+- **Production service** (`app-prod`): Optimized production deployment with resource limits and security hardening
+- **Database service** (`db`): PostgreSQL 16 with persistent storage and health checks
+- **Networking**: Isolated network for secure service communication
+- **Volumes**: Persistent storage for database data
+
+## [Create environment configuration](https://docs.docker.com/guides/nodejs/containerize/\#create-environment-configuration)
+
+Create a `.env` file to configure your application settings:
+
+```console
+$ cp .env.example .env
+```
+
+Update the `.env` file with your preferred settings:
+
+```env
+# Application Configuration
+NODE_ENV=development
+APP_PORT=3000
+VITE_PORT=5173
+DEBUG_PORT=9229
+
+# Production Configuration
+PROD_PORT=8080
+PROD_MEMORY_LIMIT=2G
+PROD_CPU_LIMIT=1.0
+PROD_MEMORY_RESERVATION=512M
+PROD_CPU_RESERVATION=0.25
+
+# Database Configuration
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+POSTGRES_DB=todoapp
+POSTGRES_USER=todoapp
+POSTGRES_PASSWORD=todoapp_password
+DB_PORT=5432
+
+# Security Configuration
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+```
+
+* * *
+
+## [Build the Docker image](https://docs.docker.com/guides/nodejs/containerize/\#build-the-docker-image)
+
+The default Dockerfile generated by `docker init` provides a reliable baseline for standard Node.js applications. However, since this project is a full-stack TypeScript application that includes both a backend API and frontend React components, the Dockerfile should be customized to better support and optimize this specific architecture.
+
+### [Review the generated files](https://docs.docker.com/guides/nodejs/containerize/\#review-the-generated-files)
+
+In the following step, you’ll improve the Dockerfile and configuration files by following best practices:
+
+- Use multi-stage builds to keep the final image clean and small
+- Improve performance and security by only including what’s needed
+
+These updates make your app easier to deploy and faster to load.
+
+> Note
+>
+> A `Dockerfile` is a plain text file that contains step-by-step instructions to build a Docker image. It automates packaging your application along with its dependencies and runtime environment.
+>
+> For full details, see the
+> [Dockerfile reference](https://docs.docker.com/reference/dockerfile/).
+
+### [Step 1: Configure the Dockerfile](https://docs.docker.com/guides/nodejs/containerize/\#step-1-configure-the-dockerfile)
+
+Before creating a Dockerfile, you need to choose a base image. You can either use the [Node.js Official Image](https://hub.docker.com/_/node) or a Docker Hardened Image (DHI) from the [Hardened Image catalog](https://hub.docker.com/hardened-images/catalog).
+
+Choosing DHI offers the advantage of a production-ready image that is lightweight and secure. For more information, see [Docker Hardened Images](https://docs.docker.com/dhi/).
+
+> Important
+>
+> This guide uses a stable Node.js LTS image tag that is considered secure when the guide is written. Because new releases and security patches are published regularly, the tag shown here may no longer be the safest option when you follow the guide. Always review the latest available image tags and select a secure, up-to-date version before building or deploying your application.
+>
+> Official Node.js Docker Images: [https://hub.docker.com/\_/node](https://hub.docker.com/_/node)
+
+Using Docker Hardened Images
+
+Using the Docker Official Image
+
+Docker Hardened Images (DHIs) are available for Node.js in the [Docker Hardened Images catalog](https://hub.docker.com/hardened-images/catalog/dhi/node). Docker Hardened Images are freely available to everyone with no subscription required. You can pull and use them like any other Docker image after signing in to the DHI registry. For more information, see the
+[DHI quickstart](https://docs.docker.com/dhi/get-started/) guide.
+
+1. Sign in to the DHI registry:
+
+$ docker login dhi.io
+
+2. Pull the Node.js DHI (check the catalog for available versions):
+
+$ docker pull dhi.io/node:24-alpine3.22-dev
+
+
+In the following Dockerfile, the `FROM` instruction uses `dhi.io/node:24-alpine3.22-dev` as the base image.
+
+```dockerfile
+# ========================================
+# Optimized Multi-Stage Dockerfile
+# Node.js TypeScript Application (Using DHI)
+# ========================================
+
+FROM dhi.io/node:24-alpine3.22-dev AS base
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# ========================================
+# Dependencies Stage
+# ========================================
+FROM base AS deps
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --omit=dev && \
+    npm cache clean --force
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Dependencies Stage
+# ========================================
+FROM base AS build-deps
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies with build optimizations
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --no-audit --no-fund && \
+    npm cache clean --force
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/node_modules/.vite && \
+    chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Stage
+# ========================================
+FROM build-deps AS build
+
+# Copy only necessary files for building (respects .dockerignore)
+COPY --chown=nodejs:nodejs . .
+
+# Build the application
+RUN npm run build
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Development Stage
+# ========================================
+FROM build-deps AS development
+
+# Set environment
+ENV NODE_ENV=development \
+    NPM_CONFIG_LOGLEVEL=warn
+
+# Copy source files
+COPY . .
+
+# Ensure all directories have proper permissions
+RUN mkdir -p /app/node_modules/.vite && \
+    chown -R nodejs:nodejs /app && \
+    chmod -R 755 /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose ports
+EXPOSE 3000 5173 9229
+
+# Start development server
+CMD ["npm", "run", "dev:docker"]
+
+# ========================================
+# Production Stage
+# ========================================
+FROM dhi.io/node:24-alpine3.22-dev AS production
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# Set optimized environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=256 --no-warnings" \
+    NPM_CONFIG_LOGLEVEL=silent
+
+# Copy production dependencies from deps stage
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=nodejs:nodejs /app/package*.json ./
+# Copy built application from build stage
+COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
+
+# Switch to non-root user for security
+USER nodejs
+
+# Expose port
+EXPOSE 3000
+
+# Start production server
+CMD ["node", "dist/server.js"]
+
+# ========================================
+# Test Stage
+# ========================================
+FROM build-deps AS test
+
+# Set environment
+ENV NODE_ENV=test \
+    CI=true
+
+# Copy source files
+COPY --chown=nodejs:nodejs . .
+
+# Switch to non-root user
+USER nodejs
+
+# Run tests with coverage
+CMD ["npm", "run", "test:coverage"]
+```
+
+Now you need to create a production-ready multi-stage Dockerfile. Replace the generated Dockerfile with the following optimized configuration:
+
+```dockerfile
+# ========================================
+# Optimized Multi-Stage Dockerfile
+# Node.js TypeScript Application
+# ========================================
+
+ARG NODE_VERSION=24.11.1-alpine
+FROM node:${NODE_VERSION} AS base
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# ========================================
+# Dependencies Stage
+# ========================================
+FROM base AS deps
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --omit=dev && \
+    npm cache clean --force
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Dependencies Stage
+# ========================================
+FROM base AS build-deps
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies with build optimizations
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --no-audit --no-fund && \
+    npm cache clean --force
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/node_modules/.vite && \
+    chown -R nodejs:nodejs /app
+
+# ========================================
+# Build Stage
+# ========================================
+FROM build-deps AS build
+
+# Copy only necessary files for building (respects .dockerignore)
+COPY --chown=nodejs:nodejs . .
+
+# Build the application
+RUN npm run build
+
+# Set proper ownership
+RUN chown -R nodejs:nodejs /app
+
+# ========================================
+# Development Stage
+# ========================================
+FROM build-deps AS development
+
+# Set environment
+ENV NODE_ENV=development \
+    NPM_CONFIG_LOGLEVEL=warn
+
+# Copy source files
+COPY . .
+
+# Ensure all directories have proper permissions
+RUN mkdir -p /app/node_modules/.vite && \
+    chown -R nodejs:nodejs /app && \
+    chmod -R 755 /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose ports
+EXPOSE 3000 5173 9229
+
+# Start development server
+CMD ["npm", "run", "dev:docker"]
+
+# ========================================
+# Production Stage
+# ========================================
+ARG NODE_VERSION=24.11.1-alpine
+FROM node:${NODE_VERSION} AS production
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# Set optimized environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=256 --no-warnings" \
+    NPM_CONFIG_LOGLEVEL=silent
+
+# Copy production dependencies from deps stage
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=nodejs:nodejs /app/package*.json ./
+# Copy built application from build stage
+COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
+
+# Switch to non-root user for security
+USER nodejs
+
+# Expose port
+EXPOSE 3000
+
+# Start production server
+CMD ["node", "dist/server.js"]
+
+# ========================================
+# Test Stage
+# ========================================
+FROM build-deps AS test
+
+# Set environment
+ENV NODE_ENV=test \
+    CI=true
+
+# Copy source files
+COPY --chown=nodejs:nodejs . .
+
+# Switch to non-root user
+USER nodejs
+
+# Run tests with coverage
+CMD ["npm", "run", "test:coverage"]
+```
+
+Key features of this Dockerfile:
+
+- Multi-stage structure — Separate stages for dependencies, build, development, production, and testing to keep each phase clean and efficient.
+- Lean production image — Optimized layering reduces size and keeps only what’s required to run the app.
+- Security-minded setup — Uses a dedicated non-root user and excludes unnecessary packages.
+- Performance-friendly design — Effective use of caching and well-structured layers for faster builds.
+- Clean runtime environment — Removes files not needed in production, such as docs, tests, and build caches.
+- Straightforward port usage — The app runs on port 3000 internally, exposed externally as port 8080.
+- Memory-optimized runtime — Node.js is configured to run with a smaller memory limit than the default.
+
+### [Step 2: Configure the .dockerignore file](https://docs.docker.com/guides/nodejs/containerize/\#step-2-configure-the-dockerignore-file)
+
+The `.dockerignore` file tells Docker which files and folders to exclude when building the image.
+
+> Note
+>
+> This helps:
+>
+> - Reduce image size
+> - Speed up the build process
+> - Prevent sensitive or unnecessary files (like `.env`, `.git`, or `node_modules`) from being added to the final image.
+>
+> To learn more, visit the
+> [.dockerignore reference](https://docs.docker.com/reference/dockerfile/#dockerignore-file).
+
+Copy and replace the contents of your existing `.dockerignore` with the optimized configuration:
+
+```dockerignore
+# Optimized .dockerignore for Node.js + React Todo App
+# Based on actual project structure
+
+# Version control
+.git/
+.github/
+.gitignore
+
+# Dependencies (installed in container)
+node_modules/
+
+# Build outputs (built in container)
+dist/
+
+# Environment files
+.env*
+
+# Development files
+.vscode/
+*.log
+coverage/
+.eslintcache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+
+# Deployment configs
+compose.yml
+Taskfile.yml
+nodejs-sample-kubernetes.yaml
+
+# Non-essential configs (keep build configs)
+*.config.js
+!vite.config.ts
+!esbuild.config.js
+!tailwind.config.js
+!postcss.config.js
+!tsconfig.json
+```
+
+### [Step 3: Build the Node.js application image](https://docs.docker.com/guides/nodejs/containerize/\#step-3-build-the-nodejs-application-image)
+
+After creating all the configuration files, your project directory should now contain all necessary Docker configuration files:
+
+```text
+├── docker-nodejs-sample/
+│ ├── Dockerfile
+│ ├── .dockerignore
+│ ├── compose.yml
+│ └── README.Docker.md
+```
+
+Now you can build the Docker image for your Node.js application.
+
+> Note
+>
+> The `docker build` command packages your application into an image using the instructions in the Dockerfile. It includes all necessary files from the current directory (called the
+> [build context](https://docs.docker.com/build/concepts/context/#what-is-a-build-context)).
+
+Run the following command from the root of your project:
+
+```console
+$ docker build --target production --tag docker-nodejs-sample .
+```
+
+What this command does:
+
+- Uses the Dockerfile in the current directory (.)
+- Targets the production stage of the multi-stage build
+- Packages the application and its dependencies into a Docker image
+- Tags the image as docker-nodejs-sample so you can reference it later
+
+#### [Step 4: View local images](https://docs.docker.com/guides/nodejs/containerize/\#step-4-view-local-images)
+
+After building your Docker image, you can check which images are available on your local machine using either the Docker CLI or
+[Docker Desktop](https://docs.docker.com/desktop/use-desktop/images/). Since you're already working in the terminal, use the Docker CLI.
+
+To list all locally available Docker images, run the following command:
+
+```console
+$ docker images
+```
+
+Example Output:
+
+```shell
+REPOSITORY               TAG              IMAGE ID       CREATED         SIZE
+docker-nodejs-sample     latest           423525528038   14 seconds ago  237.46MB
+```
+
+This output provides key details about your images:
+
+- **Repository** – The name assigned to the image.
+- **Tag** – A version label that helps identify different builds (e.g., latest).
+- **Image ID** – A unique identifier for the image.
+- **Created** – The timestamp indicating when the image was built.
+- **Size** – The total disk space used by the image.
+
+If the build was successful, you should see `docker-nodejs-sample` image listed.
+
+* * *
+
+## [Run the containerized application](https://docs.docker.com/guides/nodejs/containerize/\#run-the-containerized-application)
+
+In the previous step, you created a Dockerfile for your Node.js application and built a Docker image using the docker build command. Now it’s time to run that image in a container and verify that your application works as expected.
+
+Inside the `docker-nodejs-sample` directory, run the following command in a terminal.
+
+```console
+$ docker compose up app-dev --build
+```
+
+The development application will start with both servers:
+
+- **API Server**: [http://localhost:3000](http://localhost:3000/) \- Express.js backend with REST API
+- **Frontend**: [http://localhost:5173](http://localhost:5173/) \- Vite dev server with React frontend
+- **Health Check**: [http://localhost:3000/health](http://localhost:3000/health) \- Application health status
+
+For production deployment, you can use:
+
+```console
+$ docker compose up app-prod --build
+```
+
+Which serves the full-stack app at [http://localhost:8080](http://localhost:8080/) with the Express server running on port 3000 internally, mapped to port 8080 externally.
+
+You should see a modern Todo List application with React 19 and a fully functional REST API.
+
+Press `CTRL + C` in the terminal to stop your application.
+
+### [Run the application in the background](https://docs.docker.com/guides/nodejs/containerize/\#run-the-application-in-the-background)
+
+You can run the application detached from the terminal by adding the `-d` option. Inside the `docker-nodejs-sample` directory, run the following command in a terminal.
+
+```console
+$ docker compose up app-dev --build -d
+```
+
+Open a browser and view the application at [http://localhost:3000](http://localhost:3000/) (API) or [http://localhost:5173](http://localhost:5173/) (frontend). You should see the Todo application running.
+
+To confirm that the container is running, use `docker ps` command:
+
+```console
+$ docker ps
+```
+
+This will list all active containers along with their ports, names, and status. Look for a container exposing ports 3000, 5173, and 9229 for the development app.
+
+Example Output:
+
+```shell
+CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS                 PORTS                                                                                                                                   NAMES
+93f3faee32c3   docker-nodejs-sample-app-dev   "docker-entrypoint.s…"   33 seconds ago   Up 31 seconds          0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp, 0.0.0.0:5173->5173/tcp, [::]:5173->5173/tcp, 0.0.0.0:9230->9229/tcp, [::]:9230->9229/tcp   todoapp-dev
+```
+
+### [Run different profiles](https://docs.docker.com/guides/nodejs/containerize/\#run-different-profiles)
+
+You can run different configurations using Docker Compose profiles:
+
+```console
+# Run production
+$ docker compose up app-prod -d
+
+# Run tests
+$ docker compose up app-test -d
+```
+
+To stop the application, run:
+
+```console
+$ docker compose down
+```
+
+> Note
+>
+> For more information about Compose commands, see the
+> [Compose CLI\\
+> reference](https://docs.docker.com/reference/cli/docker/compose/).
+
+* * *
+
+## [Summary](https://docs.docker.com/guides/nodejs/containerize/\#summary)
+
+In this guide, you learned how to containerize, build, and run a Node.js application using Docker. By following best practices, you created a secure, optimized, and production-ready setup.
+
+What you accomplished:
+
+- Initialized your project using `docker init` to scaffold essential Docker configuration files.
+- Created a `compose.yml` file with development, production, and database services.
+- Set up environment configuration with a `.env` file for flexible deployment settings.
+- Replaced the default `Dockerfile` with a multi-stage build optimized for TypeScript and React.
+- Replaced the default `.dockerignore` file to exclude unnecessary files and keep the image clean and efficient.
+- Built your Docker image using `docker build`.
+- Ran the container using `docker compose up`, both in the foreground and in detached mode.
+- Verified that the app was running by visiting [http://localhost:8080](http://localhost:8080/) (production) or [http://localhost:3000](http://localhost:3000/) (development).
+- Learned how to stop the containerized application using `docker compose down`.
+
+You now have a fully containerized Node.js application, running in a Docker container, and ready for deployment across any environment with confidence and consistency.
+
+* * *
+
+## [Related resources](https://docs.docker.com/guides/nodejs/containerize/\#related-resources)
+
+Explore official references and best practices to sharpen your Docker workflow:
+
+- [Multi-stage builds](https://docs.docker.com/build/building/multi-stage/) – Learn how to separate build and runtime stages.
+- [Best practices for writing Dockerfiles](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/) – Write efficient, maintainable, and secure Dockerfiles.
+- [Build context in Docker](https://docs.docker.com/build/concepts/context/) – Learn how context affects image builds.
+- [`docker init` CLI reference](https://docs.docker.com/reference/cli/docker/init/) – Scaffold Docker assets automatically.
+- [`docker build` CLI reference](https://docs.docker.com/reference/cli/docker/image/build/) – Build Docker images from a Dockerfile.
+- [`docker images` CLI reference](https://docs.docker.com/reference/cli/docker/image/ls/) – Manage and inspect local Docker images.
+- [`docker compose up` CLI reference](https://docs.docker.com/reference/cli/docker/compose/up/) – Start and run multi-container applications.
+- [`docker compose down` CLI reference](https://docs.docker.com/reference/cli/docker/compose/down/) – Stop and remove containers, networks, and volumes.
+
+* * *
+
+## [Next steps](https://docs.docker.com/guides/nodejs/containerize/\#next-steps)
+
+With your Node.js application now containerized, you're ready to move on to the next step.
+
+In the next section, you'll learn how to develop your application using Docker containers, enabling a consistent, isolated, and reproducible development environment across any machine.
+
+[Use containers for Node.js development »](https://docs.docker.com/guides/nodejs/develop/)
+
+Search this siteResults will appear as you typeClear
+
+Start typing to search the documentation
+
+---
+
+Title: Deploying a Node.js Project with Docker and Nginx - Medium
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40a_farag%2Fdeploying-a-node-js-project-with-docker-and-nginx-1bb5a05bc439&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40a_farag%2Fdeploying-a-node-js-project-with-docker-and-nginx-1bb5a05bc439&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+[Mastodon](https://me.dm/@afarag)
+
+# Deploying a Node.js Project with Docker and Nginx
+
+[![Abdullah Farag](https://miro.medium.com/v2/resize:fill:32:32/1*k67Z32JjSccH6A1XH5FPXQ@2x.jpeg)](https://medium.com/@a_farag?source=post_page---byline--1bb5a05bc439---------------------------------------)
+
+[Abdullah Farag](https://medium.com/@a_farag?source=post_page---byline--1bb5a05bc439---------------------------------------)
+
+Follow
+
+5 min read
+
+·
+
+Sep 6, 2024
+
+32
+
+1
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D1bb5a05bc439&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40a_farag%2Fdeploying-a-node-js-project-with-docker-and-nginx-1bb5a05bc439&source=---header_actions--1bb5a05bc439---------------------post_audio_button------------------)
+
+Share
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:1000/0*J5r6JKPHFMYbgfpa.png)
+
+Deploying a Node.js application using Docker and Nginx is a robust approach that combines the benefits of containerization with the power of a battle-tested web server. This comprehensive guide will walk you through each step of the process, providing detailed explanations and best practices along the way.
+
+## Prerequisites
+
+Before we begin, ensure you have the following installed on your development machine:
+
+- Docker (version 20.10 or later)
+- Docker Compose (version 1.29 or later)
+- Node.js (version 14 or later) and npm
+- A code editor of your choice
+
+To verify your installations, run the following commands:
+
+```
+docker --version
+docker-compose --version
+node --version
+npm --versionba
+```
+
+## Understanding the Architecture
+
+Our deployment architecture consists of three main components:
+
+1. **Node.js Application**: Your backend service, handling business logic and data processing.
+2. **Docker**: A platform for developing, shipping, and running applications in containers.
+3. **Nginx**: A high-performance web server that will act as a reverse proxy.
+
+In this setup, Nginx will receive incoming HTTP requests and forward them to your Node.js application. This architecture provides several benefits:
+
+- **Load Balancing**: Nginx can distribute traffic across multiple Node.js instances.
+- **SSL Termination**: Nginx can handle HTTPS connections, offloading this work from your Node.js app.
+- **Static File Serving**: Nginx excels at serving static files, reducing the load on your Node.js app.
+- **Security**: Nginx adds an extra layer of security, hiding your Node.js app from direct access.
+
+## Preparing Your Node.js Application
+
+Let’s start with a simple Express.js application. Create a new directory for your project and initialize it:
+
+```
+mkdir node-docker-nginx-demo
+cd node-docker-nginx-demo
+npm init -y
+npm install express
+```
+
+Now, create a file named `app.js` with the following content:
+
+```
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello from Node.js!');
+});
+
+app.get('/api/data', (req, res) => {
+  res.json({ message: 'This is data from the API' });
+});
+
+app.listen(port, () => {
+  console.log(`App listening at http://localhost:${port}`);
+});
+```
+
+This simple application has two routes:
+
+- `/`: Returns a plain text message
+- `/api/data`: Returns a JSON response
+
+Note that we’re using `process.env.PORT` to allow the port to be set via an environment variable, which is a best practice for containerized applications.
+
+## Dockerizing Your Node.js Application
+
+Now, let’s create a Dockerfile to containerize our Node.js application. Create a file named `Dockerfile` in your project root:
+
+```
+# Use an official Node runtime as a parent image
+FROM node:20
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy the rest of your app's source code
+COPY . .
+
+# Your app binds to port 3000 so you'll use the EXPOSE instruction to have it mapped by the docker daemon
+EXPOSE 3000
+
+# Define the command to run your app using CMD which defines your runtime
+CMD ["node", "app.js"]
+```
+
+This Dockerfile does the following:
+
+1. Uses Node.js 14 as the base image
+2. Sets the working directory inside the container
+3. Copies package.json and package-lock.json
+4. Installs production dependencies
+5. Copies the rest of your application code
+6. Exposes port 3000
+7. Specifies the command to start your application
+
+Best practices implemented here:
+
+- Using a specific Node.js version for consistency
+- Copying package.json files before the rest of the code to leverage Docker’s cache
+- Using `npm ci` for reproducible builds
+- Installing only production dependencies to reduce image size
+
+## Configuring Nginx as a Reverse Proxy
+
+Next, we’ll set up Nginx to act as a reverse proxy. Create a file named `nginx.conf`:
+
+```
+events {
+    worker_connections 1024;
+}
+
+http {
+    upstream nodejs_backend {
+        server node-app:3000;
+    }
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        location / {
+            proxy_pass http://nodejs_backend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        location /static/ {
+            alias /usr/share/nginx/html/;
+            expires 30d;
+        }
+    }
+}
+```
+
+This configuration does the following:
+
+1. Defines an upstream server named `nodejs_backend`
+2. Sets up a server block listening on port 80
+3. Configures a location block to proxy requests to the Node.js application
+4. Sets up headers for proper proxying, including WebSocket support
+5. Defines a location block for serving static files with caching
+
+## Orchestrating with Docker Compose
+
+Now, let’s create a Docker Compose file to orchestrate our Node.js and Nginx containers. Create a file named `docker-compose.yml`:
+
+```
+version: '3.8'
+
+services:
+  node-app:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: always
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/usr/share/nginx/html
+    depends_on:
+      - node-app
+    restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+This Docker Compose file:
+
+1. Defines two services: `node-app` and `nginx`
+2. Builds the Node.js app from the Dockerfile
+3. Sets environment variables for the Node.js app
+4. Configures Nginx using the custom configuration file
+5. Maps a `static` directory for serving static files
+6. Sets up a custom network for communication between containers
+7. Configures both services to restart automatically if they crash
+
+## Building and Running the Application
+
+To build and run your application, use the following command:
+
+```
+docker-compose up --build
+```
+
+This command builds the images (if needed) and starts the containers. You should see output from both the Node.js application and Nginx.
+
+## Get Abdullah Farag’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+To run the containers in the background, use:
+
+```
+docker-compose up -d
+```
+
+## Testing and Troubleshooting
+
+To test your deployment:
+
+1. Open a web browser and navigate to `http://localhost`
+2. You should see the “Hello from Node.js!” message
+3. Navigate to `http://localhost/api/data` to test the JSON endpoint
+
+If you encounter issues:
+
+- Check container logs:
+
+```
+docker-compose logs
+```
+
+- Inspect running containers:
+
+```
+docker-compose ps
+```
+
+- Access a container’s shell:
+
+```
+docker-compose exec node-app sh
+```
+
+## Security Considerations
+
+While this setup provides a good starting point, consider these security enhancements for a production environment:
+
+1. **Use HTTPS**: Configure Nginx with SSL/TLS certificates.
+2. **Implement rate limiting**: Use Nginx’s `limit_req_zone` directive to prevent abuse.
+3. **Set security headers**: Add headers like `X-Frame-Options`, `X-XSS-Protection`, etc.
+4. **Use non-root users**: Modify the Dockerfile to run the Node.js app as a non-root user.
+5. **Implement authentication**: Add an authentication layer for sensitive endpoints.
+
+## Scaling and Production Readiness
+
+To make your deployment production-ready and scalable:
+
+1. **Use a process manager**: Implement PM2 or another Node.js process manager for better runtime management.
+2. **Implement health checks**: Add a `/health` endpoint and configure Docker health checks.
+3. **Set up monitoring**: Use tools like Prometheus and Grafana for monitoring and alerting.
+4. **Implement logging**: Use a centralized logging solution like ELK stack.
+5. **Use Docker Swarm or Kubernetes**: For managing multiple instances of your application.
+
+## Conclusion
+
+You’ve now set up a robust deployment architecture for a Node.js application using Docker and Nginx. This setup provides a solid foundation for scaling your application and ensuring consistent deployments across different environments.
+
+Remember to continuously refine your deployment process, keeping security and performance in mind as your application grows. Happy coding!
+
+[Nginx](https://medium.com/tag/nginx?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Docker](https://medium.com/tag/docker?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Docker Compose](https://medium.com/tag/docker-compose?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Deployment](https://medium.com/tag/deployment?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Nodejs](https://medium.com/tag/nodejs?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[![Abdullah Farag](https://miro.medium.com/v2/resize:fill:48:48/1*k67Z32JjSccH6A1XH5FPXQ@2x.jpeg)](https://medium.com/@a_farag?source=post_page---post_author_info--1bb5a05bc439---------------------------------------)
+
+[![Abdullah Farag](https://miro.medium.com/v2/resize:fill:64:64/1*k67Z32JjSccH6A1XH5FPXQ@2x.jpeg)](https://medium.com/@a_farag?source=post_page---post_author_info--1bb5a05bc439---------------------------------------)
+
+Follow
+
+[**Written by Abdullah Farag**](https://medium.com/@a_farag?source=post_page---post_author_info--1bb5a05bc439---------------------------------------)
+
+[78 followers](https://medium.com/@a_farag/followers?source=post_page---post_author_info--1bb5a05bc439---------------------------------------)
+
+· [31 following](https://medium.com/@a_farag/following?source=post_page---post_author_info--1bb5a05bc439---------------------------------------)
+
+FDE @Wonderful.ai \| exLead Software Engineer @Lavaloon.com & [Tenderd.com](http://tenderd.com/) \| AI Builder \| Backend Guru \| Human (Maybe). Contact me: [ali.frg.c@gmail.com](mailto:ali.frg.c@gmail.com)
+
+Follow
+
+## Responses (1)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40a_farag%2Fdeploying-a-node-js-project-with-docker-and-nginx-1bb5a05bc439&source=---post_responses--1bb5a05bc439---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+See all responses
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----1bb5a05bc439---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----1bb5a05bc439---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: The Easiest Way To Deploy Nodejs With Docker - YouTube
+![Thumbnail (1920x1080)](https://i.ytimg.com/vi/vI7p3SQDAMA/maxresdefault.jpg)
+# [The Easiest Way To Deploy Nodejs With Docker](https://www.youtube.com/watch?v=vI7p3SQDAMA)
+
+**Visibility**: Public
+**Uploaded by**: [DevOps For Developers](http://www.youtube.com/@DevOpsForDevelopers)
+**Uploaded at**: 2023-03-20T08:00:43-07:00
+**Published at**: 2023-03-20T08:00:43-07:00
+**Length**: 09:13
+**Views**: 8273
+**Likes**: 163
+**Category**: Science & Technology
+
+## Description
+
+```
+Get the DevOps Roadmap for 2022 here: https://devopsfordevelopers.io/roadmap
+
+
+In this video you will learn how to create a professional Docker image for a node.js application. Key take-aways include using multi-stage builds, running your container as a non-root user, and pushing your image to Docker hub.
+
+
+——————————🎥 C H A P T E R S ——————————
+
+
+0:00 Introduction
+0:50 Creating the Dockerfile
+3:17 Creating the final image
+5:35 Using a non-root user
+7:09 Build the image
+7:36 Push the image to Docker hub
+8:04 Run a container using our image
+
+
+——————————👋 C O N N E C T ——————————
+Discord        ▻ https://devopsfordevelopers.io/discord
+Twitter        ▻ https://twitter.com/0xWillButton
+
+
+——————————🛠 R E S O U R C E S ——————————
+The DevOps Career Guide                ▻  https://devopsfordevelopers.io/devops-career-guide
+DevOps Roadmap                ▻  https://devopsfordevelopers.io/roadmap
+DevOps merch                ▻  https://devopsfordevelopers.io/merch
+```
+
+## Transcript
+
+at some point in your career you're going to end up working with node.js and when it comes time to deploy that you're probably going to be looking towards Docker for your deployment so in this video I'm going to show you how to dockerize a node.js application start off I want to point out this file that I created dot Docker ignore it works just like a git ignore file and I added the node modules folder to it the reason I did that is whenever we bring these files into our Docker context I don't want node modules because that's specific to my operating system which is different than the runtime that I'm targeting in node so we can just save ourselves some problems and some Heartache by excluding that and saving a lot of space and overhead too because node modules tends to get pretty big next thing we need to do is create a Docker file itself and it's just that it's a file named Docker file make sure you capitalize it with a capital D and let's start building this out we are going to start using the official node image node version 18 with the bullseye variant meaning it's running on Debian Bullseye which is the latest release of Debian as it of the recording of this video last thing that's worth noting on this line is I'm calling this as Builder so this actually has a name of Builder and I'll show you why that's important towards the end of the video here now if you look at our code here on the left you can see this application is written in typescript so we need to transpile that from typescript to Common JS so node can read that normally in a development application or in development environment when you're working with it locally you'll use something like nodemon to transpile it on the fly but in our production application we we don't need to transpile it on the Fly and we don't want to transpile it on the Fly because that adds extra overhead and impacts the performance of our application so we're going to transpile it once as we're building our image and be done with it we need to copy over our package.json file that's going to let us install our node dependencies that our application depends on and then we're going to go ahead and copy over the rest of the files from our application into our Docker context here then we're going to run the npm Run compile command so this is telling npm to run the script name compile and we can get an idea what that looks like in our package.json file because if we look in the scripts we'll find the script named compile and that actually runs this Command right here so let's break it down and see what it's doing shx is a common Unix emulation utility I guess for lack of a better word basically it allows you to run unix commands anywhere regardless of your operating system and in this instance we're going to run the RM command with the dash RF flags and point that at the lib folder so basically it's going to remove this lib folder and then we're going to run our TSC command which is going to transpile our typescript into common JS and it's going to spit that out into our lib folder so basically we nuke the lib folder in case it's already got something in there so that when TSC runs we know we get the latest and greatest version switching back to our Docker file here we're now starting a new Docker image here again again we're targeting the node version 18 Bullseye image and we're changing our working directory over to home slash node now whenever you use the official node.js images there's automatically a user called node in there for you and we're going to leverage that to implement some security here in a minute the next thing I'm doing is I'm copying over my sqlite database and I want to point out and make this really really clear this is specific to this video only in a production environment you would not be putting your database inside of your Docker container you would have a database that's hosted somewhere else externally and you would provide the connection settings to your application to it the reason that you don't put your database inside of your Docker image in case you don't know is because whenever we launch this container we run it we'll be able to read and write to this database but the minute that I terminate that Docker container all the data that we had in that database is lost and gone forever which is bad for a production environment the only reason I'm doing it for this video is to just show you the working application at the end we're going to copy over next our config and public folders from our source over here config contains the configuration for our app application and public contains the index.html file for presenting the UI for an application then we're going to copy over something else and you'll notice this has the dash dash from equal Builder line in it and what that's referring to is this Docker image that we created up here as part of our multi-stage build we named this Builder and so now whenever we copy this we can say hey from that image you created named Builder grab the home node lib folder and copy it into this image as the folder lib what that's going to do is it's going to grab all of the common JS that we created in that previous image and just grab that but then everything else that existed in this Builder image we can leave behind which gives us cleaner more streamlined production images now we're going to switch over to our user node I mentioned that using the official node.js images comes automatically with user node we're going to switch over to that user now and then everything that we do below this is going to be executed as that user node everything up here above it was being executed as a user root and now we're going to be using the user node the reason that we do that is because at some point your application is going to be hacked and we don't want to give that attacker root privilege root privileges where root means the Unix user with the ID of zero named root who has complete unrestricted access to everything using it this way when you do get hacked the only thing your attacker is going to be able to do is whatever permissions our user node has which are very very minimal permissions so it's still going to sucked when you get hacked but it's going to suck a lot less than if you get hacked as your root user again we're going to copy over our package.json run npm install to grab our node dependencies then we're going to expose Port 3030 and finally set our Command to run when the docker image starts or the docker container starts net command is going to be npm run start so if we take a look at our package Json one more time we find our start command here it runs the node command and then gives it a path of our lib folder which is the common JS that we created with typescript compile command now we can actually build a Docker image from our Docker file so to do that we'll do the docker build command Dash T we'll tag that as well button slash feathers Dash chat and give it the latest tag and then I always forget this but don't forget your trailing dot at the end to let the docker build command know that you're referring to this current directory that you're in so once that builds we can actually push that up to Docker so we'll do Docker push and then Supply the name of our Docker image and let's log into Docker and then we'll actually try that again this should work out a lot better for us and now that that's pushed up there we can actually jump over here to Docker Hub we can refresh this page and we should see our image and there it is right there so now anyone can use this image we'll actually just do that we'll do Docker run and imprivide that next we need to expose our ports here so we'll do Dash p 30 30 30 30. so that's up and running and if we go to localhost on Port 3030 there's our application we'll log in with hello at feathers.js.com with a password of a super secret don't tell anyone my password and here's our application so let's see we should be able to type a message here and there we go so that's how you build a Docker image for a node.js application with a multi-stage build if you liked the video please be sure and give it a like And subscribe to the channel and let me know in the comments what you liked about it what you didn't like and what else you would like to see next thanks and I'll see you all in the next video [Applause]
+
+
+## Endscreen
+    
+- [Did Platform Engineering Kill DevOps?](https://www.youtube.com/watch?v=7yjCkNQh3jg)
+
+---
+
+Title: How to Properly Set Up a Node.js Application with Docker Without ...
+##### Collectives™ on Stack Overflow
+
+Find centralized, trusted content and collaborate around the technologies you use most.
+
+[Learn more about Collectives](https://stackoverflow.com/collectives)
+
+**Stack Internal**
+
+Knowledge at work
+
+Bring the best of human thought and AI automation together at your work.
+
+[Explore Stack Internal](https://stackoverflow.co/internal/?utm_medium=referral&utm_source=stackoverflow-community&utm_campaign=side-bar&utm_content=explore-teams-compact-popover)
+
+# [How to Properly Set Up a Node.js Application with Docker Without Storing node\_modules Locally?](https://stackoverflow.com/questions/78888401/how-to-properly-set-up-a-node-js-application-with-docker-without-storing-node-mo)
+
+[Ask Question](https://stackoverflow.com/questions/ask)
+
+Asked1 year, 8 months ago
+
+Modified [1 year, 8 months ago](https://stackoverflow.com/questions/78888401/how-to-properly-set-up-a-node-js-application-with-docker-without-storing-node-mo?lastactivity "2024-08-19 15:14:31Z")
+
+Viewed
+3k times
+
+
+This question shows research effort; it is useful and clear
+
+0
+
+This question does not show any research effort; it is unclear or not useful
+
+Save this question.
+
+[Timeline](https://stackoverflow.com/posts/78888401/timeline)
+
+Show activity on this post.
+
+I'm new to Docker and Node.js and I'm trying to set up a Node.js application using Docker. I prefer using Docker over `nvm` to manage my Node.js version. Here's the issue I'm facing:
+
+### Steps I've Taken
+
+1. **Initial Dockerfile Setup**:
+
+   - Created a `Dockerfile` in my project directory with the following content:
+     `Dockerfile FROM node:14 USER node WORKDIR /app`
+   - Built and ran the container, mapping the volume with `-v ${PWD}:/app`.
+   - Opened a shell on the container using `docker exec`.
+   - Ran `npm init --yes && npm i mongoose`, which created `node_modules` both in the container and in my local repository.
+2. **Modified Dockerfile:**
+
+   - Updated the `Dockerfile` to perform `npm install`, expose ports, and add other necessary commands as I proceeded. This setup worked fine, but it left a `node_modules` folder in my local directory.
+
+### Alternative Approach
+
+- Instead of using the shell to execute `npm init` and `npm install`, I wrote a `package.json` file directly.
+- Created a standard `Dockerfile` with `FROM`, `WORKDIR`, `COPY`, and `EXPOSE`. I didn't include the `CMD` as there's no JS file to run yet.
+- This raised an issue: after running the container, the `node_modules` folder wasn't created in the directory. I suspect this is due to mounting the volume with `-v ${PWD}:/app`.
+
+### Question
+
+How can I properly set up my Node.js application with Docker so that the `node_modules` folder is created and used inside the container without it being stored locally?
+
+Thank you for your help!
+
+#### What I Tried:
+
+1. **Initial Dockerfile Setup:**
+
+   - Created a basic `Dockerfile` with the following content:
+
+
+     ```
+     FROM node:14
+     USER node
+     WORKDIR /app
+     ```
+
+   - Built and ran the container using:
+
+
+     ```bash
+     docker build -t my-node-app .
+     docker run -v ${PWD}:/app -it my-node-app
+     ```
+
+   - Opened a shell in the running container:
+
+
+     ```bash
+     docker exec -it <container_id> /bin/sh
+     ```
+
+   - Ran:
+
+
+     ```bash
+     npm init --yes && npm i mongoose
+     ```
+
+
+     This created a `node_modules` folder both in the container and in my local directory.
+2. **Modified Dockerfile:**
+
+   - Updated the `Dockerfile` to:
+
+
+     ```
+     FROM node:14
+     WORKDIR /app
+     COPY package*.json ./
+     RUN npm install
+     COPY . .
+     EXPOSE 3000
+     CMD ["node", "index.js"]
+     ```
+
+   - Rebuilt and ran the container. This setup worked, but the `node_modules` folder was still present in my local directory due to the volume mapping.
+3. **Alternative Approach:**
+
+   - Wrote a `package.json` file directly with the required dependencies.
+   - Created a standard `Dockerfile`:
+
+
+     ```
+     FROM node:14
+     WORKDIR /app
+     COPY package*.json ./
+     RUN npm install
+     COPY . .
+     EXPOSE 3000
+     CMD ["node", "index.js"]
+     ```
+
+   - Ran the container with:
+
+
+     ```bash
+     docker build -t my-node-app .
+     docker run -v ${PWD}:/app -it my-node-app
+     ```
+
+   - This time, the `node_modules` folder was not created in my local directory, but it also wasn't available in the container.
+
+#### What I Expected:
+
+I expected the `node_modules` folder to be created and used inside the Docker container without being present in my local directory. This way, I can manage dependencies within the container, keeping my local workspace clean. I am looking for a solution to achieve this.
+
+- [node.js](https://stackoverflow.com/questions/tagged/node.js "show questions tagged 'node.js'")
+- [docker](https://stackoverflow.com/questions/tagged/docker "show questions tagged 'docker'")
+- [docker-compose](https://stackoverflow.com/questions/tagged/docker-compose "show questions tagged 'docker-compose'")
+- [development-environment](https://stackoverflow.com/questions/tagged/development-environment "show questions tagged 'development-environment'")
+- [docker-volume](https://stackoverflow.com/questions/tagged/docker-volume "show questions tagged 'docker-volume'")
+
+[Share](https://stackoverflow.com/q/78888401)
+
+Short permalink to this question
+
+[Improve this question](https://stackoverflow.com/posts/78888401/edit "")
+
+Follow
+
+
+
+Follow this question to receive notifications
+
+asked Aug 19, 2024 at 14:28
+
+[![Gan Gar Dar Wagle's user avatar](https://www.gravatar.com/avatar/6e4e4fc3979760ccf95077cebcdf9be9?s=64&d=identicon&r=PG&f=y&so-version=2)](https://stackoverflow.com/users/9912095/gan-gar-dar-wagle)
+
+[Gan Gar Dar Wagle](https://stackoverflow.com/users/9912095/gan-gar-dar-wagle)
+
+1311 silver badge33 bronze badges
+
+3
+
+- You're volume mapping your entire `/app` folder but somehow you want only the source files mapped between the host and the container, but you want the `node_modules` folder only in the container -- even though it's in the volume-mounted `/app` folder, right? I think the solution is to put all your source into a `/app/src` folder and only volume mount that folder, not the entire `/app` folder.
+
+
+
+Wyck
+
+
+–
+[Wyck](https://stackoverflow.com/users/1563833/wyck "12,182 reputation")
+
+
+
+2024-08-19 14:48:35 +00:00
+
+CommentedAug 19, 2024 at 14:48
+
+- There is trade off between mounting your volume and having the node\_modules in your folder and not mounting and not having it. when you mount you will be able to check your changes directly or just by restarting your container but you will have to have the node\_modules also presend in your local due to volume bind (good for development) but if you dont mount the volume you will have ease of not having the heavily populated node modules folder in your local but the trade off is you will have to rebuild the container for every change you make to your app in local
+
+
+
+0xn0b174
+
+
+–
+[0xn0b174](https://stackoverflow.com/users/4405854/0xn0b174 "1,059 reputation")
+
+
+
+2024-08-19 15:23:21 +00:00
+
+CommentedAug 19, 2024 at 15:23
+
+- A common way to do this is to map an anonymous volume to the node\_modules directory (see [this](https://stackoverflow.com/questions/67114425/docker-compose-node-modules-mouting-as-volume)). I've only been able to make that work when the container runs as root though. When running as another user, it fails because the node\_modules directory is owned by root and I can't find a way to change the ownership.
+
+
+
+Hans Kilian
+
+
+–
+[Hans Kilian](https://stackoverflow.com/users/3924803/hans-kilian "26,713 reputation")
+
+
+
+2024-08-20 07:51:00 +00:00
+
+CommentedAug 20, 2024 at 7:51
+
+
+[Add a comment](https://stackoverflow.com/questions/78888401/how-to-properly-set-up-a-node-js-application-with-docker-without-storing-node-mo# "Use comments to ask for more information or suggest improvements. Avoid answering questions in comments.") \| [Expand to show all comments on this post](https://stackoverflow.com/questions/78888401/how-to-properly-set-up-a-node-js-application-with-docker-without-storing-node-mo# "Expand to show all comments on this post")
+
+## 2 Answers 2
+
+Sorted by:
+[Reset to default](https://stackoverflow.com/questions/78888401/how-to-properly-set-up-a-node-js-application-with-docker-without-storing-node-mo?answertab=scoredesc#tab-top)
+
+Highest score (default)
+
+Trending (recent votes count more)
+
+Date modified (newest first)
+
+Date created (oldest first)
+
+
+This answer is useful
+
+0
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/78888580/timeline)
+
+Show activity on this post.
+
+You're launching your container with:
+
+```
+docker run -v ${PWD}:/app -it my-node-app
+```
+
+This means that you're replacing the entire contents of the `/app` folder in the container with what appears in your current working directory on the host.
+
+This will not be conducive to having just the source files mapped (e.g. `/app/app.js`) but somehow not mapping the `node_modules` folder (i.e.: `/app/node_modules`), because the `node_modules` folder is within the folder that you have mounted to the host.
+
+### Restructure your folders
+
+Instead, I suggest restructuring your folders so that the source files you want to map between host and container are their own folder, and then mount only that source folder.
+
+This should be fine because modifying package.json will require a new `npm install` within the container whereas source .js file changes can be picked up on the fly. Especially if you want to use `nodemon` to automatically pick up changes.
+
+**Old structure:**
+
+```none
+│   app.js
+│   package-lock.json
+│   package.json
+│
+└───node_modules
+    │   .package-lock.json
+```
+
+**New structure:**
+
+```
+│   package-lock.json
+│   package.json
+│
+├───node_modules
+│       .package-lock.json
+│
+└───src
+        app.js
+```
+
+Launch like this:
+
+```
+docker run -v ${PWD}/src:/app/src -it my-node-app
+```
+
+Of course, you will have to change your `main` property in your `package.json` to reflect the new location of the source files. For example:
+
+From:
+
+```
+"main": "app.js"
+```
+
+To:
+
+```
+"main": "src/app.js"
+```
+
+[Share](https://stackoverflow.com/a/78888580)
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/78888580/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+[edited Aug 19, 2024 at 15:14](https://stackoverflow.com/posts/78888580/revisions "show all edits to this post")
+
+answered Aug 19, 2024 at 15:09
+
+[![Wyck's user avatar](https://www.gravatar.com/avatar/f3d7ae271e46eb178e7dd4f2ef760e6f?s=64&d=identicon&r=PG)](https://stackoverflow.com/users/1563833/wyck)
+
+[Wyck](https://stackoverflow.com/users/1563833/wyck)
+
+12.2k88 gold badges5050 silver badges9696 bronze badges
+
+Sign up to request clarification or add additional context in comments.
+
+
+## Comments
+
+Add a comment
+
+This answer is useful
+
+-1
+
+This answer is not useful
+
+Save this answer.
+
+Loading when this answer was accepted…
+
+[Timeline](https://stackoverflow.com/posts/78888532/timeline)
+
+Show activity on this post.
+
+You are right, node\_modules should not be stored just like in other languages:
+
+- /bin (dlls) for c#
+- /target (jars) java
+
+Your approach #3 is the correct, just don't mount the volume.
+
+# Clean as possible
+
+Your Dockerfile could be simple like this
+
+```
+FROM node:22
+WORKDIR /opt/
+COPY . /opt/
+RUN npm install
+RUN npm run build
+EXPOSE 8080
+ENTRYPOINT ["npm","run","start"]
+```
+
+# Don't mount nothing
+
+You can do whatever you need on your localhost but for real nodejs applications on servers, your container should be portable and disposable, so the disk should not be used as datasource (json, xml, data) or file repository (csv, reports, pdfs, logs, etc).
+
+- If you need to store files, I suggest you to use some specialized service like aws s3, azure blob, gcp cloud storage, etc.
+- For data you have a lot of engines (mysql, postgres, etc).
+- For logs: aws cloud watch, gcp (Cloud Logging, Stackdriver), etc
+
+# References
+
+- [https://github.com/jrichardsz/nodejs-express-snippets/tree/master/docker](https://github.com/jrichardsz/nodejs-express-snippets/tree/master/docker)
+
+[Share](https://stackoverflow.com/a/78888532)
+
+Short permalink to this answer
+
+[Improve this answer](https://stackoverflow.com/posts/78888532/edit "")
+
+Follow
+
+
+
+Follow this answer to receive notifications
+
+answered Aug 19, 2024 at 15:00
+
+[![JRichardsz's user avatar](https://i.sstatic.net/zwIRL.png?s=64)](https://stackoverflow.com/users/3957754/jrichardsz)
+
+[JRichardsz](https://stackoverflow.com/users/3957754/jrichardsz)
+
+17k99 gold badges7070 silver badges119119 bronze badges
+
+## Comments
+
+Add a comment
+
+## Your Answer
+
+Draft saved
+
+Draft discarded
+
+### Sign up or [log in](https://stackoverflow.com/users/login?ssrc=question_page&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f78888401%2fhow-to-properly-set-up-a-node-js-application-with-docker-without-storing-node-mo%23new-answer)
+
+Sign up using Google
+
+
+Sign up using Email and Password
+
+
+Submit
+
+### Post as a guest
+
+Name
+
+Email
+
+Required, but never shown
+
+Post Your Answer
+
+Discard
+
+
+By clicking “Post Your Answer”, you agree to our [terms of service](https://stackoverflow.com/legal/terms-of-service/public) and acknowledge you have read our [privacy policy](https://stackoverflow.com/legal/privacy-policy).
+
+
+Start asking to get answers
+
+Find the answer to your question by asking.
+
+[Ask question](https://stackoverflow.com/questions/ask)
+
+Explore related questions
+
+- [node.js](https://stackoverflow.com/questions/tagged/node.js "show questions tagged 'node.js'")
+- [docker](https://stackoverflow.com/questions/tagged/docker "show questions tagged 'docker'")
+- [docker-compose](https://stackoverflow.com/questions/tagged/docker-compose "show questions tagged 'docker-compose'")
+- [development-environment](https://stackoverflow.com/questions/tagged/development-environment "show questions tagged 'development-environment'")
+- [docker-volume](https://stackoverflow.com/questions/tagged/docker-volume "show questions tagged 'docker-volume'")
+
+See similar questions with these tags.
+
+default
+
+---
+
+Title: How to Containerize and Deploy Your Node.js Applications
+[Learn to code — free 3,000-hour curriculum](https://www.freecodecamp.org/)
+
+![Manish Shivanandhan](https://cdn.hashnode.com/res/hashnode/image/upload/v1725238262566/37625c8b-4d87-4b8c-8fb7-b4fdcf34de9e.png?w=500&h=500&fit=crop&crop=entropy&auto=compress,format&format=webp)[Manish Shivanandhan](https://www.freecodecamp.org/news/author/manishshivanandhan/)
+
+![How to Containerize and Deploy Your Node.js Applications](https://cdn.hashnode.com/res/hashnode/image/upload/v1760051426715/fd0f14cf-95dc-4191-b0fc-e5c916520097.png)
+
+When you build a Node.js application, running it locally is simple. You type `npm start`, and it works.
+
+But when you need to run it on the cloud, things get complicated. You need to think about servers, environments, dependencies, and deployment pipelines. That’s where containerization comes in.
+
+Containers make your application portable and predictable. You can run the same code with the same setup anywhere, from your laptop to the cloud.
+
+In this guide, we will walk through how to containerize a simple Node.js API and deploy it to the cloud. By the end, you will know how to set up Docker for your app, push it to a registry, and see your application running on the cloud.
+
+## **Table of Contents**
+
+- [Prerequisites](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-prerequisites)
+
+- [What is Containerization?](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-what-is-containerization)
+
+- [Setting Up a Node.js App](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-setting-up-a-nodejs-app)
+
+- [Writing the Dockerfile](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-writing-the-dockerfile)
+
+- [Building and Testing the Container](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-building-and-testing-the-container)
+
+- [Preparing for Deployment](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-preparing-for-deployment)
+
+- [Deploying to the Cloud](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-deploying-to-the-cloud)
+
+- [Scaling Your App](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-scaling-your-app)
+
+- [Updating Your App](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-updating-your-app)
+
+- [Benefits of sing Containers](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-benefits-of-sing-containers)
+
+- [Conclusion](https://www.freecodecamp.org/news/how-to-containerize-and-deploy-your-nodejs-applications/#heading-conclusion)
+
+
+## Prerequisites
+
+Before we dive into containerizing and deploying your Node.js application, make sure you have the following set up on your system. These basics will help you follow along without running into errors.
+
+**Node.js and npm**
+
+You should have [Node.js](https://nodejs.org/en) (v18 or higher) and npm installed on your local machine. This ensures you can run your app locally before containerizing it.
+
+To check your versions, run:
+
+```python
+node -v
+npm -v
+```
+
+**Docker installed and running**
+
+[Docker](https://www.docker.com/) is the core tool we’ll use to containerize the app. Install Docker Desktop or Docker Engine depending on your system. Once installed, confirm that it’s running and working by typing:
+
+```python
+docker --version
+```
+
+**Docker Hub account (or any container registry)**
+
+You’ll need a Docker Hub account to push your container image to the cloud. This allows your deployment platform to pull and run the image. You can create one for free at [hub.docker.com](http://hub.docker.com/) [.](https://hub.docker.com/)
+
+Once you have these prerequisites ready, you’ll be set to build your first containerized Node.js app and deploy it to the cloud.
+
+## **What is Containerization?**
+
+Containerization is a way to package an application along with everything it needs to run. That includes the code, libraries, system tools, and settings. The package is called a container image.
+
+When you run that image, you get a container that behaves exactly the same on any system that supports [Docker](https://www.freecodecamp.org/news/the-docker-handbook/).
+
+Without containers, deployment can be messy. Your app might work on your machine but fail in production due to missing libraries or version mismatches.
+
+Containers solve this by locking in the environment. Think of them as lightweight virtual machines that only contain what your app needs.
+
+## **Setting Up a Node.js App**
+
+Let’s start by building a simple Node.js API. We will keep it minimal so we can focus on the containerization and deployment steps.
+
+Create a new folder and add a file called `server.js`:
+
+```plaintext
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Hello from Container!' });
+});
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+Next, create a `package.json` file with the following content:
+
+```plaintext
+{
+  "name": "container-node-app",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
+```
+
+Run `npm install` to install the Express dependency. You now have a simple Node.js API that runs locally. You can test it with `npm start` and open `http://localhost:3000` in your browser.
+
+## **Writing the Dockerfile**
+
+To run this app in a container, we need to write a `Dockerfile`. This file defines how to build the container image. Create a new file called `Dockerfile` and add this:
+
+```plaintext
+FROM node:24
+
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+Let’s break this down. We start with the official Node.js 24 image. We set a working directory inside the container. We copy the package files and install dependencies.
+
+Then we copy the rest of the code. We expose port 3000 so that the app can accept traffic. Finally, we run `npm start` as the default command.
+
+## **Building and Testing the Container**
+
+Now that we have the `Dockerfile`, we can build the image. Run the following command:
+
+```plaintext
+docker build -t container-node-app .
+```
+
+This builds an image named `container-node-app`. To test it locally, run:
+
+```plaintext
+docker run -p 3000:3000 container-node-app
+```
+
+Open `http://localhost:3000` in your browser, and you should see the JSON message `{"message":"Hello from Container!"}`. At this point, we know our app works in a container.
+
+## **Preparing for Deployment**
+
+To deploy on any cloud platform, you need to push your image to a container registry. A registry is a place where container images are stored and shared. Your cloud provider can pull images from [Docker Hub](https://hub.docker.com/) or other registries.
+
+Tag your image with a registry path. For Docker Hub, it looks like this:
+
+```plaintext
+docker tag container-node-app your-dockerhub-username/container-node-app:latest
+```
+
+Then log in and push it:
+
+```plaintext
+docker login
+docker push your-dockerhub-username/container-node-app:latest
+```
+
+Your image should now be available in the cloud registry and ready for deployment.
+
+Here’s mine:
+
+![Docker Registry](https://cdn.hashnode.com/res/hashnode/image/upload/v1759747825354/e217d7f1-6131-41a2-a8b1-76e8ad84399a.webp)
+
+## **Deploying to the Cloud**
+
+In this tutorial, I’ll be using Sevalla since it offers a free tier, so there are no costs involved to deploy this container to the cloud. You can use other providers like [AWS](https://aws.amazon.com/) or [Heroku](https://www.heroku.com/), but just note that you will incur costs for creating resources.
+
+[Sevalla](https://sevalla.com/) is a modern, usage-based Platform-as-a-service provider. It offers application hosting, database, object storage, and static site hosting for your projects.
+
+Once you have your account set up, you can create a new application and tell it which container image to use. Sevalla will pull the image from the registry, create a container, and handle the networking, scaling, and updates for you.
+
+To get started, [login](https://app.sevalla.com/login) to Sevalla. In the dashboard, choose to create a new application. Give it a name like `node-api`. Provide the registry path of your image.
+
+![Create application](https://cdn.hashnode.com/res/hashnode/image/upload/v1759747861994/4ad344d6-d8a5-4593-a85e-eb679bc600f5.webp)
+
+Choose a location and use the “Hobby” plan. Sevalla comes with a $50 free credit, so you wont be charged for deploying this image.
+
+![Application Resources](https://cdn.hashnode.com/res/hashnode/image/upload/v1759747920267/cf23401d-131e-4c51-a248-411d8624542c.webp)
+
+Click “Create and Deploy”. Sevalla will handle the rest. You can watch it configure the application and run the deployment.
+
+![Sevalla Deployment](https://cdn.hashnode.com/res/hashnode/image/upload/v1759747953591/79db7997-88a3-48f7-ae09-65703ec2abab.webp)
+
+Once the deployment is complete, click on “Visit app” to get your app’s live URL. You can see the response from the API.
+
+![Sevalla deployment success](https://cdn.hashnode.com/res/hashnode/image/upload/v1759747987239/b3a1de3a-3f3a-48d6-86e1-27137f6b41fd.webp)
+
+## **Scaling Your App**
+
+One of the main benefits of Sevalla is easy scaling. If you start getting more traffic, you can increase the number of containers running your app with just a few clicks. Sevalla will load balance traffic between them. This means your app can handle more requests without downtime.
+
+Scaling with containers is efficient because each container runs the exact same code. There is no need to configure extra servers manually. Sevalla takes care of orchestration, so your focus stays on writing code instead of managing infrastructure.
+
+## **Updating Your App**
+
+When you make changes to your Node.js app, updating is straightforward. You rebuild the Docker image, push it to the registry, and tell Sevalla to redeploy.
+
+Since containers are immutable, every new build creates a fresh environment. This ensures your updates are clean, consistent, and free of old dependencies.
+
+For example, if you change the message in `server.js` and want to deploy it, you would run:
+
+```plaintext
+docker build -t your-dockerhub-username/container-node-app:latest .
+docker push your-dockerhub-username/container-node-app:latest
+```
+
+Then trigger a redeploy in the Sevalla dashboard. Within minutes, your users will see the updated response.
+
+## **Benefits of sing Containers**
+
+[Containers](https://techcrunch.com/2016/10/16/wtf-is-a-container/) bring many advantages when deploying Node.js applications. They make your app portable because the container holds both the code and its dependencies, ensuring it runs the same way everywhere.
+
+They improve consistency, since every build creates an isolated environment without leftover files or mismatched versions. Scaling becomes simple because you can spin up more containers as traffic grows, and each one behaves identically. Updates are cleaner too, as you replace old containers with fresh ones built from the latest code.
+
+For developers, this means fewer surprises and less time fixing environment issues. Containers provide a reliable foundation, so you can focus on building features rather than troubleshooting deployments.
+
+## **Conclusion**
+
+Containerization is one of the most important shifts in modern software development. By learning how to put your Node.js app into a Docker container, you unlock the ability to run it anywhere.
+
+In this guide, we built a small Node.js API, created a Dockerfile, tested the container locally, pushed it to a registry, and deployed it to the cloud. The steps you followed here apply to much larger and more complex applications as well. Once you get the basics, you can scale up your workflows to production-level projects.
+
+Hope you enjoyed this article. Connect with me [on Linkedin](https://www.linkedin.com/in/manishmshiva/?originalSubdomain=in) or [visit my website](https://manishshivanandhan.com/).
+
+* * *
+
+![Manish Shivanandhan](https://cdn.hashnode.com/res/hashnode/image/upload/v1725238262566/37625c8b-4d87-4b8c-8fb7-b4fdcf34de9e.png?w=500&h=500&fit=crop&crop=entropy&auto=compress,format&format=webp)[Manish Shivanandhan](https://www.freecodecamp.org/news/author/manishshivanandhan/)
+
+Read [more posts](https://www.freecodecamp.org/news/author/manishshivanandhan/).
+
+
+* * *
+
+If you read this far, thank the author to show them you care. Say Thanks
+
+Learn to code for free. freeCodeCamp's open source curriculum has helped more than 40,000 people get jobs as developers. [Get started](https://www.freecodecamp.org/learn)
+
+ADVERTISEMENT

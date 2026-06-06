@@ -1,0 +1,296 @@
+Title: API gateways - Azure Architecture Center | Microsoft Learn
+Key Highlights:
+In a microservices architecture, a client might interact with more than one front-end service. Given this fact, how does a client know what endpoints to call? What happens when new services are introduced, or existing services are refactored? How do services handle SSL termination, mutual TLS, authentication, and other concerns? An API gateway can help to address these challenges.
+[...]
+is an API gateway
+[...]
+An API gateway provides a centralized entry point for managing interactions between clients and application services. It acts as a reverse proxy and routes clients requests to the appropriate services. It can also perform various cross-cutting tasks such as authentication, SSL termination, mutual TLS, and rate limiting.
+[...]
+An API gateway simplifies communication, enhances client interactions, and centralizes the management of common service-level responsibilities. It acts as an intermediary, and it prevents direct exposure of application services to clients. Without an API gateway, clients must communicate directly with individual application services, which can introduce the following challenges:
+[...]
+## How to use an API gateway
+[...]
+An API gateway can be tailored to your application’s requirements by using specific design patterns. These design patterns address key functionality such as routing, request aggregation, and cross-cutting concerns:
+[...]
+Gateway routing. You can use an API gateway as a reverse proxy to route client requests to different application services. The API gateway uses layer-7 routing and provides a single endpoint for clients to use. Use API gateway routing when you want to decouple clients from application services.
+[...]
+Gateway aggregation. You can use the API gateway to aggregate multiple client requests into a single request. Use this pattern when a single operation requires calls to multiple application services. In API aggregation, the client sends one request to the API gateway. Then, the API gateway routes requests to the various services required for the operations. Finally, the API gateway aggregates the results and sends them back to the client. The aggregation helps reduce chattiness between the client and the application services.
+[...]
+Gateway offloading. You can use an API gateway to provide cross-cutting functionality, so individual services don't have to provide it. It can be useful to consolidate cross-cutting functionality into one place, rather than making every service responsible. Here are examples of functionality that you could offload to an API gateway:
+[...]
+- SSL termination
+- Mutual TLS
+- Authentication
+- IP allowlist or blocklist
+- Client rate limiting (throttling)
+- Logging and monitoring
+- Response caching
+- Web application firewall
+- GZIP compression
+- Servicing static content
+[...]
+Reverse proxy server. Nginx and HAProxy are open-source reverse proxy offerings. They support features such as load balancing, SSL termination, and layer-7 routing. They have free versions and paid editions that provide extra features and support options. These products are mature with rich feature sets, high performance, and extensible.
+[...]
+Azure Application Gateway. Application Gateway is a managed load balancing service. It provides perform layer-7 routing, SSL termination, and a web application firewall (WAF).
+[...]
+Azure API Management. API Management is a managed solution for publishing APIs to external and internal customers. It provides features to manage public-facing APIs, including rate limiting, IP restrictions, and authentication using Microsoft Entra ID or other identity providers. API Management doesn't perform any load balancing, so you should use it with a load balancer, such as Azure Application Gateway, or a reverse proxy. For more information, see API Management with Azure Application Gateway.
+[...]
+API gateway technology
+[...]
+Support all requirements. Choose an API gateway that supports your required features. All the previous API gateway options support layer-7 routing. But their support for other features, such as authentication, rate limiting, and SSL termination, can vary. Assess whether a single gateway meets your needs or if multiple gateways are necessary.
+[...]
+Prefer built-in offerings. Use built-in API gateway and ingress solutions provided by your platform, such as Azure Container Apps and AKS, whenever they meet your security and control requirements. Only use a custom gateway if the built-in options lack necessary flexibility. Custom solutions require a governance model, such as GitOps, to manage its lifecycle effectively.
+[...]
+Choose the right deployment model. Use managed services like Azure Application Gateway and Azure API Management for reduced operational overhead. If you use general-purpose reverse proxies or load balancers, deploy them in a way that aligns with your architecture. You can deploy general-purpose API gateways to dedicated virtual machines or inside an AKS cluster in their Ingress Controller offerings. To isolate the API gateway from the workload, you can deploy them outside the cluster, but this deployment increases the management complexity.
+[...]
+Manage changes. When you update services or add new ones, you might need to update the gateway routing rules. Implement processes or workflows to manage routing rules when adding or modifying services, SSL certificates, IP allowlists, and security configurations. Use infrastructure-as-code and automation tools to streamline API gateway management.
+
+---
+
+Title: API Gateway Architecture  |  Google Cloud Documentation
+Key Highlights:
+API Gateway is an API management system that provides management, monitoring, and authentication for your APIs. The components that make up API Gateway include:
+[...]
+- API Gateway: for managing all aspects of a deployed API
+- Service Control: for applying API management rules
+- Service Management: for managing API configurations
+- gcloud CLI: for deploying and managing your APIs
+- Google Cloud console: for logging, monitoring and sharing
+[...]
+The following is a high level diagram of the major components involved in API Gateway:
+[...]
+The API provider is responsible for creating and deploying an API on API Gateway. Each API is defined by a file written as an OpenAPI 2.0 or OpenAPI 3.x spec.
+[...]
+The OpenAPI spec defines the publicly facing URL of the REST endpoint for the API, the backend service accessed by the API, and any other characteristics of the API such as authentication, data format, and response options.
+[...]
+The API client makes a REST request to an API hosted on API Gateway to access backend services. An API client can be any app capable of making a REST call, such as a browser, mobile app, or web app.
+[...]
+The API client only needs to know the URL of the API, the request verb (such as`GET`,`PUT`,`POST`,`DELETE`), any authentication requirements, and the format of any data sent to or received from the API.
+[...]
+The API client does not need to know anything about the backend implementation. In fact, a single API hosted on API Gateway can be configured to access different backends based on information passed in the request.
+[...]
+API Gateway provides a fully managed, pay-per-use solution for hosting your APIs. API Gateway provides secure access to your backend services through a well-defined REST API that is consistent across all of your services, regardless of the service implementation.
+[...]
+API Gateway is integrated with Google Cloud so that you can use the same development, monitoring, logging, and trace tools that you use with any other Google Cloud product.
+[...]
+If you are connecting to a backend service hosted outside of Google Cloud, you can still take advantage of all Google Cloud services, including the authentication and authorization services used to control access to your APIs.
+[...]
+Service Control API applies API management rules at runtime, such as API key authentication, monitoring, and logging. Service Control provides the following methods:
+[...]
+- Check: verifies authentication and API keys, and indicates whether a call should be permitted
+- Report: notifies the systems of record for logging and monitoring
+[...]
+You use the OpenAPI specification to define your API. You then use the gcloud CLI to upload the OpenAPI spec to Service Management, which creates the API config. Other configuration-related tasks also happen here, such as sharing your API with other developers, enabling or disabling the API in different projects, and generating API keys.
+[...]
+The gcloud CLI provides the gcloud command-line tool that you can use to make calls to various Google Cloud services. You use the Google Cloud CLI to upload your OpenAPI spec, which creates the API config, and then to deploy the API config to API Gateway.
+[...]
+Google Cloud console is the graphical user interface for Google Cloud console. Use the Google Cloud console to expose monitoring and logging data recorded by Service Control, to configure authentication and authorization, and for developers to generate API keys to call the API.
+[...]
+In an API configuration, there are two types of endpoints:
+[...]
+- API endpoint: defines the publicly available endpoint that clients use to consume your APIs.
+- Backend endpoint: defines the endpoint that the API uses to connect to your backend service. Security settings, such as HTTP or HTTPS access, are defined by the implementation of the backend service.
+[...]
+Requests to your API endpoint are passed to the backend endpoint, including any data passed as part of the request. Responses from the backend service, including any data returned by the service, are passed back to the client.
+[...]
+API Gateway creates a trace token for Cloud Trace.
+[...]
+API Gateway matches the path of the incoming requests with the target API. After finding a matching route, API Gateway performs any authentication steps for the specified API.
+[...]
+If JWT validation is necessary, API Gateway validates the authentication using the appropriate public key for the signer, and validates the audience field in the JWT. If an API key is required, API Gateway calls the Service Control API to validate the key.
+[...]
+Service Control looks up the key to validate it, and ensures that the project associated with the key has enabled the API. If the key isn't valid or the project hasn't enabled the API, the call is rejected and it is logged via the Service Control API.
+[...]
+If Service Control successfully validates the key, the request along with all original headers, plus a JWT validation header, if appropriate, is forwarded to the backend.
+[...]
+When a response is received from the backend, API Gateway returns the response to the caller and sends the final timing information to Trace. The call points are logged by the Service Control API, which then writes metrics and logs to their appropriate destinations.
+
+---
+
+Title: API Gateway Explained: Components, Patterns and Real-World Design | TheCodeForge
+Key Highlights:
+- An API Gateway is not just a proxy — it's a composition of five distinct components: router, auth layer, rate limiter, load balancer, and request/response transformer. Knowing each one separately is what makes you credible in system design interviews.
+[...]
+once at the gateway, not in every service. Downstream services should trust the identity headers the gateway injects (X-Auth-User) — not re-validate tokens themselves. This eliminates duplicated
+[...]
+- Circuit breakers belong at the gateway, not just in service-to-service calls. When a downstream service is degraded, fail fast and return a partial (gracefully degraded) response. Letting a slow service absorb all your gateway threads causes cascading failures that are much harder to debug.
+[...]
+An API Gateway solves this by being the single entry point for all client traffic. It receives every inbound request, applies a set of cross-cutting concerns (auth, rate limiting, logging), and then routes the request to the right downstream service. The client only ever needs to know one URL.
+[...]
+The key insight here is that the gateway isn't just a proxy that forwards traffic blindly. It actively transforms, validates, and enriches requests before they ever touch your services. Think of it as a bouncer, a receptionist, and a traffic cop rolled into one.
+[...]
+Why This Matters:Notice that the Authorization header is stripped before reaching the downstream service in some patterns. Your internal services can then trust that any request arriving from the gateway is already authenticated — they don't each need to implement JWT validation themselves. This is called the 'trusted network' pattern and it cuts duplicated auth logic across every service.
+[...]
+A gateway is more than a reverse proxy. It's a composition of distinct components, each with a specific job. Understanding each one separately is how you answer system design questions confidently — and how you avoid misconfiguring production systems.
+[...]
+1. Request Router — Maps incoming URLs and HTTP methods to upstream services. This is the core. Without routing, nothing works.
+[...]
+2. Authentication & Authorization Layer — Validates identity (AuthN) and checks permissions (AuthZ). The gateway is the ideal place for this because it's centralised. JWT validation, OAuth token introspection, API key checks — all happen here before requests go anywhere.
+[...]
+3. Rate Limiter & Throttler — Protects your services from being overwhelmed. Rate limiting says 'you get 100 requests per minute.' Throttling says 'requests beyond that get queued or slowed down, not just rejected.'
+[...]
+4. Load Balancer — When multiple instances of a service are running, the gateway distributes traffic across them. Round-robin, least-connections, and weighted routing are common strategies.
+[...]
+5. Request/Response Transformer — The gateway can reshape payloads in both directions. Strip sensitive fields from responses, add internal headers, translate between REST and gRPC, or aggregate responses from multiple services into one (the Backend for Frontend pattern).
+[...]
+Backend for Frontend (BFF) — Mobile apps and web apps have different data needs. A mobile screen might need a simplified user profile summary; the web dashboard needs the full version with activity history. Instead of having clients make multiple calls or your
+[...]
+maintain multiple response shapes, you create a dedicated gateway layer per frontend. Each BFF cherry-picks and reshapes data for its specific client.
+[...]
+Request Aggregation — Some UI screens need data from three services: user info, recent orders, and loyalty points. Without aggregation, the client makes three serial or parallel calls. With the gateway aggregating, the client makes one call and the gateway fans out to all three services, merges the responses, and returns a single payload. Latency drops dramatically.
+[...]
+Circuit Breaker at the Gateway — If the inventory service is down, you don't want every request piling up and timing out at 5 seconds each. A circuit breaker tracks failure rates and 'opens' — immediately rejecting requests to a failing service with a fallback response — until the service recovers. The gateway is the perfect place to implement this because it's the chokepoint for all traffic.
+[...]
+. This is called
+[...]
+resilience principle. Interview
+[...]
+from the cascade.
+[...]
+- An API Gateway is not just a proxy — it's a composition of five distinct components: router, auth layer, rate limiter, load balancer, and request/response transformer. Knowing each one separately is what makes you credible in system design interviews.
+[...]
+- Authenticate once at the gateway, not in every service. Downstream services should trust the identity headers the gateway injects (X-Auth-User) — not re-validate tokens themselves. This eliminates duplicated auth logic across your entire microservice fleet.
+[...]
+- Circuit breakers belong at the gateway, not just in service-to-service calls. When a downstream service is degraded, fail fast and return a partial (gracefully degraded) response. Letting a slow service absorb all your gateway threads causes cascading failures that are much harder to debug.
+[...]
+- Rate limiter state must live in a shared store (Redis) the moment you have more than one gateway instance. In-memory rate limiting works perfectly in development and fails silently in production — because each instance tracks its own counters independently.
+[...]
+a single gateway
+[...]
+— Symptom: your gateway
+[...]
+— Fix:
+[...]
+piece of your
+[...]
+treat it like one. Stateless gateway design
+[...]
+A load balancer distributes traffic across identical instances of the same service — it doesn't understand what's in the request. An API Gateway routes traffic to different services based on the request path, method, or headers, and applies cross-cutting concerns like auth and rate limiting along the way. In practice, you use both: a cloud load balancer distributes traffic across multiple gateway instances, and the gateway then routes to the right downstream services.
+[...]
+Yes — which is exactly why you always run multiple gateway instances behind a cloud load balancer, distributed across availability zones. The gateway itself should be stateless (externalise all state like rate limit counters to Redis), so any instance can handle any request. Health checks and automatic instance replacement handle individual failures. The real risk isn't the gateway going down — it's misconfiguring it, which is why change management and staged rollouts for gateway config are critical.
+
+---
+
+Title: What Is an API Gateway? The Complete Guide - Zuplo
+Key Highlights:
+An API gateway is a server that acts as the single entry point for all API traffic, sitting between clients and backend services to handle authentication, rate limiting, request routing, and policy enforcement. Modern API gateways deploy to global edge networks, support AI agent protocols like MCP, and integrate with GitOps workflows for infrastructure-as-code management.
+[...]
+An API gateway is a server that sits between your clients and your backend services, acting as the single entry point for all API traffic. Every request flows through it before reaching your actual APIs.
+[...]
+In technical terms, an API gateway receives incoming HTTP requests, applies policies like authentication and rate limiting, routes the request to the appropriate backend service, and returns the response to the client. It decouples your clients from the internal structure of your services, so you can refactor, scale, and secure your APIs without breaking consumer integrations.
+[...]
+When a request hits an API gateway, it passes through a series of stages before reaching your backend. Here’s the typical request lifecycle:
+[...]
+The gateway listens for incoming HTTP/HTTPS requests on configured endpoints. It terminates TLS, parses the request, and begins processing.
+[...]
+The gateway evaluates the request method, path, headers, and query parameters against its configured routes. It determines which backend service should handle the request.
+[...]
+Before forwarding, the gateway applies a pipeline of policies. These typically include:
+[...]
+- Authentication — Verifying API keys, JWT tokens, or OAuth2 credentials
+- Authorization — Checking whether the authenticated caller has permission to access this resource
+- Rate limiting — Enforcing request quotas per consumer, IP, or API key
+- Request validation — Verifying the request body, query parameters, and headers match the expected schema
+- Request transformation — Modifying headers, paths, or payloads before forwarding
+[...]
+The gateway forwards the validated request to the appropriate backend service, optionally load-balancing across multiple instances.
+[...]
+The backend’s response flows back through the gateway, where it can be transformed, cached, or enriched with additional headers (like rate limit remaining counts) before being returned to the client.
+[...]
+Throughout this lifecycle, the gateway captures logs, metrics, and traces — giving you visibility into latency, error rates, and traffic patterns.
+[...]
+An API gateway centralizes identity verification so individual services don’t each need to implement their own auth logic. Common mechanisms include API key validation, JWT verification, OAuth 2.0 flows, and mutual TLS (mTLS).
+[...]
+Rate limiting controls how many requests a client can make within a given time window. This protects your backend from traffic spikes, prevents abuse, and enforces fair usage across consumers.
+[...]
+Request validation enforces your API contract at the gateway level. By validating incoming requests against your OpenAPI schema — including request bodies, path parameters, query strings, and headers — the gateway rejects malformed requests before they ever hit your backend.
+[...]
+Beyond simple path-based routing, modern gateways support canary deployments, A/B testing, header-based routing, and weighted traffic splitting. This gives you fine-grained control over how traffic flows to different service versions.
+[...]
+per route and invalidate
+[...]
+## API Gateway Architecture Patterns
+[...]
+API gateways aren’t one-size-fits-all. How you deploy them depends on your architecture, team structure, and the kind of traffic you need to manage.
+[...]
+The most common pattern. A single gateway sits at the edge of your infrastructure, handling all external traffic before it reaches your internal services. This is ideal for public-facing APIs where you need consistent security, rate limiting, and monitoring at the perimeter.
+[...]
+Edge gateways are especially powerful when deployed globally across multiple points of presence, so requests are processed close to the user rather than making a round trip to a single data center.
+[...]
+An internal gateway manages east-west traffic between microservices within your infrastructure. While a service mesh often handles this communication, an internal gateway can be useful for enforcing policies on internal APIs — like authentication between teams or rate limiting shared services.
+[...]
+In the BFF pattern, you deploy a separate gateway (or gateway configuration) for each client type — web, mobile, IoT, etc. Each BFF aggregates and tailors the responses from your backend services to the specific needs of its client.
+[...]
+### Federated Gateway
+[...]
+In large organizations, a federated gateway model allows individual teams to manage their own gateway configurations while a central platform team provides shared infrastructure, policies, and guardrails. This balances autonomy with governance — a critical requirement as API programs scale.
+[...]
+An API gateway builds on both of these foundations and adds application-layer intelligence: authentication, rate limiting, request validation, API key management, analytics, and developer-facing features like portals and documentation.
+[...]
+An API gateway is one component of a broader API management strategy. It handles the runtime traffic — routing, security, and policy enforcement. An API management platform encompasses the full API lifecycle:
+[...]
+- Design — OpenAPI specifications, schema design, linting
+- Build — Gateway configuration, policy setup, custom logic
+- Deploy — CI/CD pipelines, environment management, versioning
+- Secure — Authentication, authorization, rate limiting, threat protection
+- Publish — Developer portals, API documentation, onboarding
+- Monitor — Analytics, logging, alerting, SLA tracking
+- Monetize — Usage-based billing, subscription plans, metering
+[...]
+Some products are purely gateways (handling only the runtime layer), while others — like Zuplo — combine the gateway with management capabilities in a single platform. This means you get the runtime performance of an edge-deployed gateway alongside developer portal generation, API key management, and GitOps-based deployment workflows.
+[...]
+An API gateway is the foundational layer between your clients and your backend services. It centralizes authentication, rate limiting, routing, validation, and observability — letting your services focus on business logic instead of cross-cutting infrastructure concerns.
+
+---
+
+Title: What Is an API Gateway? - Palo Alto Networks
+Key Highlights:
+An API gateway is a server that acts as an intermediary between clients and microservices in a distributed software architecture, often within a cloud environment. Serving as a reverse proxy, it handles client requests, routes them to the appropriate microservices and aggregates responses from multiple microservices into one response for the client. The API gateway also provides additional functionality, such as authentication, authorization, rate limiting, caching, and monitoring. By centralizing these functions, the API gateway simplifies the development, management, and scalability of microservices-based applications.
+[...]
+API gateways are traffic conductors. They facilitate interactions between client applications and backend services. Operating as an intermediary between application programming interfaces (APIs) and their clients, the API gateway serves as the enforcement point for policies at runtime. This control includes how the gateway accepts API calls, routes requests to the appropriate services, aggregates results for responses, and translates protocols.
+[...]
+The API gateway offers a unified point of access to the distributed architecture of cloud-native microservices. By orchestrating interactions, steering traffic, and providing a layer of abstraction, the gateway simplifies the client's view of the backend. Its primary role lies in encapsulating the internal microservices and system architecture and exposing a set of tailored APIs to the client.
+[...]
+When a client sends a request, the API gateway receives it and inspects the HTTP method, headers and URI to determine the target microservice. The gateway uses preconfigured routing rules to forward the request to the appropriate microservice instance. This process often involves load-balancing algorithms, such as Round Robin or Least Connections, to distribute the requests among the available instances.
+[...]
+API gateways can perform protocol translation between clients and microservices, allowing them to communicate using different protocols. A client might send a request using HTTP/REST, for example, which the gateway translates into a gRPC or message queue-based request before forwarding it to the target microservice.
+[...]
+API security is a crucial aspect of API management. The API gateway can act as a centralized point for implementing authentication and authorization mechanisms. It can integrate with identity providers (e.g., OAuth, OpenID Connect, SAML, or JWT) to validate incoming requests and ensure that clients have permissions to access the requested resources.
+[...]
+To protect microservices from excessive load or abuse, the API gateway can enforce rate limits and quotas on incoming requests. Developers can establish this based on the client Internet Protocol, API key, user account, or other factors.
+[...]
+The API gateway can modify and aggregate responses from multiple microservices before sending them back to the client. This includes transformations like adding, removing, or renaming fields in the response payload, converting data formats (e.g., XML to JSON), and aggregating data from multiple microservice responses into a single response object.
+[...]
+The API gateway can cache responses from microservices to reduce latency and improve performance. By storing frequently accessed data in-memory, the gateway can quickly respond to client requests without needing to repeatedly query the same data from the microservices.
+[...]
+The API gateway can log incoming requests, responses, and errors, which provide valuable analytics data. This information can help system administrators and developers identify performance bottlenecks, detect security incidents and ensure the overall health of the system.
+[...]
+API gateways can implement resiliency patterns such as circuit breakers, retries, and timeouts to handle failures in the underlying microservices. In case a microservice instance becomes unresponsive or fails, the gateway can automatically redirect requests to other available instances, ensuring high availability and fault tolerance.
+[...]
+Acting as a façade, the gateway offers one entry point and a standardized interface that shields clients from the complexities of the underlying microservices. The gateway can tailor protocols to each microservice while presenting a consistent API to clients. It can also simplify client-side logic by translating between API styles — HTTP REST, gRPC, GraphQL — and aggregate responses from multiple services into a single response.
+[...]
+The API gateway pattern defines an approach where a server acts as a single-entry point for different types of clients — web, mobile, desktop — accessing a system comprising numerous microservices. The pattern aims to encapsulate the system's architecture by simplifying the client's interaction and reducing the number of requests and amount of data that needs to pass between client and server.
+[...]
+The gateway routes client requests to the appropriate services within the system. By doing so, it hides the complexity of the system's internal structure from the client and reduces the client's need to manage multiple service endpoints.
+[...]
+The API gateway pattern can aggregate responses from multiple services into one response to minimize the number of round-trip requests between the client and the server. This helps to improve efficiency and reduce latency.
+[...]
+The gateway handles cross-cutting concerns applicable across various services. Concerns can include logging, metrics, rate limiting and security. By managing them at the gateway level, it offloads these tasks from individual services, allowing them to focus on their core business logic.
+[...]
+API gateways generally increase
+[...]
+The added processing steps for tasks like
+[...]
+routing, composition
+[...]
+gateway will prevent
+[...]
+role in handling
+[...]
+redundancy, and fault tolerance
+[...]
+streamline the process, handling
+[...]
+Acting as a reverse proxy, the API gateway deals with client-to-services communication, or north-south traffic. The service mesh provides service discovery, load balancing, failure recovery, metrics and monitoring through service-to-service communication, or east-west traffic.
+[...]
+An API gateway operates at a higher level, focusing on application logic. It handles routing, aggregation, protocol translation and security. While it also can distribute requests among services, its features surpass those of a typical load balancer, encompassing application-level concerns and policies.

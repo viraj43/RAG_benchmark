@@ -1,0 +1,591 @@
+Title: What is the Virtual DOM in React? - freeCodeCamp
+![Matéu.sh](https://cdn.hashnode.com/res/hashnode/image/upload/v1674425909808/61e943f6-c43b-4cd7-af14-6604b575d939.png)[Matéu.sh](/news/author/mateush/)![What is the Virtual DOM in React?](https://www.freecodecamp.org/news/content/images/size/w2000/2024/06/Virtual-DOM.png)
+
+As web applications become more complex, managing updates to the user interface becomes a challenging task. This is where the Virtual DOM (Document Object Model) comes into play – particularly in React, the leading JavaScript library for building user interfaces. 
+
+The virtual DOM is a lightweight copy of the real DOM that allows React to manage changes more efficiently by minimizing the direct manipulation required on the real DOM. This process significantly enhances the performance of web apps. 
+
+Understanding the virtual DOM is essential for developers who want to get the best out of React. It plays a key role in how React updates the UI, ensuring that changes are applied quickly without unnecessary re-renders. 
+
+In this article, you'll learn: 
+
+## What Is the Virtual DOM and How Does It Work?
+
+The virtual DOM is an in-memory representation of the real DOM elements. Instead of interacting directly with the real DOM, which can be slow and costly in terms of performance, React creates a virtual representation of the UI components. This virtual representation is a lightweight JavaScript object that mirrors the structure of the real DOM. 
+
+Here's a step-by-step process of how the virtual DOM works: 
+
+For example, let's say we have the following counter functionality in the `App`component: 
+
+```lang-jsx
+import React, { useState } from 'react';
+
+function App() {
+ const [count, setCount] = useState(0);
+
+ return (
+ <div>
+ <h1>Counter: {count}</h1>
+ <button onClick={() => setCount(count + 1)}>Increment</button>
+ </div>
+ );
+}
+
+export default App;
+```
+
+The virtual DOM representation will look like this: 
+
+```lang-json
+{
+ "type": "div",
+ "props": {},
+ "children": [
+ {
+ "type": "h1",
+ "props": {},
+ "children": [
+ {
+ "type": "TEXT_ELEMENT",
+ "props": {
+ "nodeValue": "Counter: 0"
+ }
+ }
+ ]
+ },
+ {
+ "type": "button",
+ "props": {
+ "onClick": "setCount(count + 1)"
+ },
+ "children": [
+ {
+ "type": "TEXT_ELEMENT",
+ "props": {
+ "nodeValue": "Increment"
+ }
+ }
+ ]
+ }
+ ]
+}
+```
+
+When the `Increase`button is clicked once, only the `h1`element is changed: 
+
+```lang-json
+{
+ "type": "h1",
+ "props": {},
+ "children": [
+ {
+ "type": "TEXT_ELEMENT",
+ "props": {
+ "nodeValue": "Counter: 1"
+ }
+ }
+ ]
+}
+```
+
+## Comparing the Virtual DOM to the Real DOM
+
+To see the advantages of the virtual DOM, it's important to understand how it differs from the real DOM. The real DOM and the virtual DOM serve similar purposes but operate in distinct ways with significant implications for performance and efficiency. 
+
+The real DOM is a built-in standard interface in browsers that represents and interacts with HTML elements, from `Doctype`declaration and the root `html`element to every other element in it. 
+
+This real DOM represents the whole HTML document as a tree structure and allows JavaScript to manipulate and change HTML documents. Sometimes when those changes occur, the whole document might re-render. 
+
+This is in contrast to the virtual DOM, which uses a **diff algorithm **to compare the current and previous versions of updates to the DOM. It only re-renders the parts of the UI that have changed, instead of the whole thing. 
+
+## Benefits of Using the Virtual DOM in Web Development
+
+### Simplified Development
+
+The Virtual DOM lets you write code in a more declarative style. This means that instead of writing detailed instructions on how to update the UI, you can simply describe what the UI should look like, and React takes care of the rest. This is made possible by React's declarative syntax and its component-based architecture. 
+
+### Improved Performance
+
+One of the major advantages of using the virtual DOM is the significant performance improvement it offers. Direct manipulation of the real DOM is slow and can lead to performance issues, especially in complex applications. 
+
+### Enhanced User Experience
+
+The Virtual DOM contributes to a better UX by ensuring that UI updates are smooth, responsive, and without full-page refreshes. Users are less likely to experience lag or jank, resulting in a more seamless interaction with the app. 
+
+### Cross-platform Development
+
+The principles of the Virtual DOM are not limited to web development only. React Native – a version of React for building cross-platform mobile apps – uses a similar approach. This increases productivity and reduces development time because you can reuse code across web and mobile platforms 
+
+## Common Misconceptions About the Virtual DOM
+
+There are a few misconceptions about the virtual DOM. Let's look at five of these misconceptions and the realities of each of them. 
+
+### The Virtual DOM Is a Browser Feature
+
+**Reality **: the virtual DOM is an abstraction implemented by React, not a browser feature. Browsers have the real DOM, which is the standard way to represent and interact with HTML documents. The virtual DOM exists solely in memory within React and is used to optimize updates to the real DOM. 
+
+### The Virtual DOM Replaces the Real DOM
+
+**Reality **: The virtual DOM acts as an intermediary between React and the browser, not a replacement for the real DOM. The real DOM is still what the browser uses to render the UI, but the updates to it are managed through the Virtual DOM. 
+
+### React is the Only Library and Framework that Uses the Virtual DOM
+
+**Reality **: React only popularized the concept of the virtual DOM, it is not the only library or framework that uses it. Other frameworks like VueJS and SolidJS also use the virtual DOM to update the UI. 
+
+### The Virtual DOM Solves All Performance Problems
+
+**Reality **: The virtual DOM can significantly improve performance, but it is not a magical solution to all problems. Poor coding practices, unnecessary renders, and large component trees can still lead to performance issues. 
+
+### The Virtual DOM and Shadow DOM Are the Same
+
+**Reality **: The virtual DOM and shadow DOM are not the same thing. The virtual DOM is a lightweight copy of the Real DOM with which React optimize UI updates. On the other hand, shadow DOM is a browser technology used to encapsulate the styles and structure of web components. 
+
+## Real DOM vs Virtual DOM vs Shadow DOM
+
+Now that we've established that the virtual DOM, shadow DOM, and real DOM are not the same, let's look at the differences between the three of them. 
+
+| Aspect | Real DOM | Virtual DOM | Shadow DOM | 
+|---|---|---|---|---|---|---|---|
+| Aspect | Real DOM | Virtual DOM | Shadow DOM | 
+| Definition | Standard browser API for representing and interact | In-memory representation of the Real DOM | A browser technology that encapsulates and scopes | 
+| Flexibility | Directly manipulated via JavaScript or DOM APIs | Abstracted and optimized by the framework | Limited to component boundaries | 
+| Implementation | Provided by the browser | Implemented by frameworks like React and Vue | Part of the Web Components standard, provided by t | 
+| Performance | Direct manipulation can be slow and cause performa | Already optimized for efficient updates | Provides encapsulation, reducing style conflicts | 
+| Usage | For rendering and interacting with web documents | For efficient UI updates by frameworks | For creating isolated, reusable web components | 
+| Updates | Immediate updates to the UI | Updates are batched and optimized | Updates are scoped to the component, not affecting | 
+| Repaints | Frequent updates can cause costly repaints | Minimizes repaints by batching updates | Scoped to the component, reducing global repaints | 
+| Use Cases | General web development and document manipulation | Efficient UI updates in frameworks like React and | Encapsulation of styles and structure in web compo | 
+
+## Conclusion
+
+As you've read in this article, the Virtual DOM is a key React feature that enhances performance and efficient UI updates. With this, React can batch updates, minimize reflows and repaints, and apply changes efficiently. This makes UI updates fast and smooth, providing a better user experience in the process. 
+
+Understanding the Virtual DOM and how it works can help you build performant React applications. 
+
+## Learn React and Next JS
+
+Want to discover more cool React features like the virtual DOM? Enroll in my React 18 course on Udemy! I'll guide you through the React world by creating a cool 2048 game with animations from scratch. 
+
+![Matéu.sh](https://cdn.hashnode.com/res/hashnode/image/upload/v1674425909808/61e943f6-c43b-4cd7-af14-6604b575d939.png)[Matéu.sh](/news/author/mateush/)
+
+Software Engineer at stakefish. Doing Ethereum, Python, and JavaScript. 
+
+If you read this far, thank the author to show them you care. 
+
+Learn to code for free. freeCodeCamp's open source curriculum has helped more than 40,000 people get jobs as developers. [Get started](https://www.freecodecamp.org/learn)
+
+
+---
+
+Title: Virtual DOM and Internals - React
+### What is the Virtual DOM?
+
+The virtual DOM (VDOM) is a programming concept where an ideal, or “virtual”, representation of a UI is kept in memory and synced with the “real” DOM by a library such as ReactDOM. This process is called [reconciliation](/docs/reconciliation.html). 
+
+This approach enables the declarative API of React: You tell React what state you want the UI to be in, and it makes sure the DOM matches that state. This abstracts out the attribute manipulation, event handling, and manual DOM updating that you would otherwise have to use to build your app. 
+
+Since “virtual DOM” is more of a pattern than a specific technology, people sometimes say it to mean different things. In React world, the term “virtual DOM” is usually associated with [React elements](/docs/rendering-elements.html)since they are the objects representing the user interface. React, however, also uses internal objects called “fibers” to hold additional information about the component tree. They may also be considered a part of “virtual DOM” implementation in React. 
+
+### Is the Shadow DOM the same as the Virtual DOM?
+
+No, they are different. The Shadow DOM is a browser technology designed primarily for scoping variables and CSS in web components. The virtual DOM is a concept implemented by libraries in JavaScript on top of browser APIs. 
+
+### What is “React Fiber”?
+
+Fiber is the new reconciliation engine in React 16. Its main goal is to enable incremental rendering of the virtual DOM. [Read more](https://github.com/acdlite/react-fiber-architecture). 
+
+Is this page useful? [Edit this page](https://github.com/reactjs/reactjs.org/tree/main/content/docs/faq-internals.md)
+
+---
+
+Title: Virtual DOM in React JS - GeeksforGeeks
+
+# Virtual DOM in React JS
+
+Last Updated : 9 Apr, 2026 
+
+The Virtual DOM in React helps update the user interface efficiently by tracking changes in a lightweight copy of the real DOM. 
+
+![frame_2](https://media.geeksforgeeks.org/wp-content/uploads/20250813144016173175/frame_2.webp)
+
+## Working of Virtual DOM
+
+![1](https://media.geeksforgeeks.org/wp-content/uploads/20260107185046311920/1.webp)
+
+## React Fiber
+
+React Fiber is the new reconciliation engine that improves how React processes updates. It makes rendering more flexible by splitting work into smaller units, so the app stays responsive even during heavy updates. 
+
+## Features of Virtual DOM
+
+## Performance Optimization
+
+## Frameworks and Libraries Using Virtual DOM
+
+## Understanding Shadow DOM and Virtual DOM
+
+Virtual DOM and Shadow DOM serve different purposes in modern web development. Virtual DOM focuses on improving rendering performance, while Shadow DOM focuses on component encapsulation and isolation. 
+
+## Real Life Use Cases
+
+Virtual DOM optimizes UI updates by efficiently applying only necessary changes to the real DOM. 
+
+> Note: It is especially beneficial for single-page applications (SPAs) where responsiveness and speed are critical.
+
+## Real DOM Vs Virtual DOM Vs Shadow DOM
+
+Below are the main differences between Real DOM, Virtual DOM, and Shadow DOM. 
+
+| Real DOM | Virtual DOM | Shadow DOM | 
+|---|---|---|---|---|---|
+| The actual structure of a web page, a tree-like re | A lightweight, in-memory representation of the Rea | A web standard for encapsulating a subtree of DOM | 
+| Represents the UI, allowing programs to access and | Optimizes performance by minimizing direct Real DO | Encapsulation of component's internal structure, s | 
+| Directly manipulates on-screen elements. | Does not directly manipulate on-screen elements; i | Creates an isolated DOM subtree that doesn't affec | 
+| Can be slow for frequent updates as it re-renders | Fast updates due to diffing algorithm and batching | Can enhance performance by isolating styles and be | 
+| No inherent encapsulation; styles and scripts are | No inherent encapsulation; focuses on update effic | Provides strong encapsulation for styles and JavaS | 
+| Native to web browsers. | Implemented by JavaScript libraries/frameworks (e. | Native web standard implemented by browsers. | 
+| Fundamental for all web pages. | Used in modern JavaScript frameworks for efficient | Building reusable, self-contained web components w | 
+| Yes, direct changes are immediately visible. | No, updates are first applied to the virtual copy, | No, it's an isolated part of the DOM, not the prim | 
+| Global CSS, prone to conflicts. | Global CSS (unless handled by frameworks). | Scoped CSS, styles defined within a Shadow DOM sta | 
+
+![comparison](https://media.geeksforgeeks.org/wp-content/uploads/20250813151038623519/comparison.webp)
+
+Comment Article Tags: Article Tags: [Web Technologies](https://www.geeksforgeeks.org/category/web-technologies/)[ReactJS](https://www.geeksforgeeks.org/category/web-technologies/reactjs/)[ReactJS DOM Elements](https://www.geeksforgeeks.org/tag/reactjs-dom-elements/)
+
+
+---
+
+Title: Understanding Virtual DOM in React | Refine
+
+# Understanding Virtual DOM in React
+
+[Tutorials](/blog/categories/tutorials/)[Peter Osah](/blog/author/peter_osah/)Share on: ![Understanding Virtual DOM in React](https://refine-web.imgix.net/blog-yearly/2023/2023-11-23-react-virtual-dom/social.webp?fm=webp&auto=format&w=1788)Last updated at sep 12, 2024 
+
+**This article was last updated on September 11, 2024, to add sections on Impact of Virtual DOM on Rendering Performance and Common Pitfalls with the Virtual DOM **
+
+## Introduction​
+
+The virtual DOM (Virtual Document Object Model) is a programming concept in which a "virtual" representation of a user interface is preserved in memory and synchronized with the browser's DOM (Document Object Model) via a library. 
+
+The concept of the virtual DOM has been an integral part of various Javascript frontend frameworks, and it has been one of the things that make them efficient.
+In this article, we will dive into the concept of a virtual DOM in the React Library as well as explore its purpose in React. 
+
+## What is the DOM?​
+
+When a webpage is loaded into a browser, the browser typically receives an HTML document for that page from the server. The browser constructs a logical, tree-like structure from the HTML to show the requested page to the client. The DOM refers to this `tree`structure. 
+
+The Document Object Model (DOM) is a logical tree that describes a document. Each tree branch terminates in a `node`, which holds an `object`.
+Because the document on the browser has been parsed to a tree structure, methods that offer programmatic access to the tree, allowing one to change the structure, style, or content of a document, are required. This gave rise to the DOM API, which provides these methods for altering the elements represented as nodes in the tree. 
+
+## Drawbacks in updating the DOM​
+
+Making updates to the DOM using the DOM API is quick and efficient. However, there is a predominant issue with updating the DOM, which is: 
+
+**Performance issues **: When updating an element in a document, the updated element and its children must be re-rendered to update the application's UI. This re-rendering affects the website's or web application's performance. As a result, the more elements present in your website or web application, the more expensive the DOM updates may be, and the more frequent re-rendering of the DOM occurs. 
+
+## React's Virtual DOM Implementation​
+
+For the purpose of optimizing re-rendering on websites/applications, many JavaScript frameworks provide various approaches. However, React's approach is the idea of the virtual DOM. 
+
+React's virtual DOM implies a " **virtual **" representation (as a tree, as each element is a node that holds an object ) of a user interface, which is preserved in memory and synchronized with the browser's DOM via React's ReactDOM library. 
+
+### Components of the Virtual DOM​
+
+Consider a regular React component rendered with `JSX`: 
+
+```font-[inherit]
+export const SampleComponent = () => { return ( <div> <h1>This is the component header</h1> <p> This is the component paragraph</p> </div> );};
+```
+
+We will console log this component. 
+
+```font-[inherit]
+console.log(SampleComponent());
+```
+
+When we log this component, we get the value shown below: 
+
+```font-[inherit]
+{ "type": "div", $$typeof: Symbol(react.element) "key": null, "ref": null, "props": { "children": [ { "type": "h1", "key": null, "ref": null, "props": { "children": "This is the component header" }, "_owner": null, "_store": {} }, { "type": "p", "key": null, "ref": null, "props": { "children": "This is the component paragraph" }, "_owner": null, "_store": {} } ] }, "_owner": null, "_store": {}}
+```
+
+The code above implies that our `JSX`code has been parsed to a React element. A ***ReactElement ***is simply a representation of a DOM ***element ***in the ***Virtual DOM. ***
+
+This parsing is possible by `react/jsx-runtime`and `react/jsx-dev-runtime`(development mode) present in the React library. 
+
+A React Element consists of many fields. but our interest will be in the following: 
+
+for example we have a nested React component below: 
+
+```font-[inherit]
+export const SampleComponent = () => { return ( <div> <div> <h1>This is the component header</h1> </div> <p> This is the component paragraph</p> </div> );};
+```
+
+When we log this component, the component's `props.children`property will be rendered as: 
+
+```font-[inherit]
+{ ... "props": { "children": [ { "type": "div", "key": null, "ref": null, "props": { "children": { "type": "h1", "key": null, "ref": null, "props": { "children": "This is the component header" }, "_owner": null, "_store": {} } }, "_owner": null, "_store": {} }, { "type": "p", "key": null, "ref": null, "props": { "children": "This is the component paragraph" }, "_owner": null, "_store": {} } ] }}
+```
+
+**Events **can be represented in a React element. For example, we have a React component with an `onClick`and `onkeydown`event as shown below: 
+
+```font-[inherit]
+export const SampleComponent = () => { return ( <div> <div role="button" tabIndex={0} onClick={() => { console.log("hello world"); }} onKeyDown={() => { console.log("hello world"); }} > <h1>This is the component header</h1> </div> <p> This is the component paragraph</p> </div> );};
+```
+
+When we log this component, the component's `props.children`property will be rendered as: 
+
+```font-[inherit]
+{ "type": "div", "key": null, "ref": null, "props": { "children": [ { "type": "div", "key": null, "ref": null, "props": { "role": "button", "tabIndex": 0, "onClick": () => { console.log("hello world"); }, "onKeyDown": () => { console.log("hello world"); }, "children": { "type": "h1", "key": null, "ref": null, "props": { "children": "This is the component header" }, "_owner": null, "_store": {} } }, "_owner": null, "_store": {} }, { "type": "p", "key": null, "ref": null, "props": { "children": "This is the component paragraph" }, "_owner": null, "_store": {} } ] }}
+```
+
+As mentioned, ***React element ***represents a DOM ***element ***in the ***Virtual DOM ***. This implies that the virtual DOM JavaScript `object`is simply a composition of nested React elements. 
+
+## React Virtual DOM vs. real DOM​
+
+The table below provides an overview of the distinctions between virtual and real DOM: 
+
+| Real DOM | Virtual DOM | 
+|---|---|---|---|
+| when the actual structure of the web page (which i | The virtual DOM is a lightweight and in-memory rep | 
+| Any change causes the entire DOM tree to be update | Any change only affects the corresponding node in | 
+| It is an HTML abstraction of a page. | It is an HTML DOM abstraction. | 
+| It is capable of manipulating items on the screen. | It is unable to manipulate the elements displayed | 
+| Every modification updates the complete DOM tree, | Because the update is tailored to the modified nod | 
+
+## The Role of the Virtual DOM in React's Reconciliation​
+
+When new elements are added to a user interface, the virtual DOM is constructed. If the state of any of these elements changes, a new virtual DOM tree is produced.
+This tree is then compared, or " **diffed **," with the preceding virtual DOM tree. This is done through the **diffing **algorithm. 
+
+The **diffing **algorithm is an `O(n)`heuristic algorithm predicated on two suppositions: 
+
+When the **diffing **algorithm comes across **DOM elements of different types **, it does the following: 
+
+When it comes across **DOM elements of same types **, it does the following: 
+
+When it * * * * comes across React elements(components) of the same types, it does the following: 
+
+On handling recursion on the `children`of the React element, the **diffing **algorithm does the following: 
+
+For the **diffing **algorithm, switching between these two trees is effective when adding an element at the end of the children: 
+
+```font-[inherit]
+<ul> <li>first</li> <li>second</li></ul><ul> <li>first</li> <li>second</li> <li>third</li></ul>
+```
+
+The algorithm can easily match the existing list and append the new list element to the tree. 
+
+However, in cases where there is an Insertion of an element at the beginning of the tree, as shown below: 
+
+```font-[inherit]
+<ul> <li>Second</li> <li>Third</li></ul><ul> <li>First</li> <li>Second</li> <li>Third</li></ul>
+```
+
+This could inherently cause performance issues because rather than realizing, it can preserve the subtree values that didn't change (in this case, the `<li>Second</li>`and `<li>Third</li>`subtrees), the algorithm will alter every child.
+To combat this, React provides support for a `key`attribute to address this problem. The algorithm matches the `children`in the initial tree with `children`in the succeeding tree using the `key`that the `children`have. To make the tree conversion more efficient, for instance, we can add a key to our previously inefficient example: 
+
+```font-[inherit]
+<ul> <li key="Second">Second</li> <li key="Third">Third</li></ul><ul> <li key="First">First</li> <li key="Second">Second</li> <li key="Third">Third</li></ul>
+```
+
+It is now known to the algorithm that the elements with the keys `Second`and `Third`have moved, and the element with `First`is the new element. 
+
+**N/B **: One thing to note is that the key should be distinct and unique 
+
+After these are done, the Virtual DOM Representation of the application is passed to the `ReactDOM. render()`function in the application. To update the real DOM to its current state, the `render()`method makes the fewest feasible modifications by comparing the virtual and real DOM components and their offspring. It renders the updated HTML to the real DOM. 
+
+```font-[inherit]
+import React from "react";import ReactDOM from "react-dom/client";import App from "./App.tsx";import "./index.css";ReactDOM.createRoot(document.getElementById("root")!).render( <React.StrictMode> <App /> </React.StrictMode>,);
+```
+
+## How Virtual DOM Boosts Rendering Performance**​
+
+I wanted to explain how the Virtual DOM helps improve React's rendering performance. 
+
+The React Virtual DOM can be thought of as a lightweight copy of the actual DOM. Whenever the state or props change, before making updates to the real DOM, React first updates the Virtual DOM, calculating the differences between the previous and current states—a process called **diffing **. 
+
+After identifying the differences, React only applies the necessary updates to the real DOM. This makes the rendering process more efficient since, instead of re-rendering the entire page, only the parts of the DOM that require changes are updated. 
+
+Here’s a simple example: 
+
+```font-[inherit]
+function App() { const [count, setCount] = React.useState(0); return ( <div> <p>Count: {count}</p> <button onClick={() => setCount(count + 1)}>Increment</button> </div> );}
+```
+
+In this case, clicking the button doesn’t cause the entire `<div>`to re-render. React only updates the `<p>`element that displays the count, thanks to Virtual DOM diffing. Without the Virtual DOM, making small, frequent changes that directly manipulate the real DOM would be inefficient for applications with complex UIs. 
+
+The Virtual DOM significantly reduces the cost of updating the UI, resulting in faster rendering and better performance—especially when there are frequent updates or many interactive elements. 
+
+**N/B: **The `ReactDOM.render()`function works differently from the regular `render()`function in class components. While `ReactDOM.render`ensures the update of the real DOM, `render()`in class components simply creates a React Element from JSX. 
+
+## React virtual DOM vs. shadow DOM​
+
+Is the virtual DOM the same as the shadow DOM? The quick answer is that they are quite different. 
+
+The Shadow DOM allows hidden DOM trees to be joined to ordinary DOM tree elements – this shadow DOM tree begins with a shadow root, beneath which you can attach any element, just like the standard DOM. This makes the shadow DOM very useful for creating web components. 
+
+For example, Consider the following HTML `input`element range: 
+
+```font-[inherit]
+<div> <h1>This is the component header</h1> <input type="range" /> <p> This is the component paragraph</p></div>
+```
+
+When we view the element with the browser's developer tools, we just see a simple `input`element. Internally, browsers encapsulate and hide the additional components and styles that make up the input slider. 
+
+To see the shadow DOM, utilize Chrome DevTools and enable the `Show user agent shadow DOM`option from `preferences`in `Settings`: 
+
+![Virtual DOM update diagram](https://refine-web.imgix.net/blog-yearly/2023/2023-11-23-react-virtual-dom/virtual-dom.png?fm=webp&auto=format)Virtual DOM update diagram 
+
+```font-[inherit]
+<input type="range"> #shadow-root (user-agent) <div> <div pseudo="-webkit-slider-runnable-track" id="track"> <div id="thumb"></div> </div></input>
+```
+
+***A code snippet showing the shadow DOM of the input range function ***
+
+Meanwhile, the virtual DOM is a lightweight representation of the DOM that optimizes updates to the real DOM. 
+
+## Common Problems with React Virtual DOM and How to Avoid Them​
+
+I wanted to share some common issues we might encounter with React’s **Virtual DOM **and how we can avoid them. 
+
+### Too Many Re-renders​
+
+```font-[inherit]
+const MyComponent = React.memo(({ count }) => <p>Count: {count}</p>);
+```
+
+### Improper Use of Keys in Lists​
+
+```font-[inherit]
+const items = ["Item 1", "Item 2", "Item 3"];return ( <ul> {items.map((item) => ( <li key={item}>{item}</li> ))} </ul>);
+```
+
+### Deeply Nested Components​
+
+### Avoiding Inline Functions and Objects​
+
+```font-[inherit]
+const handleClick = useCallback(() => { console.log("Clicked");}, []);return <button onClick={handleClick}>Click Me</button>;
+```
+
+### Ignoring Performance Tools​
+
+## Real DOM vs. virtual DOM vs. shadow DOM​
+
+| | Real DOM | Virtual DOM | shadow DOM | 
+|---|---|---|---|---|---|---|---|
+| Definition | It is the representation of a document/webpage/web | It is a "virtual" representation of a the real DOM | The shadow DOM can be thought of as a "DOM within | 
+| usage | The Real DOM is used in every browser. | The virtual DOM is employed in many frontend frame | Web components use the concept of shadowDOM. | 
+| The purpose of each technology | It provides a simpler, more programmatic method of | The virtual DOM was created to address performance | The shadow DOM was designed to contain and isolate | 
+| Implementation | Implemented on the browser | utilized by frameworks and libraries such as, Reac | implemented on the browser | 
+| Principle | The DOM represents the document/webpage as nodes a | The virtual DOM is a tree representation of the re | The shadow DOM doesn't comprehensively represent t | 
+
+## Conclusion​
+
+We delved into React's virtual DOM in this article. Understanding the virtual DOM's operating principle is crucial for React developers. Knowing the virtual DOM's active principles from this post will improve your comprehension of React as a Javascript framework. 
+
+## Related Articles
+
+[Ref Forwarding with React forwardRefJUN 12, 2024](/blog/react-forwardref/)[Material UI button in ReactDEC 10, 2024](/blog/mui-button-in-react/)[Memoization in React - How useCallback WorksSEP 26, 2024](/blog/react-usecallback-guide/)
+
+
+---
+
+Title: Why Does React Use a Virtual DOM? - DEV Community
+If you've spent any amount of time with React, you've probably heard of the Virtual DOM (or VDOM for short) as well as some version of this claim: 
+
+> React uses a Virtual DOM because direct DOM manipulation is slow.
+
+A catchy if hand-wavy explanation. Also a bit misleading. 
+
+The DOM isn't slow in the way people usually mean — JavaScript can execute DOM mutations very quickly. What's expensive is what the browser has to do after you mutate the DOM. React's Virtual DOM exists to manage those costs. 
+
+## The DOM Is Not Just a JavaScript Object Tree
+
+Although the [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model)feels like a normal JavaScript object tree, it is not. DOM nodes are browser-provided host objects, not ordinary JavaScript objects you fully control. 
+
+When you change a DOM node, you're not just mutating memory owned by the JavaScript engine. You're interacting with the browser's rendering engine, which maintains a lot of additional state behind the scenes: layout information, CSS resolution, paint layers, accessibility data, and event handling metadata. 
+
+So when you do something as simple as: 
+
+```
+element.textContent = "Hello";
+```
+
+you're signaling to the browser that the visual output of the page may have changed. That signal is where the real cost begins. 
+
+A DOM mutation can force the browser to do some or all of the following: 
+
+These steps are typically far more expensive than the JavaScript that triggered them, and they can *cascade *: a change in one part of the DOM may affect layout elsewhere. 
+
+The browser is smart and uses heuristics to limit the scope of invalidation, but determining what's affected still requires work. The cost isn't the mutation itself — it's the invalidation and recalculation of rendering state as part of the browser's [rendering pipeline](https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work). 
+
+## Why Many Small DOM Updates Are a Problem
+
+Browsers naturally batch rendering work: they typically defer style, layout, and paint until the current JavaScript task yields. But "batched" doesn't mean "free" — the more mutations the browser has to process, the more rendering work it has to do. 
+
+Consider a naive approach to declarative UI: every time state changes, tear down a chunk of the DOM and rebuild it from scratch. The browser would recalculate styles, recompute layout, and repaint for an entire subtree, even if only a single text node actually changed. The mutations themselves are cheap, but the rendering work they trigger scales with the number of nodes affected. 
+
+The problem gets worse when DOM reads enter the picture. If you read a layout property (like [offsetHeight](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetHeight)) after layout-affecting DOM changes, the browser may need to calculate layout *immediately *to return an accurate value instead of deferring that work until later. This is called *forced synchronous layout *. Do this repeatedly — write, read, write, read — and the browser is forced to recalculate layout on every read, even though only the final state matters. This pattern is known as *layout thrashing *. 
+
+Experienced developers learned to work around both problems: reuse DOM nodes instead of replacing them, batch writes together, cache reads, and carefully order operations. It worked, but it was brittle and easy to get wrong. 
+
+React's Virtual DOM formalizes this discipline. 
+
+## What the Virtual DOM Actually Is
+
+React's Virtual DOM is best thought of as a tree of [lightweight UI descriptions](https://react.dev/reference/react/createElement#what-is-a-react-element-exactly). JSX ultimately becomes React element objects describing `type`, `props`, and `children`. Conceptually, a piece of UI can look like this: 
+
+```
+// simplified
+{
+ type: "button",
+ props: {
+ className: "primary",
+ children: "Save"
+ }
+}
+```
+
+A full render produces a tree of these descriptions. They are not DOM nodes, and they have no direct connection to layout, styles, or rendering. You can create them, throw them away, and compare them freely without triggering browser rendering work. Only after React computes the final desired UI does it touch the real DOM. 
+
+This indirection allows React to do three important things: 
+
+In other words, the Virtual DOM reduces total work by *shielding the browser from noise *. 
+
+## Why Diffing Is Usually Cheaper
+
+All the Virtual DOM operations (creating trees, comparing them, throwing them away) are plain JavaScript work. The expensive part is what happens when changes reach the browser's rendering pipeline. 
+
+React trades extra JavaScript work for a reduction in browser rendering work. For most applications with non-trivial UI complexity, that trade is a net win. 
+
+This also explains why React can afford to re-run component functions so often. React distinguishes between the [render phase and commit phase](https://react.dev/learn/render-and-commit)— calling component functions to produce a Virtual DOM description, then applying changes to the real DOM. The expensive browser work only happens during the commit phase, once React knows exactly what needs to change. 
+
+The DOM is not "slow" in an absolute sense. Modern browsers are extremely fast, and for small or simple applications, direct DOM manipulation can be perfectly fine, or even faster than React. 
+
+The Virtual DOM shines when: 
+
+React's real contribution isn't raw performance. It's making efficient DOM usage the default, instead of something developers have to constantly think about. 
+
+A more precise way to phrase the original claim would be: 
+
+> React uses a Virtual DOM because committing only the necessary changes to the real DOM keeps expensive browser rendering work to a minimum.
+
+The Virtual DOM exists to ensure the browser only sees the final, minimal set of changes that matter. 
+
+## Beyond the Virtual DOM
+
+The Virtual DOM was React's answer to a real problem, and it worked well enough to shape how a generation of developers thinks about UI. But it's not the only answer. 
+
+Other frameworks reduce or avoid general-purpose tree diffing for many updates by using [signals](https://angular.dev/guide/signals#what-are-signals), [fine-grained reactivity](https://docs.solidjs.com/advanced-concepts/fine-grained-reactivity), or compiler-generated update code such as Svelte 5's [runes](https://svelte.dev/docs/svelte/what-are-runes). That doesn't invalidate React's approach; it just means the Virtual DOM is a *solution *, not *the *solution. 
+
+The useful question is not "Which camp is right?" It's "What work is the framework doing on each update, and where does it pay that cost?" For React, the core idea is straightforward: build a JavaScript-side description of the UI, compare it with the previous one, and commit only the necessary changes to the real DOM. 
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers. 
+
+[Log in](https://dev.to/enter?signup_subforem=1)[Create account](https://dev.to/enter?signup_subforem=1&state=new-user)![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)

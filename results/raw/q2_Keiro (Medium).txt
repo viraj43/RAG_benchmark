@@ -1,0 +1,264 @@
+Title: Next.js Partial Prerendering (PPR) Deep Dive - DEV Community
+**Definition:** Partial Prerendering (PPR) is the most significant architectural change to Next.
+
+**Key Points:** Instead, it:  Renders everything outside <Suspense> boundaries into a static HTML shell Injects a fallback placeholder where each <Suspense> boundary exists Stores this shell on the CDN/edge, ready to serve instantly    // app/product/[id]/page. Structure Your Page with Suspense Boundaries  The key insight: Suspense boundaries are the dividing line between static and dynamic. The performance gains are too significant to ignore, and the migration path from existing SSR pages is straightforward: identify your dynamic boundaries, wrap them in Suspense, and let Next.
+
+                                       Every Next.js developer has faced the same impossible choice: static or dynamic? Pre-render the page at build time for blazing speed (SSG), or render it on every request for fresh data (SSR)? Pick one. You can't have both. Except now you can. Partial Prerendering (PPR) is the most significant architectural change to Next.js since the App Router itself. It lets you serve a static shell instantly — headers, navigation, layout, above-the-fold content — while streaming dynamic parts (user-specific data, real-time prices, personalized recommendations) in the same HTTP response. No client-side fetches. No layout shift. One request, one response, static speed with dynamic freshness. This isn't incremental. This is the end of the SSG vs. SSR decision tree. Let's break down exactly how it works, how to implement it, and where it falls apart.   The Problem PPR Solves  Before PPR, you had four rendering strategies in Next.js, and each one came with a painful tradeoff:    Strategy Speed Freshness Personalization      SSG (Static Site Generation) ⚡ Instant ❌ Stale until rebuild ❌ Same for everyone    ISR (Incremental Static Regeneration) ⚡ Fast ⚠️ Stale within revalidation window ❌ Same for everyone    SSR (Server-Side Rendering) 🐌 Slow TTFB ✅ Always fresh ✅ Per-user    CSR (Client-Side Rendering) 🐌 Slow FCP ✅ Always fresh ✅ Per-user    Here's the real-world problem. Take an e-commerce product page:  The product title, description, images rarely change → these should be static The price, inventory count, user reviews change frequently → these need to be dynamic The "recommended for you" section is per-user → this must be personalized  With SSG, your prices are stale. With SSR, your Time to First Byte (TTFB) is terrible because you're waiting for the database to return price, inventory, AND recommendations before sending a single byte. With CSR, the user stares at a skeleton screen while three separate API calls resolve. PPR eliminates this entire matrix. One page, one request: the static parts arrive instantly, the dynamic parts stream in as they resolve.   How PPR Actually Works Under the Hood  PPR isn't magic, but the architecture is clever. Here's what happens when a request hits a PPR-enabled page:   Step 1: Build Time — Generate the Static Shell  At next build, Next.js renders your page like it would for SSG. But when it hits a <Suspense> boundary wrapping a dynamic component, it stops. It doesn't try to resolve that component. Instead, it:  Renders everything outside <Suspense> boundaries into a static HTML shell Injects a fallback placeholder where each <Suspense> boundary exists Stores this shell on the CDN/edge, ready to serve instantly    // app/product/[id]/page.tsx import { Suspense } from "react"; import { ProductHeader } from "./ProductHeader"; import { PricingSection } from "./PricingSection"; import { Recommendations } from "./Recommendations"; export default async function ProductPage({ params, }: { params: { id: string }; }) { const product = await getProduct(params.id); // Static — fetched at build time return ( <main> {/* Static: rendered at build time, served from CDN */} <ProductHeader product={product} /> {/* Dynamic: streamed at request time */} <Suspense fallback={<PricingSkeleton />}> <PricingSection productId={params.id} /> </Suspense> {/* Dynamic: streamed at request time */} <Suspense fallback={<RecommendationsSkeleton />}> <Recommendations productId={params.id} /> </Suspense> </main> ); }           Step 2: Request Time — Serve Shell + Stream Dynamic Parts  When a user requests /product/123:  The CDN immediately serves the pre-built static shell (the product title, images, description — everything outside <Suspense> boundaries) Simultaneously, the server begins executing the dynamic components inside <Suspense> boundaries As each dynamic component resolves, its HTML is streamed into the response using React's streaming protocol, replacing the fallback  This happens in a single HTTP request. The browser starts painting the static shell while the dynamic parts are still resolving on the server. No waterfall. No second round-trip.   Step 3: The Browser Receives a Progressive Response   Time (ms) What the user sees ────────────────────────────────────────── 0 Request sent 50 Static shell arrives → Page is visible! (Header, nav, product title, images, skeleton loaders) 120 Price data streams in → Skeleton replaced by real price 200 Recommendations stream in → Skeleton replaced by cards         Compare this to traditional SSR:
+   Time (ms) What the user sees ────────────────────────────────────────── 0 Request sent 350 NOTHING — server waiting for ALL data 350 Full page arrives at once         The TTFB difference is dramatic. With PPR, your Largest Contentful Paint (LCP) can be sub-100ms from the edge, because the static shell is already cached.   Enabling PPR: Step-by-Step  PPR was introduced as experimental in Next.js 14, refined in Next.js 15, and shipped as stable in Next.js 16 (October 2025) via Cache Components. In Next.js 16, the experimental.ppr flag was removed and replaced with the cacheComponents config.   1. Update next.config.ts   // next.config.ts — Next.js 16+ const nextConfig = { cacheComponents: true, }; export default nextConfig;          Note: If you're still on Next.js 14 or 15, use the older experimental flag: const nextConfig = { experimental: { ppr: true } };   In Next.js 16, all code is dynamic by default. You opt portions of your page into static caching using the "use cache" directive or by structuring your components with Suspense boundaries. This is the inverse of previous versions where pages were static by default.   2. Structure Your Page with Suspense Boundaries  The key insight: Suspense boundaries are the dividing line between static and dynamic. Everything outside a <Suspense> boundary is pre-rendered at build time. Everything inside is deferred to request time.
+   // app/dashboard/page.tsx import { Suspense } from "react"; import { DashboardLayout } from "@/components/DashboardLayout"; import { UserProfile } from "@/components/UserProfile"; import { RecentActivity } from "@/components/RecentActivity"; import { Analytics } from "@/components/Analytics"; export default function DashboardPage() { return ( <DashboardLayout> {/* Static shell: navigation, sidebar, layout structure */} <h1>Dashboard</h1> <div className="grid grid-cols-3 gap-6"> {/* Dynamic: depends on authenticated user */} <Suspense fallback={<ProfileSkeleton />}> <UserProfile /> </Suspense> {/* Dynamic: real-time data */} <Suspense fallback={<ActivitySkeleton />}> <RecentActivity /> </Suspense> {/* Dynamic: aggregated analytics */} <Suspense fallback={<AnalyticsSkeleton />}> <Analytics /> </Suspense> </div> </DashboardLayout> ); }           3. Make Dynamic Components Actually Dynamic  A component becomes dynamic when it accesses request-time data. These are the triggers:
+   // This component is DYNAMIC because it reads cookies import { cookies } from "next/headers"; export async function UserProfile() { const session = (await cookies()).get("session"); const user = await getUser(session?.value); return ( <div className="profile-card"> <img src={user.avatar} alt={user.name} /> <h2>{user.name}</h2> <p>{user.email}</p> </div> ); }         What makes a component dynamic (triggers request-time rendering):   cookies() — reading request cookies  headers() — reading request headers  searchParams — accessing URL query parameters  connection() — opting into dynamic rendering Uncached fetch() calls — fetch(url, { cache: "no-store" })   What stays static (rendered at build time):  Components with no dynamic data dependencies Components using only cached/static fetch() calls Components 
+
+---
+
+Title: How Partial Prerendering Works Under the Hood
+**Key Points:** Even accessing a single cookie marks an entire page as dynamic, sacrificing the performance benefits of static generation. Fully Static Pages
+Pages where all async operations are cached:
+async function Page() {
+ const data = await getData() // Cached
+ return <Component data={data} />
+}
+These can be served entirely from the edge without any origin invocation. For teams looking to push the boundaries of web performance while maintaining rich, dynamic functionality, Partial Prerendering offers a compelling path forward.
+
+```python
+import { setTimeout } from "node:timers/promises"
+import { cookies } from "next/headers"
+
+async function getPosts() {
+  for (let i = 0; i < 3; i++) {
+    try {
+      // In Next.js 14, this threw an error during
+      // prerendering.
+      const session = cookies().get("session")
+      // ...
+    } catch (err) {
+      if (i === 2) {
+        throw err
+      }
+
+      // Here we have a timeout added when a
+      // fetch failed.
+      await setTimeout(500 + i * 500)
+    }
+  }
+}
+
+export default async function Page() {
+  const posts = await getPosts()
+
+  // ...
+}
+```
+
+```javascript
+async function checkAuthorization() {
+  try {
+    const session = cookies().get("session")
+    // ...
+  } catch (err) {
+    throw new Error("AUTHORIZATION_CHECK_FAILED")
+  }
+}
+```
+
+```python
+import { unstable_rethrow } from "next/navigation"
+
+async function checkAuthorization() {
+  try {
+    const session = cookies().get("session")
+    // ...
+  } catch (err) {
+    unstable_rethrow(err)
+
+    throw new Error("AUTHORIZATION_CHECK_FAILED")
+  }
+}
+```
+
+## How Partial Prerendering Works Under the Hood
+The architecture behind Next.js's fastest rendering model
+
+
+## Legacy Partial Prerendering
+When we announced PPR in Next.js 14, it relied on throwing errors to signal to Next.js that request data was accessed. We assumed it would work as well as other APIs we have, such as redirect() and notFound(), which still use error throwing as a signal today. The issue arose for developers migrating existing applications who now had errors being thrown in unexpected places.
+import { setTimeout } from "node:timers/promises"
+import { cookies } from "next/headers"
+
+async function getPosts() {
+  for (let i = 0; i < 3; i++) {
+    try {
+      // In Next.js 14, this threw an error during
+      // prerendering.
+      const session = cookies().get("session")
+      // ...
+    } catch (err) {
+      if (i === 2) {
+        throw err
+      }
+
+      // Here we have a timeout added when a
+      // fetch failed.
+      await setTimeout(500 + i * 500)
+    }
+  }
+}
+
+export default async function Page() {
+  const posts = await getPosts()
+
+  // ...
+}
+This was a common pattern that we found even within popular database drivers handling unreliable backends. The retry loop with backoffs would eventually throw the error we used to signal request data access (cookies() in this case), but only after running through the set of timeouts, dramatically slowing down builds.
+Additionally, we discovered cases where fallbacks were returned when operations failed or, worse, the error was shadowed:
+async function checkAuthorization() {
+  try {
+    const session = cookies().get("session")
+    // ...
+  } catch (err) {
+    throw new Error("AUTHORIZATION_CHECK_FAILED")
+  }
+}
+In these cases, Next.js couldn’t determine which components accessed request data, as it relied on the surrounding suspense boundary to catch the special error that was thrown.
+We initially tried to solve this problem by introducing the unstable_rethrow(err) API:
+import { unstable_rethrow } from "next/navigation"
+
+async function checkAuthorization() {
+  try {
+    const session = cookies().get("session")
+    // ...
+  } catch (err) {
+    unstable_rethrow(err)
+
+    throw new Error("AUTHORIZATION_CHECK_FAILED")
+  }
+}
+This would re-throw internal errors that Next.js uses for signaling. However, this introduced a new problem: it required developers to remember to add it. Every call site that could potentially generate a Next.js internal error would need this re-throw function inserted before any other throw in the application code. We felt this wasn’t an acceptable developer experience.
+We were left with two options. Since we could detect that request data was accessed, but not where, we could either mark the entire page as dynamic and provide a warning to developers, or rethink the detection mechanism. The first option wasn’t ideal, as it might eliminate the entire static shell on revalidation, depending on the application’s logic. We decided on the latter approach.
+
+
+## Modern Partial Prerendering
+We needed a way to suspend the processing of user code when they tried to access request data. Errors were our first choice, but the problems with nested try/catch blocks meant that these signals that were meant to inform Next.js about request data being used would be unreliable, and possibly lead to longer than expected build times due to the retry logic.
+But if we can’t throw an error, then what primitives do we have left?
+The answer? Promises.
+Developers are already adept at managing Promises. With the advent of React Server Components, for the first time, users could write async components, allowing data fetching to be colocated, all while using the native APIs that they were already familiar with, such as fetch.
+
+
+## Partially Static vs. Fully Static Pages
+This leads to two categories of pages in PPR:
+
+
+## Understanding the Problem Space
+Before diving into PPR’s implementation details, let’s establish why this feature matters. In modern web development, we face a fundamental tension between performance and functionality:
+Static rendering delivers content blazingly fast from the edge but lacks access to request-specific data
+Dynamic rendering provides full functionality but requires server computation, increasing time to first byte
+This dichotomy forces developers into an all-or-nothing decision at the route level. Even accessing a single cookie marks an entire page as dynamic, sacrificing the performance benefits of static generation.
+
+
+## Practical Implementation
+Let’s examine how PPR works in practice with a real-world example:
+import { Suspense } from "react"
+import { cookies } from "next/headers"
+
+async function getCart() {
+  const jar = await cookies()
+  // Fetch cart data based on session
+  return fetchCartData(jar.get("session"))
+}
+
+async function Cart() {
+  const cart = await getCart()
+  return <CartDisplay items={cart.items} />
+}
+
+export default function Page() {
+  return (
+    <div>
+      <Header /> {/* Static - included in shell */}
+
+      <Suspense fallback={<CartSkeleton />}>
+        <Cart /> {/* Dynamic - streamed later */}
+      </Suspense>
+
+      <ProductListing /> {/* Static - included in shell */}
+    </div>
+  )
+}
+In this example:
+Header and ProductListing are static and included in the initial shell
+Cart accesses cookies, making it dynamic
+The CartSkeleton is part of the static shell
+The actual cart content streams in once available
+
+
+## The Promise-Based Approach
+The key insight was to leverage JavaScript’s inherent asynchronous behavior. Instead of throwing errors that could be caught and mishandled, we needed our request APIs to return promises that would never resolve during a static prerender. This approach provides several advantages:
+// Before - synchronous with error throwing
+function cookies() {
+  if (isPrerendering) {
+    throw new PostponeError("Cannot access cookies during prerendering")
+  }
+  return getCookies()
+}
+
+// After - asynchronous with promises
+async function cookies() {
+  if (isPrerendering) {
+    // Return a promise that never resolves
+    return new Promise(() => {})
+  }
+  return getCookies()
+}
+This shift required updating all request APIs to be asynchronous:
+// Next.js 15 Request APIs
+await cookies()
+await headers()
+await connection()  // replaces unstable_noStore()
+
+
+## Partially Static Pages
+Pages that access uncached data or request information:
+async function Page() {
+  const data = await fetch('...') // No cache
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <Component data={data} />
+    </Suspense>
+  )
+}
+These require the resume render to stream in dynamic content.
+
+
+
+
+---
+
+Title: Partial prerendering: Building towards a new default rendering ...
+**Definition:** Suspense fallbacks in the shell are then replaced with dynamic components, like reading cookies to determine the cart, or showing a banner based on the user.
+
+**Key Points:** Skip to contentBlog / Field EngineeringPartial prerendering: Building towards a new default rendering model for web applicationsSebastian MarkbågeReact and Next. Link to headingOne battle-tested programming modelWith Partial Prerendering in Next. Whether you have a dashboard containing mostly dynamic content and a relatively barebones shell around it, or a page that contains mostly static content with dynamic elements throughout.
+
+```javascript
+1export default function Page() {2  return (3    <main>4      <header>5        <h1>My Store</h1>6        <Suspense fallback={<CartSkeleton />}>7          <ShoppingCart />8        </Suspense>9      </header>10      <Banner />11      <Suspense fallback={<ProductListSkeleton />}>12        <Recommendations />13      </Suspense>14      <NewProducts />15    </main>16  );17}
+```
+
+## Link to headingUnder the hood of PPR
+When you build your application, Next.js will prerender a static shell for each page of your application, leaving holes for the dynamic content.
+When a user visits a page, the fast static shell is served from the end-user’s nearest Vercel Region, allowing the user to start consuming the page, and the client and server to work in parallel. The client can start parsing scripts, stylesheets, fonts, and static markup while the server renders dynamic chunks using React’s new streaming architecture.
+PPR offers a unified model that blends the reliability and speed of  Incremental Static Regeneration (ISR) and the dynamic capabilities of Server-Side Rendering (SSR). In fact, this is exactly how PPR is implemented. Because PPR takes advantage of React <Suspense> boundary, you decide whether the boundary is static or dynamic.
+The static shell retains the ability to be updated via Incremental Static Regeneration (ISR).If you use features that require dynamic rendering, such as accessing cookies, Next.js automatically switches to dynamic rendering up to the closest Suspense boundary.
+
+
+## Link to headingTry PPR on Vercel today
+You can try Partial Prerendering with the latest Next.js 14 Canary using the app directory on Vercel today.
+1npm install next@canary
+Add the following configuration to your next.config.js file or check out the template to get started.
+next.config.js1experimental: {2  ppr: true,3},
+Please note that PPR is truly an experimental technology that is not yet recommended for production use. You may run into some developer experience issues, especially on larger code bases, and known issues such that client-side navigations do not yet perform a streaming render (coming soon).
+Partial Prerendering is a major step in web application delivery. We’re excited to see what the community builds on it, and we will continue to iterate on the best developer experience and best user experience for modern websites and web applications.
+
+
+## Link to headingUnderstanding the trade-offs eliminated
+PPR brings together the best aspects of popular rendering modes enabling both fast edge delivery and dynamic data access from core data centers.
+This table shows the features of common rendering strategies compared to the features of PPR, which eliminates trade-offs experienced in other methods.
+
+

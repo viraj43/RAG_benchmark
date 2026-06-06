@@ -1,0 +1,1923 @@
+Title: Chapter 10. Managing Services with systemd | 7
+**Definition:** duction to systemdCopy linkLink copied to clipboard!
+ Systemd is a system and service manager for Linux operating systems.
+
+**Key Points:** In addition to controlling the systemd system and service manager locally, the systemctl utility also allows you to interact with systemd running on a remote machine over the SSH protocol. If you want to set limits for services started by systemd, see the Red Hat Knowledgebase article How to set limits for services in RHEL 7 and systemd. Instead, create a systemd drop-in configuration file for the service as described in the section called “Extending the Default Unit Configuration” and the section called “Overriding the Default Unit Configuration”.
+
+| Unit Type | File Extension | Description | 
+|---|---|---|
+| Service unit | .service | A system service. | 
+| Target unit | .target | A group of systemd units. | 
+| Automount unit | .automount | A file system automount point. | 
+| Device unit | .device | A device file recognized by the kernel. | 
+| Mount unit | .mount | A file system mount point. | 
+| Path unit | .path | A file or directory in a file system. | 
+| Scope unit | .scope | An externally created process. | 
+| Slice unit | .slice | A group of hierarchically organized unit | 
+| Snapshot unit | .snapshot | A saved state of the systemd manager. | 
+| Socket unit | .socket | An inter-process communication socket. | 
+| Swap unit | .swap | A swap device or a swap file. | 
+| Timer unit | .timer | A systemd timer. | 
+
+
+| Directory | Description | 
+|---|---|
+| /usr/lib/systemd/system/ | Systemd unit files distributed with inst | 
+| /run/systemd/system/ | Systemd unit files created at run time.  | 
+| /etc/systemd/system/ | Systemd unit files created by systemctl  | 
+
+
+## Chapter 10. Managing Services with systemd
+10.1. Introduction to systemdCopy linkLink copied to clipboard!
+					Systemd is a system and service manager for Linux operating systems. It is designed to be backwards compatible with SysV init scripts, and provides a number of features such as parallel startup of system services at boot time, on-demand activation of daemons, or dependency-based service control logic. In Red Hat Enterprise Linux 7, systemd replaces Upstart as the default init system.
+				
+					Systemd introduces the concept of systemd units. These units are represented by unit configuration files located in one of the directories listed in Table 10.2, “Systemd Unit Files Locations”, and encapsulate information about system services, listening sockets, and other objects that are relevant to the init system. For a complete list of available systemd unit types, see Table 10.1, “Available systemd Unit Types”.
+				ExpandTable 10.1. Available systemd Unit TypesUnit TypeFile ExtensionDescription 
+									Service unit
+								
+								  
+									.service
+								
+								  
+									A system service.
+								
+								  
+									Target unit
+								
+								  
+									.target
+								
+								  
+									A group of systemd units.
+								
+								  
+									Automount unit
+								
+								  
+									.automount
+								
+								  
+									A file system automount point.
+								
+								  
+									Device unit
+								
+								  
+									.device
+								
+								  
+									A device file recognized by the kernel.
+								
+								  
+									Mount unit
+								
+								  
+									.mount
+								
+								  
+									A file system mount point.
+								
+								  
+									Path unit
+								
+								  
+									.path
+								
+								  
+									A file or directory in a file system.
+								
+								  
+									Scope unit
+								
+								  
+									.scope
+								
+								  
+									An externally created process.
+								
+								  
+									Slice unit
+								
+								  
+									.slice
+								
+								  
+									A group of hierarchically organized units that manage system processes.
+								
+								  
+									Snapshot unit
+								
+								  
+									.snapshot
+								
+								  
+									A saved state of the systemd manager.
+								
+								  
+									Socket unit
+								
+								  
+									.socket
+								
+								  
+									An inter-process communication socket.
+								
+								  
+									Swap unit
+								
+								  
+									.swap
+								
+								  
+									A swap device or a swap file.
+								
+								  
+									Timer unit
+								
+								  
+									.timer
+								
+								  
+									A systemd timer.
+								
+								 Show moreExpandTable 10.2. Systemd Unit Files LocationsDirectoryDescription 
+									/usr/lib/systemd/system/
+								
+								  
+									Systemd unit files distributed with installed RPM packages.
+								
+								  
+									/run/systemd/system/
+								
+								  
+									Systemd unit files created at run time. This directory takes precedence over the directory with installed service unit files.
+								
+								  
+									/etc/systemd/system/
+								
+								  
+									Systemd unit files created by systemctl enable as well as unit files added for extending a service. This directory takes precedence over the directory with runtime unit files.
+								
+								 Show moreOverriding the Default systemd Configuration Using system.conf
+					The default configuration of systemd is defined during the compilation and it can be found in systemd configuration file at /etc/systemd/system.conf. Use this file if you want to deviate from those defaults and override selected default values for systemd units globally.
+				
+					For example, to override the default value of the timeout limit, which is set to 90 seconds, use the DefaultTimeoutStartSec parameter to input the required value in seconds.
+				
+DefaultTimeoutStartSec=required value
+
+
+					See also Example 10.21, “Changing the timeout limit”.
+				10.1.1. Main FeaturesCopy linkLink copied to clipboard!
+						In Red Hat Enterprise Linux 7, the systemd system and service manager provides the following main features:
+					
+								Socket-based activation — At boot time, systemd creates listening sockets for all system services that support this type of activation, and passes the sockets to these services as soon as they are started. This not only allows systemd to start services in parallel, but also makes it possible to restart a service without losing any message sent to it while it is unavailable: the corresponding socket remains accessible and all messages are queued.
+							
+								Systemd uses socket units for socket-based activation.
+							
+								Bus-based activation — System services that use D-Bus for inter-process communication can be started on-demand the first time a client application attempts to communicate with them. Systemd uses D-Bus service files for bus-based activation.
+							
+								Device-based activation — System services that support device-based activation can be started on-demand when a particular type of hardware is plugged in or becomes available. Systemd uses device units for device-based activation.
+							
+								Path-based activation — System services that support path-based activation can be started on-demand when a particular file or directory changes its state. Systemd uses path units for path-based activation.
+							
+								Mount and automount point management — Systemd monitors and manages mount and automount points. Systemd uses mount units for mount points and automount units for automount points.
+							
+								Aggressive parallelization — Because of the use of socket-based activation, systemd can start system services in parallel as soon as all listening sockets are in place. In combination with system services that support on-demand activation, parallel activation significantly reduces the time required to boot the system.
+							
+								Transactional unit activation logic — Before activating or deactivating a unit, systemd calculates its dependencies, creates a temporary transaction, and verifies that this transaction is consistent. If a transaction is inconsistent, systemd automatically attempts to correct it and remove non-essential jobs from it before reporting an error.
+							
+								Backwards compatibility with SysV init — Systemd supports SysV init scripts as described in the Linux Standard Base Core Specification, which eases the upgrade path to systemd service units.
+							10.1.2. Compatibility ChangesCopy linkLink copied to clipboard!
+						The systemd system and service manager is designed to be mostly compatible with SysV init and Upstart. The following are the most notable compatibility changes with regards to the previous major release of the Red Hat Enterprise Linux system:
+					
+								Systemd has only limited support for runlevels. It provides a number of target units that can be directly mapped to these runlevels and for compatibility reasons, it is also distributed with the earlier runlevel command. Not all systemd targets can be directly mapped to runlevels, however, and as a consequence, this command might return N to indicate an unknown runlevel. It is recommended that you avoid using the runlevel command if possible.
+							
+								For more information about systemd targets and their comparison with runlevels, see Section 10.3, “Working with systemd Targets”.
+							
+								The systemctl utility does not support custom commands. In addition to standard commands such as start, stop, and status, authors of SysV init scripts could implement support for any number of arbitrary commands in order to provide additional functionality. For example, the init script for iptables in Red Hat Enterprise Linux 6 could be executed with the panic command, which immediately enabled panic mode and reconfigured the system to start dropping all incoming and outgoing packets. This is not supported in systemd and the systemctl only accepts documented commands.
+							
+								For more information about the systemctl utility and its comparison with the earlier service utility, see Section 10.2, “Managing System Services”.
+							
+								The systemctl utility does not communicate with services that have not been started by systemd. When systemd starts a system service, it stores the ID of its main process in order to keep track of it. The systemctl utility then uses this PID to query and manage the service. Consequently, if a user starts a particular daemon directly on the command line, systemctl is unable to determine its current status or stop it.
+							
+								Systemd stops only running services. Previously, when the shutdown sequence was initiated, Red Hat Enterprise Linux 6 and earlier releases of the system used symbolic links located in the /etc/rc0.d/ directory to stop all available system services regardless of their status. With systemd, only running services are stopped on shutdown.
+							
+								System services are unable to read from the standard input stream. When systemd starts a service, it connects its standard input to /dev/null to prevent any interaction with the user.
+							
+								System services do not inherit any context (such as the HOME and PATH environment variables) from the invoking user and their session. Each service runs in a clean execution context.
+							
+								When loading a SysV init script, systemd reads dependency information encoded in the Linux Standard Base (LSB) header and interprets it at run time.
+							
+								All operations on service units are subject to a default timeout of 5 minutes to prevent a malfunctioning service from freezing the system. This value is hardcoded for services that are generated from initscripts and cannot be changed. However, individual configuration files can be used to specify a longer timeout value per service, see Example 10.21, “Changing the timeout limit”
+							
+						For a detailed list of compatibility changes introduced with systemd, see the Migration Planning Guide for Red Hat Enterprise Linux 7.
+					10.2. Managing System ServicesCopy linkLink copied to clipboard!Note
+						To expand your expertise, you might also be interested in the Red Hat System Administration II (RH134) training course.
+					
+					Previous versions of Red Hat Enterprise Linux, which were distributed with SysV init or Upstart, used init scripts located in the /etc/rc.d/init.d/ directory. These init scripts were typically written in Bash, and allowed the system administrator to control the state of services and daemons in their system. In Red Hat Enterprise Linux 7, these init scripts have been replaced with service units.
+				
+					Service units end with the .service file extension and serve a similar purpose as init scripts. To view, start, stop, restart, enable, or disable system services, use the systemctl command as described in Table 10.3, “Comparison of the service Utility with systemctl”, Table 10.4, “Comparison of the chkconfig Utility with systemctl”, and further in this section. The service and chkconfig commands are still available in the system and work as expected, but are only included for compatibility reasons and should be avoided.
+				ExpandTable 10.3. Comparison of the service Utility with systemctlservicesystemctlDescription 
+									service name start
+								
+								  
+									systemctl start name.service
+								
+								  
+									Starts a service.
+								
+								  
+									service name stop
+								
+								  
+									systemctl stop name.service
+								
+								  
+									Stops a service.
+								
+								  
+									service name restart
+								
+								  
+									systemctl restart name.service
+								
+								  
+									Restarts a service.
+								
+								  
+									service name condrestart
+								
+								  
+									systemctl try-restart name.service
+								
+								  
+									Restarts a service only if it is running.
+								
+								  
+									service name reload
+								
+								  
+									systemctl reload name.service
+								
+								  
+									Reloads configuration.
+								
+								  
+									service name status
+								
+								  
+									systemctl status name.service
+								
+								 
+									systemctl is-active name.service
+								
+								  
+									Checks if a service is running.
+								
+								  
+									service --status-all
+								
+								  
+									systemctl list-units --type service --all
+								
+								  
+									Displays the status of all services.
+								
+								 Show moreExpandTable 10.4. Comparison of the chkconfig Utility with systemctlchkconfigsystemctlDescription 
+									chkconfig name on
+								
+								  
+									systemctl enable name.service
+								
+								  
+									Enables a service.
+								
+								  
+									chkconfig name off
+								
+								  
+									systemctl disable name.service
+								
+								  
+									Disables a service.
+								
+								  
+									chkconfig --list name
+								
+								  
+									systemctl status name.service
+								
+								 
+									systemctl is-enabled name.service
+								
+								  
+									Checks if a service is enabled.
+								
+								  
+									chkconfig --list
+								
+								  
+									systemctl list-unit-files --type service
+								
+								  
+									Lists all services and checks if they are enabled.
+								
+								  
+									chkconfig --list
+								
+								  
+									systemctl list-dependencies --after
+								
+								  
+									Lists services that are ordered to start before the specified unit.
+								
+								  
+									chkconfig --list
+								
+								  
+									systemctl list-dependencies --before
+								
+								  
+									Lists services that are ordered to start after the specified unit.
+								
+								 Show moreSpecifying Service Units
+					For clarity, all command examples in the rest of this section use full unit names with the .service file extension, for example:
+				
+~]# systemctl stop nfs-server.service
+
+
+					However, the file extension can be omitted, in which case the systemctl utility assumes the argument is a service unit. The following command is equivalent to the one above:
+				
+~]# systemctl stop nfs-server
+
+
+					Additionally, some units have alias names. Those names can have shorter names than units, which can be used instead of the actual unit names. To find all aliases that can be used for a particular unit, use:
+				
+~]# systemctl show nfs-server.service -p Names
+
+Behavior of systemctl in a chroot Environment
+					If you change the root directory using the chroot command, most systemctl commands refuse to perform any action. The reason for this is that the systemd process and the user that used the chroot command do not have the same view of the filesystem. This happens, for example, when systemctl is invoked from a kickstart file.
+				
+					The exception to this are unit file commands such as the systemctl enable and systemctl disable commands. These commands do not need a running system and do not affect running processes, but they do affect unit files. Therefore, you can run these commands even in chroot environment. For example, to enable the httpd service on a system under the /srv/website1/ directory:
+				
+~]# chroot /srv/website1
+~]# systemctl enable httpd.service
+Created symlink /etc/systemd/system/multi-user.target.wants/httpd.service, pointing to /usr/lib/systemd/system/httpd.service.
+
+10.2.1. Listing ServicesCopy linkLink copied to clipboard!
+						To list all currently loaded service units, type the following at a shell prompt:
+					
+systemctl list-units --type service
+
+
+						For each service unit file, this command displays its full name (UNIT) followed by a note whether the unit file has been loaded (LOAD), its high-level (ACTIVE) and low-level (SUB) unit file activation state, and a short description (DESCRIPTION).
+					
+						By default, the systemctl list-units command displays only active units. If you want to list all loaded units regardless of their state, run this command with the --all or -a command line option:
+					
+systemctl list-units --type service --all
+
+
+						You can also list all available service units to see if they are enabled. To do so, type:
+					
+systemctl list-unit-files --type service
+
+
+						For each service unit, this command displays its full name (UNIT FILE) followed by information whether the service unit is enabled or not (STATE). For information on how to determine the status of individual service units, see Section 10.2.2, “Displaying Service Status”.
+					Example 10.1. Listing Services
+							To list all currently loaded service units, run the following command:
+						
+~]$ systemctl list-units --type service
+UNIT              LOAD  ACTIVE SUB   DESCRIPTION
+abrt-ccpp.service       loaded active exited Install ABRT coredump hook
+abrt-oops.service       loaded active running ABRT kernel log watcher
+abrt-vmcore.service      loaded active exited Harvest vmcores for ABRT
+abrt-xorg.service       loaded active running ABRT Xorg log watcher
+abrtd.service         loaded active running ABRT Automated Bug Reporting Tool
+...
+systemd-vconsole-setup.service loaded active exited Setup Virtual Console
+tog-pegasus.service      loaded active running OpenPegasus CIM Server
+
+LOAD  = Reflects whether the unit definition was properly loaded.
+ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
+SUB  = The low-level unit activation state, values depend on unit type.
+
+46 loaded units listed. Pass --all to see loaded but inactive units, too.
+To show all installed unit files use 'systemctl list-unit-files'
+
+
+							To list all installed service unit files to determine if they are enabled, type:
+						
+~]$ systemctl list-unit-files --type service
+UNIT FILE                  STATE
+abrt-ccpp.service              enabled
+abrt-oops.service              enabled
+abrt-vmcore.service             enabled
+abrt-xorg.service              enabled
+abrtd.service                enabled
+...
+wpa_supplicant.service           disabled
+ypbind.service               disabled
+
+208 unit files listed.
+
+10.2.2. Displaying Service StatusCopy linkLink copied to clipboard!
+						To display detailed information about a service unit that corresponds to a system service, type the following at a shell prompt:
+					
+systemctl status name.service
+
+
+						Replace name with the name of the service unit you want to inspect (for example, gdm). This command displays the name of the selected service unit followed by its short description, one or more fields described in Table 10.5, “Available Service Unit Information”, and if it is executed by the root user, also the most recent log entries.
+					ExpandTable 10.5. Available Service Unit InformationFieldDescription 
+										Loaded
+									
+									  
+										Information whether the service unit has been loaded, the absolute path to the unit file, and a note whether the unit is enabled.
+									
+									  
+										Active
+									
+									  
+										Information whether the service unit is running followed by a time stamp.
+									
+									  
+										Main PID
+									
+									  
+										The PID of the corresponding system service followed by its name.
+									
+									  
+										Status
+									
+									  
+										Additional information about the corresponding system service.
+									
+									  
+										Process
+									
+									  
+										Additional information about related processes.
+									
+									  
+										CGroup
+									
+									  
+										Additional information about related Control Groups (cgroups).
+									
+									 Show more
+						To only verify that a particular service unit is running, run the following command:
+					
+systemctl is-active name.service
+
+
+						Similarly, to determine whether a particular service unit is enabled, type:
+					
+systemctl is-enabled name.service
+
+
+						Note that both systemctl is-active and systemctl is-enabled return an exit status of 0 if the specified service unit is running or enabled. For information on how to list all currently loaded service units, see Section 10.2.1, “Listing Services”.
+					Example 10.2. Displaying Service Status
+							The service unit for the GNOME Display Manager is named gdm.service. To determine the current status of this service unit, type the following at a shell prompt:
+						
+~]# systemctl status gdm.service
+gdm.service - GNOME Display Manager
+  Loaded: loaded (/usr/lib/systemd/system/gdm.service; enabled)
+  Active: active (running) since Thu 2013-10-17 17:31:23 CEST; 5min ago
+ Main PID: 1029 (gdm)
+  CGroup: /system.slice/gdm.service
+      ├─1029 /usr/sbin/gdm
+      ├─1037 /usr/libexec/gdm-simple-slave --display-id /org/gno...
+      └─1047 /usr/bin/Xorg :0 -background none -verbose -auth /r...
+
+Oct 17 17:31:23 localhost systemd[1]: Started GNOME Display Manager.
+
+Example 10.3. Displaying Services Ordered to Start Before a Service
+							To determine what services are ordered to start before the specified service, type the following at a shell prompt:
+						
+~]# systemctl list-dependencies --after gdm.service
+gdm.service
+├─dbus.socket
+├─getty@tty1.service
+├─livesys.service
+├─plymouth-quit.service
+├─system.slice
+├─systemd-journald.socket
+├─systemd-user-sessions.service
+└─basic.target
+[output truncated]
+
+Example 10.4. Displaying Services Ordered to Start After a Service
+							To determine what services are ordered to start after the specified service, type the following at a shell prompt:
+						
+~]# systemctl list-dependencies --before gdm.service
+gdm.service
+├─dracut-shutdown.service
+├─graphical.target
+│ ├─systemd-readahead-done.service
+│ ├─systemd-readahead-done.timer
+│ └─systemd-update-utmp-runlevel.service
+└─shutdown.target
+ ├─systemd-reboot.service
+ └─final.target
+  └─systemd-reboot.service
+
+10.2.3. Starting a ServiceCopy linkLink copied to clipboard!
+						To start a service unit that corresponds to a system service, type the following at a shell prompt as root:
+					
+systemctl start name.service
+
+
+						Replace name with the name of the service unit you want to start (for example, gdm). This command starts the selected service unit in the current session. For information on how to enable a service unit to be started at boot time, see Section 10.2.6, “Enabling a Service”. For information on how to determine the status of a certain service unit, see Section 10.2.2, “Displaying Service Status”.
+					Example 10.5. Starting a Service
+							The service unit for the Apache HTTP Server is named httpd.service. To activate this service unit and start the httpd daemon in the current session, run the following command as root:
+						
+~]# systemctl start httpd.service
+
+10.2.4. Stopping a ServiceCopy linkLink copied to clipboard!
+						To stop a service unit that corresponds to a system service, type the following at a shell prompt as root:
+					
+systemctl stop name.service
+
+
+						Replace name with the name of the service unit you want to stop (for example, bluetooth). This command stops the selected service unit in the current session. For information on how to disable a service unit and prevent it from being started at boot time, see Section 10.2.7, “Disabling a Service”. For information on how to determine the status of a certain service unit, see Section 10.2.2, “Displaying Service Status”.
+					Example 10.6. Stopping a Service
+							The service unit for the bluetoothd daemon is named bluetooth.service. To deactivate this service unit and stop the bluetoothd daemon in the current session, run the following command as root:
+						
+~]# systemctl stop bluetooth.service
+
+10.2.5. Restarting a ServiceCopy linkLink copied to clipboard!
+						To restart a service unit that corresponds to a system service, type the following at a shell prompt as root:
+					
+systemctl restart name.service
+
+
+						Replace name with the name of the service unit you want to restart (for example, httpd). This command stops the selected service unit in the current session and immediately starts it again. Importantly, if the selected service unit is not running, this command starts it too. To tell systemd to restart a service unit only if the corresponding service is already running, run the following command as root:
+					
+systemctl try-restart name.service
+
+
+						Certain system services also allow you to reload their configuration without interrupting their execution. To do so, type as root:
+					
+systemctl reload name.service
+
+
+						Note that system services that do not support this feature ignore this command altogether. For convenience, the systemctl command also supports the reload-or-restart and reload-or-try-restart commands that restart such services instead. For information on how to determine the status of a certain service unit, see Section 10.2.2, “Displaying Service Status”.
+					Example 10.7. Restarting a Service
+							In order to prevent users from encountering unnecessary error messages or partially rendered web pages, the Apache HTTP Server allows you to edit and reload its configuration without the need to restart it and interrupt actively processed requests. To do so, type the following at a shell prompt as root:
+						
+~]# systemctl reload httpd.service
+
+10.2.6. Enabling a ServiceCopy linkLink copied to clipboard!
+						To configure a service unit that corresponds to a system service to be automatically started at boot time, type the following at a shell prompt as root:
+					
+systemctl enable name.service
+
+
+						Replace name with the name of the service unit you want to enable (for example, httpd). This command reads the [Install] section of the selected service unit and creates appropriate symbolic links to the /usr/lib/systemd/system/name.service file in the /etc/systemd/system/ directory and its subdirectories. This command does not, however, rewrite links that already exist. If you want to ensure that the symbolic links are re-created, use the following command as root:
+					
+systemctl reenable name.service
+
+
+						This command disables the selected service unit and immediately enables it again. For information on how to determine whether a certain service unit is enabled to start at boot time, see Section 10.2.2, “Displaying Service Status”. For information on how to start a service in the current session, see Section 10.2.3, “Starting a Service”.
+					Example 10.8. Enabling a Service
+							To configure the Apache HTTP Server to start automatically at boot time, run the following command as root:
+						
+~]# systemctl enable httpd.service
+Created symlink from /etc/systemd/system/multi-user.target.wants/httpd.service to /usr/lib/systemd/system/httpd.service.
+
+10.2.7. Disabling a ServiceCopy linkLink copied to clipboard!
+						To prevent a service unit that corresponds to a system service from being automatically started at boot time, type the following at a shell prompt as root:
+					
+systemctl disable name.service
+
+
+						Replace name with the name of the service unit you want to disable (for example, bluetooth). This command reads the [Install] section of the selected service unit and removes appropriate symbolic links to the /usr/lib/systemd/system/name.service file from the /etc/systemd/system/ directory and its subdirectories. In addition, you can mask any service unit to prevent it from being started manually or by another service. To do so, run the following command as root:
+					
+systemctl mask name.service
+
+
+						This command replaces the /etc/systemd/system/name.service file with a symbolic link to /dev/null, rendering the actual unit file inaccessible to systemd. To revert this action and unmask a service unit, type as root:
+					
+systemctl unmask name.service
+
+
+						For information on how to determine whether a certain service unit is enabled to start at boot time, see Section 10.2.2, “Displaying Service Status”. For information on how to stop a service in the current session, see Section 10.2.4, “Stopping a Service”.
+					Example 10.9. Disabling a Service
+							Example 10.6, “Stopping a Service” illustrates how to stop the bluetooth.service unit in the current session. To prevent this service unit from starting at boot time, type the following at a shell prompt as root:
+						
+~]# systemctl disable bluetooth.service
+Removed symlink /etc/systemd/system/bluetooth.target.wants/bluetooth.service.
+Removed symlink /etc/systemd/system/dbus-org.bluez.service.
+
+10.2.8. Starting a Conflicting ServiceCopy linkLink copied to clipboard!
+						In systemd, positive and negative dependencies between services exist. Starting particular service may require starting one or more other services (positive dependency) or stopping one or more services (negative dependency).
+					
+						When you attempt to start a new service, systemd resolves all dependencies automatically. Note that this is done without explicit notification to the user. If you are already running a service, and you attempt to start another service with a negative dependency, the first service is automatically stopped.
+					
+						For example, if you are running the postfix service, and you try to start the sendmail service, systemd first automatically stops postfix, because these two services are conflicting and cannot run on the same port.
+					10.3. Working with systemd TargetsCopy linkLink copied to clipboard!
+					Previous versions of Red Hat Enterprise Linux, which were distributed with SysV init or Upstart, implemented a predefined set of runlevels that represented specific modes of operation. These runlevels were numbered from 0 to 6 and were defined by a selection of system services to be run when a particular runlevel was enabled by the system administrator. In Red Hat Enterprise Linux 7, the concept of runlevels has been replaced with systemd targets.
+				
+					Systemd targets are represented by target units. Target units end with the .target file extension and their only purpose is to group together other systemd units through a chain of dependencies. For example, the graphical.target unit, which is used to start a graphical session, starts system services such as the GNOME Display Manager (gdm.service) or Accounts Service (accounts-daemon.service) and also activates the multi-user.target unit. Similarly, the multi-user.target unit starts other essential system services such as NetworkManager (NetworkManager.service) or D-Bus (dbus.service) and activates another target unit named basic.target.
+				
+					Red Hat Enterprise Linux 7 is distributed with a number of predefined targets that are more or less similar to the standard set of runlevels from the previous releases of this system. For compatibility reasons, it also provides aliases for these targets that directly map them to SysV runlevels. Table 10.6, “Comparison of SysV Runlevels with systemd Targets” provides a complete list of SysV runlevels and their corresponding systemd targets.
+				ExpandTable 10.6. Comparison of SysV Runlevels with systemd TargetsRunlevelTarget UnitsDescription 
+									0
+								
+								  
+									runlevel0.target, poweroff.target
+								
+								  
+									Shut down and power off the system.
+								
+								  
+									1
+								
+								  
+									runlevel1.target, rescue.target
+								
+								  
+									Set up a rescue shell.
+								
+								  
+									2
+								
+								  
+									runlevel2.target, multi-user.target
+								
+								  
+									Set up a non-graphical multi-user system.
+								
+								  
+									3
+								
+								  
+									runlevel3.target, multi-user.target
+								
+								  
+									Set up a non-graphical multi-user system.
+								
+								  
+									4
+								
+								  
+									runlevel4.target, multi-user.target
+								
+								  
+									Set up a non-graphical multi-user system.
+								
+								  
+									5
+								
+								  
+									runlevel5.target, graphical.target
+								
+								  
+									Set up a graphical multi-user system.
+								
+								  
+									6
+								
+								  
+									runlevel6.target, reboot.target
+								
+								  
+									Shut down and reboot the system.
+								
+								 Show more
+					To view, change, or configure systemd targets, use the systemctl utility as described in Table 10.7, “Comparison of SysV init Commands with systemctl” and in the sections below. The runlevel and telinit commands are still available in the system and work as expected, but are only included for compatibility reasons and should be avoided.
+				ExpandTable 10.7. Comparison of SysV init Commands with systemctlOld CommandNew CommandDescription 
+									runlevel
+								
+								  
+									systemctl list-units --type target
+								
+								  
+									Lists currently loaded target units.
+								
+								  
+									telinit runlevel
+								
+								  
+									systemctl isolate name.target
+								
+								  
+									Changes the current target.
+								
+								 Show more10.3.1. Viewing the Default TargetCopy linkLink copied to clipboard!
+						To determine which target unit is used by default, run the following command:
+					
+systemctl get-default
+
+
+						This command resolves the symbolic link located at /etc/systemd/system/default.target and displays the result. For information on how to change the default target, see Section 10.3.3, “Changing the Default Target”. For information on how to list all currently loaded target units, see Section 10.3.2, “Viewing the Current Target”.
+					Example 10.10. Viewing the Default Target
+							To display the default target unit, type:
+						
+~]$ systemctl get-default
+graphical.target
+
+10.3.2. Viewing the Current TargetCopy linkLink copied to clipboard!
+						To list all currently loaded target units, type the following command at a shell prompt:
+					
+systemctl list-units --type target
+
+
+						For each target unit, this commands displays its full name (UNIT) followed by a note whether the unit has been loaded (LOAD), its high-level (ACTIVE) and low-level (SUB) unit activation state, and a short description (DESCRIPTION).
+					
+						By default, the systemctl list-units command displays only active units. If you want to list all loaded units regardless of their state, run this command with the --all or -a command line option:
+					
+systemctl list-units --type target --all
+
+
+						See Section 10.3.1, “Viewing the Default Target” for information on how to display the default target. For information on how to change the current target, see Section 10.3.4, “Changing the Current Target”.
+					Example 10.11. Viewing the Current Target
+							To list all currently loaded target units, run the following command:
+						
+~]$ systemctl list-units --type target
+UNIT         LOAD  ACTIVE SUB  DESCRIPTION
+basic.target     loaded active active Basic System
+cryptsetup.target   loaded active active Encrypted Volumes
+getty.target     loaded active active Login Prompts
+graphical.target   loaded active active Graphical Interface
+local-fs-pre.target  loaded active active Local File Systems (Pre)
+local-fs.target    loaded active active Local File Systems
+multi-user.target   loaded active active Multi-User System
+network.target    loaded active active Network
+paths.target     loaded active active Paths
+remote-fs.target   loaded active active Remote File Systems
+sockets.target    loaded active active Sockets
+sound.target     loaded active active Sound Card
+spice-vdagentd.target loaded active active Agent daemon for Spice guests
+swap.target      loaded active active Swap
+sysinit.target    loaded active active System Initialization
+time-sync.target   loaded active active System Time Synchronized
+timers.target     loaded active active Timers
+
+LOAD  = Reflects whether the unit definition was properly loaded.
+ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
+SUB  = The low-level unit activation state, values depend on unit type.
+
+17 loaded units listed. Pass --all to see loaded but inactive units, too.
+To show all installed unit files use 'systemctl list-unit-files'.
+
+10.3.3. Changing the Default TargetCopy linkLink copied to clipboard!
+						To configure the system to use a different target unit by default, type the following at a shell prompt as root:
+					
+systemctl set-default name.target
+
+
+						Replace name with the name of the target unit you want to use by default (for example, multi-user). This command replaces the /etc/systemd/system/default.target file with a symbolic link to /usr/lib/systemd/system/name.target, where name is the name of the target unit you want to use. For information on how to change the current target, see Section 10.3.4, “Changing the Current Target”. For information on how to list all currently loaded target units, see Section 10.3.2, “Viewing the Current Target”.
+					Example 10.12. Changing the Default Target
+							To configure the system to use the multi-user.target unit by default, run the following command as root:
+						
+~]# systemctl set-default multi-user.target
+rm '/etc/systemd/system/default.target'
+ln -s '/usr/lib/systemd/system/multi-user.target' '/etc/systemd/system/default.target'
+
+10.3.4. Changing the Current TargetCopy linkLink copied to clipboard!
+						To change to a different target unit in the current session, type the following at a shell prompt as root:
+					
+systemctl isolate name.target
+
+
+						Replace name with the name of the target unit you want to use (for example, multi-user). This command starts the target unit named name and all dependent units, and immediately stops all others. For information on how to change the default target, see Section 10.3.3, “Changing the Default Target”. For information on how to list all currently loaded target units, see Section 10.3.2, “Viewing the Current Target”.
+					Example 10.13. Changing the Current Target
+							To turn off the graphical user interface and change to the multi-user.target unit in the current session, run the following command as root:
+						
+~]# systemctl isolate multi-user.target
+
+10.3.5. Changing to Rescue ModeCopy linkLink copied to clipboard!
+						Rescue mode provides a convenient single-user environment and allows you to repair your system in situations when it is unable to complete a regular booting process. In rescue mode, the system attempts to mount all local file systems and start some important system services, but it does not activate network interfaces or allow more users to be logged into the system at the same time. In Red Hat Enterprise Linux 7, rescue mode is equivalent to single user mode and requires the root password.
+					
+						To change the current target and enter rescue mode in the current session, type the following at a shell prompt as root:
+					
+systemctl rescue
+
+
+						This command is similar to systemctl isolate rescue.target, but it also sends an informative message to all users that are currently logged into the system. To prevent systemd from sending this message, run this command with the --no-wall command line option:
+					
+systemctl --no-wall rescue
+
+
+						For information on how to enter emergency mode, see Section 10.3.6, “Changing to Emergency Mode”.
+					Example 10.14. Changing to Rescue Mode
+							To enter rescue mode in the current session, run the following command as root:
+						
+~]# systemctl rescue
+
+Broadcast message from root@localhost on pts/0 (Fri 2013-10-25 18:23:15 CEST):
+
+The system is going down to rescue mode NOW!
+
+10.3.6. Changing to Emergency ModeCopy linkLink copied to clipboard!
+						Emergency mode provides the most minimal environment possible and allows you to repair your system even in situations when the system is unable to enter rescue mode. In emergency mode, the system mounts the root file system only for reading, does not attempt to mount any other local file systems, does not activate network interfaces, and only starts a few essential services. In Red Hat Enterprise Linux 7, emergency mode requires the root password.
+					
+						To change the current target and enter emergency mode, type the following at a shell prompt as root:
+					
+systemctl emergency
+
+
+						This command is similar to systemctl isolate emergency.target, but it also sends an informative message to all users that are currently logged into the system. To prevent systemd from sending this message, run this command with the --no-wall command line option:
+					
+systemctl --no-wall emergency
+
+
+						For information on how to enter rescue mode, see Section 10.3.5, “Changing to Rescue Mode”.
+					Example 10.15. Changing to Emergency Mode
+							To enter emergency mode without sending a message to all users that are currently logged into the system, run the following command as root:
+						
+~]# systemctl --no-wall emergency
+
+10.4. Shutting Down, Suspending, and Hibernating the SystemCopy linkLink copied to clipboard!
+					In Red Hat Enterprise Linux 7, the systemctl utility replaces a number of power management commands used in previous versions of the Red Hat Enterprise Linux system. The commands listed in Table 10.8, “Comparison of Power Management Commands with systemctl” are still available in the system for compatibility reasons, but it is advised that you use systemctl when possible.
+				ExpandTable 10.8. Comparison of Power Management Commands with systemctlOld CommandNew CommandDescription 
+									halt
+								
+								  
+									systemctl halt
+								
+								  
+									Halts the system.
+								
+								  
+									poweroff
+								
+								  
+									systemctl poweroff
+								
+								  
+									Powers off the system.
+								
+								  
+									reboot
+								
+								  
+									systemctl reboot
+								
+								  
+									Restarts the system.
+								
+								  
+									pm-suspend
+								
+								  
+									systemctl suspend
+								
+								  
+									Suspends the system.
+								
+								  
+									pm-hibernate
+								
+								  
+									systemctl hibernate
+								
+								  
+									Hibernates the system.
+								
+								  
+									pm-suspend-hybrid
+								
+								  
+									systemctl hybrid-sleep
+								
+								  
+									Hibernates and suspends the system.
+								
+								 Show more10.4.1. Shutting Down the SystemCopy linkLink copied to clipboard!
+						The systemctl utility provides commands for shutting down the system, however the traditional shutdown command is also supported. Although the shutdown command will call the systemctl utility to perform the shutdown, it has an advantage in that it also supports a time argument. This is particularly useful for scheduled maintenance and to allow more time for users to react to the warning that a system shutdown has been scheduled. The option to cancel the shutdown can also be an advantage.
+					Using systemctl Commands
+						To shut down the system and power off the machine, type the following at a shell prompt as root:
+					
+systemctl poweroff
+
+
+						To shut down and halt the system without powering off the machine, run the following command as root:
+					
+systemctl halt
+
+
+						By default, running either of these commands causes systemd to send an informative message to all users that are currently logged into the system. To prevent systemd from sending this message, run the selected command with the --no-wall command line option, for example:
+					
+systemctl --no-wall poweroff
+
+Using the shutdown Command
+						To shut down the system and power off the machine at a certain time, use a command in the following format as root:
+					
+shutdown --poweroff hh:mm
+
+
+						Where hh:mm is the time in 24 hour clock format. The /run/nologin file is created 5 minutes before system shutdown to prevent new logins. When a time argument is used, an optional message, the wall message, can be appended to the command.
+					
+						To shut down and halt the system after a delay, without powering off the machine, use a command in the following format as root:
+					
+shutdown --halt +m
+
+
+						Where +m is the delay time in minutes. The now keyword is an alias for +0.
+					
+						A pending shutdown can be canceled by the root user as follows:
+					
+shutdown -c
+
+
+						See the shutdown(8) manual page for further command options.
+					10.4.2. Restarting the SystemCopy linkLink copied to clipboard!
+						To restart the system, run the following command as root:
+					
+systemctl reboot
+
+
+						By default, this command causes systemd to send an informative message to all users that are currently logged into the system. To prevent systemd from sending this message, run this command with the --no-wall command line option:
+					
+systemctl --no-wall reboot
+
+10.4.3. Suspending the SystemCopy linkLink copied to clipboard!
+						To suspend the system, type the following at a shell prompt as root:
+					
+systemctl suspend
+
+
+						This command saves the system state in RAM and with the exception of the RAM module, powers off most of the devices in the machine. When you turn the machine back on, the system then restores its state from RAM without having to boot again. Because the system state is saved in RAM and not on the hard disk, restoring the system from suspend mode is significantly faster than restoring it from hibernation, but as a consequence, a suspended system state is also vulnerable to power outages.
+					
+						For information on how to hibernate the system, see Section 10.4.4, “Hibernating the System”.
+					10.4.4. Hibernating the SystemCopy linkLink copied to clipboard!
+						To hibernate the system, type the following at a shell prompt as root:
+					
+systemctl hibernate
+
+
+						This command saves the system state on the hard disk drive and powers off the machine. When you turn the machine back on, the system then restores its state from the saved data without having to boot again. Because the system state is saved on the hard disk and not in RAM, the machine does not have to maintain electrical power to the RAM module, but as a consequence, restoring the system from hibernation is significantly slower than restoring it from suspend mode.
+					
+						To hibernate and suspend the system, run the following command as root:
+					
+systemctl hybrid-sleep
+
+
+						For information on how to suspend the system, see Section 10.4.3, “Suspending the System”.
+					10.5. Controlling systemd on a Remote MachineCopy linkLink copied to clipboard!
+					In addition to controlling the systemd system and service manager locally, the systemctl utility also allows you to interact with systemd running on a remote machine over the SSH protocol. Provided that the sshd service on the remote machine is running, you can connect to this machine by running the systemctl command with the --host or -H command line option:
+				
+systemctl --host user_name@host_name command
+
+
+					Replace user_name with the name of the remote user, host_name with the machine’s host name, and command with any of the systemctl commands described above. Note that the remote machine must be configured to allow the selected user remote access over the SSH protocol. For more information on how to configure an SSH server, see Chapter 12, OpenSSH.
+				Example 10.16. Remote Management
+						To log in to a remote machine named server-01.example.com as the root user and determine the current status of the httpd.service unit, type the following at a shell prompt:
+					
+~]$ systemctl -H root@server-01.example.com status httpd.service
+>>>>>>> systemd unit files -- update
+root@server-01.example.com's password:
+httpd.service - The Apache HTTP Server
+  Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled)
+  Active: active (running) since Fri 2013-11-01 13:58:56 CET; 2h 48min ago
+ Main PID: 649
+  Status: "Total requests: 0; Current requests/sec: 0; Current traffic:  0 B/sec"
+  CGroup: /system.slice/httpd.service
+
+10.6. Creating and Modifying systemd Unit FilesCopy linkLink copied to clipboard!
+					A unit file contains configuration directives that describe the unit and define its behavior. Several systemctl commands work with unit files in the background. To make finer adjustments, system administrator must edit or create unit files manually. Table 10.2, “Systemd Unit Files Locations” lists three main directories where unit files are stored on the system, the /etc/systemd/system/ directory is reserved for unit files created or customized by the system administrator.
+				
+					Unit file names take the following form:
+				
+unit_name.type_extension
+
+
+					Here, unit_name stands for the name of the unit and type_extension identifies the unit type, see Table 10.1, “Available systemd Unit Types” for a complete list of unit types. For example, there usually is sshd.service as well as sshd.socket unit present on your system.
+				
+					Unit files can be supplemented with a directory for additional configuration files. For example, to add custom configuration options to sshd.service, create the sshd.service.d/custom.conf file and insert additional directives there. For more information on configuration directories, see Section 10.6.4, “Modifying Existing Unit Files”.
+				
+					Also, the sshd.service.wants/ and sshd.service.requires/ directories can be created. These directories contain symbolic links to unit files that are dependencies of the sshd service. The symbolic links are automatically created either during installation according to [Install] unit file options (see Table 10.11, “Important [Install] Section Options”) or at runtime based on [Unit] options (see Table 10.9, “Important [Unit] Section Options”). It is also possible to create these directories and symbolic links manually.
+				
+					Many unit file options can be set using the so called unit specifiers – wildcard strings that are dynamically replaced with unit parameters when the unit file is loaded. This enables creation of generic unit files that serve as templates for generating instantiated units. See Section 10.6.5, “Working with Instantiated Units” for details.
+				10.6.1. Understanding the Unit File StructureCopy linkLink copied to clipboard!
+						Unit files typically consist of three sections:
+					
+								[Unit] — contains generic options that are not dependent on the type of the unit. These options provide unit description, specify the unit’s behavior, and set dependencies to other units. For a list of most frequently used [Unit] options, see Table 10.9, “Important [Unit] Section Options”.
+							
+								[unit type] — if a unit has type-specific directives, these are grouped under a section named after the unit type. For example, service unit files contain the [Service] section, see Table 10.10, “Important [Service] Section Options” for most frequently used [Service] options.
+							
+								[Install] — contains information about unit installation used by systemctl enable and disable commands, see Table 10.11, “Important [Install] Section Options” for a list of [Install] options.
+							ExpandTable 10.9. Important [Unit] Section OptionsOption[a] section, see the systemd.unit(5) manual page.]Description 
+										Description
+									
+									  
+										A meaningful description of the unit. This text is displayed for example in the output of the systemctl status command.
+									
+									  
+										Documentation
+									
+									  
+										Provides a list of URIs referencing documentation for the unit.
+									
+									  
+										After[b]
+									
+									  
+										Defines the order in which units are started. The unit starts only after the units specified in After are active. Unlike Requires, After does not explicitly activate the specified units. The Before option has the opposite functionality to After.
+									
+									  
+										Requires
+									
+									  
+										Configures dependencies on other units. The units listed in Requires are activated together with the unit. If any of the required units fail to start, the unit is not activated.
+									
+									  
+										Wants
+									
+									  
+										Configures weaker dependencies than Requires. If any of the listed units does not start successfully, it has no impact on the unit activation. This is the recommended way to establish custom unit dependencies.
+									
+									  
+										Conflicts
+									
+									  
+										Configures negative dependencies, an opposite to Requires.
+									
+									 [a] 
+										For a complete list of options configurable in the [Unit
+									[b] 
+											In most cases, it is sufficient to set only the ordering dependencies with After and Before unit file options. If you also set a requirement dependency with Wants (recommended) or Requires, the ordering dependency still needs to be specified. That is because ordering and requirement dependencies work independently from each other.
+										Show moreExpandTable 10.10. Important [Service] Section OptionsOption[a] section, see the systemd.service(5) manual page.]Description 
+										Type
+									
+									  
+										Configures the unit process startup type that affects the functionality of ExecStart and related options. One of:
+									
+									 
+										* simple – The default value. The process started with ExecStart is the main process of the service.
+									
+									 
+										* forking – The process started with ExecStart spawns a child process that becomes the main process of the service. The parent process exits when the startup is complete.
+									
+									 
+										* oneshot – This type is similar to simple, but the process exits before starting consequent units.
+									
+									 
+										* dbus – This type is similar to simple, but consequent units are started only after the main process gains a D-Bus name.
+									
+									 
+										* notify – This type is similar to simple, but consequent units are started only after a notification message is sent via the sd_notify() function.
+									
+									 
+										* idle – similar to simple, the actual execution of the service binary is delayed until all jobs are finished, which avoids mixing the status output with shell output of services.
+									
+									  
+										ExecStart
+									
+									  
+										Specifies commands or scripts to be executed when the unit is started. ExecStartPre and ExecStartPost specify custom commands to be executed before and after ExecStart. Type=oneshot enables specifying multiple custom commands that are then executed sequentially.
+									
+									  
+										ExecStop
+									
+									  
+										Specifies commands or scripts to be executed when the unit is stopped.
+									
+									  
+										ExecReload
+									
+									  
+										Specifies commands or scripts to be executed when the unit is reloaded.
+									
+									  
+										Restart
+									
+									  
+										With this option enabled, the service is restarted after its process exits, with the exception of a clean stop by the systemctl command.
+									
+									  
+										RemainAfterExit
+									
+									  
+										If set to True, the service is considered active even when all its processes exited. Default value is False. This option is especially useful if Type=oneshot is configured.
+									
+									 [a] 
+										For a complete list of options configurable in the [Service
+									Show moreExpandTable 10.11. Important [Install] Section OptionsOption[a] section, see the systemd.unit(5) manual page.]Description 
+										Alias
+									
+									  
+										Provides a space-separated list of additional names for the unit. Most systemctl commands, excluding systemctl enable, can use aliases instead of the actual unit name.
+									
+									  
+										RequiredBy
+									
+									  
+										A list of units that depend on the unit. When this unit is enabled, the units listed in RequiredBy gain a Require dependency on the unit.
+									
+									  
+										WantedBy
+									
+									  
+										A list of units that weakly depend on the unit. When this unit is enabled, the units listed in WantedBy gain a Want dependency on the unit.
+									
+									  
+										Also
+									
+									  
+										Specifies a list of units to be installed or uninstalled along with the unit.
+									
+									  
+										DefaultInstance
+									
+									  
+										Limited to instantiated units, this option specifies the default instance for which the unit is enabled. See Section 10.6.5, “Working with Instantiated Units”
+									
+									 [a] 
+										For a complete list of options configurable in the [Install
+									Show more
+						A whole range of options that can be used to fine tune the unit configuration, Example 10.17, “postfix.service Unit File” shows an example of a service unit installed on the system. Moreover, unit file options can be defined in a way that enables dynamic creation of units as described in Section 10.6.5, “Working with Instantiated Units”.
+					Example 10.17. postfix.service Unit File
+							What follows is the content of the /usr/lib/systemd/system/postfix.service unit file as currently provided by the postfix package:
+						
+[Unit]
+Description=Postfix Mail Transport Agent
+After=syslog.target network.target
+Conflicts=sendmail.service exim.service
+
+[Service]
+Type=forking
+PIDFile=/var/spool/postfix/pid/master.pid
+EnvironmentFile=-/etc/sysconfig/network
+ExecStartPre=-/usr/libexec/postfix/aliasesdb
+ExecStartPre=-/usr/libexec/postfix/chroot-update
+ExecStart=/usr/sbin/postfix start
+ExecReload=/usr/sbin/postfix reload
+ExecStop=/usr/sbin/postfix stop
+
+[Install]
+WantedBy=multi-user.target
+
+
+							The [Unit] section describes the service, specifies the ordering dependencies, as well as conflicting units. In [Service], a sequence of custom scripts is specified to be executed during unit activation, on stop, and on reload. EnvironmentFile points to the location where environment variables for the service are defined, PIDFile specifies a stable PID for the main process of the service. Finally, the [Install] section lists units that depend on the service.
+						10.6.2. Creating Custom Unit FilesCopy linkLink copied to clipboard!
+						There are several use cases for creating unit files from scratch: you could run a custom daemon, create a second instance of some existing service (as in Example 10.19, “Creating a second instance of the sshd service”), or import a SysV init script (more in Section 10.6.3, “Converting SysV Init Scripts to Unit Files”). On the other hand, if you intend just to modify or extend the behavior of an existing unit, use the instructions from Section 10.6.4, “Modifying Existing Unit Files”. The following procedure describes the general process of creating a custom service:
+					
+								Prepare the executable file with the custom service. This can be a custom-created script, or an executable delivered by a software provider. If required, prepare a PID file to hold a constant PID for the main process of the custom service. It is also possible to include environment files to store shell variables for the service. Make sure the source script is executable (by executing the chmod a+x) and is not interactive.
+							
+								Create a unit file in the /etc/systemd/system/ directory and make sure it has correct file permissions. Execute as root:
+							
+touch /etc/systemd/system/name.service
+chmod 664 /etc/systemd/system/name.service
+
+
+								Replace name with a name of the service to be created. Note that file does not need to be executable.
+							
+								Open the name.service file created in the previous step, and add the service configuration options. There is a variety of options that can be used depending on the type of service you wish to create, see Section 10.6.1, “Understanding the Unit File Structure”. The following is an example unit configuration for a network-related service:
+							
+[Unit]
+Description=service_description
+After=network.target
+
+[Service]
+ExecStart=path_to_executable
+Type=forking
+PIDFile=path_to_pidfile
+
+[Install]
+WantedBy=default.target
+
+
+								Where:
+							
+										service_description is an informative description that is displayed in journal log files and in the output of the systemctl status command.
+									
+										the After setting ensures that the service is started only after the network is running. Add a space-separated list of other relevant services or targets.
+									
+										path_to_executable stands for the path to the actual service executable.
+									
+										Type=forking is used for daemons that make the fork system call. The main process of the service is created with the PID specified in path_to_pidfile. Find other startup types in Table 10.10, “Important [Service] Section Options”.
+									
+										WantedBy states the target or targets that the service should be started under. Think of these targets as of a replacement of the older concept of runlevels, see Section 10.3, “Working with systemd Targets” for details.
+									
+								Notify systemd that a new name.service file exists by executing the following command as root:
+							
+systemctl daemon-reload
+systemctl start name.service
+
+Warning
+									Always run the systemctl daemon-reload command after creating new unit files or modifying existing unit files. Otherwise, the systemctl start or systemctl enable commands could fail due to a mismatch between states of systemd and actual service unit files on disk.
+								
+								The name.service unit can now be managed as any other system service with commands described in Section 10.2, “Managing System Services”.
+							Example 10.18. Creating the emacs.service File
+							When using the Emacs text editor, it is often faster and more convenient to have it running in the background instead of starting a new instance of the program whenever editing a file. The following steps show how to create a unit file for Emacs, so that it can be handled like a service.
+						
+									Create a unit file in the /etc/systemd/system/ directory and make sure it has the correct file permissions. Execute as root:
+								
+~]# touch /etc/systemd/system/emacs.service
+~]# chmod 664 /etc/systemd/system/emacs.service
+
+
+									Add the following content to the file:
+								
+[Unit]
+Description=Emacs: the extensible, self-documenting text editor
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/emacs --daemon
+ExecStop=/usr/bin/emacsclient --eval "(kill-emacs)"
+Environment=SSH_AUTH_SOCK=%t/keyring/ssh
+Restart=always
+
+[Install]
+WantedBy=default.target
+
+
+									With the above configuration, the /usr/bin/emacs executable is started in daemon mode on service start. The SSH_AUTH_SOCK environment variable is set using the "%t" unit specifier that stands for the runtime directory. The service also restarts the emacs process if it exits unexpectedly.
+								
+									Execute the following commands to reload the configuration and start the custom service:
+								
+~]# systemctl daemon-reload
+~]# systemctl start emacs.service
+
+
+							As the editor is now registered as a systemd service, you can use all standard systemctl commands. For example, run systemctl status emacs to display the editor’s status or systemctl enable emacs to make the editor start automatically on system boot.
+						Example 10.19. Creating a second instance of the sshd service
+							System Administrators often need to configure and run multiple instances of a service. This is done by creating copies of the original service configuration files and modifying certain parameters to avoid conflicts with the primary instance of the service. The following procedure shows how to create a second instance of the sshd service:
+						
+									Create a copy of the sshd_config file that will be used by the second daemon:
+								
+~]# cp /etc/ssh/sshd{,-second}_config
+
+
+									Edit the sshd-second_config file created in the previous step to assign a different port number and PID file to the second daemon:
+								
+Port 22220
+PidFile /var/run/sshd-second.pid
+
+
+									See the sshd_config(5) manual page for more information on Port and PidFile options. Make sure the port you choose is not in use by any other service. The PID file does not have to exist before running the service, it is generated automatically on service start.
+								
+									Create a copy of the systemd unit file for the sshd service:
+								
+~]# cp /usr/lib/systemd/system/sshd.service /etc/systemd/system/sshd-second.service
+
+
+									Alter the sshd-second.service created in the previous step as follows:
+								
+											Modify the Description option:
+										
+Description=OpenSSH server second instance daemon
+
+
+											Add sshd.service to services specified in the After option, so that the second instance starts only after the first one has already started:
+										
+After=syslog.target network.target auditd.service sshd.service
+
+
+											The first instance of sshd includes key generation, therefore remove the ExecStartPre=/usr/sbin/sshd-keygen line.
+										
+											Add the -f /etc/ssh/sshd-second_config parameter to the sshd command, so that the alternative configuration file is used:
+										
+ExecStart=/usr/sbin/sshd -D -f /etc/ssh/sshd-second_config $OPTIONS
+
+
+											After the above modifications, the sshd-second.service should look as follows:
+										
+[Unit]
+Description=OpenSSH server second instance daemon
+After=syslog.target network.target auditd.service sshd.service
+
+[Service]
+EnvironmentFile=/etc/sysconfig/sshd
+ExecStart=/usr/sbin/sshd -D -f /etc/ssh/sshd-second_config $OPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+
+
+									If using SELinux, add the port for the second instance of sshd to SSH ports, otherwise the second instance of sshd will be rejected to bind to the port:
+								
+~]# semanage port -a -t ssh_port_t -p tcp 22220
+
+
+									Enable sshd-second.service, so that it starts automatically upon boot:
+								
+~]# systemctl enable sshd-second.service
+
+
+									Verify if the sshd-second.service is running by using the systemctl status command. Also, verify if the port is enabled correctly by connecting to the service:
+								
+~]$ ssh -p 22220 user@server
+
+
+									If the firewall is in use, make sure that it is configured appropriately in order to allow connections to the second instance of sshd.
+								To learn how to properly choose a target for ordering and dependencies of your custom unit files, see the following articles
+											How to write a service unit file which enforces that particular services have to be started
+										
+											How to decide what dependencies a systemd service unit definition should have
+										
+						Additional information with some real-world examples of cases triggered by the ordering and dependencies in a unit file is available in the following article: Is there any useful information about writing unit files?
+					
+						If you want to set limits for services started by systemd, see the Red Hat Knowledgebase article How to set limits for services in RHEL 7 and systemd. These limits need to be set in the service’s unit file. Note that systemd ignores limits set in the /etc/security/limits.conf and /etc/security/limits.d/*.conf configuration files. The limits defined in these files are set by PAM when starting a login session, but daemons started by systemd do not use PAM login sessions.
+					10.6.3. Converting SysV Init Scripts to Unit FilesCopy linkLink copied to clipboard!
+						Before taking time to convert a SysV init script to a unit file, make sure that the conversion was not already done elsewhere. All core services installed on Red Hat Enterprise Linux 7 come with default unit files, and the same applies for many third-party software packages.
+					
+						Converting an init script to a unit file requires analyzing the script and extracting the necessary information from it. Based on this data you can create a unit file as described in Section 10.6.2, “Creating Custom Unit Files”. As init scripts can vary greatly depending on the type of the service, you might need to employ more configuration options for translation than outlined in this chapter. Note that some levels of customization that were available with init scripts are no longer supported by systemd units, see Section 10.1.2, “Compatibility Changes”.
+					
+						The majority of information needed for conversion is provided in the script’s header. The following example shows the opening section of the init script used to start the postfix service on Red Hat Enterprise Linux 6:
+					
+#!/bin/bash
+#
+# postfix   Postfix Mail Transfer Agent
+#
+# chkconfig: 2345 80 30
+# description: Postfix is a Mail Transport Agent, which is the program \
+#       that moves mail from one machine to another.
+# processname: master
+# pidfile: /var/spool/postfix/pid/master.pid
+# config: /etc/postfix/main.cf
+# config: /etc/postfix/master.cf
+
+### BEGIN INIT INFO
+# Provides: postfix MTA
+# Required-Start: $local_fs $network $remote_fs
+# Required-Stop: $local_fs $network $remote_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop postfix
+# Description: Postfix is a Mail Transport Agent, which is the program that
+#       moves mail from one machine to another.
+### END INIT INFO
+
+
+						In the above example, only lines starting with # chkconfig and # description are mandatory, so you might not find the rest in different init files. The text enclosed between the # BEGIN INIT INFO and # END INIT INFO lines is called Linux Standard Base (LSB) header. If specified, LSB headers contain directives defining the service description, dependencies, and default runlevels. What follows is an overview of analytic tasks aiming to collect the data needed for a new unit file. The postfix init script is used as an example, see the resulting postfix unit file in Example 10.17, “postfix.service Unit File”.
+					Finding the Service Description
+						Find descriptive information about the script on the line starting with #description. Use this description together with the service name in the Description option in the [Unit] section of the unit file. The LSB header might contain similar data on the #Short-Description and #Description lines.
+					Finding Service Dependencies
+						The LSB header might contain several directives that form dependencies between services. Most of them are translatable to systemd unit options, see Table 10.12, “Dependency Options from the LSB Header”
+					ExpandTable 10.12. Dependency Options from the LSB HeaderLSB OptionDescriptionUnit File Equivalent 
+										Provides
+									
+									  
+										Specifies the boot facility name of the service, that can be referenced in other init scripts (with the "$" prefix). This is no longer needed as unit files refer to other units by their file names.
+									
+									  
+										–
+									
+									  
+										Required-Start
+									
+									  
+										Contains boot facility names of required services. This is translated as an ordering dependency, boot facility names are replaced with unit file names of corresponding services or targets they belong to. For example, in case of postfix, the Required-Start dependency on $network was translated to the After dependency on network.target.
+									
+									  
+										After, Before
+									
+									  
+										Should-Start
+									
+									  
+										Constitutes weaker dependencies than Required-Start. Failed Should-Start dependencies do not affect the service startup.
+									
+									  
+										After, Before
+									
+									  
+										Required-Stop, Should-Stop
+									
+									  
+										Constitute negative dependencies.
+									
+									  
+										Conflicts
+									
+									 Show moreFinding Default Targets of the Service
+						The line starting with #chkconfig contains three numerical values. The most important is the first number that represents the default runlevels in which the service is started. Use Table 10.6, “Comparison of SysV Runlevels with systemd Targets” to map these runlevels to equivalent systemd targets. Then list these targets in the WantedBy option in the [Install] section of the unit file. For example, postfix was previously started in runlevels 2, 3, 4, and 5, which translates to multi-user.target and graphical.target on Red Hat Enterprise Linux 7. Note that the graphical.target depends on multiuser.target, therefore it is not necessary to specify both, as in Example 10.17, “postfix.service Unit File”. You might find information on default and forbidden runlevels also at #Default-Start and #Default-Stop lines in the LSB header.
+					
+						The other two values specified on the #chkconfig line represent startup and shutdown priorities of the init script. These values are interpreted by systemd if it loads the init script, but there is no unit file equivalent.
+					Finding Files Used by the Service
+						Init scripts require loading a function library from a dedicated directory and allow importing configuration, environment, and PID files. Environment variables are specified on the line starting with #config in the init script header, which translates to the EnvironmentFile unit file option. The PID file specified on the #pidfile init script line is imported to the unit file with the PIDFile option.
+					
+						The key information that is not included in the init script header is the path to the service executable, and potentially some other files required by the service. In previous versions of Red Hat Enterprise Linux, init scripts used a Bash case statement to define the behavior of the service on default actions, such as start, stop, or restart, as well as custom-defined actions. The following excerpt from the postfix init script shows the block of code to be executed at service start.
+					
+conf_check() {
+  [ -x /usr/sbin/postfix ] || exit 5
+  [ -d /etc/postfix ] || exit 6
+  [ -d /var/spool/postfix ] || exit 5
+}
+
+make_aliasesdb() {
+	if [ "$(/usr/sbin/postconf -h alias_database)" == "hash:/etc/aliases" ]
+	then
+		# /etc/aliases.db might be used by other MTA, make sure nothing
+		# has touched it since our last newaliases call
+		[ /etc/aliases -nt /etc/aliases.db ] ||
+			[ "$ALIASESDB_STAMP" -nt /etc/aliases.db ] ||
+			[ "$ALIASESDB_STAMP" -ot /etc/aliases.db ] || return
+		/usr/bin/newaliases
+		touch -r /etc/aliases.db "$ALIASESDB_STAMP"
+	else
+		/usr/bin/newaliases
+	fi
+}
+
+start() {
+	[ "$EUID" != "0" ] && exit 4
+	# Check that networking is up.
+	[ ${NETWORKING} = "no" ] && exit 1
+	conf_check
+	# Start daemons.
+	echo -n $"Starting postfix: "
+	make_aliasesdb >/dev/null 2>&1
+	[ -x $CHROOT_UPDATE ] && $CHROOT_UPDATE
+	/usr/sbin/postfix start 2>/dev/null 1>&2 && success || failure $"$prog start"
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch $lockfile
+    echo
+	return $RETVAL
+}
+
+
+						The extensibility of the init script allowed specifying two custom functions, conf_check() and make_aliasesdb(), that are called from the start() function block. On closer look, several external files and directories are mentioned in the above code: the main service executable /usr/sbin/postfix, the /etc/postfix/ and /var/spool/postfix/ configuration directories, as well as the /usr/sbin/postconf/ directory.
+					
+						Systemd supports only the predefined actions, but enables executing custom executables with ExecStart, ExecStartPre, ExecStartPost, ExecStop, and ExecReload options. In case of postfix on Red Hat Enterprise Linux 7, the /usr/sbin/postfix together with supporting scripts are executed on service start. Consult the postfix unit file at Example 10.17, “postfix.service Unit File”.
+					
+						Converting complex init scripts requires understanding the purpose of every statement in the script. Some of the statements are specific to the operating system version, therefore you do not need to translate them. On the other hand, some adjustments might be needed in the new environment, both in unit file as well as in the service executable and supporting files.
+					10.6.4. Modifying Existing Unit FilesCopy linkLink copied to clipboard!
+						Services installed on the system come with default unit files that are stored in the /usr/lib/systemd/system/ directory. System Administrators should not modify these files directly, therefore any customization must be confined to configuration files in the /etc/systemd/system/ directory. Depending on the extent of the required changes, pick one of the following approaches:
+					
+								Create a directory for supplementary configuration files at /etc/systemd/system/unit.d/. This method is recommended for most use cases. It enables extending the default configuration with additional functionality, while still referring to the original unit file. Changes to the default unit introduced with a package upgrade are therefore applied automatically. See the section called “Extending the Default Unit Configuration” for more information.
+							
+								Create a copy of the original unit file /usr/lib/systemd/system/ in /etc/systemd/system/ and make changes there. The copy overrides the original file, therefore changes introduced with the package update are not applied. This method is useful for making significant unit changes that should persist regardless of package updates. See the section called “Overriding the Default Unit Configuration” for details.
+							
+						In order to return to the default configuration of the unit, just delete custom-created configuration files in /etc/systemd/system/. To apply changes to unit files without rebooting the system, execute:
+					
+systemctl daemon-reload
+
+
+						The daemon-reload option reloads all unit files and recreates the entire dependency tree, which is needed to immediately apply any change to a unit file. As an alternative, you can achieve the same result with the following command:
+					
+init q
+
+
+						Also, if the modified unit file belongs to a running service, this service must be restarted to accept new settings:
+					
+systemctl restart name.service
+
+Important
+							To modify properties, such as dependencies or timeouts, of a service that is handled by a SysV initscript, do not modify the initscript itself. Instead, create a systemd drop-in configuration file for the service as described in the section called “Extending the Default Unit Configuration” and the section called “Overriding the Default Unit Configuration”. Then manage this service in the same way as a normal systemd service.
+						
+							For example, to extend the configuration of the network service, do not modify the /etc/rc.d/init.d/network initscript file. Instead, create new directory /etc/systemd/system/network.service.d/ and a systemd drop-in file /etc/systemd/system/network.service.d/my_config.conf. Then, put the modified values into the drop-in file. Note: systemd knows the network service as network.service, which is why the created directory must be called network.service.d
+						Extending the Default Unit Configuration
+						To extend the default unit file with additional configuration options, first create a configuration directory in /etc/systemd/system/. If extending a service unit, execute the following command as root:
+					
+mkdir /etc/systemd/system/name.service.d/
+
+
+						Replace name with the name of the service you want to extend. The above syntax applies to all unit types.
+					
+						Create a configuration file in the directory made in the previous step. Note that the file name must end with the .conf suffix. Type:
+					
+touch /etc/systemd/system/name.service.d/config_name.conf
+
+
+						Replace config_name with the name of the configuration file. This file adheres to the normal unit file structure, therefore all directives must be specified under appropriate sections, see Section 10.6.1, “Understanding the Unit File Structure”.
+					
+						For example, to add a custom dependency, create a configuration file with the following content:
+					
+[Unit]
+Requires=new_dependency
+After=new_dependency
+
+
+						Where new_dependency stands for the unit to be marked as a dependency. Another example is a configuration file that restarts the service after its main process exited, with a delay of 30 seconds:
+					
+[Service]
+Restart=always
+RestartSec=30
+
+
+						It is recommended to create small configuration files focused only on one task. Such files can be easily moved or linked to configuration directories of other services.
+					
+						To apply changes made to the unit, execute as root:
+					
+systemctl daemon-reload
+systemctl restart name.service
+
+Example 10.20. Extending the httpd.service Configuration
+							To modify the httpd.service unit so that a custom shell script is automatically executed when starting the Apache service, perform the following steps. First, create a directory and a custom configuration file:
+						
+~]# mkdir /etc/systemd/system/httpd.service.d/
+~]# touch /etc/systemd/system/httpd.service.d/custom_script.conf
+
+
+							Provided that the script you want to start automatically with Apache is located at /usr/local/bin/custom.sh, insert the following text to the custom_script.conf file:
+						
+[Service]
+ExecStartPost=/usr/local/bin/custom.sh
+
+
+							To apply the unit changes, execute:
+						
+~]# systemctl daemon-reload
+~]# systemctl restart httpd.service
+
+Note
+							The configuration files from configuration directories in /etc/systemd/system/ take precedence over unit files in /usr/lib/systemd/system/. Therefore, if the configuration files contain an option that can be specified only once, such as Description or ExecStart, the default value of this option is overridden. Note that in the output of the systemd-delta command, described in the section called “Monitoring Overriden Units”, such units are always marked as [EXTENDED], even though in sum, certain options are actually overridden.
+						Overriding the Default Unit Configuration
+						To make changes that will persist after updating the package that provides the unit file, first copy the file to the /etc/systemd/system/ directory. To do so, execute the following command as root:
+					
+cp /usr/lib/systemd/system/name.service /etc/systemd/system/name.service
+
+
+						Where name stands for the name of the service unit you wish to modify. The above syntax applies to all unit types.
+					
+						Open the copied file with a text editor, and make the desired changes. To apply the unit changes, execute as root:
+					
+systemctl daemon-reload
+systemctl restart name.service
+
+Example 10.21. Changing the timeout limit
+							You can specify a timeout value per service to prevent a malfunctioning service from freezing the system. Otherwise, timeout is set by default to 90 seconds for normal services and to 300 seconds for SysV-compatible services.
+						
+							For example, to extend timeout limit for the httpd service:
+						
+									Copy the httpd unit file to the /etc/systemd/system/ directory:
+								
+cp /usr/lib/systemd/system/httpd.service /etc/systemd/system/httpd.service
+
+
+									Open file /etc/systemd/system/httpd.service and specify the TimeoutStartSec value in the [Service] section:
+								
+...
+[Service]
+...
+PrivateTmp=true
+TimeoutStartSec=10
+
+[Install]
+WantedBy=multi-user.target
+...
+
+
+									Reload the systemd daemon:
+								
+systemctl daemon-reload
+
+
+									Optional. Verify the new timeout value:
+								
+systemctl show httpd -p TimeoutStartUSec
+
+Note
+							To change the timeout limit globally, input the DefaultTimeoutStartSec in the /etc/systemd/system.conf file. See Section 10.1, “Introduction to systemd”.
+						Monitoring Overriden Units
+						To display an overview of overridden or modified unit files, use the following command:
+					
+systemd-delta
+
+
+						For example, the output of the above command can look as follows:
+					
+[EQUIVALENT] /etc/systemd/system/default.target  /usr/lib/systemd/system/default.target
+[OVERRIDDEN] /etc/systemd/system/autofs.service  /usr/lib/systemd/system/autofs.service
+
+--- /usr/lib/systemd/system/autofs.service   2014-10-16 21:30:39.000000000 -0400
++++ /etc/systemd/system/autofs.service 2014-11-21 10:00:58.513568275 -0500
+@@ -8,7 +8,8 @@
+ EnvironmentFile=-/etc/sysconfig/autofs
+ ExecStart=/usr/sbin/automount $OPTIONS --pid-file /run/autofs.pid
+ ExecReload=/usr/bin/kill -HUP $MAINPID
+-TimeoutSec=180
++TimeoutSec=240
++Restart=Always
+
+ [Install]
+ WantedBy=multi-user.target
+
+[MASKED]   /etc/systemd/system/cups.service  /usr/lib/systemd/system/cups.service
+[EXTENDED]  /usr/lib/systemd/system/sssd.service  /etc/systemd/system/sssd.service.d/journal.conf
+
+4 overridden configuration files found.
+
+
+						Table 10.13, “systemd-delta Difference Types” lists override types that can appear in the output of systemd-delta. Note that if a file is overridden, systemd-delta by default displays a summary of changes similar to the output of the diff command.
+					ExpandTable 10.13. systemd-delta Difference TypesTypeDescription 
+										[MASKED]
+									
+									  
+										Masked unit files, see Section 10.2.7, “Disabling a Service” for description of unit masking.
+									
+									  
+										[EQUIVALENT]
+									
+									  
+										Unmodified copies that override the original files but do not differ in content, typically symbolic links.
+									
+									  
+										[REDIRECTED]
+									
+									  
+										Files that are redirected to another file.
+									
+									  
+										[OVERRIDEN]
+									
+									  
+										Overridden and changed files.
+									
+									  
+										[EXTENDED]
+									
+									  
+										Files that are extended with .conf files in the /etc/systemd/system/unit.d/ directory.
+									
+									  
+										[UNCHANGED]
+									
+									  
+										Unmodified files are displayed only when the --type=unchanged option is used.
+									
+									 Show more
+						It is good practice to run systemd-delta after system update to check if there are any updates to the default units that are currently overridden by custom configuration. It is also possible to limit the output only to a certain difference type. For example, to view just the overridden units, execute:
+					
+systemd-delta --type=overridden
+
+10.6.5. Working with Instantiated UnitsCopy linkLink copied to clipboard!
+						It is possible to instantiate multiple units from a single template configuration file at runtime. The "@" character is used to mark the template and to associate units with it. Instantiated units can be started from another unit file (using Requires or Wants options), or with the systemctl start command. Instantiated service units are named the following way:
+					
+template_name@instance_name.service
+
+
+						Where template_name stands for the name of the template configuration file. Replace instance_name with the name for the unit instance. Several instances can point to the same template file with configuration options common for all instances of the unit. Template unit name has the form of:
+					
+unit_name@.service
+
+
+						For example, the following Wants setting in a unit file:
+					
+Wants=getty@ttyA.service,getty@ttyB.service
+
+
+						first makes systemd search for given service units. If no such units are found, the part between "@" and the type suffix is ignored and systemd searches for the getty@.service file, reads the configuration from it, and starts the services.
+					
+						Wildcard characters, called unit specifiers, can be used in any unit configuration file. Unit specifiers substitute certain unit parameters and are interpreted at runtime. Table 10.14, “Important Unit Specifiers” lists unit specifiers that are particularly useful for template units.
+					ExpandTable 10.14. Important Unit SpecifiersUnit SpecifierMeaningDescription 
+										%n
+									
+									  
+										Full unit name
+									
+									  
+										Stands for the full unit name including the type suffix. %N has the same meaning but also replaces the forbidden characters with ASCII codes.
+									
+									  
+										%p
+									
+									  
+										Prefix name
+									
+									  
+										Stands for a unit name with type suffix removed. For instantiated units %p stands for the part of the unit name before the "@" character.
+									
+									  
+										%i
+									
+									  
+										Instance name
+									
+									  
+										Is the part of the instantiated unit name between the "@" character and the type suffix. %I has the same meaning but also replaces the forbidden characters for ASCII codes.
+									
+									  
+										%H
+									
+									  
+										Host name
+									
+									  
+										Stands for the hostname of the running system at the point in time the unit configuration is loaded.
+									
+									  
+										%t
+									
+									  
+										Runtime directory
+									
+									  
+										Represents the runtime directory, which is either /run for the root user, or the value of the XDG_RUNTIME_DIR variable for unprivileged users.
+									
+									 Show more
+						For a complete list of unit specifiers, see the systemd.unit(5) manual page.
+					
+						For example, the getty@.service template contains the following directives:
+					
+[Unit]
+Description=Getty on %I
+...
+[Service]
+ExecStart=-/sbin/agetty --noclear %I $TERM
+...
+
+
+						When the getty@ttyA.service and getty@ttyB.service are instantiated form the above template, Description= is resolved as Getty on ttyA and Getty on ttyB.
+					10.7. Additional Considerations While Managing ServicesCopy linkLink copied to clipboard!
+					During normal operation, systemd maintains an association between a unit abstraction and the underlying processes active on the system.
+				
+					From: man systemd
+				
+Processes systemd spawns are placed in individual Linux control groups named after the unit which they belong to in the private systemd hierarchy. (see cgroups.txt[1] for more information about control groups, or short "cgroups"). systemd uses this to effectively keep track of processes. Control group information is maintained in the kernel, and is accessible via the file system hierarchy (beneath /sys/fs/cgroup/systemd/), or in tools such as ps(1) (ps xawf -eo pid,user,cgroup,args is particularly useful to list all processes and the systemd units they belong to).
+
+
+					The cgroup hierarchy is critical to systemd’s view of process and service health. When a process forks itself, it inherits the cgroup of the creating process. With this being the case, all processes associated with a given unit can be verified by reading the contents of the applicable cgroup.procs file, such as:
+				
+~]# cat /sys/fs/cgroup/systemd/system.slice/httpd.service/cgroup.procs
+11854
+11855
+11856
+11857
+11858
+11859
+
+
+					The output matches the CGroup information returned during a systemctl status unit operation:
+				
+~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+  Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+  Active: active (running) since Wed 2019-05-29 12:08:16 EDT; 45s ago
+   Docs: man:httpd(8)
+      man:apachectl(8)
+ Main PID: 11854 (httpd)
+  Status: "Total requests: 0; Current requests/sec: 0; Current traffic:  0 B/sec"
+  CGroup: /system.slice/httpd.service
+      ├─11854 /usr/sbin/httpd -DFOREGROUND
+      ├─11855 /usr/sbin/httpd -DFOREGROUND
+      ├─11856 /usr/sbin/httpd -DFOREGROUND
+      ├─11857 /usr/sbin/httpd -DFOREGROUND
+      ├─11858 /usr/sbin/httpd -DFOREGROUND
+      └─11859 /usr/sbin/httpd -DFOREGROUND
+
+May 29 12:08:16 localhost systemd[1]: Starting The Apache HTTP Server...
+May 29 12:08:16 localhost systemd[1]: Started The Apache HTTP Server.
+
+
+					To directly view these groupings of processes system-wide, the systemd-cgls utility can be used:
+				
+~]# systemd-cgls | head -17
+├─1 /usr/lib/systemd/systemd --switched-root --system --deserialize 22
+├─user.slice
+│ └─user-0.slice
+│  └─session-168.scope
+│   ├─ 3049 login -- root
+│   ├─11884 -bash
+│   ├─11943 systemd-cgls
+│   └─11944 head -17
+└─system.slice
+ ├─httpd.service
+ │ ├─11854 /usr/sbin/httpd -DFOREGROUND
+ │ ├─11855 /usr/sbin/httpd -DFOREGROUND
+ │ ├─11856 /usr/sbin/httpd -DFOREGROUND
+ │ ├─11857 /usr/sbin/httpd -DFOREGROUND
+ │ ├─11858 /usr/sbin/httpd -DFOREGROUND
+ │ └─11859 /usr/sbin/httpd -DFOREGROUND
+ ├─rhnsd.service
+
+
+					In order for systemd to function properly, the service must be started or stopped through the systemd system to maintain the correct process to unit grouping. Any operation that takes external action results in the necessary cgroup structure not being created. This happens because systemd is not aware of the special nature of the processes being started.
+				
+					As an example of the above constraint, stopping the httpd service and then issuing /usr/sbin/httpd directly results in the following:
+				
+~]# systemctl stop httpd
+~]# /usr/sbin/httpd
+# systemd-cgls | head -17
+├─1 /usr/lib/systemd/systemd --switched-root --system --deserialize 22
+├─user.slice
+│ └─user-0.slice
+│  └─session-168.scope
+│   ├─ 3049 login -- root
+│   ├─11884 -bash
+│   ├─11957 /usr/sbin/httpd
+│   ├─11958 /usr/sbin/httpd
+│   ├─11959 /usr/sbin/httpd
+│   ├─11960 /usr/sbin/httpd
+│   ├─11961 /usr/sbin/httpd
+│   ├─11962 /usr/sbin/httpd
+│   ├─11963 systemd-cgls
+│   └─11964 head -17
+└─system.slice
+ ├─rhnsd.service
+ │ └─3261 rhnsd
+
+
+					Note that the httpd process is now visible under the user-0.slice and a session-168.scope. This service is treated as a user started process, as opposed to a system service, that systemd should monitor and manage directly. Some failures that can occur due to this misalignment include, but are not limited to:
+				
+							Services are not properly shutdown during system shutdown or restart events.
+						
+							Unexpected signals are delivered during user logout such as SIGHUP and SIGTERM.
+						
+							Processes that fail are not automatically restarted despite having a Restart= directive
+						Note
+						Non-graceful application shutdown events can result in a large number of subsequent application failures, such as client-side failures, data loss, and on-disk corruption.
+					10.8. Additional ResourcesCopy linkLink copied to clipboard!
+					For more information on systemd and its usage on Red Hat Enterprise Linux 7, see the resources listed below.
+				Installed Documentation
+							systemctl(1) — The manual page for the systemctl command line utility provides a complete list of supported options and commands.
+						
+							systemd(1) — The manual page for the systemd system and service manager provides more information about its concepts and documents available command line options and environment variables, supported configuration files and directories, recognized signals, and available kernel options.
+						
+							systemd-delta(1) — The manual page for the systemd-delta utility that allows to find extended and overridden configuration files.
+						
+							systemd.unit(5) — The manual page named systemd.unit provides detailed information about systemd unit files and documents all available configuration options.
+						
+							systemd.service(5) — The manual page named systemd.service documents the format of service unit files.
+						
+							systemd.target(5) — The manual page named systemd.target documents the format of target unit files.
+						
+							systemd.kill(5) — The manual page named systemd.kill documents the configuration of the process killing procedure.
+						Online Documentation
+							Red Hat Enterprise Linux 7 Networking Guide — The Networking Guide for Red Hat Enterprise Linux 7 documents relevant information regarding the configuration and administration of network interfaces, networks, and network services in this system. It provides an introduction to the hostnamectl utility, explains how to use it to view and set host names on the command line, both locally and remotely, and provides important information about the selection of host names and domain names.
+						
+							Red Hat Enterprise Linux 7 Desktop Migration and Administration Guide — The Desktop Migration and Administration Guide for Red Hat Enterprise Linux 7 documents the migration planning, deployment, configuration, and administration of the GNOME 3 desktop on this system. It introduces the logind service, enumerates its most significant features, and explains how to use the loginctl utility to list active sessions and enable multi-seat support.
+						
+							Red Hat Enterprise Linux 7 SELinux User’s and Administrator’s Guide — The SELinux User’s and Administrator’s Guide for Red Hat Enterprise Linux 7 describes the basic principles of SELinux and documents in detail how to configure and use SELinux with various services such as the Apache HTTP Server, Postfix, PostgreSQL, or OpenShift. It explains how to configure SELinux access permissions for system services managed by systemd.
+						
+							Red Hat Enterprise Linux 7 Installation Guide — The Installation Guide for Red Hat Enterprise Linux 7 documents how to install the system on AMD64 and Intel 64 systems, 64-bit IBM Power Systems servers, and IBM Z. It also covers advanced installation methods such as Kickstart installations, PXE installations, and installations over the VNC protocol. In addition, it describes common post-installation tasks and explains how to troubleshoot installation problems, including detailed instructions on how to boot into rescue mode or recover the root password.
+						
+							Red Hat Enterprise Linux 7 Security Guide — The Security Guide for Red Hat Enterprise Linux 7 assists users and administrators in learning the processes and practices of securing their workstations and servers against local and remote intrusion, exploitation, and malicious activity. It also explains how to secure critical system services.
+						
+							systemd Home Page — The project home page provides more information about systemd.
+						See Also
+							Chapter 2, System Locale and Keyboard Configuration documents how to manage the system locale and keyboard layouts. It explains how to use the localectl utility to view the current locale, list available locales, and set the system locale on the command line, as well as to view the current keyboard layout, list available keymaps, and enable a particular keyboard layout on the command line.
+						
+							Chapter 3, Configuring the Date and Time documents how to manage the system date and time. It explains the difference between a real-time clock and system clock and describes how to use the timedatectl utility to display the current settings of the system clock, configure the date and time, change the time zone, and synchronize the system clock with a remote server.
+						
+							Chapter 6, Gaining Privileges documents how to gain administrative privileges by using the su and sudo commands.
+						
+							Chapter 12, OpenSSH describes how to configure an SSH server and how to use the ssh, scp, and sftp client utilities to access it.
+						
+							Chapter 23, Viewing and Managing Log Files provides an introduction to journald. It describes the journal, introduces the journald service, and documents how to use the journalctl utility to view log entries, enter live view mode, and filter log entries. In addition, this chapter describes how to give non-root users access to system logs and enable persistent storage for log files.
+PreviousNext
+
+
+## Overriding the Default systemd Configuration Using system.conf
+The default configuration of systemd is defined during the compilation and it can be found in systemd configuration file at /etc/systemd/system.conf. Use this file if you want to deviate from those defaults and override selected default values for systemd units globally.
+For example, to override the default value of the timeout limit, which is set to 90 seconds, use the DefaultTimeoutStartSec parameter to input the required value in seconds.
+DefaultTimeoutStartSec=required value
+See also Example 10.21, “Changing the timeout limit”.
+10.1.1. Main FeaturesCopy linkLink copied to clipboard!
+						In Red Hat Enterprise Linux 7, the systemd system and service manager provides the following main features:
+					
+								Socket-based activation — At boot time, systemd creates listening sockets for all system services that support this type of activation, and passes the sockets to these services as soon as they are started. This not only allows systemd to start services in parallel, but also makes it possible to restart a service without losing any message sent to it while it is unavailable: the corresponding socket remains accessible and all messages are queued.
+							
+								Systemd uses socket units for socket-based activation.
+							
+								Bus-based activation — System services that use D-Bus for inter-process communication can be started on-demand the first time a client application attempts to communicate with them. Systemd uses D-Bus service files for bus-based activation.
+							
+								Device-based activation — System services that support device-based activation can be started on-demand when a particular type of hardware is plugged in or becomes available. Systemd uses device units for device-based activation.
+							
+								Path-based activation — System services that support path-based activation can be started on-demand when a particular file or directory changes its state. Systemd uses path units for path-based activation.
+							
+								Mount and automount point management — Systemd monitors and manages mount and automount points. Systemd uses mount units for mount points and automount units for automount points.
+							
+								Aggressive parallelization — Because of the use of socket-based activation, systemd can start system services in parallel as soon as all listening sockets are in place. In combination with system services that support on-demand activation, parallel activation significantly reduces the time required to boot the system.
+							
+								Transactional unit activation logic — Before activating or deactivating a unit, systemd calculates its dependencies, creates a temporary transaction, and verifies that this transaction is consistent. If a transaction is inconsistent, systemd automatically attempts to correct it and remove non-essential jobs from it before reporting an error.
+							
+								Backwards compatibility with SysV init — Systemd supports SysV init scripts as described in the Linux Standard Base Core Specification, which eases the upgrade path to systemd service units.
+10.1.2. Compatibility ChangesCopy linkLink copied to clipboard!
+						The systemd system and service manager is designed to be mostly compatible with SysV init and Upstart. The following are the most notable compatibility changes with regards to the previous major release of the Red Hat Enterprise Linux system:
+					
+								Systemd has only limited support for runlevels. It provides a number of target units that can be directly mapped to these runlevels and for compatibility reasons, it is also distributed with the earlier runlevel command. Not all systemd targets can be directly mapped to runlevels, however, and as a consequence, this command might return N to indicate an unknown runlevel. It is recommended that you avoid using the runlevel command if possible.
+							
+								For more information about systemd targets and their comparison with runlevels, see Section 10.3, “Working with systemd Targets”.
+							
+								The systemctl utility does not support custom commands. In addition to standard commands such as start, stop, and status, authors of SysV init scripts could implement support for any number of arbitrary commands in order to provide additional functionality. For example, the init script for iptables in Red Hat Enterprise Linux 6 could be executed with the panic command, which immediately enabled panic mode and reconfigured the system to start dropping all incoming and outgoing packets. This is not supported in systemd and the systemctl only accepts documented commands.
+							
+								For more information about the systemctl utility and its comparison with the earlier service utility, see Section 10.2, “Managing System Services”.
+							
+								The systemctl utility does not communicate with services that have not been started by systemd. When systemd starts a system service, it stores the ID of its main process in order to keep track of it. The systemctl utility then uses this PID to query and manage the service. Consequently, if a user starts a particular daemon directly on the command line, systemctl is unable to determine its current status or stop it.
+							
+								Systemd stops only running services. Previously, when the shutdown sequence was initiated, Red Hat Enterprise Linux 6 and earlier releases of the system used symbolic links located in the /etc/rc0.d/ directory to stop all available system services regardless of their status. With systemd, only running services are stopped on shutdown.
+							
+								System services are unable to read from the standard input stream. When systemd starts a service, it connects its standard input to /dev/null to prevent any interaction with the user.
+							
+								System services do not inherit any context (such as the HOME and PATH environment variables) from the invoking user and their session. Each service runs in a clean execution context.
+							
+								When loading a SysV init script, systemd reads dependency information encoded in the Linux Standard Base (LSB) header and interprets it at run time.
+							
+								All operations on service units are subject to a default timeout of 5 minutes to prevent a malfunctioning service from freezing the system. This value is hardcoded for services that are generated from initscripts and cannot be changed. However, individual configuration files can be used to specify a longer timeout value per service, see Example 10.21, “Changing the timeout limit”
+							
+						For a detailed list of compatibility changes introduced with systemd, see the Migration Planning Guide for Red Hat Enterprise Linux 7.
+
+
+
+
+---
+
+Title: Systemd - Wikipedia
+**Definition:** systemd is a software suite for system and service management on Linux built to unify service configuration and behavior across Linux distributions.
+
+**Key Points:** The name systemd adheres to the Unix convention of naming daemons by appending the letter d, and also plays on the French phrase Système D (a person's ability to quickly adapt and improvise in the face of problems). At the time of its adoption, it was the only parallel boot and init system offering centralized management of processes, daemons, services, and mount points. Critics of systemd contend it suffers from feature creep and has damaged interoperability across Unix-like operating systems (as it does not run on non-Linux Unix derivatives like BSD or Solaris).
+
+systemd is a software suite for system and service management on Linux built to unify service configuration and behavior across Linux distributions. Its main component is an init system used to bootstrap user space and manage user processes. It also provides various daemons and utilities, including device management, login management, network connection management, and event logging. The name systemd adheres to the Unix convention of naming daemons by appending the letter d, and also plays on the French phrase Système D (a person's ability to quickly adapt and improvise in the face of problems).
+In Linux distributions, systemd is used as a replacement for Sysvinit and other init systems. Since 2015, nearly all Linux distributions have adopted systemd. It has been praised by developers and users of distributions that adopted it for providing a stable, fast out-of-the-box solution for issues that had existed in the Linux space for years. At the time of its adoption, it was the only parallel boot and init system offering centralized management of processes, daemons, services, and mount points..
+Critics of systemd contend it suffers from feature creep and has damaged interoperability across Unix-like operating systems (as it does not run on non-Linux Unix derivatives like BSD or Solaris). In addition, they contend systemd's large feature set creates a larger attack surface. This has led to the development of several minor Linux distributions replacing systemd with other init systems like SysVinit or OpenRC.
+

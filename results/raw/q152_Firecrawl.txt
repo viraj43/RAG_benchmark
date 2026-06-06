@@ -1,0 +1,893 @@
+Title: Cloud Design Patterns - Azure Architecture Center - Microsoft Learn
+Table of contents Exit editor mode
+
+Ask LearnAsk Learn
+
+Reading modeTable of contents[Read in English](https://learn.microsoft.com/en-us/azure/architecture/patterns/)Add to CollectionsAdd to plan[Edit](https://github.com/microsoftdocs/architecture-center/blob/main/docs/patterns/index.md)
+
+* * *
+
+Copy MarkdownPrint
+
+* * *
+
+Note
+
+Access to this page requires authorization. You can try [signing in](https://learn.microsoft.com/en-us/azure/architecture/patterns/#) or changing directories.
+
+
+Access to this page requires authorization. You can try changing directories.
+
+
+# Cloud design patterns
+
+Feedback
+
+Summarize this article for me
+
+
+Architects design workloads by integrating platform services, functionality, and code to meet both functional and nonfunctional requirements. To design effective workloads, you must understand these requirements and select topologies and methodologies that address the challenges of your workload's constraints. Cloud design patterns provide solutions to many common challenges.
+
+System design heavily relies on established design patterns. You can design infrastructure, code, and distributed systems by using a combination of these patterns. These patterns are crucial for building reliable, highly secure, cost-optimized, operationally efficient, and high-performing applications in the cloud.
+
+The following cloud design patterns are technology-agnostic, which makes them suitable for any distributed system. You can apply these patterns across Azure, other cloud platforms, on-premises setups, and hybrid environments.
+
+[Section titled: How cloud design patterns enhance the design process](https://learn.microsoft.com/en-us/azure/architecture/patterns/#how-cloud-design-patterns-enhance-the-design-process)
+
+## How cloud design patterns enhance the design process
+
+Cloud workloads are vulnerable to the [fallacies of distributed computing](https://wikipedia.org/wiki/Fallacies_of_distributed_computing), which are common but incorrect assumptions about how distributed systems operate. Examples of these fallacies include:
+
+- The network is reliable.
+- Latency is zero.
+- Bandwidth is infinite.
+- The network is secure.
+- Topology doesn't change.
+- There's one administrator.
+- Component versioning is simple.
+- Observability implementation can be delayed.
+
+These misconceptions can result in flawed workload designs. Design patterns don't eliminate these misconceptions but help raise awareness, provide compensation strategies, and provide mitigations. Each cloud design pattern has trade-offs. Focus on why you should choose a specific pattern instead of how to implement it.
+
+Consider how to use these industry-standard design patterns as the core building blocks for a well-architected workload design. Each design pattern in the Azure Well-Architected Framework represents one or more of its pillars. Some patterns might introduce trade-offs that affect the goals of other pillars.
+
+[Section titled: Pattern catalog](https://learn.microsoft.com/en-us/azure/architecture/patterns/#pattern-catalog)
+
+## Pattern catalog
+
+Each pattern in this catalog describes the problem that it addresses, considerations for applying the pattern, and an example based on Microsoft Azure services and tools. Some patterns include code samples or snippets that show how to implement the pattern on Azure.
+
+Expand table
+
+| Pattern | Summary | Well-Architected Framework pillars |
+| --- | --- | --- |
+| [Ambassador](https://learn.microsoft.com/en-us/azure/architecture/patterns/ambassador) | Create helper services that send network requests on behalf of a consumer service or application. | \- Reliability<br>\- Security |
+| [Anti-Corruption Layer](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer) | Implement a façade or adapter layer between a modern application and a legacy system. | \- Operational Excellence |
+| [Asynchronous Request-Reply](https://learn.microsoft.com/en-us/azure/architecture/patterns/asynchronous-request-reply) | Decouple back-end processing from a front-end host. This pattern is useful when back-end processing must be asynchronous, but the front end requires a clear and timely response. | \- Performance Efficiency |
+| [Backends for Frontends](https://learn.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends) | Create separate backend services for specific frontend applications or interfaces. | \- Reliability<br>\- Security<br>\- Performance Efficiency |
+| [Bulkhead](https://learn.microsoft.com/en-us/azure/architecture/patterns/bulkhead) | Isolate elements of an application into pools so that if one fails, the others continue to function. | \- Reliability<br>\- Security<br>\- Performance Efficiency |
+| [Cache-Aside](https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside) | Load data on demand into a cache from a data store. | \- Reliability<br>\- Performance Efficiency |
+| [Choreography](https://learn.microsoft.com/en-us/azure/architecture/patterns/choreography) | Let individual services decide when and how a business operation is processed, instead of depending on a central orchestrator. | \- Operational Excellence<br>\- Performance Efficiency |
+| [Circuit Breaker](https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) | Handle faults that might take a variable amount of time to fix when an application connects to a remote service or resource. | \- Reliability<br>\- Performance Efficiency |
+| [Claim Check](https://learn.microsoft.com/en-us/azure/architecture/patterns/claim-check) | Split a large message into a claim check and a payload to avoid overwhelming a message bus. | \- Reliability<br>\- Security<br>\- Cost Optimization<br>\- Performance Efficiency |
+| [Compensating Transaction](https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction) | Undo the work performed by a sequence of steps that collectively form an eventually consistent operation. | \- Reliability |
+| [Competing Consumers](https://learn.microsoft.com/en-us/azure/architecture/patterns/competing-consumers) | Enable multiple concurrent consumers to process messages that they receive on the same messaging channel. | \- Reliability<br>\- Cost Optimization<br>\- Performance Efficiency |
+| [Compute Resource Consolidation](https://learn.microsoft.com/en-us/azure/architecture/patterns/compute-resource-consolidation) | Consolidate multiple tasks or operations into a single computational unit. | \- Cost Optimization<br>\- Operational Excellence<br>\- Performance Efficiency |
+| [CQRS](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs) | Separate operations that read data from those that update data by using distinct interfaces. | \- Performance Efficiency |
+| [Deployment Stamps](https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp) | Deploy multiple independent copies of application components, including data stores. | \- Operational Excellence<br>\- Performance Efficiency |
+| [Event Sourcing](https://learn.microsoft.com/en-us/azure/architecture/patterns/event-sourcing) | Use an append-only store to record a full series of events that describe actions taken on data in a domain. | \- Reliability<br>\- Performance Efficiency |
+| [External Configuration Store](https://learn.microsoft.com/en-us/azure/architecture/patterns/external-configuration-store) | Move configuration information out of an application deployment package to a centralized location. | \- Operational Excellence |
+| [Federated Identity](https://learn.microsoft.com/en-us/azure/architecture/patterns/federated-identity) | Delegate authentication to an external identity provider. | \- Reliability<br>\- Security<br>\- Performance Efficiency |
+| [Gateway Aggregation](https://learn.microsoft.com/en-us/azure/architecture/patterns/gateway-aggregation) | Use a gateway to aggregate multiple individual requests into a single request. | \- Reliability<br>\- Security<br>\- Operational Excellence<br>\- Performance Efficiency |
+| [Gateway Offloading](https://learn.microsoft.com/en-us/azure/architecture/patterns/gateway-offloading) | Offload shared or specialized service functionality to a gateway proxy. | \- Reliability<br>\- Security<br>\- Cost Optimization<br>\- Operational Excellence<br>\- Performance Efficiency |
+| [Gateway Routing](https://learn.microsoft.com/en-us/azure/architecture/patterns/gateway-routing) | Route requests to multiple services by using a single endpoint. | \- Reliability<br>\- Operational Excellence<br>\- Performance Efficiency |
+| [Geode](https://learn.microsoft.com/en-us/azure/architecture/patterns/geodes) | Deploy back-end services across geographically distributed nodes. Each node can handle client requests from any region. | \- Reliability<br>\- Performance Efficiency |
+| [Health Endpoint Monitoring](https://learn.microsoft.com/en-us/azure/architecture/patterns/health-endpoint-monitoring) | Implement functional checks in an application that external tools can access through exposed endpoints at regular intervals. | \- Reliability<br>\- Operational Excellence<br>\- Performance Efficiency |
+| [Index Table](https://learn.microsoft.com/en-us/azure/architecture/patterns/index-table) | Create indexes over the fields in data stores that queries frequently reference. | \- Reliability<br>\- Performance Efficiency |
+| [Leader Election](https://learn.microsoft.com/en-us/azure/architecture/patterns/leader-election) | Coordinate actions in a distributed application by electing one instance as the leader. The leader manages a collection of collaborating task instances. | \- Reliability |
+| [Materialized View](https://learn.microsoft.com/en-us/azure/architecture/patterns/materialized-view) | Generate prepopulated views over the data in one or more data stores when the data is poorly formatted for required query operations. | \- Performance Efficiency |
+| [Messaging Bridge](https://learn.microsoft.com/en-us/azure/architecture/patterns/messaging-bridge) | Build an intermediary to enable communication between messaging systems that are otherwise incompatible. | \- Cost Optimization<br>\- Operational Excellence |
+| [Pipes and Filters](https://learn.microsoft.com/en-us/azure/architecture/patterns/pipes-and-filters) | Break down a task that performs complex processing into a series of separate elements that can be reused. | \- Reliability |
+| [Priority Queue](https://learn.microsoft.com/en-us/azure/architecture/patterns/priority-queue) | Prioritize requests sent to services so that requests with a higher priority are processed more quickly. | \- Reliability<br>\- Performance Efficiency |
+| [Publisher-Subscriber](https://learn.microsoft.com/en-us/azure/architecture/patterns/publisher-subscriber) | Enable an application to announce events to multiple consumers asynchronously, without coupling senders to receivers. | \- Reliability<br>\- Security<br>\- Cost Optimization<br>\- Operational Excellence<br>\- Performance Efficiency |
+| [Quarantine](https://learn.microsoft.com/en-us/azure/architecture/patterns/quarantine) | Ensure that external assets meet a team-agreed quality level before the workload consumes them. | \- Security<br>\- Operational Excellence |
+| [Queue-Based Load Leveling](https://learn.microsoft.com/en-us/azure/architecture/patterns/queue-based-load-leveling) | Use a queue that creates a buffer between a task and a service to smooth intermittent heavy loads. | \- Reliability<br>\- Cost Optimization<br>\- Performance Efficiency |
+| [Rate Limiting](https://learn.microsoft.com/en-us/azure/architecture/patterns/rate-limiting-pattern) | Avoid or minimize throttling errors by controlling the consumption of resources. | \- Reliability |
+| [Retry](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry) | Enable applications to handle anticipated temporary failures by retrying failed operations. | \- Reliability |
+| [Saga](https://learn.microsoft.com/en-us/azure/architecture/patterns/saga) | Manage data consistency across microservices in distributed transaction scenarios. | \- Reliability |
+| [Scheduler Agent Supervisor](https://learn.microsoft.com/en-us/azure/architecture/patterns/scheduler-agent-supervisor) | Coordinate a set of actions across distributed services and resources. | \- Reliability<br>\- Performance Efficiency |
+| [Sequential Convoy](https://learn.microsoft.com/en-us/azure/architecture/patterns/sequential-convoy) | Process a set of related messages in a defined order without blocking other message groups. | \- Reliability |
+| [Sharding](https://learn.microsoft.com/en-us/azure/architecture/patterns/sharding) | Divide a data store into a set of horizontal partitions or shards. | \- Reliability<br>\- Cost Optimization |
+| [Sidecar](https://learn.microsoft.com/en-us/azure/architecture/patterns/sidecar) | Deploy components into a separate process or container to provide isolation and encapsulation. | \- Security<br>\- Operational Excellence |
+| [Static Content Hosting](https://learn.microsoft.com/en-us/azure/architecture/patterns/static-content-hosting) | Deploy static content to a cloud-based storage service for direct client delivery. | \- Cost Optimization |
+| [Strangler Fig](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig) | Incrementally migrate a legacy system by gradually replacing pieces of functionality with new applications and services. | \- Reliability<br>\- Cost Optimization<br>\- Operational Excellence |
+| [Throttling](https://learn.microsoft.com/en-us/azure/architecture/patterns/throttling) | Control the consumption of resources from applications, tenants, or services. | \- Reliability<br>\- Security<br>\- Cost Optimization<br>\- Performance Efficiency |
+| [Valet Key](https://learn.microsoft.com/en-us/azure/architecture/patterns/valet-key) | Use a token or key to provide clients with restricted, direct access to a specific resource or service. | \- Security<br>\- Cost Optimization<br>\- Performance Efficiency |
+
+[Section titled: AI agent orchestration patterns](https://learn.microsoft.com/en-us/azure/architecture/patterns/#ai-agent-orchestration-patterns)
+
+## AI agent orchestration patterns
+
+The preceding cloud design patterns address common challenges in distributed systems, but AI workloads that use multiple autonomous agents require specialized coordination approaches. Traditional patterns like Scheduler Agent Supervisor or Choreography provide foundational concepts. However, AI agents introduce unique challenges such as nondeterministic outputs, dynamic reasoning capabilities, and the need for intelligent handoffs between specialized components.
+
+For AI workloads that include multiple autonomous agents, see [AI agent orchestration patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns). These patterns complement the cloud design patterns in this catalog by addressing the specific coordination requirements of intelligent, autonomous components that work together to accomplish complex outcomes.
+
+[Section titled: Next steps](https://learn.microsoft.com/en-us/azure/architecture/patterns/#next-steps)
+
+## Next steps
+
+Review the design patterns from the perspective of the Well-Architected Framework pillar that the pattern aims to optimize.
+
+- [Design patterns to support the Reliability pillar](https://learn.microsoft.com/en-us/azure/well-architected/reliability/design-patterns)
+- [Design patterns to support the Security pillar](https://learn.microsoft.com/en-us/azure/well-architected/security/design-patterns)
+- [Design patterns to support the Cost Optimization pillar](https://learn.microsoft.com/en-us/azure/well-architected/cost-optimization/design-patterns)
+- [Design patterns to support the Operational Excellence pillar](https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/design-patterns)
+- [Design patterns to support the Performance Efficiency pillar](https://learn.microsoft.com/en-us/azure/well-architected/performance-efficiency/design-patterns)
+
+* * *
+
+## Feedback
+
+Was this page helpful?
+
+
+YesNoNo
+
+Need help with this topic?
+
+
+Want to try using Ask Learn to clarify or guide you through this topic?
+
+
+Ask LearnAsk Learn
+
+Suggest a fix?
+
+* * *
+
+## Additional resources
+
+Training
+
+
+Learning path
+
+
+[Solution Architect: Design Microsoft Power Platform solutions - Training](https://learn.microsoft.com/en-us/training/paths/solution-architect-data/?source=recommendations)
+
+Learn how a solution architect designs solutions.
+
+
+Certification
+
+
+[Microsoft Certified: Azure Solutions Architect Expert - Certifications](https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/?source=recommendations)
+
+As a Microsoft Azure solutions architect, you advise stakeholders and translate business requirements into designs for Azure solutions that align with the Azure Well-Architected Framework and Cloud Adoption Framework for Azure.
+
+
+Events
+
+
+[AI Apps & Agents Dev Days](https://aka.ms/AIAppsandAgentsLearn)
+
+Apr 29, 10 AM - Apr 29, 10 AM
+
+
+Experiment with what's next in AI-driven apps and agent design
+
+
+[Register now](https://aka.ms/AIAppsandAgentsLearn)
+
+* * *
+
+- Last updated on 07/18/2025
+
+Ask Learn is an AI assistant that can answer questions, clarify concepts, and define terms using trusted Microsoft documentation.
+
+Please sign in to use Ask Learn.
+
+[Sign in](https://learn.microsoft.com/en-us/azure/architecture/patterns/#)
+
+---
+
+Title: Cloud design patterns, architectures, and implementations
+## Select your cookie preferences
+
+We use essential cookies and similar tools that are necessary to provide our site and services. We use performance cookies to collect anonymous statistics, so we can understand how customers use our site and make improvements. Essential cookies cannot be deactivated, but you can choose “Customize” or “Decline” to decline performance cookies.
+
+If you agree, AWS and approved third parties will also use cookies to provide useful site features, remember your preferences, and display relevant content, including relevant advertising. To accept or decline all non-essential cookies, choose “Accept” or “Decline.” To make more detailed choices, choose “Customize.”
+
+AcceptDeclineCustomize
+
+## Customize cookie preferences
+
+We use cookies and similar tools (collectively, "cookies") for the following purposes.
+
+### Essential
+
+Essential cookies are necessary to provide our site and services and cannot be deactivated. They are usually set in response to your actions on the site, such as setting your privacy preferences, signing in, or filling in forms.
+
+### Performance
+
+Performance cookies provide anonymous statistics about how customers navigate our site so we can improve site experience and performance. Approved third parties may perform analytics on our behalf, but they cannot use the data for their own purposes.
+
+Allowed
+
+### Functional
+
+Functional cookies help us provide useful site features, remember your preferences, and display relevant content. Approved third parties may set these cookies to provide certain site features. If you do not allow these cookies, then some or all of these services may not function properly.
+
+Allowed
+
+### Advertising
+
+Advertising cookies may be set through our site by us or our advertising partners and help us deliver relevant marketing content. If you do not allow these cookies, you will experience less relevant advertising.
+
+Allowed
+
+Blocking some types of cookies may impact your experience of our sites. You may review and change your choices at any time by selecting Cookie preferences in the footer of this site. We and selected third-parties use cookies or similar technologies as specified in the [AWS Cookie Notice](https://aws.amazon.com/legal/cookies/).
+
+CancelSave preferences
+
+## Unable to save cookie preferences
+
+We will only store essential cookies at this time, because we were unable to save your cookie preferences.
+
+If you want to change your cookie preferences, try again later using the link in the AWS console footer, or contact support if the problem persists.
+
+Dismiss
+
+# Cloud design patterns, architectures, and implementations
+
+[PDF](https://docs.aws.amazon.com/pdfs/prescriptive-guidance/latest/cloud-design-patterns/cloud-design-patterns.pdf#introduction)
+
+[RSS](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/cloud-design-patterns.rss)
+
+[Markdown](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/introduction.md "Download Markdown")
+
+Focus mode
+
+Cloud design patterns, architectures, and implementations - AWS Prescriptive Guidance
+
+[Open PDF](https://docs.aws.amazon.com/pdfs/prescriptive-guidance/latest/cloud-design-patterns/cloud-design-patterns.pdf#introduction "Open PDF")
+
+[Targeted business outcomes](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/introduction.html#targeted-business-outcomes)
+
+_Anitha Deenadayalan, Amazon Web Services (AWS)_
+
+_May 2024_ ( [document history](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/doc-history.html))
+
+This guide provides guidance for implementing commonly used modernization design
+patterns by using AWS services. An increasing number of modern applications are designed
+by using microservices architectures to achieve scalability, improve release velocity,
+reduce the scope of impact for changes, and reduce regression. This leads to improved
+developer productivity and increased agility, better innovation, and an increased focus
+on business needs. Microservices architectures also support the use of the best
+technology for the service and the database, and promote polyglot code and polyglot
+persistence.
+
+Traditionally, monolithic applications run in a single process, use one data store,
+and run on servers that scale vertically. In comparison, modern microservice
+applications are fine-grained, have independent fault domains, run as services across
+the network, and can use more than one data store depending on the use case. The
+services scale horizontally, and a single transaction might span multiple databases.
+Development teams must focus on network communication, polyglot persistence, horizontal
+scaling, eventual consistency, and transaction handling across the data stores when
+developing applications by using microservices architectures. Therefore, modernization
+patterns are critical for solving commonly occurring problems in modern application
+development, and they help accelerate software delivery.
+
+This guide provides a technical reference for cloud architects, technical leads,
+application and business owners, and developers who want to choose the right cloud
+architecture for design patterns based on well-architected best practices. Each pattern
+discussed in this guide addresses one or more known scenarios in microservices
+architectures. The guide discusses the issues and considerations associated with each
+pattern, provides a high-level architectural implementation, and describes the AWS
+implementation for the pattern. Open source GitHub samples and workshop links are
+provided where available.
+
+The guide covers the following patterns:
+
+- [Anti-corruption layer](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/acl.html)
+
+- [API routing patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/api-routing.html):
+
+
+
+  - [Hostname routing](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/api-routing-hostname.html)
+
+  - [Path routing](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/api-routing-path.html)
+
+  - [HTTP header routing](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/api-routing-http.html)
+
+
+- [Circuit breaker](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html)
+
+- [Event sourcing](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/event-sourcing.html)
+
+- [Hexagonal architecture](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/hexagonal-architecture.html)
+
+- [Publish-subscribe](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/publish-subscribe.html)
+
+- [Retry with backoff](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/retry-backoff.html)
+
+- [Saga patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga.html):
+
+
+
+  - [Saga choreography](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-choreography.html)
+
+  - [Saga orchestration](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html)
+
+
+- [Scatter-gather](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/scatter-gather.html)
+
+- [Strangler fig](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html)
+
+- [Transactional outbox](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)
+
+
+## Targeted business outcomes
+
+By using the patterns discussed in this guide to modernize your applications, you
+can:
+
+- Design and implement reliable, secure, operationally efficient architectures
+that are optimized for cost and performance.
+
+- Reduce the cycle time for use cases that require these patterns, so you can
+focus on organization-specific challenges instead.
+
+- Accelerate development by standardizing pattern implementations by using AWS
+services.
+
+- Help your developers build modern applications without inheriting technical
+debt.
+
+
+[Document Conventions](https://docs.aws.amazon.com/general/latest/gr/docconventions.html)
+
+Anti-corruption layer pattern
+
+Did this page help you? - Yes
+
+Thanks for letting us know we're doing a good job!
+
+If you've got a moment, please tell us what we did right so we can do more of it.
+
+Did this page help you? - No
+
+Thanks for letting us know this page needs work. We're sorry we let you down.
+
+If you've got a moment, please tell us how we can make the documentation better.
+
+### View related pages
+
+Abstracts generated by AI
+
+Sdk-for-net › developer-guide
+[Platforms supported by the AWS SDK for .NET![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/similar/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Csdk-for-net%7Cv4%7Cdeveloper-guide%7Cnet-dg-supported-platforms.html)](https://docs.aws.amazon.com/sdk-for-net/v4/developer-guide/net-dg-supported-platforms.html)
+AWS SDK .NET supports multiple platforms, each offering distinct asynchronous synchronous capabilities, with V4 migration breaking changes.
+
+_April 30, 2026_
+
+Wellarchitected › container-build-lens
+[Scenarios![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/similar/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cwellarchitected%7Clatest%7Ccontainer-build-lens%7Cscenarios.html)](https://docs.aws.amazon.com/wellarchitected/latest/container-build-lens/scenarios.html)
+
+_April 30, 2026_
+
+### Discover highly rated pages
+
+Abstracts generated by AI
+
+- 1
+- 2
+- 3
+- 4
+
+Prescriptive-guidance › security-reference-architecture
+[The AWS Security Reference Architecture![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/highlyRated/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Csecurity-reference-architecture%7Carchitecture.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/security-reference-architecture/architecture.html)
+
+_May 1, 2026_
+
+Prescriptive-guidance › architectural-decision-records
+[ADR process![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/highlyRated/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Carchitectural-decision-records%7Cadr-process.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/adr-process.html)
+
+_May 1, 2026_
+
+Prescriptive-guidance › backup-recovery
+[Amazon EC2 backup and recovery with snapshots and AMIs![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/highlyRated/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Cbackup-recovery%7Cec2-backup.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/backup-recovery/ec2-backup.html)
+
+_May 1, 2026_
+
+- ### On this page
+
+- Recommended tasks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Learn about
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Understand publish-subscribe messaging pattern![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cpublish-subscribe.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/publish-subscribe.html)
+
+
+
+[Understand path routing pattern for unifying API services![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Capi-routing-path.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/api-routing-path.html)
+
+
+
+[Understand the Saga pattern for distributed transactions![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Csaga.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga.html)
+
+
+
+[Understand hostname routing for API services![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Capi-routing-hostname.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/api-routing-hostname.html)
+
+
+
+[Understand anti-corruption layer pattern for migration![](https://prod.us-west-2.tcx-beacon.docs.aws.dev/recommendation-beacon/journey/impressions/null/MvNqLe-iB6xPIzCD4rcAL59QDzAppLSyCqOdtuM0w9gjHToGsTYmpw==/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cintroduction.html/https:%7C%7Cdocs.aws.amazon.com%7Cprescriptive-guidance%7Clatest%7Ccloud-design-patterns%7Cacl.html)](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/acl.html)
+
+- Did this page help you?
+
+
+
+
+
+
+
+
+Yes
+
+
+
+No
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Provide feedback](https://docs.aws.amazon.com/feedback/doc-feedback.html?hidden_service_name=ProServe+Enterprise+GPS&topic_url=https%3A%2F%2Fdocs.aws.amazon.com%2Fprescriptive-guidance%2Flatest%2Fcloud-design-patterns%2Fintroduction.html)
+
+
+#### Next topic:
+
+[Anti-corruption layer pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/acl.html)
+
+---
+
+Title: What are Cloud design patterns ? — An overview : Part 1 - Medium
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40vinciabhinav7%2Fcloud-design-patterns-an-overview-part-1-41a0c3edc227&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40vinciabhinav7%2Fcloud-design-patterns-an-overview-part-1-41a0c3edc227&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+# What are Cloud design patterns ? — An overview : Part 1
+
+[![Abhinav Vinci](https://miro.medium.com/v2/resize:fill:32:32/1*vfKAhf2fL0mHPvPycs1LvQ.jpeg)](https://medium.com/@vinciabhinav7?source=post_page---byline--41a0c3edc227---------------------------------------)
+
+[Abhinav Vinci](https://medium.com/@vinciabhinav7?source=post_page---byline--41a0c3edc227---------------------------------------)
+
+Follow
+
+4 min read
+
+·
+
+May 3, 2024
+
+81
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D41a0c3edc227&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40vinciabhinav7%2Fcloud-design-patterns-an-overview-part-1-41a0c3edc227&source=---header_actions--41a0c3edc227---------------------post_audio_button------------------)
+
+Share
+
+Cloud design patterns are **architectural solutions to common problems** encountered **when designing and implementing applications in cloud** environment.
+
+## Architecture patterns
+
+- [**Strangler Pattern:**](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig) Used for migrating legacy systems to the cloud gradually. New features are implemented in the cloud while existing functionality remains in the legacy system until fully migrated.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*mYXrNgR0kGU7W2ZQF-TiRA.png)
+
+[https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig)
+
+- [**Queue-based Load Leveling**](https://medium.com/p/a8e77e614c2c) **:** Uses queues to decouple components of an application, allowing them to operate at different speeds. This pattern helps in managing bursts of traffic and prevents overload on downstream services.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*rzV-z-cD-wntWRuh6rLiow.png)
+
+[https://medium.com/p/a8e77e614c2c](https://medium.com/p/a8e77e614c2c)
+
+- [**API Composition:**](https://microservices.io/patterns/data/api-composition.html) Instead of relying on a single monolithic API, this pattern involves composing APIs from multiple smaller services or microservices to fulfill client requests. The API composition layer aggregates data from various sources and presents it to clients as a unified API, improving flexibility and scalability.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*gyfK6F3UvlXq7O-KfIFvmQ.png)
+
+[https://microservices.io/patterns/data/api-composition.html](https://microservices.io/patterns/data/api-composition.html)
+
+- [**Backends for Frontends (BFF):**](https://medium.com/@vinciabhinav7/what-is-bff-design-pattern-an-overview-bb2793f37669) In scenarios where multiple client types (e.g., web, mobile, IoT) interact with the same backend services but have different requirements, the BFF pattern involves creating separate backend services tailored to each client type. This allows for optimized client-specific logic and improves performance and user experience.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*YlryVSy4RZlCB3NOIIjZ7Q.png)
+
+[https://medium.com/@vinciabhinav7/what-is-bff-design-pattern-an-overview-bb2793f37669](https://medium.com/@vinciabhinav7/what-is-bff-design-pattern-an-overview-bb2793f37669)
+
+- [**API Gateway:**](https://medium.com/@vinciabhinav7/api-gateway-pattern-why-when-to-use-fcd77e5b057e) A single entry point for clients to access multiple services or microservices. The API gateway handles authentication, routing, request aggregation, and protocol translation, simplifying client interactions with the underlying services.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*bYmlnlXuiwOA5FFX3ZmqKg.png)
+
+[https://medium.com/@vinciabhinav7/api-gateway-pattern-why-when-to-use-fcd77e5b057e](https://medium.com/@vinciabhinav7/api-gateway-pattern-why-when-to-use-fcd77e5b057e)
+
+## Storage Patterns
+
+- **Data Sharding:** Distributes data across multiple databases or shards to improve scalability and performance. Each shard contains a subset of the data, and requests are routed to the appropriate shard based on a shard key.
+- **E** [**xternal Configuration Store**](https://learn.microsoft.com/en-us/azure/architecture/patterns/external-configuration-store) **:** In this pattern, application configuration is stored externally in a centralized repository (e.g., a database or a key-value store) rather than being hardcoded within the application code. This allows for dynamic configuration updates without requiring application redeployment and facilitates configuration management across multiple environments.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*9xvlKVAlwVpHNIv7qFAUNw.png)
+
+[https://medium.com/@vinciabhinav7/configuration-externalization-design-pattern](https://medium.com/@vinciabhinav7/configuration-externalization-design-pattern-an-overview-25a05680ca73)
+
+- [**Event Sourcing:**](https://medium.com/@vinciabhinav7/event-sourcing-3a1a2b75a971) All changes to application state are stored as a sequence of events. This pattern is useful for audit logging, debugging, and reconstructing the state of an application at any point in time.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*qJmmbnQ5ZABurlRbzVgfJw.png)
+
+[https://medium.com/@vinciabhinav7/event-sourcing-3a1a2b75a971](https://medium.com/@vinciabhinav7/event-sourcing-3a1a2b75a971)
+
+## Get Abhinav Vinci’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+- [**Data Lake**](https://medium.com/p/fade80bf6f40) **:** In this pattern, large volumes of structured and unstructured data are stored in a centralized repository (the data lake) in its native format. Data can be ingested from various sources, and different analytics and processing tools can access the data for analysis, machine learning, and reporting purposes.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*mHeVw1Wn5eUdwgJu7in2NQ.png)
+
+[https://medium.com/p/fade80bf6f40](https://medium.com/p/fade80bf6f40)
+
+### Compute patterns:
+
+- **Serverless Architecture:** Also known as Function-as-a-Service (FaaS), it allows developers to deploy individual functions or pieces of code without managing the underlying infrastructure. This architecture scales automatically based on demand and reduces operational overhead.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*LnYVJSEnm5NXl3B_Hnx9FA.png)
+
+[https://blog.bitsrc.io/building-a-serverless-architecture-with-aws-lambda-and-api-gateway](https://blog.bitsrc.io/building-a-serverless-architecture-with-aws-lambda-and-api-gateway-28ed1ba58f64)
+
+## Resiliency Patterns:
+
+- [**Circuit Breaker**](https://medium.com/p/a8e77e614c2c) **:** Prevents a service from repeatedly attempting to execute an operation that is likely to fail. If a service detects that a dependent service is unavailable or responding slowly, it can open the circuit and stop sending requests until the dependent service is available again.
+
+![](https://miro.medium.com/v2/resize:fit:630/1*EEyT_T_U6Iu6M5gzG51gOg.png)
+
+[https://martinfowler.com/bliki/CircuitBreaker.html](https://martinfowler.com/bliki/CircuitBreaker.html)
+
+- **Retry Pattern:** Automatically retries an operation that has failed due to transient faults such as network issues or temporary service unavailability.
+- [**Bulkhead Pattern**](https://medium.com/p/a8e77e614c2c) **:** Isolates components of an application into separate pools to prevent a failure in one component from cascading to others. This pattern enhances fault tolerance and system stability.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*GrENOHQGG_4DgBy4biPIpA.png)
+
+[https://medium.com/p/a8e77e614c2c](https://medium.com/p/a8e77e614c2c)
+
+[_In next blog: Part 2_](https://medium.com/me/stats/post/49defa7b7d0e)
+
+- **Ambassador Pattern**
+- **Saga Pattern:**
+- **Cache-Aside Pattern:**
+- **Geo-Replication**
+- **Sidecar Pattern**
+- **Chaos Engineering**
+- **Retry Storm Pattern:**
+- **Immutable Infrastructure:**
+
+[System Design Interview](https://medium.com/tag/system-design-interview?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Software Development](https://medium.com/tag/software-development?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Cloud Computing](https://medium.com/tag/cloud-computing?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Microservices](https://medium.com/tag/microservices?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Design Patterns](https://medium.com/tag/design-patterns?source=post_page-----41a0c3edc227---------------------------------------)
+
+[![Abhinav Vinci](https://miro.medium.com/v2/resize:fill:48:48/1*vfKAhf2fL0mHPvPycs1LvQ.jpeg)](https://medium.com/@vinciabhinav7?source=post_page---post_author_info--41a0c3edc227---------------------------------------)
+
+[![Abhinav Vinci](https://miro.medium.com/v2/resize:fill:64:64/1*vfKAhf2fL0mHPvPycs1LvQ.jpeg)](https://medium.com/@vinciabhinav7?source=post_page---post_author_info--41a0c3edc227---------------------------------------)
+
+Follow
+
+[**Written by Abhinav Vinci**](https://medium.com/@vinciabhinav7?source=post_page---post_author_info--41a0c3edc227---------------------------------------)
+
+[1K followers](https://medium.com/@vinciabhinav7/followers?source=post_page---post_author_info--41a0c3edc227---------------------------------------)
+
+· [37 following](https://medium.com/@vinciabhinav7/following?source=post_page---post_author_info--41a0c3edc227---------------------------------------)
+
+SWE \| IIIT-Allahabad [https://www.linkedin.com/in/abhinav-vinci-163343ab/](https://www.linkedin.com/in/abhinav-vinci-163343ab/)
+
+Follow
+
+## No responses yet
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40vinciabhinav7%2Fcloud-design-patterns-an-overview-part-1-41a0c3edc227&source=---post_responses--41a0c3edc227---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----41a0c3edc227---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----41a0c3edc227---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----41a0c3edc227---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----41a0c3edc227---------------------------------------)
+
+reCAPTCHA
+
+---
+
+Title: Cloud Architecture Patterns [Book] - O'Reilly
+[Skip to Content](https://www.oreilly.com/library/view/cloud-architecture-patterns/9781449357979/#main)
+
+Search for books, courses, events, and more
+
+### Overview
+
+If your team is investigating ways to design applications for the cloud, this concise book introduces 11 architecture patterns that can help you take advantage of cloud-platform services. You’ll learn how each of these platform-agnostic patterns work, when they might be useful in the cloud, and what impact they’ll have on your application architecture. You’ll also see an example of each pattern applied to an application built with Windows Azure.
+
+##### Become an O’Reilly member and get unlimited access to this title plus top books and audiobooks from O’Reilly and nearly 200 top publishers, thousands of courses curated by job role, 150+ live events each month,  and much more.
+
+[Read now\\
+\\
+Unlock full access](https://www.oreilly.com/start-trial/?next=/library/view/cloud-architecture-patterns/9781449357979/)
+
+### More than 5,000 organizations count on O’Reilly
+
+![AirBnb](https://www.oreilly.com/library/view/dist/AirBnb-DGMKJRKH.svg)![BlueOrigin](https://www.oreilly.com/library/view/dist/BlueOrigin-4RWFILGY.svg)![Electronic Arts](https://www.oreilly.com/library/view/dist/EA-7HTQJYZU.svg)![HomeDepot](https://www.oreilly.com/library/view/dist/HomeDepot-WLPY677N.svg)![Nasdaq](https://www.oreilly.com/library/view/dist/Nasdaq-4FUP2MSJ.svg)![Rakuten](https://www.oreilly.com/library/view/dist/Rakuten-BLMSPBIO.svg)![Tata Consultancy Services](https://www.oreilly.com/library/view/dist/TCS-NRQ65RC6.svg)
+
+* * *
+
+![QuotationMark](https://www.oreilly.com/library/view/dist/QuotationMark-QYP5HNGW.svg)O’Reilly covers everything we've got, with content to help us build a world-class technology community, upgrade the capabilities and competencies of our teams, and improve overall team performance as well as their engagement.
+
+##### Julian F.
+
+Head of Cybersecurity
+
+![QuotationMark](https://www.oreilly.com/library/view/dist/QuotationMark-QYP5HNGW.svg)I wanted to learn C and C++, but it didn't click for me until I picked up an O'Reilly book. When I went on the O’Reilly platform, I was astonished to find all the books there, plus live events and sandboxes so you could play around with the technology.
+
+##### Addison B.
+
+Field Engineer
+
+![QuotationMark](https://www.oreilly.com/library/view/dist/QuotationMark-QYP5HNGW.svg)I’ve been on the O’Reilly platform for more than eight years. I use a couple of learning platforms, but I'm on O'Reilly more than anybody else. When you're there, you start learning. I'm never disappointed.
+
+##### Amir M.
+
+Data Platform Tech Lead
+
+![QuotationMark](https://www.oreilly.com/library/view/dist/QuotationMark-QYP5HNGW.svg)I'm always learning. So when I got on to O'Reilly, I was like a kid in a candy store. There are playlists. There are answers. There's on-demand training. It's worth its weight in gold, in terms of what it allows me to do.
+
+##### Mark W.
+
+Embedded Software Engineer
+
+### You might also like
+
+[![Cloud Application Architecture Patterns](https://www.oreilly.com/library/cover/9781098116897/248w/?format=webp)](https://www.oreilly.com/library/view/-/9781098116897/)
+
+[**Cloud Application Architecture Patterns**](https://www.oreilly.com/library/view/-/9781098116897/) Kyle Brown, Bobby Woolf, Joseph Yoder
+
+[![Patterns of Enterprise Application Architecture](https://www.oreilly.com/library/cover/0321127420/248w/?format=webp)](https://www.oreilly.com/library/view/-/0321127420/)
+
+[**Patterns of Enterprise Application Architecture**](https://www.oreilly.com/library/view/-/0321127420/) Martin Fowler
+
+[![Microservices Patterns](https://www.oreilly.com/library/cover/9781617294549/248w/?format=webp)](https://www.oreilly.com/library/view/-/9781617294549/)
+
+[**Microservices Patterns**](https://www.oreilly.com/library/view/-/9781617294549/) Chris Richardson
+
+[![Agentic Architectural Patterns for Building Multi-Agent Systems](https://www.oreilly.com/library/cover/9781806029570/248w/?format=webp)](https://www.oreilly.com/library/view/-/9781806029570/)
+
+[**Agentic Architectural Patterns for Building Multi-Agent Systems**](https://www.oreilly.com/library/view/-/9781806029570/) Dr. Ali Arsanjani, Juan Pablo Bustos
+
+### Publisher Resources
+
+ISBN: 9781449357979 [Errata](http://oreilly.com/catalog/0636920023777/errata)
+
+---
+
+Title: Architecture patterns - Google Cloud Documentation
+[Skip to main content](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns#main-content)
+
+[![Google Cloud Documentation](https://www.gstatic.com/devrel-devsite/prod/v579073a50c63499824df5a68b8922367066583d283ef78fdade1028efdb4ceb5/clouddocs/images/lockup.svg)](https://docs.cloud.google.com/)
+
+`/`
+
+[Console](https://console.cloud.google.com/)Language
+
+- [English](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns)
+- [Deutsch](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=de)
+- [Español](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=es)
+- [Español – América Latina](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=es-419)
+- [Français](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=fr)
+- [Indonesia](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=id)
+- [Italiano](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=it)
+- [Português](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=pt)
+- [Português – Brasil](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=pt-br)
+- [עברית](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=he)
+- [中文 – 简体](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=zh-cn)
+- [中文 – 繁體](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=zh-tw)
+- [日本語](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=ja)
+- [한국어](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/architecture-patterns?hl=ko)
+
+[Sign in](https://docs.cloud.google.com/_d/signin?continue=https%3A%2F%2Fdocs.cloud.google.com%2Farchitecture%2Fhybrid-multicloud-secure-networking-patterns%2Farchitecture-patterns&prompt=select_account)
+
+[![](https://docs.cloud.google.com/static/site-assets/images/cloud.svg)](https://docs.cloud.google.com/architecture)
+
+- [Documentation](https://docs.cloud.google.com/docs)
+- [Cloud Architecture Center](https://docs.cloud.google.com/architecture)
+
+[Start free](https://console.cloud.google.com/freetrial)
+
+- [Home](https://docs.cloud.google.com/)
+- [Documentation](https://docs.cloud.google.com/docs)
+- [Cloud Architecture Center](https://docs.cloud.google.com/architecture)
+
+Was this helpful?
+
+
+
+ Send feedback
+
+
+
+# Architecture patterns    Stay organized with collections      Save and categorize content based on your preferences.
+
+Last reviewed 2024-10-29 UTC
+
+The documents in this series discuss networking architecture patterns that are
+designed based on the required communication models between applications
+residing in Google Cloud and in other environments (on-premises, in other
+clouds, or both).
+
+These patterns should be incorporated into the overall organization landing
+zone architecture, which can include multiple networking patterns to address the
+specific communication and security requirements of different applications.
+
+The documents in this series also discuss the different design variations that
+can be used with each architecture pattern. The following networking
+patterns can help you to meet communication and security requirements for
+your applications:
+
+- [Mirrored pattern](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/mirrored-pattern)
+- [Meshed pattern](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/meshed-pattern)
+- [Gated patterns](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/gated-patterns)
+  - [Gated egress](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/gated-egress)
+  - [Gated ingress](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/gated-ingress)
+  - [Gated egress and gated ingress](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/gated-egress-ingress)
+- [Handover pattern](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/handover-pattern)
+
+[Previous\\
+\\
+arrow\_back\\
+\\
+Design considerations](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/design-considerations)
+
+[Next\\
+\\
+Mirrored pattern\\
+\\
+arrow\_forward](https://docs.cloud.google.com/architecture/hybrid-multicloud-secure-networking-patterns/mirrored-pattern)
+
+Was this helpful?
+
+
+
+ Send feedback
+
+
+
+Except as otherwise noted, the content of this page is licensed under the [Creative Commons Attribution 4.0 License](https://creativecommons.org/licenses/by/4.0/), and code samples are licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0). For details, see the [Google Developers Site Policies](https://developers.google.com/site-policies). Java is a registered trademark of Oracle and/or its affiliates.
+
+Last updated 2024-10-29 UTC.
+
+
+Need to tell us more?
+
+
+
+
+
+
+\[\[\["Easy to understand","easyToUnderstand","thumb-up"\],\["Solved my problem","solvedMyProblem","thumb-up"\],\["Other","otherUp","thumb-up"\]\],\[\["Hard to understand","hardToUnderstand","thumb-down"\],\["Incorrect information or sample code","incorrectInformationOrSampleCode","thumb-down"\],\["Missing the information/samples I need","missingTheInformationSamplesINeed","thumb-down"\],\["Other","otherDown","thumb-down"\]\],\["Last updated 2024-10-29 UTC."\],\[\],\[\]\]

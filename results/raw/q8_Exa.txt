@@ -1,0 +1,226 @@
+Title: Virtual DOM and Internals – React
+Key Highlights:
+The virtual DOM (VDOM) is a programming concept where an ideal, or “virtual”, representation of a UI is kept in memory and synced with the “real” DOM by a library such as ReactDOM. This process is called reconciliation.
+[...]
+This approach enables the declarative API of React: You tell React what state you want the UI to be in, and it makes sure the DOM matches that state. This abstracts out the attribute manipulation, event handling, and manual DOM updating that you would otherwise have to use to build your app.
+[...]
+Since “virtual DOM” is more of a pattern than a specific technology, people sometimes say it to mean different things. In React world, the term “virtual DOM” is usually associated with React elements since they are the objects representing the user interface. React, however, also uses internal objects called “fibers” to hold additional information about the component tree. They may also be considered a part of “virtual DOM” implementation in React.
+[...]
+No, they are different. The Shadow DOM is a browser technology designed primarily for scoping variables and CSS in web components. The virtual DOM is a concept implemented by libraries in JavaScript on top of browser APIs.
+[...]
+Fiber is the new reconciliation engine in React 16. Its main goal is to enable incremental rendering of the virtual DOM. Read more.
+
+---
+
+Title: Reconciliation – React
+Key Highlights:
+React provides a declarative API so that you don’t have to worry about exactly what changes on every update. This makes writing applications a lot easier, but it might not be obvious how this is implemented within React. This article explains the choices we made in React’s “diffing” algorithm so that component updates are predictable while being fast enough for high-performance apps.
+[...]
+When you use React, at a single point in time you can think of the`render()` function as creating a tree of React elements. On the next state or props update, that`render()` function will return a different tree of React elements. React then needs to figure out how to efficiently update the UI to match the most recent tree.
+[...]
+There are some generic solutions to
+[...]
+elements in the tree.
+[...]
+If we used this in React, displaying 1000 elements would require in the order of one billion comparisons. This is far too expensive. Instead, React implements a heuristic O(n) algorithm based on two assumptions:
+[...]
+1. Two elements of different types will produce different trees.
+2. The developer can hint at which child elements may be stable across different renders with a`key` prop.
+[...]
+In practice, these assumptions are valid for almost all practical use cases.
+[...]
+## The Diffing Algorithm
+[...]
+When diffing two trees, React first compares the two root elements. The behavior is different depending on the types of the root elements.
+[...]
+Whenever the root elements have different types, React will tear down the old tree and build the new tree from scratch. Going from` ` to` `, or from` ` to` `, or from` ` to` `- any of those will lead to a full rebuild.
+[...]
+When tearing down a tree, old DOM nodes are destroyed. Component instances receive`componentWillUnmount()`. When building up a new tree, new DOM nodes are inserted into the DOM. Component instances receive`UNSAFE_componentWillMount()` and then`componentDidMount()`. Any state associated with the old tree is lost.
+[...]
+When comparing two React DOM elements of the same type, React looks at the attributes of both, keeps the same underlying DOM node, and only updates the changed attributes. For example:
+[...]
+After handling the DOM node, React then recurses on the children.
+[...]
+When a component updates, the instance stays the same, so that state is maintained across renders. React updates the props of the underlying component instance to match the new element, and calls`UNSAFE_componentWillReceiveProps()`,`UNSAFE_componentWillUpdate()` and`componentDidUpdate()` on the underlying instance.
+[...]
+Next, the`render()` method is called and the diff algorithm recurses on the previous result and the new result.
+[...]
+By default, when recursing on the children of a DOM node, React just iterates over both lists of children at the same time and generates a mutation whenever there’s a difference.
+[...]
+In order to solve this issue, React supports a`key` attribute. When children have keys, React uses the key to match children in the original tree with children in the subsequent tree. For example, adding a`key` to our inefficient example above can make the tree conversion efficient:
+[...]
+It is important to remember that the reconciliation algorithm is an implementation detail. React could rerender the whole app on every action; the end result would be the same. Just to be clear, rerender in this context means calling`render` for all components, it doesn’t mean React will unmount and remount them. It will only apply the differences following the rules stated in the previous sections.
+[...]
+We are regularly refining the heuristics in order to make common use cases faster. In the current implementation, you can express the fact that a subtree has been moved amongst its siblings, but you cannot tell that it has moved somewhere else. The algorithm will rerender that full subtree.
+[...]
+Because React relies on heuristics, if the assumptions behind them are not met, performance will suffer.
+[...]
+1. The algorithm will not try to match subtrees of different component types. If you see yourself alternating between two component types with very similar output, you may want to make it the same type. In practice, we haven’t found this to be an issue.
+2. Keys should be stable, predictable, and unique. Unstable keys (like those produced by`Math.random()`) will cause many component instances and DOM nodes to be unnecessarily recreated, which can cause performance degradation and lost state in child components.
+
+---
+
+Title: What is the virtual DOM in React? - LogRocket Blog
+Key Highlights:
+The virtual DOM is a lightweight, memory-based representation of the real DOM that enables React to update user interfaces by calculating the minimal set of changes needed. When a component’s state changes, React creates a new virtual DOM and then compares it with the previous version using a diffing algorithm.
+[...]
+It then updates only the parts of the real DOM that have actually changed. This makes for a better user experience because it reduces the number of direct manipulations to the browser’s DOM.
+[...]
+When a component’s state or props change, React re-renders the component to generate a new virtual DOM tree. This tree is a representation of the UI composed of plain JavaScript objects. It mirrors the structure of the actual DOM elements but omits browser details, making it quick to create and update without direct interaction with the real DOM.
+[...]
+Once the new virtual DOM tree is created, React performs a diffing process. It compares the new tree with the previous version to identify exactly which elements have changed. This comparison matches element types using keys for list items to quickly pinpoint modifications. By isolating only the differences, React significantly minimizes the number of updates needed.
+[...]
+After determining the differences, React generates a set of minimal update instructions and applies these changes to the actual DOM. This process is known as patching.
+[...]
+Instead of re-rendering the entire DOM tree, only the modified parts are updated. This selective updating reduces the performance overhead associated with full DOM updates. This will mean that the user interface remains fast even as the application grows in complexity.
+[...]
+As the name implies, the virtual DOM is a much lighter replica of the actual DOM in the form of objects. The virtual DOM can be saved in the browser memory and doesn’t directly change what is shown on the user’s browser. Implemented by several other frontend frameworks, like Vue, React’s declarative approach is unique.
+[...]
+- By updating only the changed elements, the virtual DOM minimizes direct, expensive manipulations of the real DOM
+- The abstraction helps in writing consistent and maintainable code, as state transitions are managed internally
+- Developers can focus on building UI components without manually handling DOM updates, reducing potential bugs
+[...]
+In fact, the virtual DOM’s operations support and add on to those of the actual DOM. Essentially, the virtual DOM provides a mechanism that allows the actual DOM to compute minimal DOM operations when re-rendering the UI.
+[...]
+Instead, in the rendering process, React employs the concept of the virtual DOM, which conforms with its declarative approach. Therefore, we can specify what state we want the UI to be in, after which React makes it happen.
+[...]
+After the virtual DOM is updated, React compares it to a snapshot of the virtual DOM taken just before the update, determines what element was changed, and then updates only that element on the real DOM. This is one method the virtual DOM employs to optimize performance. We’ll go into more detail later.
+[...]
+The virtual DOM abstracts manual DOM manipulations away from the developer, helping us to write more predictable and unruffled code so that we can focus on creating components.
+[...]
+Thanks to the virtual DOM, you don’t have to worry about state transitions. Once you update the state, React ensures that the DOM matches that state. For instance, in our last example, React ensures that on every re-render, only`Time` gets updated in the actual DOM. Therefore, we won’t lose the value of the input field while the UI update happens.
+[...]
+The object, as seen above, is the virtual DOM. It represents the user interface.
+[...]
+To understand the virtual DOM strategy, we need to understand
+[...]
+two major phases that are involved: rendering and reconciliation.
+[...]
+When we render an application user interface, React creates a virtual DOM tree representing that UI and stores it in memory. On the next update, or in other words, when the data that renders the app changes, React will automatically create a new virtual DOM tree for the update.
+[...]
+Remember, the virtual DOM is just an object representing the UI, so nothing gets drawn on the screen.
+[...]
+After React creates the new virtual DOM tree, it compares it to the previous snapshot using a diffing algorithm called reconciliation to figure out what changes are necessary.
+[...]
+After the reconciliation process, React uses a renderer library like ReactDOM, which takes the different information to update the rendered app. This library ensures that the actual DOM only receives and repaints the updated node or nodes:
+[...]
+As seen in the image above
+[...]
+whose data changes gets repainted in the actual DOM. The GIF below further proves this statement:
+[...]
+change occurs in
+[...]
+In summary, on every render, React compares the virtual DOM tree with the previous version to determine which node gets updated, ensuring that the updated node matches up with the actual DOM.
+[...]
+With the implementation above, React would know that we have prepended`item 2` and appended`item 6`. As a result, it would work to preserve the items that are already available and add only the new items in the
+[...]
+React uses the virtual DOM as a strategy to compute minimal DOM operations when re-rendering the UI. It is not in rivalry with or faster than the real DOM.
+[...]
+The virtual DOM provides a mechanism that abstracts manual DOM manipulations away from the developer, helping us to write more predictable code. It does so by comparing two render trees to determine exactly what has changed, only updating what is necessary on the actual DOM.
+
+---
+
+Title: What is Virtual DOM?
+Key Highlights:
+React creates a tree of custom objects representing a part of the DOM. For example, instead of creating an actual DIV element containing a UL element, it creates a React.div object that contains a React.ul object. It can manipulate these objects very quickly without actually touching the real DOM or going through the DOM API. Then, when it renders a component, it uses this virtual DOM to figure out what it needs to do with the real DOM to get the two trees to match.
+[...]
+You can think of the virtual DOM like a blueprint. It contains all the details needed to construct the DOM, but because it doesn't require all the heavyweight parts that go into a real DOM, it can be created and changed much more easily.
+[...]
+Let's take an example — though a very naive one: If you have something messed up in a room in your home and you need to clean it, what will be your first step? Will you be cleaning your room which is messed up or the whole house? The answer is definitely that you will be cleaning only the room which requires the cleaning. That's what the virtual DOM does.
+[...]
+Ordinary JS traverses or renders the whole DOM instead of rendering only the part which requires changes.
+[...]
+So whenever you have any changes, as in you want to add another ` ` to your DOM then the virtual DOM will be created which actually does not do any changes in the actual DOM. Now with this virtual DOM, you will be checking the difference between this and your current DOM. And only the part which is different (in this case the new ` `) will be added instead of re-rendering the whole DOM.
+[...]
+VDOM is strategically to update DOM without redrawing all the nodes in a single page application. Finding a node in a tree structure is easy but the DOM tree for a SPA app can be drastically huge. Finding and updating a node/nodes in case of an event is not time efficient.
+[...]
+VDOM solves this problem by creating a high level abstraction of actual dom. **The VDOM is a high level lightweight in-memory tree representation of actual DOM.**
+[...]
+VDOM using diffing.
+3. Update only
+[...]
+nodes in real DOM.
+4. Assign new VDOM
+[...]
+VDOM.
+[...]
+> The virtual DOM is an in-memory representation of the real DOM elements generated by React components before any changes are made to the page.
+> 
+> It’s a step that happens between the render function being called and the displaying of elements on the screen.
+> 
+> A component’s render method returns some markup, but it’s not the final HTML yet. It’s the in-memory representation of what will become real elements (this is step 1). Then that output will be transformed into real HTML, which is what gets displayed in the browser (This is step 2).
+> 
+> So why go through all this to generate a virtual DOM? Simple answer — This is what allows react to be fast. It does this by means of virtual DOM diffing. Comparing two virtual trees — old and new — and make only the necessary changes into the real DOM.
+[...]
+The real DOM is like your room, nodes are the furniture in your room. The virtual
+[...]
+is like we draw
+[...]
+The DOM (Document Object Model) is an abstraction of structured text, which means it is made of HTML code and css. These HTML elements become nodes in the DOM. There are limitations to the previous methods of manipulating the DOM. Virtual DOM is an abstraction of the literal HTML DOM created well before React was created or used, but for our purposes we will use it in concert with ReactJS. The Virtual DOM is lightweight and detached from the DOM implementation in the browser. The Virtual DOM is essentially a screenshot (or copy) of the DOM at a given time. A way to look at it from a developers perspective is the DOM is the production environment and the Virtual DOM is the local (dev) environment. Each time the data changes in a React app a new Virtual DOM representation of the user interface is created.
+[...]
+Whenever a ReactComponent has a state change, we want as little change to the HTML DOM as possible so ReactComponent is converted to the ReactElement which can then be inserted to the Virtual DOM, compared and updated fast and easily.
+[...]
+It’s a neat concept: instead of manipulating the DOM directly, which is error prone and relies on mutable state, you instead output a value called the Virtual DOM. The _Virtual DOM_ is then _diffed_ with the current state of the DOM, which generates a list of DOM operations that would make the current DOM look like the new one. **Those operations are applied quickly in a batch.**
+[...]
+**Virtual Dom** is created one copy of Dom. **Virtual dom** is compared to dom, and virtual dom update only that part in dom which changed. it's not rendering the whole dom it's just changed the updated part of dom in dom. It's very time consuming and from this functionality, our app works fast.
+[...]
+Virtual DOM is a partial or full copy of the browser DOM tree structure. It is created by the frameworks like React and kept in the memory for manipulations via app code.
+[...]
+As and when necessary, virtual DOM is used by the app code to update the browser DOM – the DOM that actually represents the user interface.
+[...]
+React batches the app state changes before pushing those to the real DOM. The latest virtual DOM diffing gives React all the impacted nodes. The impacted nodes of the virtual DOM are then pushed to the real DOM by a highly efficient process called reconciliation.
+[...]
+Advantage - Note that when you add, delete or modify a node in the DOM tree, the browser needs to perform calculations and adjust the screen layout and content to sync the user interface with the app state. In highly complex, reactive, and interactive applications where you see a continuous stream of data and events, the DOM may require frequent updates.
+[...]
+Updating DOM (& repainting the browser screen) at a high frequency is a big problem and that is where Virtual DOM in React js comes to the rescue.
+[...]
+React's structural unit is component. Each component has a state. Whenever the state of a component is changed, React modifies the V-DOM tree. Thereafter latest version of the V-DOM is compared with previous version of the V-DOM. After this calculation(diffing) when React knows which V-DOM objects have been changed it modifies only those objects in the R-DOM.
+[...]
+Say I have added a div element in
+[...]
+creates a copy of V
+[...]
+DOM without changing the whole R-DOM. This newly created V-DOM is compared with older V
+[...]
+DOM. It updates only different nodes in real DOM. Now the newly created V
+[...]
+and this is virtual DOM. It's an JavaScript object which costs much less to manipulate
+
+---
+
+Title: React: The Virtual DOM | Codecademy
+Key Highlights:
+DOM manipulation is the heart of the modern, interactive web. Unfortunately, it is also a lot slower than most JavaScript operations.
+[...]
+This slowness is made worse by the fact that most JavaScript frameworks update the DOM much more than they have to.
+[...]
+Rebuilding a list is no big deal to a web browser, but modern websites can use huge amounts of DOM manipulation. Inefficient updating has become a serious problem.
+[...]
+To address this problem, the people at React popularized something called the virtual DOM.
+[...]
+In React, for every DOM object, there is a corresponding “virtual DOM object.” A virtual DOM object is a representation of a DOM object, like a lightweight copy.
+[...]
+A virtual DOM object has the same properties as a real DOM object, but it lacks the real thing’s power to directly change what’s on the screen.
+[...]
+Manipulating the DOM is slow. Manipulating the virtual DOM is much faster because nothing gets drawn onscreen. Think of manipulating the virtual DOM as editing a blueprint, as opposed to moving rooms in an actual house.
+[...]
+## How It Helps
+[...]
+When you render a JSX element, every single virtual DOM object gets updated.
+[...]
+This sounds incredibly inefficient, but the cost is insignificant because the virtual DOM can update so quickly.
+[...]
+Once the virtual DOM has been updated, then React compares the virtual DOM with a virtual DOM snapshot that was taken right before the update.
+[...]
+By comparing the new virtual DOM with a pre-update version, React figures out exactly which virtual DOM objects have changed. This process is called “diffing.”
+[...]
+Once React knows which virtual DOM objects have changed, then React updates those objects, and only those objects, on the real DOM. In our example from earlier, React would be smart enough to rebuild your one checked-off list-item and leave the rest of your list alone.
+[...]
+This makes a big difference! React can update only the necessary parts of the DOM. React’s reputation for performance comes largely from this innovation.
+[...]
+In summary, here’s what happens when you try to update the DOM in React:
+[...]
+1. The entire virtual DOM gets updated.
+2. The virtual DOM gets compared to what it looked like before you updated it. React figures out which objects have changed.
+3. The changed objects, and the changed objects only, get updated on the real DOM.
+4. Changes on the real DOM cause the screen to change.

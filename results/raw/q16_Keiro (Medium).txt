@@ -1,0 +1,283 @@
+Title: How To Configure Nginx as a Reverse Proxy on Ubuntu
+**Definition:** alTable of contentsPopular topicsIntroduction
+A reverse proxy is the recommended method to expose an application server to the internet.
+
+**Key Points:** This tutorial will demonstrate how to set up a reverse proxy using Nginx, a popular web server and reverse proxy solution. Common Use Cases for Nginx Reverse Proxy
+
+Nginx reverse proxy setups are versatile and commonly used in many production environments. AI Use Case Potential: Nginx Reverse Proxy Prompts
+
+With the rise of AI-powered code assistants, developers can rapidly generate and validate Nginx reverse proxy configurations for a wide range of scenarios.
+
+## When to Use WebSocket Reverse Proxying
+You should use this WebSocket reverse proxy configuration when your backend application provides a WebSocket endpoint—commonly at a path such as /ws/—and you want Nginx to seamlessly forward and maintain persistent, real-time connections between clients and your application server. This setup is essential for applications that require low-latency, bidirectional communication, such as chat systems, live notifications, collaborative tools, or real-time dashboards.
+By configuring Nginx to handle the WebSocket protocol upgrade and forward the necessary headers, you ensure that clients can establish and maintain WebSocket connections through your reverse proxy without interruption. This approach also allows you to centralize SSL termination, security controls, and logging at the proxy layer, while keeping your backend application isolated from direct internet exposure.
+Typical scenarios for this configuration include:
+Real-time chat or messaging applications
+Live data feeds and streaming dashboards
+Online gaming servers requiring persistent connections
+Collaborative editing tools (e.g., shared documents or whiteboards)
+Any service where clients and servers need to exchange data instantly and continuously
+In summary, use this configuration whenever your application relies on WebSockets and you want Nginx to securely and efficiently proxy those connections from the public internet to your backend service.
+
+
+## Example: WebSocket Reverse Proxy Configuration
+server {
+    listen 443 ssl;
+    server_name <your_domain>;
+
+    ssl_certificate /etc/ssl/certs/your_domain.crt;
+    ssl_certificate_key /etc/ssl/private/your_domain.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    location /ws/ {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+
+## Installing Certbot and the Nginx Plugin
+First, update your package list and install Certbot along with the Nginx plugin:
+sudo apt update
+sudo apt install certbot python3-certbot-nginx
+
+
+## Configuring Nginx for WebSocket Connections
+WebSockets enable real-time, bidirectional communication between clients and servers. Unlike standard HTTP, WebSockets require special handling to upgrade the protocol and maintain persistent connections. Nginx supports WebSockets by forwarding the necessary headers.
+
+
+
+
+---
+
+Title: Install and configure Nginx - Ubuntu
+**Definition:** Overview
+
+ 
+
+Nginx (pronounced as “Engine-X”) is an open source web server that is often used as reverse proxy or HTTP cache.
+
+**Key Points:** Overview
+
+ 
+
+Nginx (pronounced as “Engine-X”) is an open source web server that is often used as reverse proxy or HTTP cache. Installing Nginx
+
+ 
+
+To install Nginx, use following command:
+sudo apt update
+sudo apt install nginx
+
+After installing it, you already have everything you need. If you need more guidance on using Nginx, help is always at hand:
+
+Ask Ubuntu
+Ubuntu Forums
+IRC-based support
+
+Further reading:
+
+Nginx Begineer’s Guide
+The Complete NGINX Cookbook – free e-book from O’Reilly
+
+ 
+ 
+ Was this tutorial useful?
+
+```text
+cd /var/www
+sudo mkdir tutorial
+cd tutorial
+sudo "${EDITOR:-vi}" index.html
+```
+
+```html
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Hello, Nginx!</title>
+</head>
+<body>
+    <h1>Hello, Nginx!</h1>
+    <p>We have just configured our Nginx web server on Ubuntu Server!</p>
+</body>
+</html>
+```
+
+## 2. Installing Nginx
+To install Nginx, use following command:
+sudo apt update
+sudo apt install nginx
+
+After installing it, you already have everything you need.
+You can point your browser to your server IP address. You should see this page:
+
+If you see this page, you have successfully installed Nginx on your web server.
+Suggest changes ›
+              
+            
+            
+              
+                
+                  about
+                  
+                    9
+                  
+                  minutes to go
+                
+              
+              
+                
+                  
+                    Previous step
+                  
+                
+
+                
+                  
+                    Next step
+
+
+
+
+---
+
+Title: NGINX Reverse Proxy: The Complete Guide
+**Definition:** kend server details
+Centralized logging and monitoring
+
+NGINX is the most popular choice for reverse proxy deployments due to its event-driven architecture, low memory footprint, and ability to handle thousands of concurrent connections efficiently.
+
+**Key Points:** Unlike a forward proxy (which clients use to access external resources), a reverse proxy hides your backend infrastructure from the outside world. Essential Proxy Headers
+Backend applications often need client information that gets lost in the proxy process. The NGINX reverse proxy must pass the upgrade headers correctly:
+map $http_upgrade $connection_upgrade {
+ default upgrade;
+ "" close;
+}
+
+server {
+ listen 80;
+ server_name example.
+
+| Header | Purpose | 
+|---|---|
+| Host | Original host requested by client | 
+| X-Real-IP | Client&#8217;s actual IP address | 
+| X-Forwarded-For | Chain of proxy IPs including client | 
+| X-Forwarded-Proto | Original protocol (http or https) | 
+| X-Forwarded-Host | Original host header | 
+| X-Forwarded-Port | Original port number | 
+
+
+| Parameter | Description | 
+|---|---|
+| weight=N | Server weight for load distribution (def | 
+| max_fails=N | Failed attempts before marking server un | 
+| fail_timeout=Ns | Time server stays unavailable after max_ | 
+| backup | Only used when primary servers are unava | 
+| down | Permanently marks server as unavailable | 
+
+
+```text
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+    }
+}
+```
+
+## NGINX Reverse Proxy: The Complete Guide
+by Danila Vershinin, January 23, 2026
+                                                        , revisited on March 22, 2026
+
+
+## What is a Reverse Proxy?
+A reverse proxy receives requests from clients and forwards them to one or more backend servers. Unlike a forward proxy (which clients use to access external resources), a reverse proxy hides your backend infrastructure from the outside world.
+Benefits of using NGINX as a reverse proxy:
+Load balancing across multiple backend servers
+SSL/TLS termination to offload encryption from backends
+Caching to reduce backend load
+Compression to minimize bandwidth
+Security by hiding backend server details
+Centralized logging and monitoring
+NGINX is the most popular choice for reverse proxy deployments due to its event-driven architecture, low memory footprint, and ability to handle thousands of concurrent connections efficiently.
+
+
+## Essential Proxy Headers
+Backend applications often need client information that gets lost in the proxy process. Configure these headers to pass critical data through your NGINX reverse proxy:
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}
+
+
+## Installing NGINX
+On RHEL-based distributions (Rocky Linux, AlmaLinux, CentOS Stream):
+dnf install nginx
+systemctl enable --now nginx
+On Debian/Ubuntu:
+apt install nginx
+systemctl enable --now nginx
+
+
+## Basic proxy_pass Configuration
+The proxy_pass directive is the foundation of NGINX reverse proxy configuration. It tells NGINX where to forward incoming requests. See the official NGINX proxy_pass documentation for complete syntax details.
+
+
+## WebSocket Proxying
+WebSocket connections require special handling because they upgrade from HTTP. The NGINX reverse proxy must pass the upgrade headers correctly:
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ""      close;
+}
+
+server {
+    listen 80;
+    server_name example.com;
+
+    location /ws/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+}
+The map directive sets Connection: upgrade when the client sends an Upgrade header, or Connection: close otherwise.
+Increase timeouts significantly for WebSockets since connections remain open indefinitely.
+
+
+## Proxying to HTTPS Backends
+When backends require HTTPS:
+location / {
+    proxy_pass https://backend:443;
+    proxy_ssl_verify on;
+    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    proxy_ssl_server_name on;
+}
+
+

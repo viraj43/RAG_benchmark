@@ -1,0 +1,551 @@
+Title: NGINX Reverse Proxy | NGINX Documentation
+Key Highlights:
+This article describes the basic configuration of a proxy server. You will learn how to pass a request from NGINX to proxied servers over different protocols, modify client request headers that are sent to the proxied server, and configure buffering of responses coming from the proxied servers.
+[...]
+It is possible to proxy requests to an HTTP server (another NGINX server or any other server) or a non-HTTP server (which can run an application developed with a specific framework, such as PHP or Python) using a specified protocol. Supported protocols include FastCGI, uwsgi, SCGI, and memcached.
+[...]
+To pass a request to an HTTP proxied server, the proxy_pass directive is specified inside a location. For example:
+[...]
+```
+location /some/path/ {
+    proxy_pass http://www.example.com/link/;
+}
+[...]
+This example configuration results in passing all requests processed in this location to the proxied server at the specified address. This address can be specified as a domain name or an IP address. The address may also include a port:
+[...]
+To pass a request to a non-HTTP proxied server, the appropriate`**_pass` directive should be used:
+[...]
+- fastcgi_pass passes a request to a FastCGI server
+- uwsgi_pass passes a request to a uwsgi server
+- scgi_pass passes a request to an SCGI server
+- memcached_pass passes a request to a memcached server
+[...]
+The proxy_pass directive can also be used to pass requests to a named group of servers. In this case, requests are distributed among the servers in the group according to the specified method.
+[...]
+## Passing Request Headers
+[...]
+By default, NGINX modifies two header fields in proxied requests, “Host” and “Connection”, and eliminates the header fields whose values are empty strings. “Host” is set to the value of the`$proxy_host` variable, and “Connection” is set to`close`.
+[...]
+To change these settings, as well as modify other header fields, use the proxy_set_header directive. This directive can be specified in a location or higher. It can also be specified in a particular server context or in the http block. For example:
+[...]
+```
+location /some/path/ {
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_pass http://localhost:8000;
+}
+[...]
+In this configuration the “Host” field is set to the $host variable.
+[...]
+To prevent a header field from being passed to the proxied server, set it to an empty string as follows:
+[...]
+```
+location /some/path/ {
+    proxy_set_header Accept-Encoding "";
+    proxy_pass http://localhost:8000;
+}
+[...]
+## Configuring Buffers
+[...]
+By default NGINX buffers responses from proxied servers. A response is stored in the internal buffers and is not sent to the client until the whole response is received. Buffering helps to optimize performance with slow clients, which can waste proxied server time if the response is passed from NGINX to the client synchronously. However, when buffering is enabled NGINX allows the proxied server to process responses quickly, while NGINX stores the responses for as much time as the clients need to download them.
+[...]
+The directive that is responsible for enabling and disabling buffering is proxy_buffering. By default it is set to`on` and buffering is enabled.
+[...]
+The proxy_buffers and proxy_buffer_size directives control how NGINX stores and buffers data.
+[...]
+The proxy_buffers directive controls the size and the number of buffers allocated for a request. The first part of the response from a proxied server is stored in a separate buffer, the size of which is set with the proxy_buffer_size directive. This part usually contains a comparatively small response header and can be made smaller than the buffers for the rest of the response.
+[...]
+```
+location /some/path/ {
+    proxy_buffers 16 4k;
+    proxy_buffer_size 2k;
+    proxy_pass http://localhost:8000;
+}
+[...]
+client synchronously while
+[...]
+proxied server
+[...]
+interactive clients that need
+[...]
+To disable buffering in a specific location, place the proxy_buffering directive in the location with the`off` parameter, as follows:
+[...]
+```
+location /some/path/ {
+    proxy_buffering off;
+    proxy_pass http://localhost:8000;
+}
+[...]
+In this case
+[...]
+GINX uses only the buffer configured by proxy_buffer_size to store
+[...]
+current part of a response.
+[...]
+## Choosing an Outgoing IP Address
+[...]
+If your proxy server has several network interfaces, sometimes you might need to choose a particular source IP address for connecting to a proxied server or an upstream. This may be useful if a proxied server behind NGINX is configured to accept connections from particular IP networks or IP address ranges.
+[...]
+In such cases, you can specify the proxy_bind directive and the IP address of the necessary network interface:
+[...]
+```
+location /app1/ {
+    proxy_bind 127.0.0.1;
+    proxy_pass http://example.com/app1/;
+}
+
+location /app2/ {
+    proxy_bind 127.0.0.2;
+    proxy_pass http://example.com/app2/;
+}
+[...]
+The IP address can be also specified with a variable. For example, the $server_addr variable passes the IP address of the network interface that accepted the request:
+[...]
+```
+location /app3/ {
+    proxy_bind $server_addr;
+    proxy_pass http://example.com/app3/;
+}
+
+---
+
+Title: How To Configure Nginx as a Reverse Proxy on Ubuntu | DigitalOcean
+Key Highlights:
+This tutorial will demonstrate how to set up a reverse proxy using Nginx, a popular web server and reverse proxy solution. You will install Nginx, configure it as a reverse proxy using the`proxy_pass` directive, and forward the appropriate headers from your client’s request. If you don’t have an application server on hand to test, you will optionally set up a test application with the WSGI server Gunicorn.
+[...]
+- The address of the application server you want to proxy, this will be referred to as app_server_address throughout the tutorial. This can be an IP address with TCP port (such as the Gunicorn default of`http://127.0.0.1:8000`), or a unix domain socket (such as`http://unix:/tmp/pgadmin4.sock` for pgAdmin). If you do not have an application server set up to test with, you will be guided through setting up a Gunicorn application which will bind to`http://127
+[...]
+0.1:
+[...]
+- A domain name pointed at your server’s public IP. This will be configured with Nginx to proxy your application server.
+[...]
+## Step 1 — Installing Nginx
+[...]
+Nginx is available for installation with`apt` through the default repositories. For details, see How to Install Nginx on Ubuntu 20.04. Update your repository index, then install Nginx:
+[...]
+You need to allow access to Nginx through your firewall. Having set up your server according to the initial server prerequisites, add the following rule with`ufw`:
+[...]
+Next you will add a custom server block with your domain and app server proxy.
+[...]
+## Step 2 — Configuring your Server Block
+[...]
+It is recommended practice to create a custom configuration file for your new server block additions, instead of editing the default configuration directly. Create and open a new Nginx configuration file using`nano` or your preferred text editor:
+[...]
+```bash
+sudo nano /etc/nginx/sites-available/your_domain
+[...]
+Insert the following into your new file, making sure to replace`your_domain` and`app_server_address`. If you do not have an application server to test with, default to using`http://127.0.0.1:8000` for the optional Gunicorn server setup in Step 3:
+[...]
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name your_domain www.your_domain;
+        
+    location / {
+        proxy_pass app_server_address;
+        include proxy_params;
+    }
+}
+
+```
+[...]
+This configuration file begins with a standard Nginx setup, where Nginx will listen on port`80` and respond to requests made to your_domain and`www.your_domain`. Reverse proxy functionality is enabled through Nginx’s`proxy_pass` directive. With this configuration, navigating to your_domain in your local web browser will be the same as opening app_server_address on your remote machine. While this tutorial will only proxy a single application server, Nginx is capable of serving as a proxy for multiple servers at once. By adding more location blocks as needed, a single server name can combine multiple application servers through proxy into one cohesive web application.
+[...]
+All HTTP requests come with headers, which contain information about the client who sent the request. This includes details like IP address, cache preferences, cookie tracking, authorization status, and more. Nginx provides some recommended header forwarding settings you have included as`proxy_params`, and the details can be found in`/etc/nginx/proxy_params`:
+[...]
+```nginx
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+[...]
+With reverse proxies, your goal is to pass on relevant information about the client, and sometimes information about your reverse proxy server itself. There are use cases where a proxied server would want to know which reverse proxy server handled the request, but generally the important information is from the original client’s request. In order to pass on these headers and make information available in locations where it is expected, Nginx uses the`proxy_set_header` directive.
+[...]
+then passes on
+[...]
+and you can check
+[...]
+list of HTTP
+[...]
+- Host: This header contains the original host requested by the client, which is the website domain and port. Nginx keeps this in the`$http_host` variable.
+[...]
+- X-Forwarded-For: This header contains the IP address of the client who sent the original request. It can also contain a list of IP addresses, with the original client IP coming first, then a list of all the IP addresses of the reverse proxy servers that passed the request through. Nginx keeps this in the`$proxy_add_x_forwarded_for` variable.
+[...]
+header always contains a single
+[...]
+the similar X
+[...]
+Forwarded-For
+[...]
+Forwarded-For
+[...]
+- X-Forwarded-Proto: This header contains the protocol used by the original client to connect, whether it be HTTP or HTTPS. Nginx keeps this in the`$scheme` variable.
+[...]
+Next, enable this configuration file by creating a link from it to the`sites-enabled` directory that Nginx reads at startup:
+[...]
+/etc/nginx/sites-available/your
+[...]
+domain /etc/nginx/sites-enabled
+[...]
+## Step 3 — Enabling HTTPS with Let’s Encrypt (Certbot)
+[...]
+Run Certbot to obtain and install a certificate for your domain. Replace`your_domain.com` with your actual domain name (do not include angle brackets):
+[...]
+bot --nginx -d your_domain.com -d www.your_domain.com
+[...]
+The output confirms that Gunicorn is listening at the default address of`http://127.0.0.1:8000`. This is the address that you set up previously in your Nginx configuration to proxy. If not, go back to your`/etc/nginx/sites-available/your_domain` file and edit the app_server_address associated with the`proxy_pass` directive.
+[...]
+What is the purpose of the`proxy_pass` directive in Nginx? The`proxy_pass` directive specifies the backend server to which Nginx should forward incoming client requests. This can be an IP address and port, a UNIX domain socket, or an upstream group for load balancing. Proper configuration of`proxy_pass` is essential for correct request routing and application availability.
+[...]
+Can Nginx proxy WebSocket connections? Yes, Nginx fully supports proxying WebSocket connections. To enable this, set`proxy_http_version 1.1` and include the following headers in your configuration:
+[...]
+proxy_http_version
+[...]
+proxy_set_header Upgrade $http_upgrade
+[...]
+proxy_set_header Connection "
+[...]
+troubleshoot Nginx
+[...]
+to check configs
+[...]
+under`/etc/letsencrypt/
+[...]
+/ /`.
+[...]
+Check to make sure your app_server_address in the server block has the ‘http://’ prefix, like this
+[...]
+proxy_pass
+
+---
+
+Title: How to Host Web Apps Using Nginx Reverse Proxy on Ubuntu
+Key Highlights:
+How to Host Web Apps Using Nginx Reverse Proxy on Ubuntu ```
+sudo apt update
+sudo apt install nginx
+
+``````
+sudo systemctl status nginx
+
+``````
+sudo systemctl start nginx
+
+``````
+sudo systemctl enable nginx
+
+``````
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+
+``````
+sudo apt install nodejs npm
+[...]
+``````
+sudo mkdir /var/www/myapp
+cd /var/www/myapp
+[...]
+``````
+sudo npm init -y
+[...]
+``````
+sudo npm install express
+[...]
+``````
+[...]
+const express = require('express');
+[...]
+port = 3000;
+[...]
+, res)
+[...]
+{
+[...]
+app.listen(port, () => {
+[...]
+on http://
+[...]
+:${port}`);
+[...]
+``````
+sudo node app.js
+
+``````
+http://your-server-ip:3000
+
+``````
+sudo nano /etc/nginx/sites-available/myapp
+
+``````
+server {
+    listen 80;
+    server_name your_domain_or_ip; location / { proxy_pass http://localhost:3000; # Forward requests to your backend server proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection 'upgrade'; proxy_set_header Host $host; proxy_cache_bypass $http_upgrade; } }
+``````
+sudo ln -s /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/
+
+``````
+sudo nginx -t
+sudo systemctl restart nginx
+
+``````
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your_domain_or_ip
+
+```
+[...]
+✕
+
+---
+
+Title: Install and configure Nginx - Ubuntu
+Key Highlights:
+Install and configure Nginx | Ubuntu
+
+Your submission was sent successfully! Close
+
+Thank you for contacting us. A member of our team will be in touch shortly. Close
+
+You have successfully unsubscribed! Close
+
+Thank you for signing up for our newsletter! In these regular emails you will find the latest updates about Ubuntu and upcoming events where you can meet our team. e.preventDefault()">Close
+
+Your preferences have been successfully updated. Close notification
+
+Please try again or file a bug report. Close
+
+# Install and configure Nginx
+
+## 1. Overview
+
+Nginx (pronounced as “Engine-X”) is an open source web server that is often used as reverse proxy or HTTP cache. It is available for Linux for free.
+
+In this tutorial we’ll install Nginx and set up a basic site.
+
+### What you’ll learn
+
+- How to set up Nginx
+- Some basic Nginx configuration
+
+### What you’ll need
+
+- A computer running Ubuntu Server 16.04 LTS
+- Some basic knowledge of command line use
+
+Originally authored by Nicole Mikołajczyk
+
+---
+
+## 2. Installing Nginx
+
+To install Nginx, use following command:
+
+```
+sudo apt update
+sudo apt install nginx
+
+```
+
+After installing it, you already have everything you need.
+
+You can point your browser to your server IP address. You should see this page:
+
+If you see this page, you have successfully installed Nginx on your web server.
+
+---
+
+## 3. Creating our own website
+
+Default page is placed in`/var/www/html/` location. You can place your static pages here, or use virtual host and place it other location.
+
+Virtual host is a method of hosting multiple domain names on the same server.
+
+Let’s create simple HTML page in`/var/www/tutorial/`(it can be anything you want). Create`index.html` file in this location.
+
+```
+cd /var/www
+sudo mkdir tutorial
+cd tutorial
+sudo "${EDITOR:-vi}" index.html
+
+```
+
+Paste the following to the`index.html` file:
+
+```
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Hello, Nginx!</title>
+</head>
+<body>
+    <h1>Hello, Nginx!</h1>
+    <p>We have just configured our Nginx web server on Ubuntu Server!</p>
+</body>
+</html>
+
+```
+
+Save this file. In next step we are going to set up virtual host to make Nginx use pages from this location.
+
+---
+
+## 4. Setting up virtual host
+
+To set up virtual host, we need to create file in`/etc/nginx/sites-enabled/` directory.
+
+For this tutorial, we will make our site available on 81 port, not the standard 80 port. You can change it if you would like to.
+
+```
+cd /etc/nginx/sites-enabled
+sudo "${EDITOR:-vi}" tutorial
+
+```
+
+```
+server {
+       listen 81;
+       listen [::]:81;
+
+       server_name example.ubuntu.com;
+
+       root /var/www/tutorial;
+       index index.html;
+
+       location / {
+               try_files $uri $uri/ =404;
+       }
+}
+
+```
+
+`root` is a directory where we have placed our .html file.`index` is used to specify file available when visiting root directory of site.`server_name` can be anything you want, because you aren’t pointing it to any real domain by now.
+
+---
+
+## 5. Activating virtual host and testing results
+
+To make our site working, simply restart Nginx service.
+
+```
+sudo service nginx restart
+
+```
+
+Let’s check if everything works as it should. Open our newly created site in web browser. Remember that we used :81 port.
+
+Congratulations! Everything works as it should. We have just configured Nginx web server.
+
+---
+
+## 6. That’s all!
+
+I hope that this tutorial explained you the basics of working with Nginx. Of course, it’s much more powerful tool. You can find more in official resources, available on Nginx site.
+
+If you need more guidance on using Nginx, help is always at hand:
+
+### Further reading:
+
+- Nginx Begineer’s Guide
+- The Complete NGINX Cookbook – free e-book from O’Reilly
+
+Was this tutorial useful?
+
+Thank you for your feedback.
+
+---
+
+---
+
+© 2026 Canonical Ltd.
+
+Ubuntu and Canonical are registered trademarks of Canonical Ltd.
+
+---
+
+---
+
+Title: How to set up an NGINX reverse proxy on Ubuntu 22.04 - IONOS
+Key Highlights:
+Using NGINX as a reverse proxy is a popular option. To set it up, all you have to do is install NGINX, create a configuration file and adjust your server settings. You can also test whether the setup was successful with Gunicorn.
+[...]
+Reverse proxies can help increase security, flexibility and resource availability. They are placed in between the client and the server and aren’t detectible to users. The NGINX reverse proxy is a highly recommended solution for incoming requests. Below we’ll explain how to install it and set it up on Ubuntu 22.04.
+[...]
+### What are the system requirements for NGINX as a reverse proxy?
+[...]
+To set up an NGINX reverse proxy on Ubuntu 22.04, you’ll need the following:
+[...]
+- A fully configured Ubuntu server
+- The server’s IP address or Unix domain socket
+- The domain of your server
+- `sudo` privileges for the server
+[...]
+### Installing NGINX as a reverse proxy
+[...]
+First, update your repository using the terminal, in order to get access to the latest packages. Then install NGINX using the`apt install` command. Here is the code:
+[...]
+```
+$ sudo apt update
+$ sudo apt install nginx
+[...]
+with [Y] and press [Enter] to apply the settings.
+[...]
+Next, configure your firewall so that NGINX has access to your server. You can use the following command to add an exception:
+[...]
+```
+$ sudo ufw allow 'Nginx HTTP'
+[...]
+Then check that the installation was successful:
+[...]
+```
+$ systemctl status nginx
+[...]
+### Creating the configuration file and adapting the server
+[...]
+Now you can configure your server block to prepare the NGINX reverse proxy for your system. To do that, create and open a new configuration file with the text editor Nano. Enter the following command, and be sure to replace the placeholder ‘your_domain’ with the name of your domain:
+[...]
+```
+$ sudo nano /etc/nginx/sites-available/your_domain
+```
+[...]
+When the file is open, add the following content. Replace the placeholders ‘your_domain’ and ‘server_address’ with the domain and IP or Unix domain socket for your server:
+[...]
+```
+server {
+    listen 80;
+    listen [::]:80;
+    server_name your_domain www.your_domain;
+        
+    location / {
+        proxy_pass http://server_address;
+        include /etc/nginx/proxy_params;
+    }
+}
+```
+[...]
+Save and close the file. The content shown is the default setup for NGINX. It uses port 80 to respond to requests from your domain and server.`proxy_pass` is an essential component for NGINX’s role as a reverse proxy. You can also set up additional servers if needed.
+[...]
+Next, create a link to the`sites-enabled` directory that NGINX accesses at the beginning. Use the following command and don’t forget to replace the ‘your_domain’ placeholder:
+[...]
+```
+$ sudo ln -s /etc/nginx/sites-available/your_domain/etc/nginx/sites-enabled/
+```
+[...]
+Check your configuration for errors:
+[...]
+```
+$ sudo nginx -t
+[...]
+If you don’t receive any error messages, you can now restart the NGINX reverse proxy to apply the settings. To do that, enter the following command:
+[...]
+```
+$ sudo systemctl restart nginx
+```
+[...]
+You’re now done configuring NGINX as a reverse proxy. In the next section, we explain how to check the proxy. That testing is, however, optional.
+[...]
+That’s the confirmation that Gunicorn is interacting with the address`http://127.0.0.1:8000`. Finally, open your
+[...]
+and go to the domain you configured with NGINX. The NGINX reverse proxy will show the message ‘This is a test’.

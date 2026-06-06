@@ -1,0 +1,492 @@
+Title: Overview of file systems in Linux | Storage Administration Guide | SLES 15 SP7
+Key Highlights:
+Overview of file systems in Linux | Storage Administration Guide | SLES 15 SP7 
+
+ 
+
+ 
+
+SUSE Linux Enterprise Server Documentation| Storage Administration Guide| File systems and mounting| Overview of file systems in Linux
+
+On this page
+
+Applies to SUSE Linux Enterprise Server 15 SP7
+
+# 1 Overview of file systems in Linux #
+
+Revision History: SUSE Linux Enterprise Server Documentation
+
+SUSE Linux Enterprise Server ships with different file systems from which to choose, including Btrfs, Ext4, Ext3, Ext2 and XFS. Each file system has its own advantages and disadvantages. For a side-by-side feature comparison of the major file systems in SUSE Linux Enterprise Server, see https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP3/#file-system-comparison(Comparison of supported file systems). This chapter contains an overview of how these file systems work and what advantages they offer.
+
+Btrfs is the default file system for the operating system and XFS is the default for all other use cases. SUSE also continues to support the Ext family of file systems and OCFS2. By default, the Btrfs file system will be set up with subvolumes. Snapshots will be automatically enabled for the root file system using the snapper infrastructure. For more information about snapper, refer to Chapter 10, System recovery and snapshot management with Snapper.
+
+Professional high-performance setups might require a highly available storage system. To meet the requirements of high-performance clustering scenarios, SUSE Linux Enterprise Server includes OCFS2 (Oracle Cluster File System 2) and the Distributed Replicated Block Device (DRBD) in the High Availability add-on. These advanced storage systems are not covered in this guide. For information, see the Administration Guide for SUSE Linux Enterprise High Availability.
+
+It is very important to remember that no file system best suits all kinds of applications. Each file system has its particular strengths and weaknesses, which must be taken into account. In addition, even the most sophisticated file system cannot replace a reasonable backup strategy.
+
+The terms data integrity and data consistency, when used in this section, do not refer to the consistency of the user space data (the data your application writes to its files). Whether this data is consistent must be controlled by the application itself.
+
+Unless stated otherwise in this section, all the steps required to set up or change partitions and file systems can be performed by using the YaST Partitioner (which is also strongly recommended). For information, see Chapter 11, Expert Partitioner.
+
+## 1.1 Terminology #
+
+metadata
+
+A data structure that is internal to the file system. It ensures that all of the on-disk data is properly organized and accessible. Almost every file system has its own structure of metadata, which is one reason the file systems show different performance characteristics. It is extremely important to maintain metadata intact, because otherwise all data on the file system could become inaccessible.
+
+inode
+
+A data structure on a file system that contains a variety of information about a file, including size, number of links, pointers to the disk blocks where the file contents are actually stored, and date and time of creation, modification, and access.
+
+journal
+
+In the context of a file system, a journal is an on-disk structure containing a type of log in which the file system stores what it is about to change in the file system’s metadata. Journaling greatly reduces the recovery time of a file system because it has no need for the lengthy search process that checks the entire file system at system start-up. Instead, only the journal is replayed.
+
+## 1.2 Btrfs #
+
+Btrfs is a copy-on-write (COW) file system developed by Chris Mason. It is based on COW-friendly B-trees developed by Ohad Rodeh. Btrfs is a logging-style file system. Instead of journaling the block changes, it writes them in a new location, then links the change in. Until the last write, the new changes are not committed.
+
+### 1.2.1 Key features #
+
+Btrfs provides fault tolerance, repair, and easy management features, such as the following:
+
+Writable snapshots that allow you to easily roll back your system if needed after applying updates, or to back up files.
+
+Subvolume support: Btrfs creates a default subvolume in its assigned pool of space. It allows you to create additional subvolumes that act as individual file systems within the same pool of space. The number of subvolumes is limited only by the space allocated to the pool.
+
+The online check and repair functionality`scrub` is available as part of the Btrfs command line tools. It verifies the integrity of data and metadata, assuming the tree structure is fine. You can run scrub periodically on a mounted file system; it runs as a background process during normal operation.
+
+Different RAID levels for metadata and user data.
+
+Different checksums for metadata and user data to improve error detection.
+
+Integration with Linux Logical Volume Manager (LVM) storage objects.
+
+Integration with the YaST Partitioner and AutoYaST on SUSE Linux Enterprise Server. This also includes creating a Btrfs file system on Multiple Devices (MD) and Device Mapper (DM) storage configurations.
+
+Offline migration from existing Ext2, Ext3, and Ext4 file systems.
+
+Boot loader support for`/boot`, allowing to boot from a Btrfs partition.
+
+Multi-volume Btrfs is supported in RAID0, RAID1, and RAID10 profiles in SUSE Linux Enterprise Server 15 SP7. Higher RAID levels are not supported yet, but might be enabled with a future service pack.
+
+Use Btrfs commands to set up transparent compression.
+
+### 1.2.2 The root file system setup on SUSE Linux Enterprise Server #
+
+By default, SUSE Linux Enterprise Server is set up using Btrfs and snapshots for the root partition. Snapshots allow you to easily roll back your system if needed after applying updates, or to back up files. Snapshots can easily be managed with the SUSE Snapper infrastructure as explained in Chapter 10, System recovery and snapshot management with Snapper. For general information about the SUSE Snapper project, see the Snapper Portal wiki at OpenSUSE.org (http://snapper.io).
+
+When using a snapshot to roll back the system, it must be ensured that data such as user's home directories, Web and FTP server contents or log files do not get lost or overwritten during a roll back. This is achieved by using Btrfs subvolumes on the root file system. Subvolumes can be excluded from snapshots. The default root file system setup on SUSE Linux Enterprise Server as proposed by YaST during the installation contains the following 
+
+---
+
+Title: Guide to Linux Filesystems
+Key Highlights:
+Guide to Linux Filesystems | Baeldung on Linux
+# Guide to Linux Filesystems
+Powered By
+10 Sec
+Spring Security - URL Authorization (LSS - Module 1 - Lesson 3)
+Next
+Stay
+
+
+Last updated:March 18, 2024
+
+Written by:Allan Anderson
+
+Reviewed by:Grzegorz Piwowarek
+* Filesystems
+* Definition
+* reference
+## 1. Overview
+Filesystems describe our data. With filesystems, we have folders, access control, and named files. Without them, our disk would be just a soup of bits. We wouldn’t know where anything was stored, where things start or end, or any external information (metadata).
+A filesystem’s number one job is to keep our data safe. We want our data quick to access, easy to manage, and above all, it must be correct and in the place where we put it. Storage hardware failure (hard drive crashes) areall too common,statistically. This means that we need to look deeper into storage management if our data is valuable to us.
+It’s easy to ignore filesystems and go with defaults. In today’s Linux, that means the ext4 or XFS filesystems. But we have other, more advanced options:**brtfs**and**ZFS**. These “next-generation” filesystems let us work more flexibly and safely with larger amounts of storage.
+In this article, we’ll look into some of what we get from default filesystems, as well as what the next generation of filesystems offers.
+## 2. Defaults:*ext4*and XFS
+Over time, these two filesystems have grown to serve very similar needs. They’re fast and reliable journaled filesystems. Ubuntu has used ext4 by default since 2009’s Karmic Koala release. 2010’s Red Hat Enterprise Linux 6.0 also used ext4. RHEL 7.0 moved to XFS in 2014.
+A filesystem is such a fundamental piece of our stable system that kernel and distribution maintainersmove slowly and carefully in adopting changes.
+**If we install Ubuntu or Debian today, our storage will use ext4. If we install Red Hat Enterprise Linux or SuSE, we’ll get XFS.**
+### 2.1. Yesterday’s High Tech: Journals, Extents, and Limited Checksums
+Since their introduction to Linux, these two filesystems have grown closer and closer in feature parity. XFS started out more advanced, and it continues to work well. However, ext4 now successfully adds on much of what once differentiated XFS:
+* Journals: A filesystem “journal” writes a duplicate log of all changes to the filesystem. If a write to the filesystem is interrupted (power outage), the system examines the journal and “plays it back” to minimize data loss and file corruption. (Previously, filesystem correctness relied on “checker” tools like*fsck*.)
+* Extents: Traditionally, filesystems would maintain a “map” of their contents, block by block. A default block is usually 4,096 bytes, so as storage has increased, we can imagine how large these maps have become. Instead, XFS and ext4 map out pieces of data in larger chunks called “extents”. Specifically, an extent map is two numbers: the starting block address and the length of the extent (in blocks). This works well for large volumes and large files, removing the need to track the file membership of each block.
+* Checksums: How do we know our data has not become corrupted? One way is by calculating a checksum —a shorter “magic number” that changes when our larger data changes. We used to do this by running a check-and-repair program: the difficult-to-pronounce*fsck*. XFS and ext4 now calculate a checksum on metadata and their journal files. This is useful, though far less complete than the block-by-block checksums of btrfs and ZFS.
+Although both ext4 and XFS are excellent at what they do, neither are suited to some of today’s more complex storage challenges.
+### 2.2. The*ext*Filesystems
+The “extended filesystem” remains the most popular filesystem in use with Linux. Starting with ext in 1992, the filesystem quickly moved to ext2 in 1993, grew to add a journal with ext3 in 2001, and got a future-proofing tune-up in 2008 with ext4.
+The ext4 filesystem continues the philosophy of its predecessors: be fast and fix it if it breaks. However, ext3 and ext4 add data safety features like a journal and limited checksums.
+ext4 also makes possible larger volumes and files (up from ext3’s 16 terabyte maximum). Its adoption ofextentsfurther helps with larger files, like media and some databases.
+But ext4 also works well with collections of many smaller files. It removes ext3’s previous cap on subdirectories (ext3 topped out at an admittedly generous 32,000).
+There is a reason the ext series of filesystems has lasted so long as the default for Linux: It’s the well-tested workhorse that prioritizes speed and “good-enough” data validation.
+### 2.3. XFS: 90s for “Big Iron”
+Silicon Graphics, Inc., created XFS in 1993 for their IRIX Unix OS. SGI famously pushed the limits of computer graphics production. They relied on their own custom high-end and highly parallel hardware to achieve this.
+As a result, SGI required a filesystem that could reliably address huge files using multiple CPUs and drive controllers. Reliability meant keeping a journal to avoid file corruption. Addressing large files meant making XFS 64-bit (back before 64-bit was cool). And allowing multiple CPUs to read and write these giant files meant the developers of XFS needed to remove the standard practices of placing a lock around an i-node during access.
+We can imagine the additional complexity of allowing simultaneous access by potentially hundreds of CPU cores! But designing a software system this fine-grained paid off for their highly parallel hardware. Like macOS and iOS fits Apple hardware, XFS fit SGI’s ecosystem.
+XFS was ported to Linux and entered the kernel in 2001. It’s now available and reliable on just about every Linux distribution.
+If we’re building a system with large storage requirements, large files, and multi-threaded I/O, we should consider XFS. But for smaller and lighter loads, ext4 may suit us better.
+**Will our system be grinding through media files or big data? If so, we should look into XFS or one of the next-generation filesystems.**
+**Will we be running a microservice? If that’s the case, we may want to stick to ext4.**
+### 2.4. Trying It Out
+Finally! Let’s get our hands dirty! The simplest way to experience different filesystems is a fresh install of Linux. But if we want to experiment on existing systems, that’s an option, too.
+The ext4 filesystem is already everywhere. Let’s look in the*/sbin*directory:
+```
+`$ls-l /sbin/mkfs.ext\*
+lrwxrwxrwx 1 root root 6 Feb 21 23:30 /sbin/mkfs.ext2 ->> mke2fs
+lrwxrwxrwx 1 root root 6 Feb 21 23:30 /sbin/mkfs.ext3 ->> mke2fs
+lrwxrwxrwx 1 root root 6 Feb 21 23:30 /sbin/mkfs.ext4 ->> mke2fs`Copy
+```
+These links convenie
+
+---
+
+Title: Linux File System Types Explained, Which One Should You Use
+Key Highlights:
+Linux File System Types Explained, Which One Should You Use 
+
+Table of Contents
+
+[Open] [Close]
+
+XFS File System
+
+- Best Use Cases for XFS File System
+
+Btrfs File System
+
+- How Does Copy-on-Write Work and Why Would You Want it
+- Btrfs Features
+
+ZFS File System
+
+- ZFS Features
+
+Choosing a Linux file system for your application is an important decision. This tutorial describes some of the major Linux file systems and provides recommendations on the right file system to suit your application.
+
+## What is Linux File System
+
+Almost every bit of data and programming needed to boot a Linux system and keep it working is saved in the file system. For example, the operating system itself, compilers, application programs, shared libraries, configuration files, log files, media mount points, etc.
+
+File systems operate in the background. Like the rest of an operating system’s kernel, they’re largely invisible in everyday use.
+
+Linux file system is generally a built-in layer of a Linux operating system used to handle the storage data management. It controls how data is stored and retrieved.
+
+In addition, it manages the file name, file size, creation date, and much more information about a file.
+
+## Ext4 File System
+
+In 1992 the Extended File System or ext was launched specifically for the Linux operating system. It has its roots in the Minix Operating system. In 1993 an update called Extended File System 2 or ext2 was released and was the default file system in many Linux distros for many years.
+
+By 2001 ext2 was upgraded to ext3, which introduced journaling to protect against corruption in crashes or power failures.
+
+Ext4 (Fourth Extended Filesystem) was introduced in 2008, and it has been the default Linux filesystem since 2010. It was designed as a progressive revision of the ext3 file system and overcame some limitations in ext3.
+
+As a result, ext4 has significant advantages over its predecessor, such as improved design, better performance, reliability, and new features.
+
+Nowadays ext4 is the default file system on most Linux distributions. It can support large files and file systems of up to 16 terabytes.
+
+It also supports an unlimited number of sub-directories (the ext3 file system only supports up to 32,000). Further, ext4 is backward compatible with ext3 and ext2, allowing these older versions to be mounted with the ext4 driver.
+
+There is a reason ext4 is the default choice for most Linux distributions. It’s tried, tested, stable, performs excellent, and is widely supported. So if you are looking for stability, ext4 is the best Linux filesystem for you.
+
+Despite its features, ext4 does not support transparent compression, transparent encryption, or data deduplication.
+
+## XFS File System
+
+XFS is a highly scalable file system developed by Silicon Graphics and first deployed in the Unix-based IRIX operating system in 1994. It is a journaling file system and, as such, keeps track of changes in a log before committing the changes to the main file system.
+
+The advantage is guaranteed consistency of the file system and expedited recovery in the event of power failures or system crashes.
+
+Initially, XFS was created to support extremely large filesystems with sizes of up to 16 exabytes and file sizes of up to 8 exabytes. As a result, it has a long history of running on large servers and storage arrays.
+
+One notable feature of XFS is Guaranteed Rate IO. This allows applications to reserve bandwidth. The file system calculates the available performance and adjusts its operation according to the existing reservations.
+
+XFS has a reputation for operating in environments that require high performance and scalability and hence is routinely measured as one of the highest performing file systems on large systems with enterprise workloads.
+
+Today XFS is supported by most Linux distributions and has become the default filesystem on Red Hat Enterprise Linux, Oracle Linux, CentOS, and many other distributions.
+
+### Best Use Cases for XFS File System
+
+So, do you have a large server? Do you have large storage requirements or have a local, slow SATA drive?
+
+If both your server and your storage device are large, and there is no need to reduce the filesystem size, XFS is likely to be the best choice.
+
+XFS is an excellent filesystem, that scales well for large servers. But even with smaller storage arrays, XFS performs very well when the average file sizes are large, for example, hundreds of megabytes in size.
+
+## Btrfs File System
+
+Btrfs is the next-generation general-purpose Linux file system that offers unique features like advanced integrated device management, scalability, and reliability. It is licensed under the GPL and open for contribution from anyone. Different names are used for the file system, including “Butter FS,” “B-tree FS,” and “Better FS.”
+
+Btrfs development began at Oracle in 2007. It was merged into the mainline Linux kernel in 2009 and debuted in the Linux 2.6.29 release.
+
+Btrfs is not a successor to the default ext4 file system used in most Linux distributions, but it offers better scalability and reliability. Instead, Btrfs is a copy-on-write (CoW) file system intended to address various weaknesses in current Linux file systems.
+
+Btrfs primarily focuses on fault tolerance, self-healing properties, and easy administration.
+
+Btrfs can support up to a 16 exbibyte partition and a file of the same size. So, if you are confused by the numbers, all you need to know is that Btrfs can support up to sixteen times the data of Ext4.
+
+### How Does Copy-on-Write Work and Why Would You Want it
+
+On a traditional file system, modifying a file would read the data, change it and then write it back to the same place. In a copy-on-write file system, it reads the data, modifies it, and writes it to a new location. This prevents data loss during the read-modify-write transaction because the data is always on a disk.
+
+Since you don’t “repoint” until the new block is entirely written out, if you lose power or crash in the middle of a write, you end up with either the old block or the new block, but not a half-written corrupted block. So you don’t need to`fsck` filesystems on startup, and you lower your risk of data corruption.
+
+You can snapshot the filesystem at any point, creating a snapshot entry in the metadata with the current set of pointers.
+
+This protects old blocks from being garbage collected later on and allows the filesystem to present a volume as it was during the snapshot. In other words, you have instant rollback capabilities. You can even clone that volume to make it a writable volume based on the snapshot.
+
+Your other choice is ZFS on Linux, which may be mor
+
+---
+
+Title: filesystems(5) - Linux manual page
+Key Highlights:
+filesystems(5) - Linux manual page
+
+ 
+
+man7.org> Linux > man-pages
+
+Linux/UNIX system programming training
+
+---
+
+ 
+
+# filesystems(5) — Linux manual page
+
+NAME | DESCRIPTION | SEE ALSO | COLOPHON
+
+ 
+
+```
+filesystems(5)             File Formats Manual             filesystems(5)
+```
+
+## NAME top
+
+```
+
+       filesystems - Linux filesystem types: ext, ext2, ext3, ext4, hpfs,
+       iso9660, JFS, minix, msdos, ncpfs nfs, ntfs, proc, Reiserfs, smb,
+       sysv, umsdos, vfat, XFS, xiafs
+
+```
+
+## DESCRIPTION top
+
+```
+
+       When, as is customary, the proc filesystem is mounted on /proc,
+       you can find in the file /proc/filesystems which filesystems your
+       kernel currently supports; see proc(5) for more details.  There is
+       also a legacy sysfs(2) system call (whose availability is
+       controlled by the CONFIG_SYSFS_SYSCALL kernel build configuration
+       option since Linux 3.15) that enables enumeration of the currently
+       available filesystem types regardless of /proc availability and/or
+       sanity.
+
+       If you need a currently unsupported filesystem, insert the
+       corresponding kernel module or recompile the kernel.
+
+       In order to use a filesystem, you have to mount it; see mount(2)
+       and mount(8).
+
+       The following list provides a short description of the available
+       or historically available filesystems in the Linux kernel.  See
+       the kernel documentation for a comprehensive description of all
+       options and limitations.
+
+       erofs  is the Enhanced Read-Only File System, stable since Linux
+              5.4.  See erofs(5).
+
+       ext    is an elaborate extension of the minix filesystem.  It has
+              been completely superseded by the second version of the
+              extended filesystem (ext2) and has been removed from the
+              kernel (in Linux 2.1.21).
+
+       ext2   is a disk filesystem that was used by Linux for fixed disks
+              as well as removable media.  The second extended filesystem
+              was designed as an extension of the extended filesystem
+              (ext).  See ext2(5).
+
+       ext3   is a journaling version of the ext2 filesystem.  It is easy
+              to switch back and forth between ext2 and ext3.  See
+              ext3(5).
+
+       ext4   is a set of upgrades to ext3 including substantial
+              performance and reliability enhancements, plus large
+              increases in volume, file, and directory size limits.  See
+              ext4(5).
+
+       hpfs   is the High Performance Filesystem, used in OS/2.  This
+              filesystem is read-only under Linux due to the lack of
+              available documentation.
+
+       iso9660
+              is a CD-ROM filesystem type conforming to the ISO/IEC 9660
+              standard.
+
+              High Sierra
+                     Linux supports High Sierra, the precursor to the
+                     ISO/IEC 9660 standard for CD-ROM filesystems.  It is
+                     automatically recognized within the iso9660
+                     filesystem support under Linux.
+
+              Rock Ridge
+                     Linux also supports the System Use Sharing Protocol
+                     records specified by the Rock Ridge Interchange
+                     Protocol.  They are used to further describe the
+                     files in the iso9660 filesystem to a UNIX host, and
+                     provide information such as long filenames, UID/GID,
+                     POSIX permissions, and devices.  It is automatically
+                     recognized within the iso9660 filesystem support
+                     under Linux.
+
+       JFS    is a journaling filesystem, developed by IBM, that was
+              integrated into Linux 2.4.24.
+
+       minix  is the filesystem used in the Minix operating system, the
+              first to run under Linux.  It has a number of shortcomings,
+              including a 64 MB partition size limit, short filenames,
+              and a single timestamp.  It remains useful for floppies and
+              RAM disks.
+
+       msdos  is the filesystem used by DOS, Windows, and some OS/2
+              computers.  msdos filenames can be no longer than 8
+              characters, followed by an optional period and 3 character
+              extension.
+
+       ncpfs  is a network filesystem that supports the NCP protocol,
+              used by Novell NetWare.  It was removed from the kernel in
+              Linux 4.17.
+
+              To use ncpfs, you need special programs, which can be found
+              at ⟨ftp://ftp.gwdg.de/pub/linux/misc/ncpfs⟩.
+
+       nfs    is the network filesystem used to access disks located on
+              remote computers.
+
+       ntfs   is the filesystem native to Microsoft Windows NT,
+              supporting features like ACLs, journaling, encryption, and
+              so on.
+
+       proc   is a pseudo filesystem which is used as an interface to
+              kernel data structures rather than reading and interpreting
+              /dev/kmem.  In particular, its files do not take disk
+              space.  See proc(5).
+
+       Reiserfs
+              is a journaling filesystem, designed by Hans Reiser, that
+              was integrated into Linux 2.4.1.
+
+       smb    is a network filesystem that supports the SMB protocol,
+              used by Windows.  See ⟨https://www.samba.org/samba/smbfs/⟩.
+
+       sysv   is an implementation of the System V/Coherent filesystem
+              for Linux.  It implements all of Xenix FS, System V/386 FS,
+              and Coherent FS.
+
+       umsdos is an extended DOS filesystem used by Linux.  It adds
+              capability for long filenames, UID/GID, POSIX permissions,
+              and special files (devices, named pipes, etc.) under the
+              DOS filesystem, without sacrificing compatibility with DOS.
+
+       tmpfs  is a filesystem whose contents reside in virtual memory.
+              Since the files on such filesystems typically reside in
+              RAM, file access is extremely fast.  See tmpfs(5).
+
+       vfat   is an extended FAT filesystem used by Microsoft Windows95
+              and Windows NT.  vfat adds the capability to use long
+              filenames under the MSDOS filesystem.
+
+       XFS    is a journaling filesystem, developed by SGI, that was
+              integrated into Linux 2.4.20.
+
+       xiafs  was designed and implemented to be a stable, safe
+              filesystem by extending the Minix filesystem code.  It
+              provides the basic most requested features without undue
+              complexity.  The xiafs filesystem is no longer activ
+
+---
+
+Title: Chapter 1. Overview of available file systems | 8
+Key Highlights:
+## 1.1. Types of file systemsCopy
+[...]
+Red Hat Enterprise Linux 8 supports a variety of file systems (FS). Different types of file systems solve different kinds of problems, and their usage is application specific. At the most general level, available file systems can be grouped into the following major types:
+[...]
+Disk or local FS
+[...]
+XFS is the default file system in RHEL. Red Hat recommends deploying XFS as your local file system unless there are specific reasons to do otherwise: for example, compatibility or corner cases around performance.
+[...]
+ext4 has the benefit of familiarity in Linux, having evolved from the older ext2 and ext3 file systems. In many cases, it rivals XFS on performance. Support limits for ext4 filesystem and file sizes are lower than those on XFS.
+[...]
+Network or client-and-server FS
+[...]
+Use NFS to share files between multiple systems on the same network.
+[...]
+Use SMB for file sharing with Microsoft Windows systems.
+[...]
+Shared storage or shared disk FS
+[...]
+GFS2 provides shared write access to members of a compute cluster. The emphasis is on stability and reliability, with the functional experience of a local file system as possible. SAS Grid, Tibco MQ, IBM Websphere MQ, and Red Hat Active MQ have been deployed successfully on GFS2.
+[...]
+Volume-managing FS
+[...]
+Stratis (Technology Preview)
+[...]
+Stratis is a volume manager built on a combination of XFS and LVM. The purpose of Stratis is to emulate capabilities offered by volume-managing file systems like Btrfs and ZFS. It is possible to build
+[...]
+stack manually, but Stratis reduces configuration complexity
+[...]
+## 1.2. Local file systemsCopy link
+[...]
+Local file systems are file systems that run on a single, local server and are directly attached to storage.
+[...]
+For example, a local file system is the only choice for internal SATA or SAS disks, and is used when your server has internal hardware RAID controllers with local drives. Local file systems are also the most common file systems used on SAN attached storage when the device exported on the SAN is not shared.
+[...]
+Available local file systems
+[...]
+- Legal Notice
+- XFS
+- ext4
+[...]
+## 1.3. The XFS file systemCopy link
+[...]
+XFS is a
+[...]
+system that supports
+[...]
+. It is the default file
+[...]
+## 1.4. The ext4 file systemCopy link
+[...]
+The ext4 file system is the fourth generation of the ext file system family. It was the default file system in Red Hat Enterprise Linux 6.
+[...]
+To choose a file system that meets your application requirements, you must
+[...]
+system on which you will deploy the file system. In general, use XFS unless you have a specific use case for ext4
+[...]
+, use XFS
+[...]
+## 1.7. Network file systemsCopy link
+[...]
+Network file systems, also referred to as client/server file systems, enable client systems to access files that are stored on a shared server. This makes it possible for multiple users on multiple systems to share files and storage resources.
+[...]
+Available network file systems
+[...]
+- The most common client/server file system for RHEL customers is the NFS file system. RHEL provides both an NFS server component to export a local file system over the network and an NFS client to import these file systems.
+- RHEL also includes a CIFS client that supports the popular Microsoft SMB file servers for Windows interoperability. The userspace Samba server provides Windows clients with a Microsoft SMB service from a RHEL server.
+[...]
+## 1.8. Shared storage file systemsCopy link
+[...]
+Shared storage file systems, sometimes referred to as cluster file systems, give each server in the cluster direct access to a shared block device over a local storage area network (SAN).
+[...]
+- NFS-based network file systems are an extremely common and popular choice for environments that provide NFS servers.
+- Network file systems can be deployed using very high-performance networking technologies like Infiniband or 10 Gigabit Ethernet. This means that you should not turn to shared storage file systems just to get raw bandwidth to your storage. If the speed of access is of prime importance, then use NFS to export a local file system like XFS.
+[...]
+shared storage file systems
+[...]
+Use shared storage file systems primarily for deployments that

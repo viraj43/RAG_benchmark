@@ -1,0 +1,1559 @@
+Title: How to Set Up a Reverse Proxy with Nginx on Ubuntu
+[Sign in](/accounts) [Sign up](/accounts/register)
+
+![OneUptime](/img/3-transparent.svg)
+
+Enterprise
+
+[DevOps](/solutions/devops)  [SRE](/solutions/sre)  [Platform](/solutions/platform)
+
+[Pricing](/pricing) [Docs](/docs) [Request Demo](/enterprise/demo) [Support](/support)
+
+[Sign up](/accounts/register)
+
+Existing customer? [Sign in](/accounts)
+
+![]()
+
+# How to Set Up a Reverse Proxy with Nginx on Ubuntu
+
+Configure Nginx as a reverse proxy on Ubuntu with SSL termination using Let's Encrypt for secure HTTPS traffic handling.
+
+[![Nawaz Dhandala](https://avatars.githubusercontent.com/nawazdhandala) @nawazdhandala](https://github.com/nawazdhandala)  • Jan 07, 2026 •  Reading time
+
+[Ubuntu](/blog/tag/ubuntu)   [Linux](/blog/tag/linux)   [Nginx](/blog/tag/nginx)   [Reverse Proxy](/blog/tag/reverse-proxy)   [SSL](/blog/tag/ssl)   [TLS](/blog/tag/tls)   [Let's Encrypt](/blog/tag/let's-encrypt)
+
+## On this page
+
+---
+
+A reverse proxy sits between your clients and backend servers, forwarding client requests to the appropriate server and returning the server's response to the client. Nginx is one of the most popular choices for implementing a reverse proxy due to its high performance, stability, and rich feature set. In this comprehensive guide, we will walk through setting up Nginx as a reverse proxy on Ubuntu, complete with SSL termination using Let's Encrypt, WebSocket support, load balancing, and security hardening.
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Installing Nginx on Ubuntu](#installing-nginx-on-ubuntu)
+3. [Understanding Reverse Proxy Concepts](#understanding-reverse-proxy-concepts)
+4. [Basic Reverse Proxy Configuration](#basic-reverse-proxy-configuration)
+5. [SSL/TLS with Let's Encrypt and Certbot](#ssltls-with-lets-encrypt-and-certbot)
+6. [Setting Up Auto-Renewal](#setting-up-auto-renewal)
+7. [WebSocket Proxying](#websocket-proxying)
+8. [Load Balancing Basics](#load-balancing-basics)
+9. [Security Headers Configuration](#security-headers-configuration)
+10. [Testing and Troubleshooting](#testing-and-troubleshooting)
+11. [Best Practices](#best-practices)
+12. [Conclusion](#conclusion)
+
+## Prerequisites
+
+Before we begin, ensure you have the following:
+
+* Ubuntu 20.04 LTS or later (this guide uses Ubuntu 22.04/24.04)
+* A user account with sudo privileges
+* A registered domain name pointing to your server's public IP address
+* At least one backend application running (e.g., Node.js, Python, Go, or any HTTP service)
+* Open ports 80 (HTTP) and 443 (HTTPS) in your firewall
+
+## Installing Nginx on Ubuntu
+
+Let's start by installing Nginx from the official Ubuntu repositories.
+
+### Update the package index and install Nginx
+
+```
+# Update the package index to ensure we get the latest version sudo apt update # Install Nginx web server sudo apt install nginx -y
+```
+
+### Verify the installation and check the service status
+
+```
+# Check if Nginx is running sudo systemctl status nginx # Enable Nginx to start automatically on system boot sudo systemctl enable nginx # Verify the installed version nginx -v
+```
+
+### Configure the firewall to allow HTTP and HTTPS traffic
+
+```
+# Allow Nginx Full profile (both HTTP and HTTPS) sudo ufw allow 'Nginx Full' # Verify the firewall rules sudo ufw status
+```
+
+### Test the default Nginx installation
+
+```
+# Check if Nginx is responding on localhost curl -I http://localhost
+```
+
+You should see a response with `HTTP/1.1 200 OK` indicating Nginx is working correctly.
+
+## Understanding Reverse Proxy Concepts
+
+A reverse proxy provides several key benefits:
+
+* **Load Distribution**: Distribute incoming requests across multiple backend servers
+* **SSL Termination**: Handle SSL/TLS encryption at the proxy level, reducing backend server load
+* **Caching**: Cache static content to reduce backend server requests
+* **Security**: Hide backend server details and provide an additional security layer
+* **Compression**: Compress responses before sending to clients
+* **Centralized Logging**: Aggregate access logs in one location
+
+In a typical setup, clients connect to the Nginx reverse proxy, which then forwards requests to one or more backend servers running your applications.
+
+## Basic Reverse Proxy Configuration
+
+Let's configure Nginx as a reverse proxy for a backend application running on port 3000.
+
+### Create a new server block configuration
+
+```
+# Create a new configuration file for your site sudo nano /etc/nginx/sites-available/myapp.conf
+```
+
+### Basic reverse proxy configuration file
+
+```
+# Basic reverse proxy configuration for a single backend server # This configuration forwards all requests to a backend application on port 3000 server { # Listen on port 80 for HTTP connections listen 80; listen [::]:80; # Replace with your actual domain name server_name example.com www.example.com; # Access and error logs for this virtual host access_log /var/log/nginx/myapp.access.log; error_log /var/log/nginx/myapp.error.log; # Main location block - proxies all requests to the backend location / { # Forward requests to the backend application proxy_pass http://127.0.0.1:3000; # Pass the original host header to the backend proxy_set_header Host $host; # Pass the real client IP address to the backend proxy_set_header X-Real-IP $remote_addr; # Pass the full chain of proxy IPs proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # Tell the backend the original protocol (http or https) proxy_set_header X-Forwarded-Proto $scheme; # Connection settings for better performance proxy_http_version 1.1; proxy_set_header Connection ""; # Timeout settings - adjust based on your application needs proxy_connect_timeout 60s; proxy_send_timeout 60s; proxy_read_timeout 60s; } # Optional: Serve static files directly from Nginx for better performance location /static/ { alias /var/www/myapp/static/; expires 30d; add_header Cache-Control "public, immutable"; } }
+```
+
+### Enable the site and test the configuration
+
+```
+# Create a symbolic link to enable the site sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/ # Remove the default site if not needed sudo rm /etc/nginx/sites-enabled/default # Test the Nginx configuration for syntax errors sudo nginx -t # If the test passes, reload Nginx to apply changes sudo systemctl reload nginx
+```
+
+## SSL/TLS with Let's Encrypt and Certbot
+
+Let's Encrypt provides free SSL/TLS certificates. Certbot is the recommended tool for obtaining and managing these certificates.
+
+### Install Certbot and the Nginx plugin
+
+```
+# Install Certbot and the Nginx plugin sudo apt install certbot python3-certbot-nginx -y
+```
+
+### Obtain an SSL certificate for your domain
+
+```
+# Run Certbot with the Nginx plugin # This command will automatically obtain and install the certificate sudo certbot --nginx -d example.com -d www.example.com
+```
+
+During the process, Certbot will:
+
+1. Verify domain ownership via HTTP challenge
+2. Obtain the certificate from Let's Encrypt
+3. Automatically modify your Nginx configuration
+4. Set up HTTPS with recommended security settings
+
+### Understanding the SSL-enabled configuration
+
+After Certbot modifies your configuration, it will look similar to this:
+
+```
+# SSL-enabled reverse proxy configuration # Certbot automatically adds SSL directives and redirects server { # Listen on port 443 for HTTPS connections with HTTP/2 support listen 443 ssl; listen [::]:443 ssl; http2 on; server_name example.com www.example.com; # SSL certificate files managed by Certbot ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; # Include recommended SSL settings from Certbot include /etc/letsencrypt/options-ssl-nginx.conf; # Diffie-Hellman parameters for enhanced security ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # Access and error logs access_log /var/log/nginx/myapp.access.log; error_log /var/log/nginx/myapp.error.log; location / { proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; proxy_http_version 1.1; proxy_set_header Connection ""; } } # HTTP to HTTPS redirect - Certbot adds this automatically server { listen 80; listen [::]:80; server_name example.com www.example.com; # Redirect all HTTP traffic to HTTPS return 301 https://$host$request_uri; }
+```
+
+### Manual SSL configuration with custom settings
+
+For more control over SSL settings, you can manually configure SSL:
+
+```
+# Advanced SSL configuration with custom security settings server { listen 443 ssl; listen [::]:443 ssl; http2 on; server_name example.com www.example.com; # SSL certificate paths ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; # SSL session settings for performance ssl_session_timeout 1d; ssl_session_cache shared:SSL:50m; ssl_session_tickets off; # Modern SSL protocols - disable older insecure protocols ssl_protocols TLSv1.2 TLSv1.3; # Strong cipher suite configuration ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384; # Prefer server ciphers over client ciphers ssl_prefer_server_ciphers off; # OCSP Stapling for faster SSL handshakes ssl_stapling on; ssl_stapling_verify on; ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem; # DNS resolver for OCSP stapling resolver 8.8.8.8 8.8.4.4 valid=300s; resolver_timeout 5s; # Rest of your configuration... location / { proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; } }
+```
+
+## Setting Up Auto-Renewal
+
+Let's Encrypt certificates expire after 90 days. Certbot automatically sets up a renewal timer, but let's verify and customize it.
+
+### Verify the automatic renewal timer
+
+```
+# Check the status of the Certbot renewal timer sudo systemctl status certbot.timer # List all timers to see when renewal will run sudo systemctl list-timers | grep certbot
+```
+
+### Test the renewal process without making changes
+
+```
+# Perform a dry run to test the renewal process sudo certbot renew --dry-run
+```
+
+### Create a custom renewal hook to reload Nginx
+
+```
+# Create a post-renewal hook directory if it doesn't exist sudo mkdir -p /etc/letsencrypt/renewal-hooks/post # Create a script to reload Nginx after certificate renewal sudo nano /etc/letsencrypt/renewal-hooks/post/reload-nginx.sh
+```
+
+### Post-renewal hook script content
+
+```
+#!/bin/bash # This script runs after successful certificate renewal # It reloads Nginx to pick up the new certificates # Log the renewal event echo "$(date): Certificate renewed, reloading Nginx" >> /var/log/letsencrypt-renewal.log # Reload Nginx to apply new certificates systemctl reload nginx # Optional: Send notification email # echo "SSL certificate renewed for $(hostname)" | mail -s "Certificate Renewed" [email protected]
+```
+
+### Make the hook script executable
+
+```
+# Set executable permissions on the renewal hook sudo chmod +x /etc/letsencrypt/renewal-hooks/post/reload-nginx.sh
+```
+
+### Set up a custom cron job for renewal (optional)
+
+```
+# Edit the crontab for root user sudo crontab -e
+```
+
+### Add the following cron entry
+
+```
+# Run certificate renewal check twice daily at 3:00 AM and 3:00 PM # The --quiet flag suppresses output unless there's an error 0 3,15 * * * /usr/bin/certbot renew --quiet --post-hook "systemctl reload nginx"
+```
+
+## WebSocket Proxying
+
+Many modern applications use WebSockets for real-time communication. Here's how to configure Nginx to properly proxy WebSocket connections.
+
+### WebSocket-enabled reverse proxy configuration
+
+```
+# WebSocket-enabled reverse proxy configuration # Supports both regular HTTP and WebSocket upgrade requests # Map to handle WebSocket upgrade headers map $http_upgrade $connection_upgrade { default upgrade; '' close; } server { listen 443 ssl; listen [::]:443 ssl; http2 on; server_name example.com; ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; include /etc/letsencrypt/options-ssl-nginx.conf; # Main application with WebSocket support location / { proxy_pass http://127.0.0.1:3000; # Standard proxy headers proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; # WebSocket specific headers # These are essential for WebSocket connections to work proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection $connection_upgrade; # Extended timeouts for long-lived WebSocket connections # Default timeout is 60s, which would disconnect idle WebSocket clients proxy_read_timeout 86400s; proxy_send_timeout 86400s; # Disable buffering for real-time data proxy_buffering off; } # Dedicated WebSocket endpoint (if your app uses a specific path) location /ws { proxy_pass http://127.0.0.1:3000/ws; proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection $connection_upgrade; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; # Longer timeout for persistent connections proxy_read_timeout 3600s; proxy_send_timeout 3600s; } # Socket.IO specific configuration (if using Socket.IO) location /socket.io/ { proxy_pass http://127.0.0.1:3000/socket.io/; proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection $connection_upgrade; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; proxy_read_timeout 86400s; proxy_buffering off; } }
+```
+
+## Load Balancing Basics
+
+Nginx can distribute traffic across multiple backend servers for improved performance and reliability.
+
+### Define an upstream group and configure load balancing
+
+```
+# Load balancing configuration with multiple backend servers # Distributes incoming requests across multiple application instances # Define the upstream group of backend servers upstream myapp_backend { # Default load balancing method is round-robin # Requests are distributed evenly across all servers # Backend server 1 server 127.0.0.1:3001 weight=3; # Higher weight = more requests # Backend server 2 server 127.0.0.1:3002 weight=2; # Backend server 3 server 127.0.0.1:3003 weight=1; # Backup server - only used when all primary servers are down server 127.0.0.1:3004 backup; # Keep connections alive for better performance keepalive 32; } server { listen 443 ssl; listen [::]:443 ssl; http2 on; server_name example.com; ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; include /etc/letsencrypt/options-ssl-nginx.conf; location / { # Proxy to the upstream group instead of a single server proxy_pass http://myapp_backend; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; # Enable keepalive connections to upstream proxy_http_version 1.1; proxy_set_header Connection ""; } }
+```
+
+### Alternative load balancing methods
+
+```
+# Different load balancing algorithms available in Nginx # 1. Least Connections - sends requests to server with fewest active connections upstream myapp_least_conn { least_conn; server 127.0.0.1:3001; server 127.0.0.1:3002; server 127.0.0.1:3003; } # 2. IP Hash - ensures requests from same client go to same server (session persistence) upstream myapp_ip_hash { ip_hash; server 127.0.0.1:3001; server 127.0.0.1:3002; server 127.0.0.1:3003; } # 3. Generic Hash - custom hash key for request distribution upstream myapp_hash { hash $request_uri consistent; server 127.0.0.1:3001; server 127.0.0.1:3002; server 127.0.0.1:3003; } # 4. Random with Two Choices (requires Nginx 1.15.1+) upstream myapp_random { random two least_conn; server 127.0.0.1:3001; server 127.0.0.1:3002; server 127.0.0.1:3003; }
+```
+
+### Health checks and failure handling
+
+```
+# Upstream configuration with health check parameters upstream myapp_backend { server 127.0.0.1:3001 max_fails=3 fail_timeout=30s; server 127.0.0.1:3002 max_fails=3 fail_timeout=30s; server 127.0.0.1:3003 max_fails=3 fail_timeout=30s; # max_fails: Number of failed attempts before marking server as unavailable # fail_timeout: Time period for max_fails AND how long to wait before retrying keepalive 32; } server { listen 443 ssl; http2 on; server_name example.com; ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; location / { proxy_pass http://myapp_backend; # Retry failed requests on other servers proxy_next_upstream error timeout http_500 http_502 http_503 http_504; # Limit number of retry attempts proxy_next_upstream_tries 3; # Time limit for retrying proxy_next_upstream_timeout 10s; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; } }
+```
+
+## Security Headers Configuration
+
+Adding security headers helps protect your application from common web vulnerabilities.
+
+### Complete security headers configuration
+
+```
+# Security-hardened reverse proxy configuration # Includes all recommended security headers server { listen 443 ssl; listen [::]:443 ssl; http2 on; server_name example.com; ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; include /etc/letsencrypt/options-ssl-nginx.conf; # === Security Headers === # HTTP Strict Transport Security (HSTS) # Forces browsers to only use HTTPS for this domain # max-age is in seconds (31536000 = 1 year) add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always; # X-Frame-Options prevents clickjacking attacks # DENY: Page cannot be displayed in a frame # SAMEORIGIN: Page can only be displayed in a frame on the same origin add_header X-Frame-Options "SAMEORIGIN" always; # X-Content-Type-Options prevents MIME type sniffing add_header X-Content-Type-Options "nosniff" always; # X-XSS-Protection enables browser's XSS filtering # Note: Modern browsers are phasing this out in favor of CSP add_header X-XSS-Protection "1; mode=block" always; # Referrer-Policy controls how much referrer information is sent add_header Referrer-Policy "strict-origin-when-cross-origin" always; # Content-Security-Policy (CSP) - Adjust based on your application needs # This is a restrictive example - modify for your specific requirements add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss: https:; frame-ancestors 'self';" always; # Permissions-Policy (formerly Feature-Policy) # Controls which browser features the page can use add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" always; # Cross-Origin headers for enhanced isolation add_header Cross-Origin-Opener-Policy "same-origin" always; add_header Cross-Origin-Embedder-Policy "require-corp" always; add_header Cross-Origin-Resource-Policy "same-origin" always; # === Hide Server Information === # Don't reveal Nginx version server_tokens off; # Remove headers that reveal backend information proxy_hide_header X-Powered-By; proxy_hide_header Server; # === Rate Limiting === # Apply rate limiting to prevent abuse # Requires rate limit zone defined in http block limit_req zone=general burst=20 nodelay; # === Proxy Configuration === location / { proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; proxy_http_version 1.1; proxy_set_header Connection ""; } # Block access to sensitive files location ~ /\.(git|env|htaccess|htpasswd) { deny all; return 404; } # Block access to backup files location ~ \.(bak|orig|save|swp|tmp)$ { deny all; return 404; } }
+```
+
+### Configure rate limiting in the main Nginx configuration
+
+```
+# Edit the main Nginx configuration to add rate limiting zones sudo nano /etc/nginx/nginx.conf
+```
+
+### Add rate limiting zones to the http block
+
+```
+# Add these lines inside the http block in /etc/nginx/nginx.conf http { # ... existing configuration ... # Define rate limiting zones # Zone 'general': 10 requests per second per IP, with 10MB of shared memory limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s; # Zone 'login': Stricter limit for authentication endpoints limit_req_zone $binary_remote_addr zone=login:10m rate=1r/s; # Zone 'api': Rate limit for API endpoints limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s; # Log rate limited requests limit_req_log_level warn; # Return 429 Too Many Requests instead of 503 limit_req_status 429; # ... rest of configuration ... }
+```
+
+### Apply stricter rate limits to specific endpoints
+
+```
+# Example of applying different rate limits to different locations server { # ... SSL and other configuration ... # Login endpoint with strict rate limiting location /api/auth/login { limit_req zone=login burst=5 nodelay; proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; } # API endpoints with moderate rate limiting location /api/ { limit_req zone=api burst=50 nodelay; proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; } # General pages with standard rate limiting location / { limit_req zone=general burst=20 nodelay; proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; } }
+```
+
+## Testing and Troubleshooting
+
+### Test your Nginx configuration
+
+```
+# Test configuration syntax sudo nginx -t # Test configuration with verbose output sudo nginx -T # Reload Nginx if configuration is valid sudo systemctl reload nginx
+```
+
+### Test SSL configuration
+
+```
+# Test SSL connection with OpenSSL openssl s_client -connect example.com:443 -servername example.com # Check certificate details echo | openssl s_client -connect example.com:443 2>/dev/null | openssl x509 -text -noout # Test SSL configuration with SSL Labs (online) # Visit: https://www.ssllabs.com/ssltest/
+```
+
+### Test headers with curl
+
+```
+# Check response headers curl -I https://example.com # Check all headers including security headers curl -sI https://example.com | grep -E "(Strict-Transport|X-Frame|X-Content|X-XSS|Content-Security|Referrer-Policy)" # Test WebSocket upgrade curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Key: test" -H "Sec-WebSocket-Version: 13" https://example.com/ws
+```
+
+### Common troubleshooting commands
+
+```
+# Check Nginx error log sudo tail -f /var/log/nginx/error.log # Check Nginx access log sudo tail -f /var/log/nginx/access.log # Check site-specific error log sudo tail -f /var/log/nginx/myapp.error.log # Test if backend is reachable curl -I http://127.0.0.1:3000 # Check if ports are listening sudo ss -tlnp | grep -E '(80|443|3000)' # Check Nginx process status ps aux | grep nginx # Check for configuration issues sudo nginx -t 2>&1 # Reload Nginx without dropping connections sudo nginx -s reload
+```
+
+### Debug proxy issues
+
+```
+# Enable debug logging temporarily # Edit your server block and add: # error_log /var/log/nginx/debug.log debug; # Then reload and watch the debug log sudo tail -f /var/log/nginx/debug.log
+```
+
+## Best Practices
+
+### 1. Keep Nginx and Certbot updated
+
+```
+# Update packages regularly sudo apt update && sudo apt upgrade -y # Check for Nginx security advisories apt-cache policy nginx
+```
+
+### 2. Use separate configuration files
+
+```
+# Organize configurations by site/application /etc/nginx/sites-available/app1.conf /etc/nginx/sites-available/app2.conf /etc/nginx/sites-available/api.conf # Use includes for common configurations /etc/nginx/snippets/ssl-params.conf /etc/nginx/snippets/proxy-params.conf /etc/nginx/snippets/security-headers.conf
+```
+
+### 3. Create reusable configuration snippets
+
+```
+# /etc/nginx/snippets/proxy-params.conf # Include this in your location blocks proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; proxy_http_version 1.1; proxy_set_header Connection ""; proxy_connect_timeout 60s; proxy_send_timeout 60s; proxy_read_timeout 60s;
+```
+
+### 4. Use this snippet in your server blocks
+
+```
+server { # ... other configuration ... location / { proxy_pass http://127.0.0.1:3000; include snippets/proxy-params.conf; } }
+```
+
+### 5. Monitor and log effectively
+
+```
+# Custom log format with useful information log_format detailed '$remote_addr - $remote_user [$time_local] ' '"$request" $status $body_bytes_sent ' '"$http_referer" "$http_user_agent" ' 'rt=$request_time uct="$upstream_connect_time" ' 'uht="$upstream_header_time" urt="$upstream_response_time"'; # Use the custom log format access_log /var/log/nginx/myapp.access.log detailed;
+```
+
+### 6. Implement request buffering appropriately
+
+```
+# For most applications, enable buffering for better performance proxy_buffering on; proxy_buffer_size 4k; proxy_buffers 8 4k; proxy_busy_buffers_size 8k; # For real-time applications or streaming, disable buffering # proxy_buffering off;
+```
+
+### 7. Set appropriate client limits
+
+```
+# Limit client body size (important for file uploads) client_max_body_size 100M; # Limit client body buffer client_body_buffer_size 128k; # Limit header buffer size client_header_buffer_size 1k; large_client_header_buffers 4 8k;
+```
+
+## Conclusion
+
+You have successfully set up Nginx as a reverse proxy on Ubuntu with SSL termination using Let's Encrypt. Your configuration now includes:
+
+* A fully functional reverse proxy forwarding requests to your backend application
+* HTTPS with automatic certificate renewal from Let's Encrypt
+* WebSocket support for real-time applications
+* Load balancing across multiple backend servers
+* Comprehensive security headers to protect against common vulnerabilities
+* Rate limiting to prevent abuse
+
+Remember to regularly update your server, monitor your logs, and test your SSL configuration periodically. As your application grows, consider implementing additional features like caching, gzip compression, and more advanced load balancing strategies.
+
+For production deployments, always test configuration changes in a staging environment first and maintain proper backup and rollback procedures.
+
+Share this article
+
+![Nawaz Dhandala](https://avatars.githubusercontent.com/nawazdhandala)
+
+### Nawaz Dhandala
+
+Author
+
+@nawazdhandala • Jan 07, 2026 •
+
+Nawaz is building OneUptime with a passion for engineering reliable systems and improving observability.
+
+[GitHub](https://github.com/nawazdhandala)
+
+### Improve this Blog Post
+
+All our blog posts are open source. Found a typo, want to add more detail, or have a better explanation? Anyone can contribute and make this post better for everyone.
+
+[Edit this Post on GitHub](https://github.com/oneuptime/blog/tree/master/posts/2026-01-07-ubuntu-nginx-reverse-proxy)   [Contributing Guidelines](https://github.com/oneuptime/blog)
+
+[Open source](https://github.com/oneuptime/oneuptime) 
+
+## OneUptime is the Open-Source Observability Platform
+
+Your complete reliability stack unified: infrastructure monitoring, incident management, status pages, and APM. Open-source and self-hostable.
+
+[Get started for free](/accounts/register)   [Request a demo](/enterprise/demo)
+
+[Status Page
+
+Real-time status updates](/product/status-page) [Incidents
+
+Detect and resolve fast](/product/incident-management) [Monitoring
+
+Monitor any resource](/product/monitoring) [On-Call
+
+Smart alert routing](/product/on-call) [Maintenance
+
+Plan & communicate downtime](/product/scheduled-maintenance) [Logs
+
+Fastest log ingest and search](/product/logs-management) [Metrics
+
+Performance insights](/product/metrics) [Traces
+
+End-to-end distributed tracing](/product/traces) [Exceptions
+
+Catch and fix bugs early](/product/exceptions) [Workflows
+
+Automate any process](/product/workflows) [Dashboards
+
+Visualize all your data](/product/dashboards) [Kubernetes
+
+Monitor K8s clusters](/product/kubernetes) [Profiles
+
+CPU & memory profiling](/product/profiles)
+
+[AI Agent
+
+Automatically detect, diagnose, and resolve incidents with AI-powered root cause analysis and code fixes.](/product/ai-agent)
+
+We use cookies to enhance your browsing experience and provide personalized content. By clicking "Accept," you consent to the use of cookies.
+
+Our product uses both first-party and third-party cookies for session storage and for various other purposes.
+
+Please note that disabling certain cookies may affect the functionality and performance of our product.
+
+For more information about how we handle your data and cookies, please read our Privacy Policy.
+
+By continuing to use our site without changing your cookie settings, you agree to our use of cookies as described above. See our [terms](/legal/terms) and our [privacy policy](/legal/privacy)
+
+ 
+
+---
+
+Title: How to setup an Nginx reverse proxy server example
+[![](https://cdn.ttgtmedia.com/rms/ux/responsive/img/tss_logo_mobile.png)](https://www.theserverside.com/)   [![TheServerSide](https://cdn.ttgtmedia.com/rms/ux/responsive/img/tss_logo.png) ![TheServerSide](https://cdn.ttgtmedia.com/rms/ux/responsive/img/tss_logo.png)](https://www.theserverside.com/)   [![TechTarget](https://cdn.ttgtmedia.com/rms/ux/responsive/img/tss_tt_logo.png)](https://www.techtarget.com/) 
+
+* [Home](https://www.theserverside.com/)
+* [Java DevOps](https://www.theserverside.com/resources/Java-DevOps)
+
+[Coffee Talk: Java, News, Stories and Opinions](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions)
+
+# How to setup an Nginx reverse proxy server example
+
+
+
+![Cameron McKenzie](https://cdn.ttgtmedia.com/rms/onlineImages/mckenzie_cameron.jpg)
+
+[Cameron McKenzie](https://www.techtarget.com/contributor/Cameron-McKenzie)
+
+TechTarget
+
+28 May 2025
+
+## What is an Nginx reverse proxy?
+
+Most enterprise architectures use a single, reverse proxy server to handle all incoming requests.
+
+The proxy server then inspects each HTTP request and identifies which backend system, be it an Apache, Tomcat, Express or NodeJS server, should handle the request.
+
+The reverse proxy then forwards the request to that server, allows the request to be processed, obtains a response from that backend server, and then send the response back to the client.
+
+An Nginx server configured as a reverse proxy serves this function.
+
+![Nginx reverse proxy example](https://itknowledgeexchange.techtarget.com/coffee-talk/files/2022/05/nginx-reverse-proxy-diagram.jpg)
+
+This Nginx reverse proxy example uses Tomcat as the origin server, but any backend server, such as Node, Jetty or WebSphere, will work.
+
+### What are the benefits of an Nginx reverse proxy setup?
+
+The benefits of using Nginx as a reverse proxy include:
+
+* Clients access all backend resources through a single web address.
+* The reverse proxy can serve static content, which reduces the load on application servers such as Express, [Tomcat or WebSphere.](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/Tomcat-vs-WebSphere-How-these-application-servers-compare)
+* The Nginx reverse proxy can navigate through firewalls that protect backend resources.
+* The reverse proxy can act as a cache or buffer to reduce latency.
+* User access control is greatly simplified with a single point of access to your site.
+
+## Nginx reverse proxy configuration steps
+
+Follow these steps to setup and configure an Nginx reverse proxy server of your own:
+
+1. Install Nginx on your Windows or Linux server (prerequisite).
+2. Add the Nginx *proxy\_pass* setting in a virtual host or the default config file.
+3. Map a context root to the URL of a backend server.
+4. Optionally set headers for the Nginx reverse proxy to use with the backend.
+5. Restart Nginx reverse proxy and test the reverse proxy setup.
+
+### Install Nginx
+
+On Ubuntu, install the latest version of Nginx. Perform the `apt-get update` and `apt-get upgrade` commands, followed by the `apt-get install` command.
+
+```
+sudo apt-get update -y Reading package lists... Done sudo apt-get upgrade -y Calculating upgrade... DoneReading package lists... DoneCalculating upgrade... Done
+```
+
+```
+sudo apt-get install nginx -y The following Nginx packages will be installed on Ubuntu 22: libnginx-mod-http-geoip2 nginx-common nginx-core nginx-proxy Setting up nginx 1.18 ubuntu 22... DoneThe following Nginx packages will be installed on Ubuntu 22:Setting up nginx 1.18 ubuntu 22... Done
+```
+
+#### How to verify an Nginx install?
+
+Perform your due diligence and check to see if the Nginx server install was successful.
+
+A status check should indicate that Nginx is active.
+
+```
+sudo systemctl status nginx ● nginx - A high performance web, http and reverse proxy server Loaded: loaded (/lib/systemd/system/nginx.service; enabled;) Active: active (Nginx server running) ● nginx - A high performance web, http and reverse proxy server Loaded: loaded (/lib/systemd/system/nginx.service; enabled;) Active:active (Nginx server running)
+```
+
+### Add an Nginx proxy\_pass setting
+
+The most important configuration step in an Nginx reverse proxy configuration is the addition of a *proxy\_pass* setting that maps an incoming URL to a backend server.
+
+In this Nginx reverse proxy example, we assume an Apache Tomcat server is running on localhost at port 8080, and we need [Nginx to proxy an application](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/How-to-setup-the-Nginx-Proxy-Manager-example) with the context root of */examples*.
+
+![nginx proxy_pass configuration](https://itknowledgeexchange.techtarget.com/coffee-talk/files/2022/05/nginx-proxy-pass.gif)
+
+The proxy\_pass setting makes the Nginx reverse proxy setup work.
+
+The *proxy\_pass* is configured in the location section of any virtual host configuration file. To set up an Nginx *proxy\_pass* globally, edit the *default* file in Nginx’s *sites-available* folder.
+
+```
+sudo nano /etc/nginx/sites-available/default
+```
+
+#### Nginx proxy\_pass example
+
+For this example, we setup the location mapping of the Nginx reverse proxy to forward any request that has */examples* in the URI to an Apache Tomcat server that runs on port 8080:
+
+```
+# example nginx reverse proxy mapping # /etc/nginx/sites-available/defaultlocation /examples {   proxy_pass http://localhost:8080/examples; }
+```
+
+### Set Nginx proxy header values
+
+By default, Nginx relays its own IP address to reverse proxy targets.
+
+To have Nginx relay the IP address, host and port info about the client that made the original request, you can set *proxy\_set\_header* values.
+
+Furthermore, Nginx buffers data to help manage heavy workloads, but this may be undesirable for applications that require the lowest latency possible. Instead, it may be better to turn *proxy\_buffering* off for Nginx reverse proxy configurations.
+
+This Nginx reverse proxy example turns off buffering while at the same time sets client headers for the backend servers that handle the proxied requests:
+
+```
+# example nginx reverse proxy config file # /etc/nginx/sites-available/defaultlocation /examples { proxy_pass http://localhost:8080/examples; proxy_buffering off; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-Host $host; proxy_set_header X-Forwarded-Port $server_port;}
+```
+
+Add these Nginx *proxy\_pass, proxy\_buffering* and *proxy\_set\_header* updates to your default configuration file and save you changes.
+
+### Restart Nginx as a reverse proxy
+
+To see Nginx function as a reverse proxy, simply restart the server to load the new configuration.
+
+```
+sudo systemctl restart nginx
+```
+
+When the server comes online, try to access the backend server through the Nginx reverse proxy. In this example, we can access the Tomcat server running on port 8080 through Nginx.
+
+```
+http://localhost/examples -- proxies for --> http://localhost:8080/examples -- proxies for -->
+```
+
+The Nginx reverse proxy forwards act as a single point of entry for all requests for the examples application on Tomcat. This proves that the Nginx reverse proxy config setup was a success.
+
+![Nginx reverse proxy tutorial](https://itknowledgeexchange.techtarget.com/coffee-talk/files/2022/05/nginx-reverse-proxy-example.gif)
+
+The Nginx reverse proxy example maps the */example* URI to an Apache Tomcat server.
+
+And that’s how easy it is to configure and setup an Nginx reverse proxy on Ubuntu.
+
+---
+
+[![Cameron McKenzie](https://www.mcnz.com/assets/unnamed.jpg)](https://www.mcnz.com) [Cameron McKenzie](https://www.xennial.com) is an [AWS Certified AI Practitioner](https://certificationexams.pro/aws/practitioner/index.html), [Machine Learning Engineer](https://certificationexams.pro/aws/ai-machine-learning/index.html), [Solutions Architect](https://certificationexams.pro/aws/architect/index.html) and author of many [popular books](https://pickeringisspringfield.com/) in the [software development](https://certificationexams.pro/aws/developer/index.html) and [Cloud Computing space](https://certificationexams.pro/aws/practitioner/index.html). His growing [YouTube channel](https://certificationexams.pro/socials/index.html) [training devs](https://certificationexams.pro/training/udemy.html) in [Java](https://certificationexams.pro/java/java/index.html), [Spring](https://certificationexams.pro/java/spring/index.html), [AI and ML](https://certificationexams.pro/gcp/ai-machine-learning/index.html) has well over 30,000 subscribers.
+
+[Search App Architecture](https://www.techtarget.com/searchapparchitecture/) 
+
+* [Quarkus Dev Services: Zero-config development](https://www.techtarget.com/searchapparchitecture/tip/Quarkus-Dev-Services-Zero-config-development)
+
+  Quarkus Dev Services streamlines microservice development by automatically provisioning infrastructure like PostgreSQL, Kafka and...
+* [Modern software quality metrics that matter](https://www.techtarget.com/searchapparchitecture/tip/Modern-software-quality-metrics-that-matter)
+
+  Overloaded dashboards obscure software performance. Focus on deployment health, test velocity and defect escape rate to align ...
+* [What repos are trending on GitHub?](https://www.techtarget.com/searchapparchitecture/tip/What-repos-are-trending-on-GitHub)
+
+  GitHub Stars are a proxy for developer interest. Weekly GitHub star growth highlights fast-rising repos, giving early insight ...
+
+[Search Software Quality](https://www.techtarget.com/searchsoftwarequality/) 
+
+* [Comparing DevOps vs. Agile vs. Waterfall methodologies](https://www.techtarget.com/searchsoftwarequality/opinion/DevOps-vs-waterfall-Can-they-coexist)
+
+  DevOps, Agile and Waterfall offer distinct approaches to software delivery, varying in speed, flexibility, risk management and ...
+* [Harness Artifact Registry strengthens supply chain governance](https://www.techtarget.com/searchsoftwarequality/news/366639489/Harness-Artifact-Registry-strengthens-supply-chain-governance)
+
+  Harness makes its artifact registry generally available beyond early preview customers, with a security twist that could ...
+* [AWS Kiro 'user error' reflects common AI coding review gap](https://www.techtarget.com/searchsoftwarequality/news/366639129/AWS-Kiro-user-error-reflects-common-AI-coding-review-gap)
+
+  Even internal AWS Kiro users haven't always peer-reviewed AI code output, as evidenced by a reported December outage that ...
+
+[Search Cloud Computing](https://www.techtarget.com/searchcloudcomputing/) 
+
+* [Is your compute strategy ready for AI workloads in the cloud?](https://www.techtarget.com/searchcloudcomputing/tip/Is-your-compute-strategy-ready-for-AI-workloads-in-the-cloud)
+
+  AI workloads require tailored compute strategies. Learn how hardware, cloud models and deployment choices affect performance, ...
+* [Multi-cloud networking gains momentum with AWS and Oracle](https://www.techtarget.com/searchcloudcomputing/news/366641818/Multi-cloud-networking-gains-momentum-with-AWS-and-Oracle)
+
+  With this partnership, customers can establish private and high-speed connectivity between Oracle Cloud Infrastructure and AWS.
+* [AI is changing cloud operations, but not in the way orgs expect](https://www.techtarget.com/searchcloudcomputing/feature/AI-is-changing-cloud-operations-but-not-in-the-way-orgs-expect)
+
+  The defining question for organizations today is no longer whether AI can be deployed, but whether it can be operated reliably, ...
+
+[Search Security](https://www.techtarget.com/searchsecurity/) 
+
+* [Shadow code: The hidden threat for enterprise IT](https://www.techtarget.com/searchsecurity/tip/Shadow-code-The-hidden-threat-for-enterprise-IT)
+
+  The shadow code running in your web apps could be a ticking time bomb. Learn more about the cybersecurity risks of shadow code ...
+* [How to fix cybersecurity's agentic AI identity crisis](https://www.techtarget.com/searchsecurity/tip/Cybersecuritys-agentic-AI-identity-crisis-and-how-to-fix-it)
+
+  AI agents are transforming enterprise operations, but their autonomy poses critical security challenges. Learn how to secure ...
+* [5 top SIEM use cases in the enterprise](https://www.techtarget.com/searchsecurity/tip/Top-SIEM-use-cases-in-the-enterprise)
+
+  In the age of AI everything, SIEM isn't exactly flashy -- but it still matters. Explore top SIEM use cases that span the ...
+
+[Search AWS](https://www.techtarget.com/searchaws/) 
+
+* [Compare Datadog vs. New Relic for IT monitoring in 2024](https://www.techtarget.com/searchaws/tip/Compare-CloudWatch-vs-Datadog-and-New-Relic-for-AWS-monitoring)
+
+  Compare Datadog vs. New Relic capabilities including alerts, log management, incident management and more. Learn which tool is ...
+* [AWS Control Tower aims to simplify multi-account management](https://www.techtarget.com/searchaws/tip/AWS-Control-Tower-aims-to-simplify-multi-account-management)
+
+  Many organizations struggle to manage their vast collection of AWS accounts, but Control Tower can help. The service automates ...
+* [Break down the Amazon EKS pricing model](https://www.techtarget.com/searchaws/tip/Compare-EKS-pricing-to-other-managed-Kubernetes-services)
+
+  There are several important variables within the Amazon EKS pricing model. Dig into the numbers to ensure you deploy the service ...
+
+---
+
+Title: [TUTORIAL] - Using NGINX as Reverse Proxy Externally | Proxmox Support Forum
+[![Proxmox Support Forum](/styles/uix/images/Proxmox-logo-500px.png)](https://forum.proxmox.com)   [![Proxmox Support Forum](/styles/uix/images/Proxmox-logo-black-800.png)](https://forum.proxmox.com)
+
+* [New posts](/whats-new/posts/)
+* [Search forums](/search/?type=post)
+
+Install the app
+
+How to install the app on iOS
+
+Follow along with the video below to see how to install our site as a web app on your home screen.
+
+**Note:** This feature may not be available in some browsers.
+
+# [TUTORIAL] Using NGINX as Reverse Proxy Externally
+
+* Thread starter [hillefied](/members/hillefied.145970/)
+* Start date
+* Tags
+  :   [nginx](/tags/nginx/)   [proxmox](/tags/proxmox/)   [proxy](/tags/proxy/)   [reverse proxy](/tags/reverse-proxy/)
+
+* [Home](https://forum.proxmox.com)
+* [Forums](/)
+* [Proxmox Virtual Environment](/#proxmox-virtual-environment.11)
+* [Proxmox VE: Installation and configuration](/forums/proxmox-ve-installation-and-configuration.16/)
+
+You are using an out of date browser. It may not display this or other websites correctly.  
+You should upgrade or use an [alternative browser](https://www.google.com/chrome/).
+
+[H](/members/hillefied.145970/)
+
+#### [hillefied](/members/hillefied.145970/)
+
+##### New Member
+
+:   Mar 8, 2022
+
+:   9
+
+:   7
+
+:   3
+
+:   43
+
+* [#1](/threads/using-nginx-as-reverse-proxy-externally.116127/post-502281)
+
+I've spent a considerable amount of time getting this to work exactly like I want with the exception of having a CA certificate to get rid of the Security Risk splash page in my browser.  
+   
+ In my Proxmox, I have multiple servers, but for the sake of simplifying this tutorial, I'll discuss the following: DDNS server, PRTG Monitoring server, a simple web server, and NGINX server. I'll conclude what all proxy passthrough I actually do.  
+   
+ PRTG by Paessler is a great way to monitor SOHO, Medium, Large, and Multi-site Enterprise infrastructure. It's free to use for up to 100 sensors. Check them out at <https://www.paessler.com/prtg> (not sponsored).  
+   
+ My residential internet service has a dynamically changing public IP address. Using a DDNS server is pretty straight forward. I setup an LXC Debian 10 container, update apt, and install ddclient. Your domain host will have configuration settings and credentials for ddclient. It is a means of DNS resolving an FQDN for my hosted domain (.com) with a dynamic IP that my home ISP gives me. If you have a static IP, this isn't necessary. Their website is a great resource for configuring. <https://ddclient.net/>.  
+   
+ Next up is PRTG. PRTG is only an example server that I'll be using NGINX to proxy to. You can use 2 different web servers to test, but PRTG is a good example of configuring SSL (443) settings in NGINX. PRTG can only be run in Windows and I have mine running in a Windows Server 2016, but Windows 10 Pro works just as well. This is also a Proxmox VM. Once you've gone through the setup and configuring of PRTG based on their guides, we can move onto NGINX.  
+   
+ Now .. for the sake of sanity .. I'll be going over 2 things regarding NGINX. One is self-signed certs (or CA certs) and the other is the site configuration file. There are tons of guides out there to simply stand up an NGINX server and get you to the point of creating and editing the site configuration.  
+   
+ In my setup, I always edit /etc/nginx/sites-enabled/"site-config".conf. "site-config" will be whatever your site config file is named. Nano is my preferred editor.  
+   
+  `root@nginx-server:~# nano /etc/nginx/sites-enabled/site-config.conf`   
+   
+ The following is the only thing I need for my FQDN to resolve to server(s) from the internet. I do not use upstream directive as this works with or without it. This is possible because my NGINX server is my web host for all internet traffic coming into my IP. So my router has ports 80 and 443 directing all traffic to NGINX and NGINX then directs traffic to whatever server is the FQDN is requesting. I'll explain:  
+   
+ First up, the directive below tells any traffic on port 80 that uses a **wildcard (\*)** sub-domain name to my domain or simply my domain to redirect (return 301) to **www**.mydomain.com.  
+ `server { listen 80; server_name *.mydomain.com mydomain.com; return 301 http://www.mydomain.com; }`  
+   
+ If I go to foobar.mydomain.com or bar1.mydomain.com .. it will redirect to [www.mydomain.com](http://www.mydomain.com). This is important so that traffic always ends up at a webpage instead of given an error .. like 404. Of course you can have this go to a webpage designed for 404 traffic, also.  
+   
+ Next up, we repeat the previous directive, changing the listening port to **443 ssl**. This way, traffic on port 443 ends up where you want it.  
+ `server { listen 443 ssl; server_name *.mydomain.com mydomain.com; return 301 http://www.mydomain.com; }`  
+   
+ Now the web server. My webserver is just a personal site and I haven't obtained a CA cert so it's just for my own personal fun. It is on port 80. The previous directives are leading traffic to this point.  
+ `server { listen 80; server_name www.mydomain.com; location / { proxy_pass http://10.10.10.10/; } }`  
+   
+ We're telling port 80 traffic that is literally going to <http://www.mydomain.com> to proxy through NGINX **AND** because the previous two directives were leading all traffic to the same address, <http://www.mydomain.com>, all traffic will load the location of the web server. the location directive in is leading to an internal address of a webserver, <http://10.10.10.10/> (your web server's internal IP will likely be different).  
+   
+ Now that there's a grasp on the flow, we can expand on our wildcard and use a sub-domain to route to another server. This one is a little tricky since we're using a self-sign certificate that can be applied to domain computers through group policy so domain joined computers can reach the server's web page without a security risk splash page. Will not be covered here.  
+   
+ First, we need to tell port 80 traffic going to monitoring(sub-domain).mydomain.com to forward elsewhere, specifically to port 443 (or https://) in the **return 301** directive.  
+ `server { listen 80 default_server; server_name monitoring.mydomain.com; return 301 https://monitoring.mydomain.com$request_uri; }`  
+   
+ Even though we have a directive up top that says wildcard subdomains go to www; because we are listing another server with a specific sub-domain, it doesn't qualify as a wildcard anymore. It now has a FQDN to direct to.  
+   
+ Here is the HTTPS where we use SSL self-signed certs listed in the parent directory of **/etc/nginx/**.  
+ `server { listen 443 ssl default_server; server_name monitoring.mydomain.com; #ssl on; ssl_certificate monitoring.mydomain.com.cert; ssl_certificate_key monitoring.mydomain.com.key; ssl_session_timeout 5m; ssl_protocols TLSv1 TLSv1.1 TLSv1.2; ssl_ciphers HIGH:!aNULL:!MD5; ssl_prefer_server_ciphers on; location / { proxy_pass https://10.10.20.10/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade"; } }`   
+   
+   
+ Some of the keen among you may have questions about servers which require specific ports. This is probably one of the greatest uses of an NGINX reverse proxy server. It allows you to pass 80 and 443 traffic (which is standard internet based) to any server on any port that you have setup internally. Proxmox is a good example as it is on port 8006 by default.  
+   
+ You know the drill by now. We're going to redirect port 80 traffic to port 443 (https://).  
+ `server { listen 80; server_name proxmox.mydomain.com; return 301 https://proxmox.mydomain.com$request_uri; }`  
+   
+ Now that is being redirected, we'll tell it what location to load and some extra configurations to ensure popup windows can resolve appropriately. Make note that we are directing 443 traffic to load port 8006 in the **proxy\_pass** directive. This means when you load <https://proxmox.mydomain.com>, you won't see port 8006 in your address. That's because NGINX is handling it.  
+ `server { listen 443 ssl; server_name proxmox.mydomain.com; #ssl on; location / { proxy_pass https://10.10.90.10:8006$request_uri; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade"; } }`  
+   
+ I know that the directive **ssl on** is commented out, but for whatever reason, if it isn't in there it doesn't work.  
+   
+ From here, you can stand up numerous servers and still be able to access them behind one single public IP address. I also manage my own internal DNS in a Windows Server Domain environment so my domain is the same as my hosted domain. In my DNS server configuration, all of the sub-domain names (ie, monitoring, proxmox, www, etc.) are all pointing to my NGINX server's internal IP address. This way, it doesn't matter if I'm trying to get to the server internally or externally, I only need one web address.
+
+Last edited:
+
+Reactions: [gofuckyoruself, werter, Seroga88i and 2 others](/posts/502281/reactions)
+
+[![Lukas Wagner](/data/avatars/s/163/163850.jpg?1666079839)](/members/lukas-wagner.163850/)
+
+#### [Lukas Wagner](/members/lukas-wagner.163850/)
+
+##### Proxmox Staff Member
+
+**Staff member**
+
+:   Oct 3, 2022
+
+:   598
+
+:   223
+
+:   53
+
+* [#2](/threads/using-nginx-as-reverse-proxy-externally.116127/post-502408)
+
+Thanks for the great write-up! Is there any specific reason why you decided to use a self-signed TLS certificate instead of - for instance - Let's Encrypt?
+
+Reactions: [hillefied](/posts/502408/reactions)
+
+[H](/members/hillefied.145970/)
+
+#### [hillefied](/members/hillefied.145970/)
+
+##### New Member
+
+:   Mar 8, 2022
+
+:   9
+
+:   7
+
+:   3
+
+:   43
+
+* [#3](/threads/using-nginx-as-reverse-proxy-externally.116127/post-502472)
+
+> [l.wagner said:](/goto/post?id=502408)
+>
+> Thanks for the great write-up! Is there any specific reason why you decided to use a self-signed TLS certificate instead of - for instance - Let's Encrypt?
+>
+> Click to expand...
+
+That's an excellent question. There are 2 reasons.  
+   
+ First, most of my servers that I access are only for me or other trusted individuals whom are firmly aware of the domain they are connecting to not having a CA cert. The web server .. well that I do wish had a CA cert so I have been wanting to get one to apply, just haven't dove into it yet.  
+   
+ The second reason is I've had some issues installing some of the dependencies needed for CertBot in a LXC because of some limitations in container to hardware I/O. I am actively trying to get this squared away, but as I've said, it hasn't been a priority. If you know of any resources to help out, I would greatly appreciate it.  
+   
+ Oh .. There's also another tidbit I can include that can help protect your NGINX server. You can add the "**allow**" and "**deny**" directives to limit connection source IPs to your internal servers. Since I primarily connect to my home-built servers from my work which has a static IP, I simply at the directive like so:  
+   
+ `server { listen 443 ssl; server_name proxmox.mydomain.com; #ssl on; location / { proxy_pass https://10.10.90.10:8006$request_uri; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade"; } allow 70.80.90.100; allow 192.168.0.0/16; deny all; }`  
+   
+ The "**allow**" directive only allows connections from the source IP(s) listed while the "**deny**" directive can reject everything else. Very much like a firewall access rule. Be sure the "**deny all**" is **last**.
+
+[H](/members/hillefied.145970/)
+
+#### [hillefied](/members/hillefied.145970/)
+
+##### New Member
+
+:   Mar 8, 2022
+
+:   9
+
+:   7
+
+:   3
+
+:   43
+
+* [#4](/threads/using-nginx-as-reverse-proxy-externally.116127/post-507868)
+
+> [l.wagner said:](/goto/post?id=502408)
+>
+> Thanks for the great write-up! Is there any specific reason why you decided to use a self-signed TLS certificate instead of - for instance - Let's Encrypt?
+>
+> Click to expand...
+
+Finally got a decent process down and now all of my subdomains are encrypted using a wildcard CA from Let's Encrypt. The reason why I was having issues is because the LXC for my web server I was using was Ubuntu Server 21.04 which apparently is EoL so the certbot libraries wouldn't update. I had to move my site files off of the LXC, burn the LXC, and rebuild my apache server on a Debian 10 LS LXC. After moving my files back over to it, going through the process of enabling SSL on Apache, updating my NGINX server to handle all reverse proxy for my subdomains, I can now use that web server certificate on NGINX and all of my subdomains now have SSL certs from a reputable CA, Let's Encrypt.  
+   
+ It was a bit of a complex setup since I'm using a wildcard, but it is all working perfectly.  
+   
+ If I need to go through that process, I'll post. +1 if you need it!
+
+Reactions: [Stormrunner](/posts/507868/reactions)
+
+[S](/members/simonmcnair.3100/)
+
+#### [SimonMcNair](/members/simonmcnair.3100/)
+
+##### Renowned Member
+
+:   Jun 22, 2010
+
+:   49
+
+:   7
+
+:   73
+
+* [#5](/threads/using-nginx-as-reverse-proxy-externally.116127/post-507968)
+
+I use docker with jc21/nginx-proxy-manager on a separate VM. Easy as pie and just as tasty.  
+   
+ Willing to accept other methods work just as well though.
+
+Reactions: [hillefied](/posts/507968/reactions)
+
+[T](/members/toomanylogins.115757/)
+
+#### [toomanylogins](/members/toomanylogins.115757/)
+
+##### Renowned Member
+
+:   Mar 23, 2021
+
+:   135
+
+:   27
+
+:   68
+
+:   65
+
+* [#6](/threads/using-nginx-as-reverse-proxy-externally.116127/post-507999)
+
+FYI. I use Opnsense in a vm. You get a firewall and It comes with nginx, spam, ddclient and lets encrypt plugins. Setup al via gui so very straightforward to organise routing and proxy pass.
+
+Last edited:
+
+Reactions: [skn666, Seroga88i and hillefied](/posts/507999/reactions)
+
+[H](/members/hillefied.145970/)
+
+#### [hillefied](/members/hillefied.145970/)
+
+##### New Member
+
+:   Mar 8, 2022
+
+:   9
+
+:   7
+
+:   3
+
+:   43
+
+* [#7](/threads/using-nginx-as-reverse-proxy-externally.116127/post-508068)
+
+> [SimonMcNair said:](/goto/post?id=507968)
+>
+> I use docker with jc21/nginx-proxy-manager on a separate VM. Easy as pie and just as tasty.  
+>    
+>  Willing to accept other methods work just as well though.
+>
+> Click to expand...
+
+How do you use your docker? What service or server does it run?
+
+[H](/members/hillefied.145970/)
+
+#### [hillefied](/members/hillefied.145970/)
+
+##### New Member
+
+:   Mar 8, 2022
+
+:   9
+
+:   7
+
+:   3
+
+:   43
+
+* [#8](/threads/using-nginx-as-reverse-proxy-externally.116127/post-508074)
+
+> [toomanylogins said:](/goto/post?id=507999)
+>
+> FYI. I use Opnsense in a vm. You get a firewall and It comes with nginx, spam, ddclient and lets encrypt plugins. Setup al via gui so very straightforward to organise routing and proxy pass.
+>
+> Click to expand...
+
+I have PfSense which can perform several different functions including those you mention with plugins, but I use it strictly for a VPN concentrator where I use NPS and RADIUS to authenticate connections against a user database in a domain controller. It may sound like overkill, but I like to have separate servers serving only 1, maybe 2, functions instead of having 1 server trying to perform several functions. This allows any single failure of a specific function to be rebuilt very quickly.  
+   
+ Call me paranoid or Mr. Overkill .. but I think it's mostly justifiable. Below is a list of my servers and their functions.  
+   
+ 2 separate Debian LXCs updating DDNS (Google Domains) for my domain and subdomains (wildcard) from my dynamic ISP.  
+ 2 separate Debian LXCs for Minecraft servers (Bedrock & Java).  
+ 1 Debian VM strictly for Certbot udpates for Let's Encrypt.  
+ 1 Debian LXC for my Apache webserver (Self-Hosted Website).  
+ 1 Debian LXC for NGINX server (exclusively serving as a single web server which reverse-proxies to several internal servers so I can "subdomain" several web servers over port 443 "HTTPS"). As an example, Proxmox has a web server for administering VMs and VM Host configurations. I use NGINX to proxy traffic requests from <https://proxmox.mydomain.com> externally to my Proxmox web interface internally. All web requests for any subdomain under my domain AND my domain itself go through NGINX first over port 80/443 and NGINX does the rest.  
+ 1 Debian LXC for CSRs (certificate signing request) using OpenSSL typically for self-signed certs. This has been rendered moot with the recent Certbot server.  
+   
+ If any one of these fails, I can simply rebuild it. Most of the LXCs are so lightweight that I probably run 10 more without much affect on my VM Host system. If I consolidated, I'd run the risk of losing more than I bargained for.
+
+[S](/members/simonmcnair.3100/)
+
+#### [SimonMcNair](/members/simonmcnair.3100/)
+
+##### Renowned Member
+
+:   Jun 22, 2010
+
+:   49
+
+:   7
+
+:   73
+
+* [#9](/threads/using-nginx-as-reverse-proxy-externally.116127/post-509164)
+
+> [hillefied said:](/goto/post?id=508068)
+>
+> How do you use your docker? What service or server does it run?
+>
+> Click to expand...
+
+YAML:
+
+```
+--- version: '3.8' services: app: image: 'jc21/nginx-proxy-manager:latest' container_name: npm restart: unless-stopped ports: - '80:80' # Public HTTP Port - '443:443' # Public HTTPS Port - '81:81' # Admin Web Port volumes: - ./data:/data - ./letsencrypt:/etc/letsencrypt - ./logs:/data/logs healthcheck: test: ["CMD", "/bin/check-health"] interval: 5s
+```
+
+  
+ There is my docker file. I connect to the manager on port 81 to add the proxy hosts and letsencrypt. since docker isn't recommended on proxmox I have a vm running docker with a static IP (in my case dhcp with a reservation). I add a static dns entry on my local router pointing proxmox to whatever the ip address is.  
+   
+ Then whenever I type in proxmox in to a web browser it will go to the host running nginx proxy manager which will read the host proxmox and sent it to the appropriate place. In this case <http://fred:8006> with a valid ssl certificate.
+
+[A](/members/asgimenez.189837/)
+
+#### [asgimenez](/members/asgimenez.189837/)
+
+##### New Member
+
+:   Jun 2, 2023
+
+:   1
+
+:   0
+
+:   1
+
+* [#10](/threads/using-nginx-as-reverse-proxy-externally.116127/post-561466)
+
+> [SimonMcNair said:](/goto/post?id=509164)
+>
+> YAML:
+>
+> ```
+> --- version: '3.8' services: app: image: 'jc21/nginx-proxy-manager:latest' container_name: npm restart: unless-stopped ports: - '80:80' # Public HTTP Port - '443:443' # Public HTTPS Port - '81:81' # Admin Web Port volumes: - ./data:/data - ./letsencrypt:/etc/letsencrypt - ./logs:/data/logs healthcheck: test: ["CMD", "/bin/check-health"] interval: 5s
+> ```
+>
+>   
+>  There is my docker file. I connect to the manager on port 81 to add the proxy hosts and letsencrypt. since docker isn't recommended on proxmox I have a vm running docker with a static IP (in my case dhcp with a reservation). I add a static dns entry on my local router pointing proxmox to whatever the ip address is.  
+>    
+>  Then whenever I type in proxmox in to a web browser it will go to the host running nginx proxy manager which will read the host proxmox and sent it to the appropriate place. In this case <http://fred:8006> with a valid ssl certificate.
+>
+> Click to expand...
+
+Hi there, this is exactly what I have, but for some reason it was working when I installed proxmox, but then I started getting:  
+   
+
+### 502 Bad Gateway​
+
+  
+ 
+
+---
+
+openresty  
+   
+ My Nginx Proxy Manager is running on Docker in a Raspberry Pi 3.  
+   
+ My IP address for Proxmox is 192.168.3.10 so i have setup:  
+   
+ Scheme: http IP:192.168.3.10 Forward port: 8006  
+   
+ Any tip? Thank you!
+
+[L](/members/linhu.198132/)
+
+#### [linhu](/members/linhu.198132/)
+
+##### Member
+
+:   Aug 19, 2023
+
+:   58
+
+:   0
+
+:   6
+
+* [#11](/threads/using-nginx-as-reverse-proxy-externally.116127/post-583087)
+
+Hi thanks for the howto, here is my config, all is working also the novnc.  
+ you can setup certbot for ssl  
+ # certbot certonly //for the first certifikat generation  
+   
+ server {  
+ listen [ip]; #listen ipadress#  
+ server\_name proxy1.domain; #your domain#  
+ #ssl on;  
+ location / {  
+ proxy\_pass https://192.168.1.150:8006$request\_uri; #local ip from the proxmox#  
+ proxy\_set\_header Upgrade $http\_upgrade;  
+ proxy\_set\_header Connection "upgrade";  
+ }  
+ location ^~ /.well-known/ {  
+ try\_files $uri /;  
+ }  
+ listen [ip]:443 ssl;  
+ ssl\_certificate /etc/letsencrypt/live/proxy1.domain/fullchain.pem;  
+ ssl\_certificate\_key /etc/letsencrypt/live/proxy1.domain/privkey.pem;  
+   
+ }  
+   
+ }
+
+[D](/members/daern.188892/)
+
+#### [daern](/members/daern.188892/)
+
+##### Member
+
+:   May 24, 2023
+
+:   4
+
+:   1
+
+:   8
+
+* [#12](/threads/using-nginx-as-reverse-proxy-externally.116127/post-606085)
+
+> [hillefied said:](/goto/post?id=502281)
+>
+> PRTG by Paessler is a great way to monitor SOHO, Medium, Large, and Multi-site Enterprise infrastructure. It's free to use for up to 100 sensors. Check them out at <https://www.paessler.com/prtg> (not sponsored).
+>
+> Click to expand...
+
+I am a huge advocate of PRTG and have used it for well over 20 years now (we've got something over 30,000 sensors monitored with it!) but I'm still profoundly irritated that they've not got a core server install for Linux yet. Part of it is that I think the Core is still written in Borland Delphi (or whatever it's called these days) which is a solidly Windows-oriented dev platform. As a company they've done countless re-hashes of the UI, but I do wish they'd just bite the bullet and write a new core server which is a bit more modern and a bit less Windows!  
+   
+ As it happens, I do need a monitoring system for home, but I'm afraid that it won't be PRTG because of the Windows nature of it - just can't be bothered to maintain it. If, however, your environment is still predominantly Windows, I can definitely recommend it.
+
+[B](/members/backpulver.90557/)
+
+#### [backpulver](/members/backpulver.90557/)
+
+##### Well-Known Member
+
+:   Apr 8, 2020
+
+:   146
+
+:   14
+
+:   58
+
+:   38
+
+* [#13](/threads/using-nginx-as-reverse-proxy-externally.116127/post-625380)
+
+Is there any solution without manually change specific tools and services on the Proxmox Nodes? I wont change anything, cause i only have bad experiences with changes like this and updates between major versions and some others.  
+   
+ simply reverse proxy to 8006 port with ssl dont work without issues.  
+   
+ thanks
+
+[M](/members/mkeys.215415/)
+
+#### [mkeys](/members/mkeys.215415/)
+
+##### New Member
+
+:   Jan 7, 2024
+
+:   7
+
+:   0
+
+:   1
+
+* [#14](/threads/using-nginx-as-reverse-proxy-externally.116127/post-625395)
+
+I was able to achieve reverse proxy using HaltDOS CE with the following steps ..  
+   
+ 1. Installed HaltDOS CE from Linode Marketplace. I used deb11. As a FYI the LetsEncrypt SSL management is broken in the verify/install step. I emailed support and they replied this has been patched, but you need to manually install the dpkg to correct this:  
+   
+ curl -s -k -o hd-community-controller.deb <https://binary.haltdos.com/community/waf/gui/hd-community-controller-x86_64.deb>  
+ dpkg -i hd-community-controller-x86\_64.deb  
+   
+ 2. Create server health monitors in haltdos for all proxmox nodes port 8006, tcp  
+   
+ 3. Create servers in haltdos, referencing health monitors, set as backup true  
+   
+ 4. in waf - operational, scroll to the bottom of the page and add your domain alias for your proxmox nodes -- ie proxmox.example.com  
+   
+ 5. in waf - rules - redirect, create a rule for <https://proxmox.example.com/$2> to <https://proxmox.host.here:8006/$2> with response 302  
+   
+ You can test by adding the IP / fqdn to your /etc/hosts, or in windows c:\windows\system32\drivers\etc\hosts, before deploying the actual DNS A record. Fire up a browser and point to your reverse proxy fqdn.  
+   
+ --edit-- 6. Using @[linhu](https://forum.proxmox.com/members/198132/) recommendations above corrected the novnc console connectivity issue. To set those in haltdos I navigated to rules - headers. I created two separate rules.   
+   
+ Rule Action = Add Header  
+ Attribute Name = Upgrade  
+ Attribute Header = $http\_upgrade  
+   
+ and..  
+   
+ Rule Action = Add Header  
+ Attribute Name = Connection  
+ Attribute Header = upgrade  
+   
+ Enable websocket support in haltdos waf - operational.   
+   
+ I'm probably still missing something as I'm occasionally getting 'failed to connect' on the console screen between refreshes.   
+   
+ -Matt
+
+Last edited:
+
+[I](/members/iengineered.252903/)
+
+#### [iEngineered](/members/iengineered.252903/)
+
+##### New Member
+
+:   Jul 26, 2024
+
+:   3
+
+:   0
+
+:   1
+
+* [#15](/threads/using-nginx-as-reverse-proxy-externally.116127/post-693466)
+
+Thanks for this write up and contributions. Seems I have a few more rabbit holes to explore. Any updates/tweaks ince the latest updates of PVE?
+
+[G](/members/gofuckyoruself.290404/)
+
+#### [gofuckyoruself](/members/gofuckyoruself.290404/)
+
+##### New Member
+
+:   Feb 16, 2025
+
+:   1
+
+:   0
+
+:   1
+
+* [#16](/threads/using-nginx-as-reverse-proxy-externally.116127/post-748560)
+
+Thank you very much. This made it very simple. Now I can host multiple different web servers/domains behind my firewall ![:)](https://cdn.jsdelivr.net/joypixels/assets/8.0/png/unicode/64/1f642.png "Smile    :)")
+
+[E](/members/ellenssim.322419/)
+
+#### [ellenssim](/members/ellenssim.322419/)
+
+##### New Member
+
+:   Nov 10, 2025
+
+:   1
+
+:   0
+
+:   1
+
+* [#17](/threads/using-nginx-as-reverse-proxy-externally.116127/post-815130)
+
+Nice setup[.](https://nodemaven.com/proxy-server/) clear explanation! Getting a proper CA certificate in place would make it even smoother and remove that security warning
+
+[You must log in or register to reply here.](/login/)
+
+Share:
+
+[Bluesky](#_xfUid-1-1774883803)   [LinkedIn](#_xfUid-1-1774883803)   [Reddit](#_xfUid-1-1774883803)   [Email](#_xfUid-1-1774883803)   [Share](#_xfUid-1-1774883803)   [Link](#_xfUid-1-1774883803)
+
+* [Home](https://forum.proxmox.com)
+* [Forums](/)
+* [Proxmox Virtual Environment](/#proxmox-virtual-environment.11)
+* [Proxmox VE: Installation and configuration](/forums/proxmox-ve-installation-and-configuration.16/)
+
+[Top](#top) [Bottom](#footer)
+
+* ## We value your privacy
+
+  We use essential [cookies](/help/cookies) to make this site work, and optional cookies to enhance your experience.
+
+  [See further information and configure your preferences](#)
+
+  [Accept all cookies](/misc/cookies?update=1&accept=1&t=1774883804%2Cd7986c7371fe9c53a259cdbafa7a6f4b)   [Reject optional cookies](/misc/cookies?update=1&reject=1&t=1774883804%2Cd7986c7371fe9c53a259cdbafa7a6f4b)
+
+ 
+
+---
+
+Title: NGINX Reverse Proxy | NGINX Documentation
+* [F5](https://f5.com/)
+
+  Deliver and secure every app
+* [DevCentral](https://community.f5.com/)
+
+  Connect & learn in our hosted community
+* [MyF5](https://my.f5.com/)
+
+  Your key to everything F5, including support, registration keys, and subscriptions
+* [NGINX](https://nginx.org/)
+
+  Learn more about NGINX Open Source and read the community blog
+* [Community Forum](https://community.nginx.org/)
+
+  Engage with the broader NGINX community for discussions and troubleshooting
+
+
+
+# NGINX Reverse Proxy
+
+This article describes the basic configuration of a proxy server. You will learn how to pass a request from NGINX to proxied servers over different protocols, modify client request headers that are sent to the proxied server, and configure buffering of responses coming from the proxied servers.
+
+## [Introduction](#introduction "Introduction")
+
+Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.
+
+## [Passing a Request to a Proxied Server](#passing-a-request-to-a-proxied-server "Passing a Request to a Proxied Server")
+
+When NGINX proxies a request, it:
+
+1. Sends the request to a specified proxy server
+2. Fetches the response
+3. Sends the response back to the client.
+
+It is possible to proxy requests to an HTTP server (another NGINX server or any other server) or a non-HTTP server (which can run an application developed with a specific framework, such as PHP or Python) using a specified protocol. Supported protocols include [FastCGI](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html), [uwsgi](https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html), [SCGI](https://nginx.org/en/docs/http/ngx_http_scgi_module.html), and [memcached](https://nginx.org/en/docs/http/ngx_http_memcached_module.html).
+
+To pass a request to an HTTP proxied server, the [proxy\_pass](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass) directive is specified inside a [location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location). For example:
+
+nginx
+
+```
+location /some/path/ { location /some/path/ { location/some/path/{ proxy_pass http://www.example.com/link/;  proxy_pass http://www.example.com/link/; proxy_passhttp://www.example.com/link/;}}}
+```
+
+This example configuration results in passing all requests processed in this location to the proxied server at the specified address. This address can be specified as a domain name or an IP address. The address may also include a port:
+
+nginx
+
+```
+location ~ \.php { location ~ \.php { location ~\.php{ proxy_pass http://127.0.0.1:8000;  proxy_pass http://127.0.0.1:8000; proxy_passhttp://127.0.0.1:8000;}}}
+```
+
+Note that in the first example above, the address of the proxied server is followed by a URI, `/link/`. If the URI is specified along with the address, it replaces the part of the request URI that matches the location parameter.
+
+For example, the request with the `/some/path/page.html` URI will be proxied to `http://www.example.com/link/page.html`. However, if the address is specified without a URI, or it is not possible to determine the part of URI to be replaced, the full request URI is passed (possibly, modified).
+
+To pass a request to a non-HTTP proxied server, the appropriate `**_pass` directive should be used:
+
+* [fastcgi\_pass](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass) passes a request to a FastCGI server
+* [uwsgi\_pass](https://nginx.org/en/docs/http/ngx_http_uwsgi_module.html#uwsgi_pass) passes a request to a uwsgi server
+* [scgi\_pass](https://nginx.org/en/docs/http/ngx_http_scgi_module.html#scgi_pass) passes a request to an SCGI server
+* [memcached\_pass](https://nginx.org/en/docs/http/ngx_http_memcached_module.html#memcached_pass) passes a request to a memcached server
+
+Note that in these cases, the rules for specifying addresses may be different. You may also need to pass additional parameters to the server (see the [reference documentation](https://nginx.org/en/docs/) for more detail).
+
+The [proxy\_pass](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass) directive can also be used to pass requests to a [named group](https://nginx.org/en/docs/http/load_balancing.html#algorithms) of servers. In this case, requests are distributed among the servers in the group according to the [specified method](https://www.nginx.com/resources/admin-guide/load-balancer/).
+
+## [Passing Request Headers](#passing-request-headers "Passing Request Headers")
+
+By default, NGINX modifies two header fields in proxied requests, “Host” and “Connection”, and eliminates the header fields whose values are empty strings. “Host” is set to the value of the `$proxy_host` variable, and “Connection” is set to `close`.
+
+To change these settings, as well as modify other header fields, use the [proxy\_set\_header](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header) directive. This directive can be specified in a [location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location) or higher. It can also be specified in a particular [server](https://nginx.org/en/docs/http/ngx_http_core_module.html#server) context or in the [http](https://nginx.org/en/docs/http/ngx_http_core_module.html#http) block. For example:
+
+nginx
+
+```
+location /some/path/ { location /some/path/ { location/some/path/{ proxy_set_header Host $host;  proxy_set_header Host $host; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr;  proxy_set_header X-Real-IP $remote_addr; proxy_set_headerX-Real-IP $remote_addr; proxy_pass http://localhost:8000;  proxy_pass http://localhost:8000; proxy_passhttp://localhost:8000;}}}
+```
+
+In this configuration the “Host” field is set to the [$host](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) variable.
+
+To prevent a header field from being passed to the proxied server, set it to an empty string as follows:
+
+nginx
+
+```
+location /some/path/ { location /some/path/ { location/some/path/{ proxy_set_header Accept-Encoding "";  proxy_set_header Accept-Encoding ""; proxy_set_headerAccept-Encoding ""; proxy_pass http://localhost:8000;  proxy_pass http://localhost:8000; proxy_passhttp://localhost:8000;}}}
+```
+
+## [Configuring Buffers](#configuring-buffers "Configuring Buffers")
+
+By default NGINX buffers responses from proxied servers. A response is stored in the internal buffers and is not sent to the client until the whole response is received. Buffering helps to optimize performance with slow clients, which can waste proxied server time if the response is passed from NGINX to the client synchronously. However, when buffering is enabled NGINX allows the proxied server to process responses quickly, while NGINX stores the responses for as much time as the clients need to download them.
+
+The directive that is responsible for enabling and disabling buffering is [proxy\_buffering](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering). By default it is set to `on` and buffering is enabled.
+
+The [proxy\_buffers](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffers) and [proxy\_buffer\_size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) directives control how NGINX stores and buffers data.
+
+The [proxy\_buffers](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffers) directive controls the size and the number of buffers allocated for a request. The first part of the response from a proxied server is stored in a separate buffer, the size of which is set with the [proxy\_buffer\_size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) directive. This part usually contains a comparatively small response header and can be made smaller than the buffers for the rest of the response.
+
+In the following example, the default number of buffers is increased and the size of the buffer for the first portion of the response is made smaller than the default.
+
+nginx
+
+```
+location /some/path/ { location /some/path/ { location/some/path/{ proxy_buffers 16 4k;  proxy_buffers 16 4k; proxy_buffers 16 4k; proxy_buffer_size 2k;  proxy_buffer_size 2k; proxy_buffer_size 2k; proxy_pass http://localhost:8000;  proxy_pass http://localhost:8000; proxy_passhttp://localhost:8000;}}}
+```
+
+If buffering is disabled, the response is sent to the client synchronously while it is receiving it from the proxied server. This behavior may be desirable for fast interactive clients that need to start receiving the response as soon as possible.
+
+To disable buffering in a specific location, place the [proxy\_buffering](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering) directive in the [location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location) with the `off` parameter, as follows:
+
+nginx
+
+```
+location /some/path/ { location /some/path/ { location/some/path/{ proxy_buffering off;  proxy_buffering off; proxy_buffering off; proxy_pass http://localhost:8000;  proxy_pass http://localhost:8000; proxy_passhttp://localhost:8000;}}}
+```
+
+In this case NGINX uses only the buffer configured by [proxy\_buffer\_size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) to store the current part of a response.
+
+A common use of a reverse proxy is to provide load balancing. See [HTTP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) and [TCP and UDP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/tcp-udp-load-balancer/).
+
+## [Choosing an Outgoing IP Address](#choosing-an-outgoing-ip-address "Choosing an Outgoing IP Address")
+
+If your proxy server has several network interfaces, sometimes you might need to choose a particular source IP address for connecting to a proxied server or an upstream. This may be useful if a proxied server behind NGINX is configured to accept connections from particular IP networks or IP address ranges.
+
+In such cases, you can specify the [proxy\_bind](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_bind) directive and the IP address of the necessary network interface:
+
+nginx
+
+```
+location /app1/ { location /app1/ { location/app1/{ proxy_bind 127.0.0.1;  proxy_bind 127.0.0.1; proxy_bind127.0.0.1; proxy_pass http://example.com/app1/;  proxy_pass http://example.com/app1/; proxy_passhttp://example.com/app1/;} } }   location /app2/ { location /app2/ { location/app2/{ proxy_bind 127.0.0.2;  proxy_bind 127.0.0.2; proxy_bind127.0.0.2; proxy_pass http://example.com/app2/;  proxy_pass http://example.com/app2/; proxy_passhttp://example.com/app2/;}}}
+```
+
+The IP address can be also specified with a variable. For example, the [`$server_addr`](https://nginx.org/en/docs/http/ngx_http_core_module.html#var_server_addr) variable passes the IP address of the network interface that accepted the request:
+
+nginx
+
+```
+location /app3/ { location /app3/ { location/app3/{ proxy_bind $server_addr;  proxy_bind $server_addr; proxy_bind $server_addr; proxy_pass http://example.com/app3/;  proxy_pass http://example.com/app3/; proxy_passhttp://example.com/app3/;}}}
+```
+
+[View source](https://github.com/nginx/documentation//tree/main/content/nginx/admin-guide/web-server/reverse-proxy.md)
+
+[Edit this page](https://github.com/nginx/documentation//edit/main/content/nginx/admin-guide/web-server/reverse-proxy.md)
+
+[Create a new issue](https://github.com/nginx/documentation//issues/new?title=NGINX%20Reverse%20Proxy&template=2-bug_report.md)
+
+ 
+
+---
+
+Title: Install and configure Nginx
+    | Ubuntu
+Your submission was sent successfully!
+[*Close*](#)
+
+Thank you for contacting us. A member of our team will be in touch shortly.
+[*Close*](#)
+
+You have successfully unsubscribed!
+[*Close*](#)
+
+Thank you for signing up for our newsletter!
+  
+In these regular emails you will find the latest updates about
+Ubuntu and upcoming events where you can meet our team.[*Close*](#)
+
+Your preferences have been successfully updated. [*Close notification*](#)
+
+Please try again or
+[file a bug report.](https://github.com/canonical/ubuntu.com/issues/new?template=ISSUE_TEMPLATE.yaml)
+[*Close*](#)
+
+![](https://assets.ubuntu.com/v1/82818827-CoF_white.svg)
+
+# Install and configure Nginx
+
+[Overview](#1-overview)
+
+[Installing Nginx](#2-installing-nginx)
+
+[Creating our own website](#3-creating-our-own-website)
+
+[Setting up virtual host](#4-setting-up-virtual-host)
+
+[Activating virtual host and testing results](#5-activating-virtual-host-and-testing-results)
+
+[That’s all!](#6-thats-all)
+
+## 1. Overview
+
+Nginx (pronounced as “Engine-X”) is an open source web server that is often used as reverse proxy or HTTP cache. It is available for Linux for free.
+
+In this tutorial we’ll install Nginx and set up a basic site.
+
+### [What you’ll learn](#p-39328-what-youll-learn)
+
+### [What you’ll need](#p-39328-what-youll-need)
+
+*Originally authored by Nicole Mikołajczyk*
+
+## 2. Installing Nginx
+
+To install Nginx, use following command:
+
+`sudo apt update
+sudo apt install nginx`
+
+After installing it, you already have everything you need.
+
+You can point your browser to your server IP address. You should see this page:
+
+![Welcome to nginx](https://ubuntucommunity.s3.us-east-2.amazonaws.com/optimized/2X/7/7504d83a9fe8c09d861b2f7c49e144ac773f0c0d_2_800x334.png)
+
+If you see this page, you have successfully installed Nginx on your web server.
+
+## 3. Creating our own website
+
+Default page is placed in `/var/www/html/` location. You can place your static pages here, or use virtual host and place it other location.
+
+`/var/www/html/`
+
+Virtual host is a method of hosting multiple domain names on the same server.
+
+Let’s create simple HTML page in `/var/www/tutorial/` (it can be anything you want). Create `index.html` file in this location.
+
+`/var/www/tutorial/`
+`index.html`
+`cd /var/www
+sudo mkdir tutorial
+cd tutorial
+sudo "${EDITOR:-vi}" index.html`
+
+Paste the following to the `index.html` file:
+
+`index.html`
+`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello, Nginx!</title>
+</head>
+<body>
+<h1>Hello, Nginx!</h1>
+<p>We have just configured our Nginx web server on Ubuntu Server!</p>
+</body>
+</html>`
+
+Save this file. In next step we are going to set up virtual host to make Nginx use pages from this location.
+
+## 4. Setting up virtual host
+
+To set up virtual host, we need to create file in `/etc/nginx/sites-enabled/` directory.
+
+`/etc/nginx/sites-enabled/`
+
+For this tutorial, we will make our site available on 81 port, not the standard 80 port. You can change it if you would like to.
+
+`cd /etc/nginx/sites-enabled
+sudo "${EDITOR:-vi}" tutorial`
+`server {
+listen 81;
+listen [::]:81;
+server_name example.ubuntu.com;
+root /var/www/tutorial;
+index index.html;
+location / {
+try_files $uri $uri/ =404;
+}
+}`
+
+`root` is a directory where we have placed our .html file. `index` is used to specify file available when visiting root directory of site. `server_name` can be anything you want, because you aren’t pointing it to any real domain by now.
+
+`root`
+`index`
+`server_name`
+
+## 5. Activating virtual host and testing results
+
+To make our site working, simply restart Nginx service.
+
+`sudo service nginx restart`
+
+Let’s check if everything works as it should. Open our newly created site in web browser. Remember that we used :81 port.
+
+![Final](https://ubuntucommunity.s3.us-east-2.amazonaws.com/optimized/2X/c/c541cea4fdab6269a04523060021728a0965e93e_2_800x334.png)
+
+Congratulations! Everything works as it should. We have just configured Nginx web server.
+
+## 6. That’s all!
+
+I hope that this tutorial explained you the basics of working with Nginx. Of course, it’s much more powerful tool. You can find more in official resources, available on Nginx site.
+
+If you need more guidance on using Nginx, help is always at hand:
+
+### [Further reading:](#p-39328-further-reading)
+
+Was this tutorial useful?
+
+![Positive response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Faca5f600-Helpful-yes.svg)
+![positive](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2F784c0dc9-Helpful-yes-green.svg)
+![Neutral response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2F5dacff00-Helpful-unsure.svg)
+![Neutral response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Fb601b52c-Helpful-unsure-orange.svg)
+![Negative response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2F4ff77e8e-Helpful-no.svg)
+![Negative response](https://res.cloudinary.com/canonical/image/fetch/f_svg,q_auto,fl_sanitize,w_32/https%3A%2F%2Fassets.ubuntu.com%2Fv1%2Fb45bf2a3-Helpful-no-red.svg)
+
+Thank you for your feedback.
+
+© 2026 Canonical Ltd.
+
+Ubuntu and Canonical are registered trademarks of Canonical Ltd.

@@ -1,0 +1,1041 @@
+Title: Creating Your First CI/CD Pipeline Using GitHub Actions
+[Sitemap](https://brandonkindred.medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fbrandonkindred.medium.com%2Fcreating-your-first-ci-cd-pipeline-using-github-actions-81c668008582&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[Medium Logo](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fbrandonkindred.medium.com%2Fcreating-your-first-ci-cd-pipeline-using-github-actions-81c668008582&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+# Creating Your First CI/CD Pipeline Using GitHub Actions
+
+## A tutorial for creating a GitHub Actions pipeline
+
+[![Brandon Kindred](https://miro.medium.com/v2/resize:fill:32:32/1*iJBMM2M4vhI3O4ALWw6tWA.jpeg)](https://brandonkindred.medium.com/?source=post_page---byline--81c668008582---------------------------------------)
+
+[Brandon Kindred](https://brandonkindred.medium.com/?source=post_page---byline--81c668008582---------------------------------------)
+
+Follow
+
+5 min read
+
+·
+
+Jun 2, 2025
+
+51
+
+2
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D81c668008582&operation=register&redirect=https%3A%2F%2Fbrandonkindred.medium.com%2Fcreating-your-first-ci-cd-pipeline-using-github-actions-81c668008582&source=---header_actions--81c668008582---------------------post_audio_button------------------)
+
+Share
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/0*YpoDAdSEYR_0FaS6)
+
+Photo by [Roman Synkevych](https://unsplash.com/@synkevych?utm_source=medium&utm_medium=referral) on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+
+## Introduction
+
+CI/CD means Continuous Integration and Continuous Delivery, which is a fancy way of saying “automatically build, test, and ship your code.” You get faster feedback and fewer surprises in production. If you’re new to CI/CD concepts, check out my other post [The Beginner’s Guide to CI/CD Pipelines](https://brandonkindred.medium.com/the-beginners-guide-to-ci-cd-pipelines-b04740b509fa). In this tutorial, we’ll build a real pipeline that runs on pull requests, lints your code, scans for security issues, tests, builds an artifact, and packages it into a GitHub release asset.
+
+## Why GitHub Actions Fits the Bill
+
+GitHub Actions is a great fit for beginners and pros alike because:
+
+**Built-In to Your Repo**
+
+- No extra servers or hosting. Everything lives inside your GitHub repository under a special folder (`.github/workflows`).
+- If you already host code on GitHub, you don’t need a separate CI/CD tool.
+
+**Event-Triggered Workflows**
+
+## Get Brandon Kindred’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+Remember me for faster sign in
+
+You decide exactly when your pipeline runs by choosing GitHub **events** to trigger the pipeline:
+
+- **push** — whenever someone pushes commits to a branch
+- **pull\_request** — whenever a PR is opened, updated, or synchronized
+- **schedule** — at set times (for example, nightly builds)
+
+**Reusable Building Blocks**
+
+- The Actions **Marketplace** offers hundreds of pre-made steps (called _actions_) for common tasks: checking out code, installing languages, deploying to cloud services, and more.
+- You don’t have to write every script from scratch — just mix and match actions like LEGO bricks.
+
+**Transparent, Easy Logs**
+
+- Results show up right in your GitHub UI under the **Actions** tab or the PR’s **Checks** pane.
+- Every step logs its output, so if something breaks you can click into the log, see the error, fix it, and re-run.
+
+## Prerequisites
+
+Before you dive in, make sure you have:
+
+1. A GitHub repo (public or private) with a simple Node.js app and an `npm test` script
+2. A local clone and a branch off `main` (for example `feature/ci-setup`) – we’ll commit workflow code there and open a PR
+3. No hard-coded secrets, since release assets are public; for private data use repo secrets
+
+## Create Your Workflow Branch and File
+
+In your terminal, make a new branch off `main` and prepare the workflows folder:
+
+```
+git checkout main
+git pull
+git checkout -b feature/ci-setup
+mkdir -p .github/workflows
+touch .github/workflows/ci-cd.yml
+```
+
+Open `ci-cd.yml` and add at the top:
+
+```
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize ]
+
+permissions:
+  contents: write
+```
+
+This tells GitHub to run the pipeline whenever someone opens a PR against `main` or pushes new commits to it.
+
+## Define Parallel Check Jobs
+
+Set up three independent jobs — **lint**, **security-scan**, and **test** — so you get feedback as fast as possible:
+
+```
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm install
+      - name: Run linter
+        run: npm run lint
+        # If you haven't set up ESLint yet, see https://eslint.org/docs/latest/user-guide/getting-started
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm install
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+```
+
+Parallel jobs give almost instant feedback on style issues, security flags, or failing tests without waiting for each other. You’ll see three separate checks on your PR, each reporting success or failure.
+
+## Add a Build Job
+
+Now that **lint**, **security-scan**, and **test** are all defined, we can compile or bundle our code into an artifact. By listing all three in `needs:`, we ensure the build only runs if every quality check succeeds:
+
+```
+build:
+  needs: [lint, security-scan, test]
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with: { node-version: 16 }
+    - run: npm install
+    - run: npm run build
+    - uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+```
+
+## Create a GitHub Release Asset
+
+Once the build finishes, bundle your artifact into a GitHub Release so anyone can download a specific “dev” build straight from your repo:
+
+```
+release:
+  needs: build
+  runs-on: ubuntu-latest
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # provided automatically by GitHub
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v4
+      with: { name: dist }
+    - id: create_release
+      uses: elgohr/Github-Release-Action@v5
+      with:
+        title: Dev Build ${{ github.sha }}
+        tag: dev-${{ github.sha }}
+        prerelease: true
+```
+
+GitHub Actions automatically provides a `GITHUB_TOKEN` so your workflow can authenticate API calls. Tagging with `dev-${{ github.sha }}` uses the commit’s SHA so each dev build is unique. Setting `prerelease: true` marks these as dev builds, and then we attach the build ZIP file for easy download.
+
+## Commit, Push, and Open a PR
+
+Stage and commit your workflow:
+
+```
+git add .github/workflows/ci-cd.yml
+git commit -m "Parallel lint/scan/test; build gated; release asset"
+git push --set-upstream origin YOUR_BRANCH
+```
+
+In the GitHub console, open a pull request for your branch. In GitHub’s **Actions** pane you’ll see all five steps as a graph. Lint, security scan, and test run in parallel, and then build, and release run sequentially. You can click any failed check to view logs and fix issues directly in your branch.
+
+## Visual Check: Actions Badge & UI
+
+Now that GitHub Actions workflow is running, let’s add a status badge to the README so others can easily see the build health:
+
+```
+![CI Pipeline Badge](https://github.com/your-user/your-repo/actions/workflows/ci-cd.yml/badge.svg)
+```
+
+## Wrapping up
+
+Congrats! You now have a fully functional CI/CD pipeline in your repo that runs style, security, and unit tests in parallel, blocks builds until all checks pass, and packages your app into a GitHub Release asset. You should already see your workflow file under `.github/workflows/ci-cd.yml` and can watch it run on each pull request. Next, try merging a PR to extend it for production releases or add other checks like lint-only workflows. Happy automating!
+
+[DevOps](https://medium.com/tag/devops?source=post_page-----81c668008582---------------------------------------)
+
+[Github Actions](https://medium.com/tag/github-actions?source=post_page-----81c668008582---------------------------------------)
+
+[Ci Cd Pipeline](https://medium.com/tag/ci-cd-pipeline?source=post_page-----81c668008582---------------------------------------)
+
+[Github](https://medium.com/tag/github?source=post_page-----81c668008582---------------------------------------)
+
+[Software Engineering](https://medium.com/tag/software-engineering?source=post_page-----81c668008582---------------------------------------)
+
+[![Brandon Kindred](https://miro.medium.com/v2/resize:fill:48:48/1*iJBMM2M4vhI3O4ALWw6tWA.jpeg)](https://brandonkindred.medium.com/?source=post_page---post_author_info--81c668008582---------------------------------------)
+
+[![Brandon Kindred](https://miro.medium.com/v2/resize:fill:64:64/1*iJBMM2M4vhI3O4ALWw6tWA.jpeg)](https://brandonkindred.medium.com/?source=post_page---post_author_info--81c668008582---------------------------------------)
+
+Follow
+
+[**Written by Brandon Kindred**](https://brandonkindred.medium.com/?source=post_page---post_author_info--81c668008582---------------------------------------)
+
+[216 followers](https://brandonkindred.medium.com/followers?source=post_page---post_author_info--81c668008582---------------------------------------)
+
+· [455 following](https://brandonkindred.medium.com/following?source=post_page---post_author_info--81c668008582---------------------------------------)
+
+I turn complex engineering and cloud concepts into step-by-step guides and practical examples. All opinions are my own.
+
+Follow
+
+## Responses (2)
+
+![](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fbrandonkindred.medium.com%2Fcreating-your-first-ci-cd-pipeline-using-github-actions-81c668008582&source=---post_responses--81c668008582---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----81c668008582---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----81c668008582---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----81c668008582---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----81c668008582---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----81c668008582---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----81c668008582---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----81c668008582---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----81c668008582---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----81c668008582---------------------------------------)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: CI/CD Tutorial using GitHub Actions - Automated Testing ... - YouTube
+![Thumbnail (1920x1080)](https://i.ytimg.com/vi_webp/YLtlz88zrLg/maxresdefault.webp)
+# [CI/CD Tutorial using GitHub Actions - Automated Testing & Automated Deployments](https://www.youtube.com/watch?v=YLtlz88zrLg)
+
+**Visibility**: Public
+**Uploaded by**: [Tom Shaw](http://www.youtube.com/@tom.developer)
+**Uploaded at**: 2024-09-01T05:12:38-07:00
+**Published at**: 2024-09-01T05:12:38-07:00
+**Length**: 06:12
+**Views**: 298848
+**Likes**: 6622
+**Category**: Science & Technology
+
+## Description
+
+```
+STARTER PROJECT SOURCE CODE: https://github.com/IAmTomShaw/github-actions-demo-project
+
+Want to automate your testing and deployments? Discover how GitHub Actions can revolutionise your CI/CD workflow in this beginner-friendly tutorial!
+
+CI/CD (Continuous Integration/Continuous Deployment) is a game-changer for developers. By automating code integration, testing, and deployment, it not only reduces manual errors but also accelerates your development cycle. As a programmer, you'll benefit from consistent, high-quality releases and more time to focus on what really matters: coding and problem-solving.
+
+In this video, you'll learn:
+
+• The fundamentals of CI/CD and its importance in modern development
+• Step-by-step guide to setting up GitHub Actions
+• How to create efficient workflows for testing and deploying your code
+• Practical tips to streamline your development process through automation
+
+By the end of this tutorial, you'll have the skills to automate your code testing and deployment. This means less time wrestling with manual processes and more time crafting amazing code. Plus, you'll reduce errors and improve your overall code quality, making you a more efficient and valuable programmer.
+
+Learning CI/CD is one of the most important tips that I have for helping you to become a better programmer!
+```
+
+## Transcript
+
+nine out
+of ten people hate this developer. The one that doesn't automate anything. And if you're watching this, the
+likelihood is that you're that developer. So how can you automate your deployments so that you never have to deal
+with another deployment error ever again? CI/CD, or continuous integration
+and continuous delivery is the practice of automating the manual tasks
+that us mere mortals usually have to do when we're deploying our code
+to production. Things
+like compiling our code, or running tests or uploading our code
+to our cloud infrastructure. Automating things
+not only helps to save a lot of time, it also removes the possibility
+of human error causing your entire system to burn to the ground. There are a bunch of tools out there
+that can help you get started with CI/CD, and I've used a few of them. All of them are great at what they do. However, in this video we're going to be
+focusing specifically on GitHub Actions. Let's get started. Ultimately, all you need to get started
+is a GitHub Repository. If you don't have one, I'm going to leave a link in the description
+below to the one I'm using for this video. At the top of your repository page,
+you should see the “Actions” tab. Once you have some automations
+running on your repository, this is where you can keep
+track of the logs for each workflow every time they are run. When it's running, we can see the progress of each step
+in the GitHub Actions workflow. So if the workflow fails during some tests
+we know that the code is broken and therefore
+we don't want to deploy it to our server. If the workflow is successful,
+we're going to see a big green checkmark telling us that everything is working
+within our code base. One of the great things that developers really like about GitHub Actions
+is that it comes with a bunch of different templates
+that you can use to easily run specific actions. However, for this video, we're going to
+create our own from scratch. To do this, you can create a new Yaml file inside of the GitHub workflows
+directory of your project. We're going to give our workflow
+a name and create our trigger, which is going to tell GitHub Actions
+when we want to run our workflow. You can run workflows
+using a variety of triggers. For example, every time we push code
+to our main branch, we might want to deploy it to our production server automatically
+so that we don't have to do it ourselves. Or every time we create
+a new pull request, we might want to test the code
+to make sure that everything is working before we merge that code
+into our main branch. These are actually the two examples
+that we're going to build today. There's a huge list of different triggers
+that you can use within GitHub Actions. So if you want to find out
+more about them, I'd recommend visiting this page
+on the GitHub documentation. Anyway, because this workflow
+is going to be used to test our code, we're going to run it every time a pull
+request to the main branch is created. So let's say
+I've got this really cool feature that I want to merge into my main branch. I'd create a pull request
+which would trigger this workflow. Next, we can create a list of jobs
+that we want to include in our workflow. We're going to call our job “test”
+and then we're going to define the operating system
+that we want the job to run on. There are other options that you can use. But realistically,
+Ubuntu is the most common one that people will use
+within GitHub Actions. And we're going to use a Node.js container because in this example
+we're using Node.js for our project. That will automatically
+install Node.js for us so that we don't have to do it manually
+through the command line using Ubuntu. It just saves a bit of time. The first step is going to be adding our code to our virtual environments
+using the checkout action. Now I want you to have a think about the steps that you would take
+if you were testing your code manually. Firstly, you’d want to make sure
+that all of your dependencies have been installed for your project. We can do this by running “npm ci”
+which is going to run a clean install. Once your dependencies
+have been installed, you can run your tests using whatever
+library you're using in your project. I tend to use Jest when I'm working
+with a JavaScript project. And then finally
+I'm going to run the build script, which is going to compile our project. We can commit this code to our repository. And then I'm going to create an example
+pull request for this really cool feature
+that I've just built. As you can see, the GitHub Actions workflow is going to spin up
+a virtual environment, run our tests and then confirm that our code is working
+as expected. So automatically, I know
+the code is working without having to pull the pull request onto my local machine
+and then running the test manually. Now that we know
+that our code is going to be working, when we merge it into the main branch,
+we want to figure out how we can use GitHub Actions to automatically deploy
+our code to our production infrastructure. This is the continuous delivery
+or CD part of the process. If we weren't automating anything, your deployment process
+may look a little like this. First I'm going to run “git pull” to get the latest version of my code
+from our repository. Then I'm going to run “git checkout”
+to make sure that I'm in my main branch. Run “npm install”, “npm run build”,
+and then deploy my code to the server using this long command,
+which I might get wrong. Oh, and then ssh into the server
+to install the dependencies and restart the Node.js process. Okay, as you can see,
+this took a long time and it was pretty complicated
+for such a small project. So let's automate this. We're going to create another Yaml file
+inside of our GitHub workflows directory, which is going to be triggered every time
+some code gets pushed to our main branch. Inside of this workflow,
+we're going to run a job which is going to build our project
+and then deploy it to our server. Like we did with our testing workflow, we're going to run our job on Ubuntu,
+checkout the code and install Node.js. We're going to run “npm ci” to do a clean
+install of the project's dependencies, and then run the build script. Once the build is completed,
+we're going to deploy our code using SCP, which is going to upload all of our files
+to the server. Because access to our server is protected
+using SSH keys, we need to take an SSH key
+that has access to our server and add the content of it
+to our GitHub Actions secrets. This is where you can store
+sensitive credentials that need to be used
+within your GitHub Actions, but can't be stored within your repository
+for security reasons. For example your Stripe or OpenAI keys. You wouldn't
+want to put them in your repository. I've also added the address of the server
+that we're going to be deploying our code to, as well as the username that I have
+on the server. We can then access our secrets
+within our GitHub Actions workflow and add our SSH key
+to our virtual environment. Now we can upload our files to our server
+using SCP in the exact same way that we would have done it
+using the command line. The final step in our deployment
+process is to SSH enter the server, install the dependencies,
+and then restart the Node.js process. In this case I'm using
+PM2 to manage the Node.js process. You can test your workflow using Act
+which allows you to run GitHub Action scripts offline. To do this, you need to have Docker
+running on your local machine as well as create a “.secrets” file
+within your project directory. That secrets file is then going to be used to replace
+what would be GitHub Actions secrets. So make sure you don't actually
+put your deployment secrets in that file. You need to put some test ones in that
+you're maybe deploying
+to different infrastructure. Because you wouldn't want to run a test
+on actual production infrastructure. You can then run the “act” command
+to test your workflow and make sure that everything is working
+correctly. Once you're happy with your workflow, you can publish it to your GitHub
+repository. Now, if we merge that super cool feature
+that we were testing earlier, you can see that
+we've triggered this automated workflow which is going to deploy our code
+to our production server. So now you can say that you understand
+CI/CD. If you learned something in today's video,
+please do leave a like down below and subscribe for more coding videos.
+
+
+## Endscreen
+    
+- [How I'm teaching myself Electronics](https://www.youtube.com/watch?v=uNr0Y665aG8)
+
+---
+
+Title: Advice on CI/CD setup with GitHub Actions : r/devops - Reddit
+One potential solution is to use GitHub Actions in the service repo to build and push the Docker images upon pushes to the staging or production ...
+
+---
+
+Title: Quickstart for GitHub Actions
+[Skip to main content](https://docs.github.com/en/actions/get-started/quickstart#main-content)
+
+# Quickstart for GitHub Actions
+
+Try out the core features of GitHub Actions in minutes.
+
+Copy as Markdown
+
+## In this article
+
+## [Introduction](https://docs.github.com/en/actions/get-started/quickstart\#introduction)
+
+GitHub Actions is a continuous integration and continuous delivery (CI/CD) platform that allows you to automate your build, test, and deployment pipeline. You can create workflows that run tests whenever you push a change to your repository, or that deploy merged pull requests to production.
+
+This quickstart guide shows you how to use the user interface of GitHub to add a workflow that demonstrates some of the essential features of GitHub Actions.
+
+To get started with preconfigured workflows, browse through the list of templates in the [actions/starter-workflows](https://github.com/actions/starter-workflows) repository. For more information, see [Using workflow templates](https://docs.github.com/en/actions/writing-workflows/using-starter-workflows).
+
+For an overview of GitHub Actions workflows, see [Workflows](https://docs.github.com/en/actions/using-workflows/about-workflows). If you want to learn about the various components that make up GitHub Actions, see [Understanding GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions).
+
+## [Using workflow templates](https://docs.github.com/en/actions/get-started/quickstart\#using-workflow-templates)
+
+GitHub provides preconfigured workflow templates that you can use as-is or customize to create your own workflow. GitHub analyzes your code and shows you workflow templates that might be useful for your repository. For example, if your repository contains Node.js code, you'll see suggestions for Node.js projects.
+
+These workflow templates are designed to help you get up and running quickly, offering a range of configurations such as:
+
+- CI: [Continuous Integration workflows](https://github.com/actions/starter-workflows/tree/main/ci)
+- Deployments: [Deployment workflows](https://github.com/actions/starter-workflows/tree/main/deployments)
+- Automation: [Automating workflows](https://github.com/actions/starter-workflows/tree/main/automation)
+- Code Scanning: [Code Scanning workflows](https://github.com/actions/starter-workflows/tree/main/code-scanning)
+- Pages: [Pages workflows](https://github.com/actions/starter-workflows/tree/main/pages)
+
+Use these workflows as a starting place to build your custom workflow or use them as-is. You can browse the full list of workflow templates in the [actions/starter-workflows](https://github.com/actions/starter-workflows) repository.
+
+## [Prerequisites](https://docs.github.com/en/actions/get-started/quickstart\#prerequisites)
+
+This guide assumes that:
+
+- You have at least a basic knowledge of how to use GitHub. If you don't, you'll find it helpful to read some of the articles in the documentation for repositories and pull requests first. For example, see [Quickstart for repositories](https://docs.github.com/en/repositories/creating-and-managing-repositories/quickstart-for-repositories), [About branches](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches), and [About pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+
+- You have a repository on GitHub where you can add files.
+
+- You have access to GitHub Actions.
+
+
+
+Note
+
+
+
+If the **Actions** tab is not displayed under the name of your repository on GitHub, it may be because Actions is disabled for the repository. For more information, see [Managing GitHub Actions settings for a repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository).
+
+
+## [Creating your first workflow](https://docs.github.com/en/actions/get-started/quickstart\#creating-your-first-workflow)
+
+1. In your repository on GitHub, create a workflow file called `github-actions-demo.yml` in the `.github/workflows` directory. To do this:
+
+
+   - If the `.github/workflows` directory already exists, navigate to that directory on GitHub, click **Add file**, then click **Create new file**, and name the file `github-actions-demo.yml`.
+
+   - If your repository doesn't have a `.github/workflows` directory, go to the main page of the repository on GitHub, click **Add file**, then click **Create new file**, and name the file `.github/workflows/github-actions-demo.yml`. This creates the `.github` and `workflows` directories and the `github-actions-demo.yml` file in a single step.
+
+
+Note
+
+For GitHub to discover any GitHub Actions workflows in your repository, you must save the workflow files in a directory called `.github/workflows`.
+
+You can give the workflow file any name you like, but you must use `.yml` or `.yaml` as the file name extension. YAML is a markup language that's commonly used for configuration files.
+
+2. Copy the following YAML contents into the `github-actions-demo.yml` file:
+
+
+
+```yaml
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+     Explore-GitHub-Actions:
+       runs-on: ubuntu-latest
+       steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+```
+
+At this stage you don't need to understand the details of this workflow. For now, you can just copy and paste the contents into the file. After completing this quickstart guide, you can learn about the syntax of workflow files in [Workflows](https://docs.github.com/en/actions/using-workflows/about-workflows#understanding-the-workflow-file), and for an explanation of GitHub Actions contexts, such as `${{ github.actor }}` and `${{ github.event_name }}`, see [Contexts reference](https://docs.github.com/en/actions/learn-github-actions/contexts).
+
+3. Click **Commit changes**.
+
+4. In the "Propose changes" dialog, select either the option to commit to the default branch or the option to create a new branch and start a pull request. Then click **Commit changes** or **Propose changes**.
+
+
+
+![Screenshot of the "Propose changes" dialog with the areas mentioned highlighted with an orange outline.](https://docs.github.com/assets/cb-71777/images/help/repository/actions-quickstart-commit-new-file.png)
+
+
+Committing the workflow file to a branch in your repository triggers the `push` event and runs your workflow.
+
+If you chose to start a pull request, you can continue and create the pull request, but this is not necessary for the purposes of this quickstart because the commit has still been made to a branch and will trigger the new workflow.
+
+## [Viewing your workflow results](https://docs.github.com/en/actions/get-started/quickstart\#viewing-your-workflow-results)
+
+1. On GitHub, navigate to the main page of the repository.
+
+2. Under your repository name, click **Actions**.
+
+
+
+![Screenshot of the tabs for the "github/docs" repository. The "Actions" tab is highlighted with an orange outline.](https://docs.github.com/assets/cb-12958/images/help/repository/actions-tab-global-nav-update.png)
+
+3. In the left sidebar, click the workflow you want to display, in this example "GitHub Actions Demo."
+
+
+
+![Screenshot of the "Actions" page. The name of the example workflow, "GitHub Actions Demo", is highlighted by a dark orange outline.](https://docs.github.com/assets/cb-64036/images/help/repository/actions-quickstart-workflow-sidebar.png)
+
+4. From the list of workflow runs, click the name of the run you want to see, in this example "USERNAME is testing out GitHub Actions."
+
+5. In the left sidebar of the workflow run page, under **Jobs**, click the **Explore-GitHub-Actions** job.
+
+
+
+![Screenshot of the "Workflow run" page. In the left sidebar, the "Explore-GitHub-Actions" job is highlighted with a dark orange outline.](https://docs.github.com/assets/cb-53820/images/help/repository/actions-quickstart-job.png)
+
+6. The log shows you how each of the steps was processed. Expand any of the steps to view its details.
+
+
+
+![Screenshot of steps run by the workflow.](https://docs.github.com/assets/cb-95207/images/help/repository/actions-quickstart-logs.png)
+
+
+
+For example, you can see the list of files in your repository:
+
+
+
+![Screenshot of the "List files in the repository" step expanded to show the log output. The output for the step is highlighted with an orange outline.](https://docs.github.com/assets/cb-53977/images/help/repository/actions-quickstart-log-detail.png)
+
+
+The example workflow you just added is triggered each time code is pushed to the branch, and shows you how GitHub Actions can work with the contents of your repository. For an in-depth tutorial, see [Understanding GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions).
+
+## [Next steps](https://docs.github.com/en/actions/get-started/quickstart\#next-steps)
+
+GitHub Actions can help you automate nearly every aspect of your application development processes. Ready to get started? Here are some helpful resources for taking your next steps with GitHub Actions:
+
+- To create a GitHub Actions workflow, see [Using workflow templates](https://docs.github.com/en/actions/learn-github-actions/using-starter-workflows).
+- For continuous integration (CI) workflows, see [Building and testing your code](https://docs.github.com/en/actions/automating-builds-and-tests).
+- For building and publishing packages, see [Publishing packages](https://docs.github.com/en/actions/publishing-packages).
+- For deploying projects, see [Deploying to third-party platforms](https://docs.github.com/en/actions/deployment).
+- For automating tasks and processes on GitHub, see [Managing your work with GitHub Actions](https://docs.github.com/en/actions/managing-issues-and-pull-requests).
+- For examples that demonstrate more complex features of GitHub Actions, see [Managing your work with GitHub Actions](https://docs.github.com/en/actions/examples). These detailed examples explain how to test your code on a runner, access the GitHub CLI, and use advanced features such as concurrency and test matrices.
+- To certify your proficiency in automating workflows and accelerating development with GitHub Actions, earn a GitHub Actions certificate with GitHub Certifications. For more information, see [About GitHub Certifications](https://docs.github.com/en/get-started/showcase-your-expertise-with-github-certifications/about-github-certifications).
+
+---
+
+Title: Could you please tell me how to set up CI/CD on GitHub? #172466
+[Skip to content](https://github.com/orgs/community/discussions/172466#start-of-content)
+
+You signed in with another tab or window. [Reload](https://github.com/orgs/community/discussions/172466) to refresh your session.You signed out in another tab or window. [Reload](https://github.com/orgs/community/discussions/172466) to refresh your session.You switched accounts on another tab or window. [Reload](https://github.com/orgs/community/discussions/172466) to refresh your session.Dismiss alert
+
+{{ message }}
+
+# [![@community](https://avatars.githubusercontent.com/u/93784371?s=60&v=4)\  GitHub Community](https://github.com/community)
+
+# Could you please tell me how to set up CI/CD on GitHub?  \#172466
+
+[Answered](https://github.com/orgs/community/discussions/172466#discussioncomment-14332123) by [a-ariff](https://github.com/a-ariff "a-ariff")
+
+[masterAI359](https://github.com/masterAI359)
+
+asked this question in
+[Actions](https://github.com/orgs/community/discussions/categories/actions)
+
+[Could you please tell me how to set up CI/CD on GitHub?](https://github.com/orgs/community/discussions/172466#top)#172466
+
+[![@masterAI359](https://avatars.githubusercontent.com/u/180311814?s=40&v=4)\\
+masterAI359](https://github.com/masterAI359)
+
+on Sep 5, 2025Sep 5, 2025·
+6 comments
+·
+2 replies
+
+
+[Answered](https://github.com/orgs/community/discussions/172466#discussioncomment-14332123)by [a-ariff](https://github.com/a-ariff "a-ariff")[Return to top](https://github.com/orgs/community/discussions/172466#top)
+
+Discussion options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+## [![](https://avatars.githubusercontent.com/u/180311814?s=64&v=4)\ masterAI359](https://github.com/masterAI359) [on Sep 5, 2025Sep 5, 2025](https://github.com/orgs/community/discussions/172466\#discussion-8844512)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| ### Why are you starting this discussion?<br>Question<br>### What GitHub Actions topic or product is this about?<br>Misc<br>### Discussion Details<br>Hi everyone.<br>I'm a developer who just started developing.<br>**I've been trying to implement CI/CD on GitHub, but I don't know about the method, so I'm asking for help.**<br>I appreciate your support. |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+6You must be logged in to vote
+
+All reactions
+
+Answered by
+[a-ariff](https://github.com/a-ariff)[on Sep 7, 2025Sep 7, 2025](https://github.com/orgs/community/discussions/172466#discussioncomment-14332123)
+
+Excellent foundational guidance from [@JagreetDasgupta](https://github.com/JagreetDasgupta), [@jfullstackdev](https://github.com/jfullstackdev), and [@MMunim90](https://github.com/MMunim90)! Since you're just starting development, here are some **advanced patterns** to grow into:
+
+## 🔒 **Security-First CI/CD (Critical for Production)**
+
+Building on the basic examples, add security scanning:
+
+```
+name: Secure CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run security audit
+        run: npm audit --audit-level=high
+
+      - name: SAST with CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript
+```
+
+## 🔄 **Enterprise Integrat…**
+
+[View full answer](https://github.com/orgs/community/discussions/172466#discussioncomment-14332123)
+
+## Replies:   6 comments  ·  2 replies
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+### [![](https://avatars.githubusercontent.com/u/128155116?s=64&v=4)\ JagreetDasgupta](https://github.com/JagreetDasgupta) [on Sep 5, 2025Sep 5, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14318211)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| Hey, welcome to development and great that you’re exploring CI/CD early on—it’s a really valuable skill!<br>On GitHub, the most common way to set up CI/CD is by using GitHub Actions. It lets you define workflows in a .github/workflows/ folder in your repo. These workflows are just YAML files where you can describe what should happen when certain events occur (for example: when you push code, open a pull request, or create a release).<br>A basic example is:<br>Trigger the workflow on push or pull\_request<br>Run your build, tests, and maybe linting<br>Optionally, deploy somewhere if tests pass<br>If you let us know what kind of project you’re working on (language, framework, and where you want to deploy), we can suggest a tailored example workflow file to get you started. GitHub also has a bunch of starter templates you can use directly from the Actions tab.<br>Don’t worry if YAML looks overwhelming at first—you’ll get the hang of it quickly. |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+1You must be logged in to vote
+
+All reactions
+
+0 replies
+
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+### [![](https://avatars.githubusercontent.com/u/47092464?s=64&v=4)\ jfullstackdev](https://github.com/jfullstackdev) [on Sep 6, 2025Sep 6, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14325909)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| steps to get started :<br>### 1\. create a Workflow File<br>Inside your repo, create this folder and file:<br>```<br>.github/workflows/ci.yml<br>```<br>* * *<br>### 2\. add a basic CI Workflow<br>Paste in something like this (for a Node.js project as an example):<br>```<br>name: CI<br>on:<br>  push:<br>    branches: [ main ]<br>  pull_request:<br>    branches: [ main ]<br>jobs:<br>  build:<br>    runs-on: ubuntu-latest<br>    steps:<br>      - name: Checkout code<br>        uses: actions/checkout@v4<br>      - name: Set up Node.js<br>        uses: actions/setup-node@v4<br>        with:<br>          node-version: 20<br>      - name: Install dependencies<br>        run: npm install<br>      - name: Run tests<br>        run: npm test<br>```<br>This will:<br>1. Run on every push and pull request to `main`.<br>2. Install dependencies.<br>3. Run your tests.<br>* * *<br>### 3\. (Optional) Add Deployment (CD)<br>If you want **CD** (deploy automatically), you can add another job after tests, for example:<br>- Deploy to GitHub Pages (for static sites).<br>- Push to Docker Hub.<br>- Deploy to cloud providers (Vercel, AWS, Azure, etc.).<br>Most providers already have ready-made Actions you can reuse.<br>* * *<br>### 4\. Learn by Examples<br>check these resources:<br>[https://docs.github.com/en/actions/quickstart](https://docs.github.com/en/actions/quickstart)<br>[https://github.com/marketplace?type=actions](https://github.com/marketplace?type=actions) → prebuilt actions you can drop in<br>* * *<br>start with a CI workflow that runs your tests, once that works, add CD (deployment)<br>build it step by step instead of all at once, same rule in Dev that every step must be working before proceeding to the next one<br>and in my first time doing this, AI helped me a lot ! I can proceed while learning at the same time I'm doing my task ! even standalone ChatGPT is fine but Copilot, particularly the Agent modes are way too powerful since they have context on what you are working with because they have the access to your codebase,<br>GPT-4.1 Agent Mode or the more powerful but limited Claude Sonnet 4 but this is Premium Request, so use in those critical / heavy tasks |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+1You must be logged in to vote
+
+![smile](https://github.githubassets.com/assets/1f604-7528822fb4c5.png)1
+
+All reactions
+
+- ![smile](https://github.githubassets.com/assets/1f604-7528822fb4c5.png)1
+
+1 reply
+
+
+[![@masterAI359](https://avatars.githubusercontent.com/u/180311814?s=60&v=4)](https://github.com/masterAI359)
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+#### [masterAI359](https://github.com/masterAI359) [on Sep 6, 2025Sep 6, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14326407)   Author
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| Thank you for the detailed explanation.<br>I will proceed with implementation by this method. |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+![+1](https://github.githubassets.com/assets/1f44d-41cb66fe1e22.png)1
+
+All reactions
+
+- ![+1](https://github.githubassets.com/assets/1f44d-41cb66fe1e22.png)1
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+### [![](https://avatars.githubusercontent.com/u/128819931?s=64&v=4)\ MMunim90](https://github.com/MMunim90) [on Sep 6, 2025Sep 6, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14326167)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| 1. Create a Workflow File<br>In your repository, create a folder called .github/workflows/. Inside it, add a file, for example:<br># .github/workflows/ci.yml<br>name: CI Pipeline<br>on:<br>push:<br>branches: \[ main \]<br>pull\_request:<br>branches: \[ main \]<br>jobs:<br>build:<br>runs-on: ubuntu-latest<br>```<br>steps:<br>  # Get your code<br>  - uses: actions/checkout@v3<br>  # Set up Python<br>  - name: Set up Python<br>    uses: actions/setup-python@v4<br>    with:<br>      python-version: "3.11"<br>  # Install dependencies<br>  - name: Install dependencies<br>    run: |<br>      python -m pip install --upgrade pip<br>      pip install -r requirements.txt<br>  # Run tests<br>  - name: Run tests<br>    run: |<br>      pytest<br>```<br>This example assumes you’re working with Python, but the structure is similar for other languages.<br>2. Add Deployment (CD)<br>If you want continuous deployment, add another job (or step) that runs only after tests pass. For example, to deploy a static site to GitHub Pages:<br>deploy:<br>needs: build<br>runs-on: ubuntu-latest<br>steps:<br>\- uses: actions/checkout@v3<br>\- name: Deploy to GitHub Pages<br>uses: peaceiris/actions-gh-pages@v3<br>with:<br>github\_token: ${{ secrets.GITHUB\_TOKEN }}<br>publish\_dir: ./public<br>For cloud platforms (Heroku, AWS, Azure, etc.), you’d replace this with their official or community deployment action.<br>3. Manage Secrets<br>If deployment requires secrets (like API keys), store them in your repo’s Settings → Secrets and variables → Actions. Then use them in your workflow as secrets.MY\_KEY.<br>4. Observe and Debug<br>Whenever you push, go to the Actions tab in your repo. You’ll see the pipeline running live. If it fails, logs are available for each step.<br>👉 So, in short:<br>Put a YAML workflow file in .github/workflows/.<br>Define when it runs (on:).<br>Add jobs (build, test, deploy).<br>Use official actions for setup and deployment. |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+1You must be logged in to vote
+
+![smile](https://github.githubassets.com/assets/1f604-7528822fb4c5.png)1
+
+All reactions
+
+- ![smile](https://github.githubassets.com/assets/1f604-7528822fb4c5.png)1
+
+0 replies
+
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+### [![](https://avatars.githubusercontent.com/u/197741061?s=64&v=4)\ a-ariff](https://github.com/a-ariff) [on Sep 7, 2025Sep 7, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14332123)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| Excellent foundational guidance from [@JagreetDasgupta](https://github.com/JagreetDasgupta), [@jfullstackdev](https://github.com/jfullstackdev), and [@MMunim90](https://github.com/MMunim90)! Since you're just starting development, here are some **advanced patterns** to grow into:<br>## 🔒 **Security-First CI/CD (Critical for Production)**<br>Building on the basic examples, add security scanning:<br>```<br>name: Secure CI/CD Pipeline<br>on:<br>  push:<br>    branches: [main]<br>  pull_request:<br>    branches: [main]<br>jobs:<br>  security-scan:<br>    runs-on: ubuntu-latest<br>    steps:<br>      - uses: actions/checkout@v4<br>      - name: Run security audit<br>        run: npm audit --audit-level=high<br>      <br>      - name: SAST with CodeQL<br>        uses: github/codeql-action/analyze@v3<br>        with:<br>          languages: javascript<br>```<br>## 🔄 **Enterprise Integration Patterns**<br>As mentioned by [@jfullstackdev](https://github.com/jfullstackdev) about AI helping - here's **Azure DevOps integration** for hybrid environments:<br>```<br>- name: Trigger Azure DevOps Pipeline<br>  uses: Azure/pipelines@v1.2<br>  with:<br>    azure-devops-project-url: '${{ secrets.AZURE_DEVOPS_URL }}'<br>    azure-pipeline-name: 'production-deploy'<br>```<br>## 📄 **Advanced Monitoring & Observability**<br>Beyond basic deployment, add **application insights**:<br>```<br>- name: Deploy with telemetry<br>  run: |<br>    # Deploy your app<br>    npm run deploy<br>    <br>    # Report deployment success to monitoring<br>    curl -X POST "${{ secrets.WEBHOOK_URL }}" \<br>      -d '{"deployment": "success", "commit": "${{ github.sha }}}"<br>```<br>## 🎯 **Multi-Environment Strategy**<br>The examples showed single deployments. For **professional development**:<br>```<br>jobs:<br>  deploy-staging:<br>    if: github.ref == 'refs/heads/develop'<br>    environment: staging<br>    <br>  deploy-production:<br>    if: github.ref == 'refs/heads/main'<br>    environment: production<br>    needs: [test, security-scan]<br>```<br>**Key insight**: Start with [@MMunim90](https://github.com/MMunim90)'s basic structure, then progressively add these enterprise patterns as your project grows. The **modular approach** mentioned by [@jfullstackdev](https://github.com/jfullstackdev) is spot-on - build working foundations first! |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+Marked as answer
+
+2You must be logged in to vote
+
+All reactions
+
+1 reply
+
+
+[![@masterAI359](https://avatars.githubusercontent.com/u/180311814?s=60&v=4)](https://github.com/masterAI359)
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+#### [masterAI359](https://github.com/masterAI359) [on Sep 9, 2025Sep 9, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14351416)   Author
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| thank you so much!<br>**I implemented CI/CD using above method.**<br>best regard! |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+All reactions
+
+Answer selected by [masterAI359](https://github.com/masterAI359)
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+### [![](https://avatars.githubusercontent.com/u/6497823?s=64&v=4)\ RouseRo](https://github.com/RouseRo) [on Sep 11, 2025Sep 11, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14374968)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| What is a python decorator attribute |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+1You must be logged in to vote
+
+All reactions
+
+0 replies
+
+
+Comment options
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/orgs/community/discussions/172466).
+
+# {{title}}
+
+Quote reply
+
+### [![](https://avatars.githubusercontent.com/u/197741061?s=64&v=4)\ a-ariff](https://github.com/a-ariff) [on Sep 11, 2025Sep 12, 2025](https://github.com/orgs/community/discussions/172466\#discussioncomment-14379816)
+
+Original comment in English -
+Translate to English
+
+|     |
+| --- |
+| Python doesn't have a specific "decorator attribute" - decorators are functions that take another function/class and return a modified version, applied using @ syntax.<br>Common use cases: logging, timing, access control, caching, validation, registering functions, and built-ins like [@Property](https://github.com/Property), [@staticmethod](https://github.com/staticmethod), [@classmethod](https://github.com/classmethod).<br>Simple example:<br>```<br>def my_decorator(func):<br>    def wrapper():<br>        print("Before function")<br>        func()<br>        print("After function")<br>    return wrapper<br>@my_decorator<br>def say_hello():<br>    print("Hello!")<br>say_hello()  # Prints: Before function, Hello!, After function<br>```<br>[@Property](https://github.com/Property) creates attribute-like access:<br>```<br>class Circle:<br>    def __init__(self, radius):<br>        self._radius = radius<br>    <br>    @property<br>    def area(self):<br>        return 3.14159 * self._radius ** 2<br>c = Circle(5)<br>print(c.area)  # Access like an attribute, not c.area()<br>```<br>Decorators work on both functions and classes, providing a clean way to modify behavior without changing the original code! |
+
+BetaWas this translation helpful? [Give feedback.](https://github.com/orgs/community/discussions/172466#)
+
+2You must be logged in to vote
+
+![+1](https://github.githubassets.com/assets/1f44d-41cb66fe1e22.png)1
+
+All reactions
+
+- ![+1](https://github.githubassets.com/assets/1f44d-41cb66fe1e22.png)1
+
+0 replies
+
+
+[Sign up for free](https://github.com/join?source=comment-repo) **to join this conversation on GitHub**.
+Already have an account?
+[Sign in to comment](https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Forgs%2Fcommunity%2Fdiscussions%2F172466)
+
+Category
+
+
+[![ship](https://github.githubassets.com/assets/1f6a2-9dcecea35561.png)\\
+\\
+Actions](https://github.com/orgs/community/discussions/categories/actions)
+
+Labels
+
+
+[Actions](https://github.com/orgs/community/discussions?discussions_q=label%3AActions) Build, test, and automate your deployment pipeline with world-class CI/CD [Question](https://github.com/orgs/community/discussions?discussions_q=label%3AQuestion) Ask and answer questions about GitHub features and usage [Misc](https://github.com/orgs/community/discussions?discussions_q=label%3AMisc) General discussions about GitHub Actions that don't fit other found themes.
+
+6 participants
+
+
+[![@masterAI359](https://avatars.githubusercontent.com/u/180311814?s=48&v=4)](https://github.com/masterAI359)[![@RouseRo](https://avatars.githubusercontent.com/u/6497823?s=48&v=4)](https://github.com/RouseRo)[![@jfullstackdev](https://avatars.githubusercontent.com/u/47092464?s=48&v=4)](https://github.com/jfullstackdev)[![@JagreetDasgupta](https://avatars.githubusercontent.com/u/128155116?s=48&v=4)](https://github.com/JagreetDasgupta)[![@MMunim90](https://avatars.githubusercontent.com/u/128819931?s=48&v=4)](https://github.com/MMunim90)[![@a-ariff](https://avatars.githubusercontent.com/u/197741061?s=48&v=4)](https://github.com/a-ariff)
+
+Heading
+
+Bold
+
+Italic
+
+Quote
+
+Code
+
+Link
+
+* * *
+
+Numbered list
+
+Unordered list
+
+Task list
+
+* * *
+
+Attach files
+
+Mention
+
+Reference
+
+# Select a reply
+
+Loading
+
+[Create a new saved reply](https://github.com/orgs/community/discussions/172466)
+
+👍1 reacted with thumbs up emoji👎1 reacted with thumbs down emoji😄1 reacted with laugh emoji🎉1 reacted with hooray emoji😕1 reacted with confused emoji❤️1 reacted with heart emoji🚀1 reacted with rocket emoji👀1 reacted with eyes emoji
+
+You can’t perform that action at this time.

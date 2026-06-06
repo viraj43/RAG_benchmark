@@ -1,0 +1,520 @@
+Title: Networking overview - Docker Docs
+**Definition:** Docs AI
+
+Open in ClaudeTable of contentsContainer networking refers to the ability for containers to connect to and
+communicate with each other, and with non-Docker network services.
+
+**Key Points:** BackManuals
+
+Get startedGuidesReferenceNetworking overview
+
+Copy as Markdown
+
+Open Markdown
+
+Ask Docs AI
+
+Open in ClaudeTable of contentsContainer networking refers to the ability for containers to connect to and
+communicate with each other, and with non-Docker network services. A container has no information about what kind of network it's
+attached to, or whether its network peers are also Docker containers. Just as a host can be connected to multiple Ethernet
+networks, a container can be connected to multiple Docker networks.
+
+| Driver | Description | 
+|---|---|
+| bridge | The default network driver. | 
+| host | Remove network isolation between the con | 
+| none | Completely isolate a container from the  | 
+| overlay | Swarm Overlay networks connect multiple  | 
+| ipvlan | Connect containers to external VLANs. | 
+| macvlan | Containers appear as devices on the host | 
+
+
+| Flag | Description | 
+|---|---|
+| --dns | The IP address of a DNS server. To speci | 
+| --dns-search | A DNS search domain to search non-fully  | 
+| --dns-opt | A key-value pair representing a DNS opti | 
+| --hostname | The hostname a container uses for itself | 
+
+
+```bash
+$ docker run --rm -ti busybox ping -c1 docker.com
+PING docker.com (23.185.0.4): 56 data bytes
+64 bytes from 23.185.0.4: seq=0 ttl=62 time=6.564 ms
+
+--- docker.com ping statistics ---
+1 packets transmitted, 1 packets received, 0% packet loss
+round-trip min/avg/max = 6.564/6.564/6.564 ms
+```
+
+```bash
+$ docker network create -d bridge my-net
+$ docker run --network=my-net -it busybox
+```
+
+```bash
+$ docker run --network name=gwnet,gw-priority=1 --network anet1 --name myctr myimage
+$ docker network connect anet2 myctr
+```
+
+## Networking overview
+Copy as Markdown
+
+
+
+
+Open Markdown
+
+
+
+Ask Docs AI
+
+
+Claude
+Open in Claudefunction getCurrentPlaintextUrl(){const e=window.location.href.split("#")[0].replace(/\/$/,"");return`${e}.md`}function copyMarkdown(){fetch(getCurrentPlaintextUrl()).then(e=>e.text()).then(e=>{navigator.clipboard.writeText(e).then(()=>{const e=document.querySelector('[data-heap-id="copy-markdown-button"]');if(!e)return;const t=e.querySelectorAll(".icon-svg"),n=t[0],s=t[1];n.classList.add("hidden"),s.classList.remove("hidden"),setTimeout(()=>{n.classList.remove("hidden"),s.classList.add("hidden")},2e3)})}).catch(e=>{console.error("Error copying markdown:",e)})}function viewPlainText(){window.open(getCurrentPlaintextUrl(),"_blank")}function openInDocsAI(){const e=document.querySelector(".open-kapa-widget");e?e.click():alert("Couldn't find Docs AI.")}function openInClaude(){const e=getCurrentPlaintextUrl(),t=`Read ${e} so I can ask questions about it.`,n=encodeURIComponent(t),s=`https://claude.ai/new?q=${n}`;window.open(s,"_blank")}
+
+
+
+
+---
+
+Title: How Docker Desktop Networking Works Under the Hood
+**Definition:** Docker Desktop is designed to ensure that networking “just works” for all of these use-cases in all of these scenarios.
+
+**Key Points:** When Docker Desktop is running Linux containers, the Docker engine (dockerd in the diagram above) is a Linux program running inside the helper Linux VM, not natively on the host. When a developer exposes a port with docker run -p 80:80, the Docker API proxy decodes the request and uses an internal API to request a port forward via the com. Docker Security
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ Read now 
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ Apr 16, 2026
+ 
+ 
+
+ 
+ 
+
+ 
+ Why MicroVMs: The Architecture Behind Docker Sandboxes
+ 
+ Last week, we launched Docker Sandboxes with a bold goal: to deliver the strongest agent isolation in the market.
+
+## Why MicroVMs: The Architecture Behind Docker Sandboxes
+Last week, we launched Docker Sandboxes with a bold goal: to deliver the strongest agent isolation in the market. This post unpacks that claim, how microVMs enable it, and some of the architectural choices we made in this approach. The Problem With Every Other Approach Every sandboxing model asks you to give something up. We…
+
+
+## DockerCon2022
+Join us for DockerCon2022 on Tuesday, May 10. DockerCon is a free, one day virtual event that is a unique experience for developers and development teams who are building the next generation of modern applications. If you want to learn about how to go from code to cloud fast and how to solve your development challenges, DockerCon 2022 offers engaging live content to help you build, share and run your applications. Register today at https://www.docker.com/dockercon/
+
+
+## From Security Blocked to Prod Ready: ClickHouse on Docker Hardened Images
+Learn how Docker Hardened Images help run ClickHouse in production by reducing CVEs and improving container security without changing your workflow.
+
+
+## Docker Sandboxes: Run Agents in YOLO Mode, Safely
+Agents have crossed a threshold. Over a quarter of all production code is now AI-authored, and developers who use agents are merging roughly 60% more pull requests. But these gains only come when you let agents run autonomously. And to unlock that, you have to get out of the way. That means letting agents run…
+
+
+
+
+---
+
+Title: Docker Networking Deep Dive: Understanding Bridge, Host ...
+**Definition:** Docker networking is one of those topics that seems straightforward on the surface but reveals layers of complexity as you dig deeper.
+
+**Key Points:** Docker uses Linux networking features like network namespaces, virtual ethernet pairs, and iptables to create isolated network environments for containers. To make services accessible from outside, you need port mapping:
+   # Map container port 80 to host port 8080 docker run -d -p 8080:80 --name web nginx # Map to specific host interface docker run -d -p 127. Platform Limitations: Host networking works differently on Docker Desktop (Mac/Windows) compared to Linux.
+
+                                       Docker networking is one of those topics that seems straightforward on the surface but reveals layers of complexity as you dig deeper. Whether you're running a simple web application or orchestrating a complex microservices architecture, understanding how containers communicate is crucial for building robust, scalable applications. In this deep dive, we'll explore the three fundamental Docker network types: Bridge, Host, and Overlay networks. By the end, you'll understand when to use each type and how to implement them effectively in your projects.   The Foundation: How Docker Networking Works  Before jumping into specific network types, let's understand the basics. Docker uses Linux networking features like network namespaces, virtual ethernet pairs, and iptables to create isolated network environments for containers. When Docker starts, it creates a virtual bridge called docker0 on the host machine. This bridge acts as a software switch, allowing containers to communicate with each other and the outside world.
+   # View Docker networks docker network ls # Inspect the default bridge network docker network inspect bridge           Bridge Networks: The Default Choice  Bridge networks are Docker's default networking mode and the most commonly used for single-host container communication.   How Bridge Networks Work  When you run a container without specifying a network, Docker automatically connects it to the default bridge network. Each container gets its own network namespace with a virtual ethernet interface connected to the Docker bridge.
+   # Run a container on the default bridge docker run -d --name web-server nginx # Check the container's network configuration docker exec web-server ip addr show           Creating Custom Bridge Networks  While the default bridge works for basic scenarios, custom bridge networks offer significant advantages:
+   # Create a custom bridge network docker network create --driver bridge my-app-network # Run containers on the custom network docker run -d --name database --network my-app-network postgres:13 docker run -d --name api-server --network my-app-network node:16-alpine # Containers can now communicate using container names docker exec api-server ping database           Key Benefits of Custom Bridge Networks  Automatic DNS Resolution: Containers can reach each other using container names instead of IP addresses. Better Isolation: Custom networks are completely isolated from the default bridge and other custom networks. Advanced Configuration: You can specify custom IP ranges, gateways, and DNS settings.
+   # Create a bridge network with custom configuration docker network create \ --driver bridge \ --subnet=172.20.0.0/16 \ --ip-range=172.20.240.0/20 \ --gateway=172.20.0.1 \ production-network           Port Mapping and External Access  Containers on bridge networks are isolated from the host network by default. To make services accessible from outside, you need port mapping:
+   # Map container port 80 to host port 8080 docker run -d -p 8080:80 --name web nginx # Map to specific host interface docker run -d -p 127.0.0.1:8080:80 --name local-web nginx # Map multiple ports docker run -d -p 8080:80 -p 8443:443 --name web-ssl nginx           Real-World Bridge Network Example  Here's a practical example of a multi-tier application using custom bridge networks:
+   # Create application networks docker network create backend-network docker network create frontend-network # Database tier (backend only) docker run -d \ --name postgres-db \ --network backend-network \ -e POSTGRES_DB=myapp \ -e POSTGRES_USER=admin \ -e POSTGRES_PASSWORD=secret \ postgres:13 # API tier (both networks) docker run -d \ --name api-server \ --network backend-network \ -p 3000:3000 \ my-api:latest docker network connect frontend-network api-server # Web tier (frontend only) docker run -d \ --name web-server \ --network frontend-network \ -p 80:80 \ nginx:alpine           Host Networks: Maximum Performance  Host networking removes the network isolation between container and host, allowing containers to use the host's network stack directly.   When to Use Host Networks  Host networking is ideal for:  High-performance applications requiring minimal network overhead Network monitoring tools that need access to host interfaces Applications that need to bind to specific host interfaces Legacy applications with complex network requirements    Host Network Configuration   # Run container with host networking docker run -d --network host --name monitoring-app my-monitor:latest # The container now shares the host's network namespace docker exec monitoring-app ip addr show           Important Considerations  Port Conflicts: Since containers share the host's network, port conflicts can occur if multiple containers try to bind to the same port. Security Implications: Containers have direct access to host network interfaces, reducing isolation. Platform Limitations: Host networking works differently on Docker Desktop (Mac/Windows) compared to Linux.   Practical Host Network Example  Here's how you might use host networking for a network monitoring application:
+   # Network monitoring container with host access docker run -d \ --network host \ --name network-monitor \ --cap-add NET_ADMIN \ --cap-add NET_RAW \ -v /proc:/host/proc:ro \ -v /sys:/host/sys:ro \ monitoring-tool:latest           Overlay Networks: Multi-Host Communication  Overlay networks enable communication between containers running on different Docker hosts, making them essential for Docker Swarm and distributed applications.   Docker Swarm and Overlay Networks  Overlay networks require Docker Swarm mode to function properly:
+   # Initialize Docker Swarm docker swarm init --advertise-addr <manager-ip> # Join worker nodes (run on worker machines) docker swarm join --token <worker-token> <manager-ip>:2377 # Create an overlay network docker network create --driver overlay --attachable my-overlay-net           Deploying Services Across the Overlay   # Create a service that spans multiple nodes docker service create \ --name web-service \ --network my-overlay-net \ --replicas 3 \ --publish 8080:80 \ nginx:alpine # Scale the service docker service scale web-service=5 # View service distribution docker service ps web-service           Overlay Network Encryption  Overlay networks support encryption for secure multi-host communication:
+   # Create encrypted overlay network docker network create \ --driver overlay \ --opt encrypted \ --attachable \ secure-overlay-net           Service Discovery in Overlay Networks  Overlay networks provide built-in service discovery through DNS:
+   # Deploy interconnected services docker service create \ --name database \ --network my-overlay-net \ postgres:13 docker service create \ --name api \ --network my-overlay-net \ --env DATABASE_HOST=database \ my-api:latest docker service create \ --name web \ --network my-overlay-net \ --publish 80:80 \ --env API_HOST=api \ my-web:latest           Advanced Networking Concepts    Network Aliases and Multiple Networks  Containers can connect to multiple networks and have different aliases on each:
+   # Create multiple networks docker network create frontend docker network create backend docker network create monitoring # Run container connected to multiple networks docker run -d --name app-server \ --network frontend --network-alias web-api \ --network backend --network-alias data-api \ my-app:latest # Connect to additional networks docker network connect monitoring app-server           Custom Network Drivers  Docker supports third-party network drivers for specialized use cases:
+   # Example with Weave network driver docker network create \ --driver weave \ --subnet 10.32.0.0/12 \ weave-network           Network Troubleshooting  Essential commands for diagnosing network issues:
+   # Inspect network configuration docker network inspect <network-name> # View container network settings docker ins
+
+---
+
+Title: learn-docker/docs/docker-networking-deep-dive.md at master
+**Definition:** lated / no networking
+
+Other Docker networks available to you are the following, but are not covered in this document.
+
+**Key Points:** Note: The examples are from a docker host running Fedora Linux 31, and Docker Engine 19. Containers talk to the docker host and outside world (ip_forward=1 and NAT)
+Docker host can talk to all containers using their IP addresses
+The (default) bridge network (interface) is visible/available on the host computer as docker0. Other aspects of bridge networks:
+No service discovery and no communication b/w "different" bridge networks:
+In case there are multiple docker networks on the same computer, containers from one network do not know about containers on the other network, nor can they talk to them.
+
+```bash
+dockerhost ~]$ docker network ls
+
+NETWORK ID          NAME                DRIVER              SCOPE
+ab382bcb8342        bridge              bridge              local
+c46f23496264        host                host                local
+2c77e24c2352        none                null                local
+```
+
+```bash
+dockerhost ~]$ ip addr show
+. . .  
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue . . . 
+    inet 127.0.0.1/8 scope host lo
+. . . 
+2: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> ... state UP . . . 
+    inet 10.10.71.73/24 brd 10.10.71.255 scope global dynamic wlp2s0
+. . . 
+9: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> ... state DOWN  . . . 
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+```
+
+```bash
+dockerhost ~]$ docker run --name web \
+                 -d praqma/network-multitool
+
+dockerhost ~]$ docker run --name db \
+                 -e MYSQL_ROOT_PASSWORD=secret \
+                 -d mysql
+
+
+dockerhost ~]$ docker ps
+CONTAINER ID	 IMAGE                    COMMAND                 PORTS   NAMES
+8eaf8debb553  mysql                     "docker-entrypoint.s…"  3306    db
+8c3f594512b1  praqma/network-multitool  "nginx -g 'daemon of…"  80/tcp  web
+```
+
+Skip to content
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ You signed in with another tab or window. Reload to refresh your session.
+ You signed out in another tab or window. Reload to refresh your session.
+ You switched accounts on another tab or window. Reload to refresh your session.
+
+ 
+Dismiss alert
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ {{ message }}
+
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ KamranAzeem
+ 
+ /
+ 
+ learn-docker
+ 
+
+ Public
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ Notifications
+ You must be signed in to change notification settings
+
+ 
+
+ 
+ Fork
+ 60
+
+ 
+
+ 
+ 
+ 
+ Star
+ 45
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ FilesExpand file tree master/docker-networking-deep-dive.mdCopy pathBlameMore file actionsBlameMore file actions Latest commit HistoryHistoryHistory768 lines (612 loc) · 30.5 KB master/docker-networking-deep-dive.mdTopFile metadata and controlsPreviewCodeBlame768 lines (612 loc) · 30.5 KBRawCopy raw fileDownload raw fileOutlineEdit and raw actionsDocker Networking Deep Dive
+Docker networking is a fascinating topic. When one knows how to use Docker, then knowing it's networking and other internals helps even more.
+In this document, I have explained:
+
+different networking modes available in docker,
+the mechanisms of service discovery,
+and procedure to join containers to each other for troubleshooting.
+
+Note: The examples are from a docker host running Fedora Linux 31, and Docker Engine 19.03.8 .
+The following networks are available to you by default, when you install docker on your computer.
+
+Bridge - NAT - docker0
+Host - Uses host network
+None - Isolated / no networking
+
+Other Docker networks available to you are the following, but are not covered in this document.
+
+Overlay - Swarm mode
+Macvlan - Legacy applications needing direct connection to physical network
+3rd party network plugins
+
+Note: In case you are wondering, in very simple terms, a software bridge is just another name for a (software) network switch!
+docker0 - The default "Bridge" network
+dockerhost ~]$ docker network ls
+
+NETWORK ID NAME DRIVER SCOPE
+ab382bcb8342 bridge bridge local
+c46f23496264 host host local
+2c77e24c2352 none null local
+
+Here is how the default bridge network looks like:
+
+Another way to look at the default bridge network:
+
+Important points:
+
+By default, all containers are connected to the default bridge network, unless explicitly configured to connect to some other network.
+Containers talk to the docker host and outside world (ip_forward=1 and NAT)
+Docker host can talk to all containers using their IP addresses
+The (default) bridge network (interface) is visible/available on the host computer as docker0.
+At start up, Docker engine finds an unused network subnet on the docker host (normally 172.17.0.0/16), and assigns the first IP address of that network (normally 172.17.0.1) to the default bridge - docker0.
+There is no service discovery on default bridge.
+
+Lets look at network interfaces on the host computer:
+dockerhost ~]$ ip addr show
+. . . 
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue . . . 
+ inet 127.0.0.1/8 scope host lo
+. . . 
+2: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> ... state UP . . . 
+ inet 10.10.71.73/24 brd 10.10.71.255 scope global dynamic wlp2s0
+. . . 
+9: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> ... state DOWN . . . 
+ inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+
+Note: state is DOWN when there are no running containers attached to this network interface/bridge.
+Run two containers, which will automatically be connected to the default bridge:
+dockerhost ~]$ docker run --name web \
+ -d praqma/network-multitool
+
+dockerhost ~]$ docker run --name db \
+ -e MYSQL_ROOT_PASSWORD=secret \
+ -d mysql
+
+dockerhost ~]$ docker ps
+CONTAINER ID IMAGE COMMAND PORTS NAMES
+8eaf8debb553 mysql "docker-entrypoint.s…" 3306 db
+8c3f594512b1 praqma/network-multitool "nginx -g 'daemon of…" 80/tcp web
+
+Inspect the bridge:
+dockerhost ~]$ docker network inspect bridge
+. . . 
+ "Containers": {
+ "8c3f594512b1...": {
+ "Name": "web",
+ "EndpointID": "ca36034a9eb1...",
+ "MacAddress": "02:42:ac:11:00:02",
+ "IPv4Address": "172.17.0.2/16",
+ },
+ "8eaf8debb553...": {
+ "Name": "db",
+ "EndpointID": "3158ac7dee51...",
+ "MacAddress": "02:42:ac:11:00:03",
+ "IPv4Address": "172.17.0.3/16",
+ }
+. . . 
+"com.docker.network.bridge.name": "docker0",
+
+The veth interfaces on bridge networks:
+When containers are run and connected to bridge networks, a pair of network sockets is created. One is assigned to the container as eth0, and the other is assigned/connected to the bridge as vethX, where X is a random string.
+dockerhost $ ip addr show
+. . . 
+9: docker0: <... UP,LOWER_UP> ... state UP
+ link/ether 02:42:37:9e:00:f6 brd ff:ff:ff:ff:ff:ff
+ inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+. . .
+11: veth229dc64@if10: <... UP,LOWER_UP> . . . master docker0 state UP 
+ link/ether 2e:a8:cc:3b:78:09 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+. . .
+13: veth18066aa@if12: <... UP,LOWER_UP> . . . master docker0 state UP 
+ link/ether 52:83:73:27:cf:e3 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+. . . 
+
+Inspect containers connected to the bridge network:
+dockerhost$ docker inspect web | egrep "MacAddress|IPAddress"
+ "IPAddress": "172.17.0.2",
+ "MacAddress": "02:42:ac:11:00:02",
+
+dockerhost$ docker inspect db | egrep "MacAddress|IPAddress"
+ "IPAddress": "172.17.0.3",
+ "MacAddress": "02:42:ac:11:00:03",
+
+dockerhost$ docker exec web ip addr show
+. . . 
+10: eth0@if11: <...UP,LOWER_UP> . . . state UP . . .
+ link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+ inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0
+
+Notice that the IP and MAC of the web container as shown in the docker inspect command is same as found in the output of the docker exec command.
+Communication on the default docker0 bridge:
+
+The container inherits the DNS setting of the docker daemon (from the host), including the /etc/hosts and /etc/resolv.conf
+There is no service discovery on the default bridge
+Since there is no service discovery, containers must know IP of each other to be able to talk to each other, unless you use ‘--link’ ; that is not scalable beyond 2-3 containers, and is deprecated
+Trying to find IP address of the other containers is complicated
+All ports of a container are exposed to all other containers on the same bridge network. No ports are published on the host by default
+Publishing container ports to the host involves keeping track of which container publishes which port on the host.
+
+Communication on default docker0 bridge in action:
+dockerhost ~]$ docker exec -it web /bin/sh
+
+/ # ping db
+ping: db: Name does not resolve
+
+/ # ping 172.17.0.3
+PING 172.17.0.3 (172.17.0.3) 56(84) bytes of data.
+64 bytes from 172.17.0.3: icmp_seq=1 ttl=64 time=0.154 ms
+
+# telnet 172.17.0.3 3306
+J
+8.0.1Z 7lQ. �L]VP7}Q:T,caching_sha2_password
+^]
+/ #
+
+"User-defined" bridge network:
+Users can create their own docker network. It has certain advantages, most importantly service discovery.
+
+Create a bridge network:
+dockerhost ~]$ docker network create mynet
+
+dockerhost ~]$ docker network ls
+NETWORK ID NAME DRIVER SCOPE
+c0a96220208b bridge bridge local
+c46f23496264 host host local
+b63ec54532ae mynet bridge local
+2c77e24c2352 none null local
+
+dockerhost ~]$ docker network inspect mynet
+. . .
+"Subnet": "172.18.0.0/16",
+ "Gateway": "172.18.0.1"
+. . . 
+
+It should show up as a network interface on the host with the name br-<random-string> .
+dockerhost ~]$ ip addr show
+. . . 
+9: docker0: <...MULTICAST,UP> ... state DOWN ... 
+ link/ether 02:42:37:9e:00:f6 brd ff:ff:ff:ff:ff:ff
+ inet 172.17.0.1/16 brd 172.17.255.255 scope global ...
+. . . 
+14: br-b63ec54532ae: <...MULTICAST,UP> ... state DOWN ...
+ link/ether 02:42:ae:c2:65:74 brd ff:ff:ff:ff:ff:ff
+ inet 172.18.0.1/16 brd 172.18.255.255 scope global ...
+
+. . . 
+
+Notice the ID of the "mynet" bridge is "br-b63e...".
+Now run two containers and connect them on this network you created just now:
+dockerhost ~]$ docker run --name=web --network=mynet \
+ -d praqma/network-multitool
+
+dockerhost ~]$ 

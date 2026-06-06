@@ -1,0 +1,781 @@
+Title: Error handling - Express.js
+**Key Points:** Catching Errors
+
+It’s important to ensure that Express catches all errors that occur while
+running route handlers and middleware. Whichever method you use, if you want Express error handlers to be called in and the
+application to survive, you must ensure that Express receives the error. Other error handling middleware can be found at Express middleware.
+
+```text
+app.get('/', (req, res) => {
+  throw new Error('BROKEN') // Express will catch this on its own.
+})
+```
+
+```text
+app.get('/', (req, res, next) => {
+  fs.readFile('/file-does-not-exist', (err, data) => {
+    if (err) {
+      next(err) // Pass errors to Express.
+    } else {
+      res.send(data)
+    }
+  })
+})
+```
+
+```javascript
+app.get('/user/:id', async (req, res, next) => {
+  const user = await getUserById(req.params.id)
+  res.send(user)
+})
+```
+
+Error Handling
+
+Error Handling refers to how Express catches and processes errors that
+occur both synchronously and asynchronously. Express comes with a default error
+handler so you don’t need to write your own to get started.
+
+Catching Errors
+
+It’s important to ensure that Express catches all errors that occur while
+running route handlers and middleware.
+
+Errors that occur in synchronous code inside route handlers and middleware
+require no extra work. If synchronous code throws an error, then Express will
+catch and process it. For example:
+
+app.get('/', (req, res) => {
+ throw new Error('BROKEN') // Express will catch this on its own.
+})
+
+For errors returned from asynchronous functions invoked by route handlers
+and middleware, you must pass them to the next() function, where Express will
+catch and process them. For example:
+
+app.get('/', (req, res, next) => {
+ fs.readFile('/file-does-not-exist', (err, data) => {
+ if (err) {
+ next(err) // Pass errors to Express.
+ } else {
+ res.send(data)
+ }
+ })
+})
+
+Starting with Express 5, route handlers and middleware that return a Promise
+will call next(value) automatically when they reject or throw an error.
+For example:
+
+app.get('/user/:id', async (req, res, next) => {
+ const user = await getUserById(req.params.id)
+ res.send(user)
+})
+
+If getUserById throws an error or rejects, next will be called with either
+the thrown error or the rejected value. If no rejected value is provided, next
+will be called with a default Error object provided by the Express router.
+
+If you pass anything to the next() function (except the string 'route'),
+Express regards the current request as being an error and will skip any
+remaining non-error handling routing and middleware functions.
+
+If the callback in a sequence provides no data, only errors, you can simplify
+this code as follows:
+
+app.get('/', [
+ function (req, res, next) {
+ fs.writeFile('/inaccessible-path', 'data', next)
+ },
+ function (req, res) {
+ res.send('OK')
+ }
+])
+
+In the above example, next is provided as the callback for fs.writeFile,
+which is called with or without errors. If there is no error, the second
+handler is executed, otherwise Express catches and processes the error.
+
+You must catch errors that occur in asynchronous code invoked by route handlers or
+middleware and pass them to Express for processing. For example:
+
+app.get('/', (req, res, next) => {
+ setTimeout(() => {
+ try {
+ throw new Error('BROKEN')
+ } catch (err) {
+ next(err)
+ }
+ }, 100)
+})
+
+The above example uses a try...catch block to catch errors in the
+asynchronous code and pass them to Express. If the try...catch
+block were omitted, Express would not catch the error since it is not part of the synchronous
+handler code.
+
+Use promises to avoid the overhead of the try...catch block or when using functions
+that return promises. For example:
+
+app.get('/', (req, res, next) => {
+ Promise.resolve().then(() => {
+ throw new Error('BROKEN')
+ }).catch(next) // Errors will be passed to Express.
+})
+
+Since promises automatically catch both synchronous errors and rejected promises,
+you can simply provide next as the final catch handler and Express will catch errors,
+because the catch handler is given the error as the first argument.
+
+You could also use a chain of handlers to rely on synchronous error
+catching, by reducing the asynchronous code to something trivial. For example:
+
+app.get('/', [
+ function (req, res, next) {
+ fs.readFile('/maybe-valid-file', 'utf-8', (err, data) => {
+ res.locals.data = data
+ next(err)
+ })
+ },
+ function (req, res) {
+ res.locals.data = res.locals.data.split(',')[1]
+ res.send(res.locals.data)
+ }
+])
+
+The above example has a couple of trivial statements from the readFile
+call. If readFile causes an error, then it passes the error to Express, otherwise you
+quickly return to the world of synchronous error handling in the next handler
+in the chain. Then, the example above tries to process the data. If this fails, then the
+synchronous error handler will catch it. If you had done this processing inside
+the readFile callback, then the application might exit and the Express error
+handlers would not run.
+
+Whichever method you use, if you want Express error handlers to be called in and the
+application to survive, you must ensure that Express receives the error.
+
+The default error handler
+
+Express comes with a built-in error handler that takes care of any errors that might be encountered in the app. This default error-handling middleware function is added at the end of the middleware function stack.
+
+If you pass an error to next() and you do not handle it in a custom error
+handler, it will be handled by the built-in error handler; the error will be
+written to the client with the stack trace. The stack trace is not included
+in the production environment.
+
+ Set the environment variable NODE_ENV to production, to run the app in production mode.
+
+When an error is written, the following information is added to the
+response:
+
+ The res.statusCode is set from err.status (or err.statusCode). If
+this value is outside the 4xx or 5xx range, it will be set to 500.
+ The res.statusMessage is set according to the status code.
+ The body will be the HTML of the status code message when in production
+environment, otherwise will be err.stack.
+ Any headers specified in an err.headers object.
+
+If you call next() with an error after you have started writing the
+response (for example, if you encounter an error while streaming the
+response to the client), the Express default error handler closes the
+connection and fails the request.
+
+So when you add a custom error handler, you must delegate to
+the default Express error handler, when the headers
+have already been sent to the client:
+
+function errorHandler (err, req, res, next) {
+ if (res.headersSent) {
+ return next(err)
+ }
+ res.status(500)
+ res.render('error', { error: err })
+}
+
+Note that the default error handler can get triggered if you call next() with an error
+in your code more than once, even if custom error handling middleware is in place.
+
+Other error handling middleware can be found at Express middleware.
+
+Writing error handlers
+
+Define error-handling middleware functions in the same way as other middleware functions,
+except error-handling functions have four arguments instead of three:
+(err, req, res, next). For example:
+
+app.use((err, req, res, next) => {
+ console.error(err.stack)
+ res.status(500).send('Something broke!')
+})
+
+You define error-handling middleware last, after other app.use() and routes calls; for example:
+
+const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
+
+app.use(bodyParser.urlencoded({
+ extended: true
+}))
+app.use(bodyParser.json())
+app.use(methodOverride())
+app.use((err, req, res, next) => {
+ // logic
+})
+
+Responses from within a middleware function can be in any format, such as an HTML error page, a simple message, or a JSON string.
+
+For organizational (and higher-level framework) purposes, you can define
+several error-handling middleware functions, much as you would with
+regular middleware functions. For example, to define an error-handler
+for requests made by using XHR and those without:
+
+const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
+
+app.use(bodyParser.urlencoded({
+ extended: true
+}))
+app.use(bodyParser.json())
+app.use(methodOverride())
+app.use(logErrors)
+app.use(clientErrorHandler)
+app.use(errorHandler)
+
+In this example, the generic logErrors might write request and
+error information to stderr, for example:
+
+function logErrors (err, req, res, next) {
+ console.error(err.stack)
+ next(err)
+}
+
+Also in this example, clientErrorHandler is defined as follows; in this case, the error is explicitly passed along to the next one.
+
+Notice that when not calling “next” in an error-handling function, you are responsible for writing (and ending) the response. Otherwise, those requests will “hang” and will not be eligible for garbage collection.
+
+function clientErro
+
+---
+
+Title: Global Error Handling in Express.js: Best Practices
+**Definition:** js, middleware functions are executed in a sequence, and errors can propagate through them.
+
+**Key Points:** A global error handler is a special middleware function that: ✅ Catches errors from any part of the application. By defining a centralized error handler, we can manage all application errors in one place. By following best practices, handling different error types, and using custom error classes, you can create a clean and maintainable error-handling mechanism.
+
+                                       Error handling is a crucial part of any backend application. In Express.js, an error can occur due to various reasons such as invalid user input, database failures, or unexpected issues in the application logic. To ensure a smooth user experience and maintainability, implementing a global error handler is essential. In this blog, we will explore what a global error handler is, how to implement it in Express.js, and best practices to follow.    📌 What is Global Error Handling in Express.js?  In Express.js, middleware functions are executed in a sequence, and errors can propagate through them. A global error handler is a special middleware function that: ✅ Catches errors from any part of the application.
+
+✅ Prevents the app from crashing due to unhandled errors.
+
+✅ Provides consistent error responses.
+
+✅ Helps in debugging and logging. By defining a centralized error handler, we can manage all application errors in one place.    🛠 How to Implement a Global Error Handler in Express.js    Step 1: Basic Express App Setup  First, create a basic Express server.
+   const express = require("express"); const app = express(); // Middleware to parse JSON app.use(express.json()); // Sample Route app.get("/", (req, res) => { throw new Error("Something went wrong!"); }); // Start the server app.listen(3000, () => console.log("Server running on port 3000"));         At this stage, if an error occurs in a route, Express will return a default HTML error response. We need a custom global error handler to return structured JSON responses.    Step 2: Define a Global Error Handler Middleware  An error-handling middleware must have four parameters: (err, req, res, next).
+   // Global Error Handling Middleware app.use((err, req, res, next) => { console.error(err.stack); // Log the error res.status(500).json({ success: false, message: err.message || "Internal Server Error", }); });         🔹 Important: The global error handler must be defined after all routes; otherwise, it won’t work.    🔄 Throwing and Handling Errors in Express.js    1️⃣ Synchronous Errors  Simply throwing an error inside a route will be caught by the error handler:
+   app.get("/sync-error", (req, res) => { throw new Error("Synchronous error occurred!"); });           2️⃣ Asynchronous Errors  For async functions, always pass the error to next(err):
+   app.get("/async-error", async (req, res, next) => { try { await someAsyncOperation(); } catch (err) { next(err); // Pass the error to the global handler } });            🚀 Enhancing the Global Error Handler    Handling Different Error Types  You can customize responses based on error types:
+   app.use((err, req, res, next) => { let statusCode = err.status || 500; let message = err.message || "Internal Server Error"; if (err.name === "ValidationError") { statusCode = 400; message = "Invalid data provided"; } res.status(statusCode).json({ success: false, error: message, }); });           Creating a Custom Error Class  To make error handling even cleaner, define a custom error class:
+   class AppError extends Error { constructor(message, statusCode) { super(message); this.statusCode = statusCode; } }         Now, you can throw errors like this:
+   app.get("/custom-error", (req, res, next) => { return next(new AppError("Resource not found", 404)); });         Modify the error handler to handle this class:
+   app.use((err, req, res, next) => { res.status(err.statusCode || 500).json({ success: false, message: err.message, }); });            ⚡ Using express-async-errors for Cleaner Async Error Handling  Instead of manually wrapping async functions in try-catch, install express-async-errors:
+   npm install express-async-errors         Then import it in your server.js:
+   require("express-async-errors");         Now, async errors will automatically be passed to the global handler:
+   app.get("/async-error", async (req, res) => { const data = await someAsyncOperation(); // No try-catch needed res.json(data); });            🚨 Common Mistakes to Avoid    ❌ Defining the Error Handler Before Routes  Error handlers must be defined after all routes. ❌ Wrong Order:
+   app.use((err, req, res, next) => { /* Error Handler */ }); // ❌ app.get("/", (req, res) => { throw new Error("Test Error"); });         ✅ Correct Order:
+   app.get("/", (req, res) => { throw new Error("Test Error"); }); app.use((err, req, res, next) => { /* Error Handler */ }); // ✅           ❌ Not Logging Errors for Debugging  Always log errors for debugging:
+   console.error(err.stack);           ❌ Not Handling Different Error Types  Handle validation errors separately for better responses.    🎯 Best Practices for Global Error Handling  ✅ Keep the error handler at the bottom of the middleware stack.
+
+✅ Use a custom error class for cleaner error handling.
+
+✅ Log errors to a file or a monitoring service (e.g., Winston, Sentry).
+
+✅ Handle validation errors differently from server errors.
+
+✅ Use express-async-errors to avoid repetitive try-catch blocks.     🎉 Conclusion  A well-implemented global error handler in Express.js ensures that your application is robust, maintains a good user experience, and makes debugging easier. By following best practices, handling different error types, and using custom error classes, you can create a clean and maintainable error-handling mechanism. 🔹 Now you’re ready to handle errors like a pro in your Express.js apps! 🚀          MongoDB  Promoted         What's a billboard?     Manage preferences      Report billboard            3 reasons why developers scale faster on MongoDB Atlas.  A flexible schema, integrated search, and automated global distribution so you can innovate and innovate with speed and agility. Build gen AI apps that run anywhere and scale everywhere. Start Free    Read More                            Create template  Templates let you quickly answer FAQs or store snippets for re-use.    Submit Preview Dismiss               Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's permalink.    Hide child comments as well   Confirm     For further actions, you may consider blocking this person and/or reporting abuse           MongoDB  Promoted         What's a billboard?     Manage preferences      Report billboard           Build fast on MongoDB Atlas without the fear of outgrowing.  Don't let your database dictate your speed. With MongoDB Atlas, the same document model you use for your MVP handles global scale across AWS, Azure, and Google Cloud. Start free and stay fast as you grow. Start Free                     👋 Kindness is contagious        What's a billboard?     Manage preferences      Report billboard           Explore this insightful write-up embraced by the inclusive DEV Community. Tech enthusiasts of all skill levels can contribute insights and expand our shared knowledge. Spreading a simple "thank you" uplifts creators—let them know your thoughts in the discussion below! At DEV, collaborative learning fuels growth and forges stronger connections. If this piece resonated with you, a brief note of thanks goes a long way.    Okay                 We're a place where coders share, stay up-to-date and grow their careers.    Log in  Create account              
+
+---
+
+Title: Express for Node Error Handling and Tracking Done Right
+**Key Points:** How Express Handles Errors by Default
+Before we discuss error tracking, let's examine Express' default behavior
+when it comes to error handling. To override this default behavior, you can create your own error handling
+middleware and place it after all other middleware and route handlers:
+JavaScriptapp. Let's explore how to implement route-specific error handling to provide more
+tailored error responses based on the context of different routes in your
+application.
+
+```text
+app.get("/example", (req, res) => {
+  throw new Error("Something broke!");
+  // Express catches this automatically
+});
+```
+
+```javascript
+app.get("/file", async (req, res) => {
+  const data = await fs.readFile("example.txt", "utf8"); // an error here will crash the entire server
+  res.send(data);
+});
+```
+
+```javascript
+app.get("/file", async (req, res) => {
+  try {
+    const data = await fs.readFile("example.txt", "utf8");
+    res.send(data);
+  } catch (err) {
+    next(err); // This will trigger the default error handler
+  }
+});
+```
+
+## How to Implement Rate Limiting in Express for Node.js
+We'll explore the ins and outs of rate limiting and see why it's needed for your Node.js application.
+See more
+
+
+## Tracking Your Express Errors
+Error tracking is the process of capturing and analyzing errors from your
+application to allow for quick resolution.
+When an error occurs, a tracking system collects essential details about the
+error type, the application's state, the affected user, and their
+device or browser information.
+This data is sent to a specialized platform that organizes and analyzes the
+errors. These platforms can identify anomalies and group similar errors
+together, making it easier to identify trends and prioritize fixes.
+AppSignal is one such solution for tracking Express
+errors, and offers a straightforward integration using the AppSignal Node.js
+SDK.
+First, install the SDK with:
+Shellnpm install @appsignal/nodejs
+Then set your AppSignal API key in your environment:
+Shell# .env
+APPSIGNAL_PUSH_API_KEY=<your_key>
+Once you've registered for an
+AppSignal account, you can find this
+key in your application settings under the Push & deploy section.
+Next, create an appsignal.js file to initialize tracking:
+JavaScript// appsignal.js
+import { Appsignal } from "@appsignal/nodejs";
+ 
+new Appsignal({
+  active: true,
+  name: "Express Demo",
+});
+Note that this file needs to be imported in your application entry script before
+all other imports:
+JavaScript// server.js
+import "dotenv/config"; // load environmental variables from .env
+import "./appsignal.js";
+// ... rest of the imports
+Finally, ensure that AppSignal's error handling middleware is registered after
+all routes, but before any other error handlers:
+JavaScript// server.js
+import { expressErrorHandler } from "@appsignal/nodejs";
+ 
+. . .
+ 
+app.use(expressErrorHandler());
+This Express integration reports any errors raised by request handlers or other
+middleware to AppSignal before calling next(err) to continue to the next error
+handler.
+See the implementation of the handler:
+JavaScript// error_handler.ts
+import { NextFunction } from "express";
+import { setError } from "../../helpers";
+ 
+export function expressErrorHandler() {
+  return function (
+    err: Error & { status?: number },
+    req: any,
+    res: any,
+    next: NextFunction
+  ) {
+    if (!err.status || err.status >= 500) {
+      setError(err);
+    }
+ 
+    return next(err);
+  };
+}
+AppSignal only reports errors whose status property does not
+exist or is set to 500 and above.
+If you'd like to customize error reports, you can create a custom
+middleware that incorporates the setError() function instead of using the
+expressErrorHandler():
+JavaScriptimport { setError } from "@appsignal/nodejs";
+ 
+// . . .
+ 
+app.use((err, req, res, next) => {
+  setError(err);
+  // ... rest of error handling
+});
+Once AppSignal starts receiving errors, you'll see them in the
+Errors section of your AppSignal dashboard:
+When a new error is tracked, you'll also get an email notification
+informing you of the need to triage it:
+You can click on the error in AppSignal and switch to the Samples tab to
+inspect the tracked instances of that specific error:
+Clicking on a specific sample will display the error message, stack trace, and
+other contextual information about the application environment when the error
+occurred:
+There are several ways to enhance your error tracking experience in AppSignal.
+Let's explore some key features you might find helpful:
+
+
+## Express for Node Error Handling and Tracking Done Right
+Damilola Olatunji on Jul 16, 2025
+
+
+## How Express Handles Errors by Default
+Before we discuss error tracking, let's examine Express' default behavior
+when it comes to error handling.
+Express.js has a built-in error handling system that operates in several
+important ways. By default, errors are handled through its built-in error
+handler middleware, which gets triggered when an error occurs during request
+processing.
+Uncaught synchronous errors are automatically caught by the default error
+handler like this:
+JavaScriptapp.get("/example", (req, res) => {
+  throw new Error("Something broke!");
+  // Express catches this automatically
+});
+In Express 4.x, uncaught asynchronous errors led to the application crashing:
+JavaScriptapp.get("/file", async (req, res) => {
+  const data = await fs.readFile("example.txt", "utf8"); // an error here will crash the entire server
+  res.send(data);
+});
+To prevent these crashes in Express 4.x, you needed to explicitly pass errors to
+the next() function:
+JavaScriptapp.get("/file", async (req, res) => {
+  try {
+    const data = await fs.readFile("example.txt", "utf8");
+    res.send(data);
+  } catch (err) {
+    next(err); // This will trigger the default error handler
+  }
+});
+Starting with Express 5, this is no longer necessary, as async errors are also
+caught in the same manner as synchronous errors (next(err) is now called
+automatically).
+
+
+
+
+---
+
+Title: How to handle errors globally in Node.js - CoreUI
+**Key Points:** The most effective approach uses Express error middleware combined with process-level error handlers. Global error handling provides consistent error responses, logs errors for debugging, and prevents application crashes from unexpected errors. CoreUI’s mission is to provide developers with tools that enhance productivity while adhering to accessibility standards.
+
+```javascript
+const express = require('express')
+const app = express()
+
+app.use(express.json())
+
+// Routes
+app.get('/api/users/:id', async (req, res, next) => {
+  try {
+    const user = await getUserById(req.params.id)
+    if (!user) {
+      throw new Error('User not found')
+    }
+    res.json(user)
+  } catch (error) {
+    next(error) // Pass to error handler
+  }
+})
+
+// Global error handler (must be last)
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message)
+  console.error('Stack:', err.stack)
+
+  res.status(err.status || 500).json({
+    success: false,
+    error: {
+      message: err.message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  })
+})
+
+app.listen(3000)
+```
+
+```text
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message)
+    this.statusCode = statusCode
+    this.isOperational = true
+    Error.captureStackTrace(this, this.constructor)
+  }
+}
+
+class NotFoundError extends AppError {
+  constructor(message = 'Resource not found') {
+    super(message, 404)
+  }
+}
+
+class ValidationError extends AppError {
+  constructor(message = 'Validation failed') {
+    super(message, 400)
+  }
+}
+
+class UnauthorizedError extends AppError {
+  constructor(message = 'Unauthorized') {
+    super(message, 401)
+  }
+}
+
+// Usage
+app.get('/api/users/:id', async (req, res, next) => {
+  try {
+    const user = await getUserById(req.params.id)
+    if (!user) {
+      throw new NotFoundError('User not found')
+    }
+    res.json(user)
+  } catch (error) {
+    next(error)
+  }
+})
+```
+
+```javascript
+// middleware/errorHandler.js
+function errorHandler(err, req, res, next) {
+  // Log error
+  console.error({
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    ip: req.ip,
+    timestamp: new Date().toISOString()
+  })
+
+  // Operational errors (expected)
+  if (err.isOperational) {
+    return res.status(err.statusCode).json({
+      success: false,
+      error: {
+        message: err.message,
+        code: err.code
+      }
+    })
+  }
+
+  // Programming errors (unexpected)
+  console.error('UNEXPECTED ERROR:', err)
+
+  // Send generic message to client
+  res.status(500).json({
+    success: false,
+    error: {
+      message: 'Internal server error'
+    }
+  })
+}
+
+module.exports = errorHandler
+
+// app.js
+const errorHandler = require('./middleware/errorHandler')
+app.use(errorHandler)
+```
+
+## Express Error Middleware
+const express = require('express')
+const app = express()
+
+app.use(express.json())
+
+// Routes
+app.get('/api/users/:id', async (req, res, next) => {
+  try {
+    const user = await getUserById(req.params.id)
+    if (!user) {
+      throw new Error('User not found')
+    }
+    res.json(user)
+  } catch (error) {
+    next(error) // Pass to error handler
+  }
+})
+
+// Global error handler (must be last)
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message)
+  console.error('Stack:', err.stack)
+
+  res.status(err.status || 500).json({
+    success: false,
+    error: {
+      message: err.message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  })
+})
+
+app.listen(3000)
+
+
+## How to handle errors globally in Node.js
+Łukasz Holeczek
+  
+  
+  
+Follow Łukasz Holeczek on GitHub
+  
+  
+  
+Connect with Łukasz Holeczek on LinkedIn
+  
+  
+  
+  
+Follow Łukasz Holeczek on X (Twitter)
+  
+
+
+calendar
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thursday, February 19, 2026
+#nodejs
+    #error-handling
+    #express
+    #middleware
+    #debugging
+Global error handling centralizes error processing, providing consistent error responses and preventing application crashes. As the creator of CoreUI with 12 years of Node.js development experience, I’ve implemented error handling strategies in applications serving millions of users, catching unhandled errors and providing clear error messages that reduce debugging time by 70%.
+The most effective approach uses Express error middleware combined with process-level error handlers.
+
+
+
+
+---
+
+Title: global error handling middleware in expressJS - Stack Overflow
+# global error handling middleware in expressJS
+
+What exactly am i doing wrong here. I am trying to create a global error handling middleware which shows error message and error status in a specific json format but instead it is showing error in some weird way.
+
+DIR: node/app.js
+
+const express = require('express');
+const app = express();
+
+//gloabl error handling middlware
+const globalError = require('./middleware/globalErrorHandlingMiddleware')
+
+//middlewares
+app.use(express.json())
+app.use(globalError)
+
+
+//homepage
+app.get('/',(req,res)=>{
+    res.send("homepage")
+})
+
+//page not found
+app.all('*',(req,res,next)=>{
+    const err = new Error('route does not exist')
+    err.statusCode = 404;
+
+    next(err)
+})
+
+//port
+app.listen(3000,()=>{
+    console.log('server started at port 3000')
+})
+
+
+DIR: node/middleware/globalErrorHandlingMiddleware.js
+
+function globalErrorHandler(err, req, res, next){
+    
+    const errorMessage = err.message || 'Something went wrong.';
+    const statusCode = err.statusCode || 500;
+
+    res.status(statusCode).json({
+        error: errorMessage,
+    });
+};
+
+module.exports = globalErrorHandler
+
+
+
+
+
+## Accepted Answer
+
+you just need to change the placement of your global error catcher, as the documentation mentions, it has to be at the end of your routes, in your example
+const express = require('express');
+const app = express();
+
+//gloabl error handling middlware
+const globalError = require('./middleware/globalErrorHandlingMiddleware')
+
+//middlewares
+app.use(express.json())
+
+
+//homepage
+app.get('/',(req,res)=>{
+    res.send("homepage")
+})
+
+//page not found
+app.all('*',(req,res,next)=>{
+    const err = new Error('route does not exist')
+    err.statusCode = 404;
+
+    next(err)
+})
+
+
+app.use(globalError) // moving to the end of your route calling
+
+//port
+app.listen(3000,()=>{
+    console.log('server started at port 3000')
+})
+
+you will find that
+@HOST = http://localhost:3000
+
+GET {{HOST}}/2
+Content-Type: application/json
+
+will output
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 32
+ETag: W/"20-fEiG2Eve04KkBKDozkc9tU0brWo"
+Date: Wed, 26 Jul 2023 10:53:14 GMT
+Connection: close
+
+{
+  "error": "route does not exist"
+}
+

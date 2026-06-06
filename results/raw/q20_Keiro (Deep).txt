@@ -1,0 +1,509 @@
+Title: Top 10 ways to monitor Linux in the console - Jeff Geerling
+# Top 10 ways to monitor Linux in the console
+
+Jan 15, 2025 ![btop colorful Linux graph](/blog/2025/top-10-ways-monitor-linux-console/btop-bokeh.jpg)
+
+`top`(pictured *below *... above is btop) is the first utility everyone recommends to monitor Linux (or any form of UNIX, including macOS) resource usage. It's efficient, available almost everywhere... but it's also a bit basic. It shows essential metrics, but looks like it's from the 80s. There are ways to brighten it up, like highlighting active processes or changing color schemes, but it's not the only game in town! 
+
+![Top running in Linux](/blog/2025/top-10-ways-monitor-linux-console/top.jpg)
+
+Nowadays, there are a *lot *of modern monitoring tools—and some not so modern, but immensely useful—to choose from. This blog post will run through some of the ones I rely on most often. Let me know in the comments if you use any others I didn't cover! 
+
+## Contents
+
+If you'd like to see all these tools in action, check out the video that goes along with this blog post, embedded below: 
+
+## s-tui
+
+![s-tui running a stress test in Linux](/blog/2025/top-10-ways-monitor-linux-console/s-tui.jpg)
+
+```fallback
+# Install on Debian/Ubuntu Linux
+apt install -y stress-ng s-tui
+```
+
+If I want to quickly observe the system's CPU frequency and temperatures while running a stress benchmark, this is by far the best way. 
+
+I originally discovered this tool through ServeTheHome—Patrick uses it and displays it on the giant screen behind him to monitor core to core stability when running a system under load. 
+
+It has two basic modes, 'Monitor' and 'Stress', and while running in Stress mode, it will use `stress`or `stress-ng`to stress all CPU cores (you can configure `stress`options within `s-tui`'s configuration). 
+
+I've used it on Linux and macOS, and it seems to pick up the right temperature sensors on most hardware, even exotic systems like the AmpereOne! 
+
+## htop
+
+![htop running in Linux for process and CPU monitoring](/blog/2025/top-10-ways-monitor-linux-console/htop.jpg)
+
+```fallback
+sudo apt install htop
+```
+
+htop is often installed by default (e.g. on Raspberry Pi OS), and is like top, but focuses visually on CPU metrics more than memory. It provides more visual indication of system load through bar graphs, and it's usually a tossup whether I choose `htop`or `top`. 
+
+## atop
+
+> WARNING (2025-03): Some versions of Atop are vulnerable to local attacks which could lock up the machine.
+
+![atop running in Linux for resource monitoring](/blog/2025/top-10-ways-monitor-linux-console/atop.jpg)
+
+```fallback
+sudo apt install atop
+```
+
+`atop`breaks out a lot of critical performance metrics into a dizzying array of metrics, with a process list below. There are two features I like about `atop`that draws me to it instead of other tools when I'm debugging hardware bottlenecks: 
+
+First, it uses color sparingly to indicate resources reaching saturation (e.g. 90% of disk, memory, or CPU usage turns that metric red). 
+
+Second, it breaks out IRQ consumption, network packets in and out, and some other metrics that are either hidden or buried in other tools. This tool has been especially helpful when troubleshooting bottlenecks like network file copy slowdowns, which sometimes are affected by CPU core affinity, PCIe bottlenecks, or disk IO (or a combination of all!). 
+
+## iftop
+
+![iftop running in Linux for network interface monitoring eth0](/blog/2025/top-10-ways-monitor-linux-console/iftop.jpg)
+
+```fallback
+sudo apt install iftop
+```
+
+If I'm just focused on bandwidth monitoring—seeing how much data is going through a network interface, there's no simpler tool than `iftop`. It shows total bandwidth over the interface, along with a running total of download and upload size. Then it lists every connection with traffic up and down, with a simple bar graph display for each. 
+
+## iotop
+
+![iotop running in Linux for disk IO monitoring](/blog/2025/top-10-ways-monitor-linux-console/iotop.jpg)
+
+```fallback
+sudo apt install iotop
+```
+
+What `iftop`is for network bandwidth, `iotop`is for disk bandwidth. 
+
+The nice party trick is it also breaks out the disk IO *by process *, so if you are experiencing slow disk access, or want to see what processes are hogging a drive, this is the quickest way to get at that info. 
+
+If you want to get even fancier, `sysdig`( `sudo apt install -y sysdig`) comes with a console UI `csysdig`which lets you dig directly into processes by volume of data written or ops! Very handy. 
+
+## nvtop
+
+![nvtop running in Linux for GPU monitoring an AMD Graphics Card](/blog/2025/top-10-ways-monitor-linux-console/nvtop.jpg)
+
+```fallback
+sudo apt install nvtop
+```
+
+[nvtop](https://github.com/Syllo/nvtop)is a lightweight task viewer for AMD, Intel, Nvidia, and Apple GPUs. Some tools like `btop`(shown later) include very simple GPU metrics (sometimes...), but `nvtop`gives you all the hardware details, like power consumption, fan speed, memory consumption, and a process breakdown. 
+
+There are tools like `radeontop`and [amdgpu_top](https://github.com/Umio-Yasuno/amdgpu_top)for AMD, or [nvitop](https://github.com/XuehaiPan/nvitop)for Nvidia... but `nvtop`is almost universally available, and works on the largest variety of GPUs. It's nice to know one tool for all, and even nicer when it's an `apt install`away. Or `brew install nvtop`on macOS! 
+
+## asitop
+
+![asitop running on macOS for CPU and GPU and power monitoring](/blog/2025/top-10-ways-monitor-linux-console/asitop.jpg)
+
+```fallback
+pip3 install asitop
+```
+
+I try not to get too platform-specific with my tooling, but sometimes when I'm on a Mac, I don't have access to the full gauntlet of process monitoring tools I get on Linux. 
+
+Lucky for me, there's `asitop`, which is a handy visual tool to monitor CPU, GPU, power, and clock speeds. It even breaks down visuals based on E and P cores! 
+
+## btop
+
+![btop running on Linux for resource monitoring](/blog/2025/top-10-ways-monitor-linux-console/btop.jpg)
+
+```fallback
+sudo apt install btop
+```
+
+Now we get to it—the *Lamborghini *of `top`s. Not only does it have full color, mouse support, and a sensible video-game-like menu system (no arcane hidden features here!), it makes you look like you're hacking away on TV set. 
+
+The visuals aren't all eye-candy, either. Color schemes and almost infinite settings and layouts mean you can set it up for precisely the metrics you want to monitor, usually with just a few keystrokes. 
+
+It's worth spending the time to learn some of `btop`'s options. `btop`is usually the first tool I install when getting a feel for a new computer or SBC. Sometimes the colors can get a bit wacky, especially over SSH sessions, but a quick trip to the menus ( `o`) and setting `Truecolor`to `False`fixes that right up. 
+
+This is by far the tool I get the most comments about when it appears in one of my YouTube videos. The visuals are not only pretty, but functional. 
+
+## perf
+
+![perf running on Linux for performance monitoring](/blog/2025/top-10-ways-monitor-linux-console/perf.jpg)
+
+```fallback
+sudo apt install linux-perf
+```
+
+And after the beauty of `btop`, we have to go in the complete opposite direction. `perf`isn't a `top`at all! Well, then, why is it in the list? 
+
+Because usually once you monitor a system with a lightweight tool like `btop`or `atop`, you need to actually *figure out the bottleneck *. And `perf`has deep kernel integration to pull out performance data you didn't even know existed! 
+
+I can't even scratch the surface of what it can do—I'll let the guy who I've learned the like 0.2% of `perf`'s features from describe it so much better: [Brendan Gregg's perf Examples](https://www.brendangregg.com/perf.html). He even writes a book on Linux performance monitoring! 
+
+And *yes *, that's the same Brendan Gregg famous for [Shouting in the Datacenter](https://www.youtube.com/watch?v=tDacjrSCeq4). 
+
+## wavemon
+
+![Wavemon running in Linux for WiFi metrics monitoring and signal strength](/blog/2025/top-10-ways-monitor-linux-console/wavemon.jpg)
+
+```fallback
+sudo apt install wavemon
+```
+
+Since we're off on a tangent of non- `top`monitoring tools, I figured I'd throw an honorable mention out to `wavemon`. 
+
+Before I discovered this tool, I would use `watch -n 1`with `nmcli`or `iwconfig`... but that was not ideal, and a tool like `iwconfig`occupies some weird head space where I can never remember the exact name, because there's also `ipconfig`or `ifconfig`or `ip`or whatever other networking tools that have overloaded those registers in my brain. 
+
+But now I can see precisely which direction to orient my external wifi antenna, or find a way to eke out an extra 100 Mbps from an otherwise-stable connection! 
+
+That rounds out my list of the top 10 ways to monitor Linux... but as I mentioned in the `perf`section, this is barely scratching the surface. Seriously, go read through Brendan Gregg's [Linux Performance](https://www.brendangregg.com/linuxperf.html)page if you want to go much, *much *deeper.
+
+---
+
+Title: 2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More
+**[WEBINAR] SAP Commerce 2205 **: Preparing for Life After the End of Mainstream Maintenance (EOMM) 🛠️🚧 April 28th [RSVP →](https://tuxcare.com/webinars/extending-the-lifecycle-of-sap-commerce-2205-on-premise/)
+
+# 2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More for Sysadmins
+
+July 29, 2025 - 📖 11 min 
+
+![](https://tuxcare.com/wp-content/uploads/2023/02/rtimage.jpg)
+
+#### Author: Rohan Timalsina
+
+Content Creator 
+
+Go straight to an AI summary of this blog post instead ![](https://tuxcare.com/wp-content/themes/tuxcare-2022/img/arrow-r.svg)
+
+## Key Takeaways
+
+Monitoring Linux servers comes with a unique set of challenges, which you may not encounter with other operating systems. It requires a deeper level of tech proficiency. Administrators will find themselves configuring and scripting their systems to achieve optimal specifications. 
+
+The process can seem intimidating at first. While it has a learning curve, you can overcome most roadblocks by mastering the foundational concepts and leveraging common automation techniques. You’ll go a long way by just repeating and mastering the basics. 
+
+However, keeping servers in tip-top shape 24/7 demands more than just basic monitoring; it requires comprehensive strategies for continuous security, proactive maintenance, and seamless updates. This guide will explore these essential aspects. 
+
+## Why Linux Monitoring Matters
+
+Monitoring your [Linux systems](https://tuxcare.com/blog/linux-evolution/)is essential for maintaining stability, performance, and [Linux security](https://tuxcare.com/blog/linux-security/)— especially in modern, always-on environments. 
+
+Here’s why Linux monitoring is critical in 2025: 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/linux-monitoring-matters.png)
+
+## The Real Challenges of Monitoring Linux Systems
+
+The Linux operating system gives you incredible control and flexibility, but keeping an eye on modern systems isn’t as simple as running a few commands. Mastering this dynamic landscape, where issues can hide in plain sight, is key for effective monitoring. 
+
+### Tool Sprawl & Integration
+
+The Linux ecosystem is packed with monitoring tools — everything from lightweight command-line utilities to full-scale enterprise platforms. But more options don’t always mean better visibility. 
+
+The challenge lies in selecting the right combination of monitoring solutions, integrating disparate data sources, and building a unified view without creating tool sprawl or data silos that complicate analysis and alerting. 
+
+### Dynamic & Distributed Environments
+
+Modern Linux deployments often involve vast, distributed infrastructures with ephemeral components like containers and microservices. Monitoring these highly dynamic, short-lived instances and ephemeral workloads poses a significant challenge, requiring advanced strategies to track performance, allocate resources, and ensure visibility across constantly shifting IT infrastructure. 
+
+### Alert Fatigue & Noise
+
+With the sheer volume of metrics available, a common pitfall is generating too many alerts or false positives. This leads to alert fatigue, where critical warnings get lost in the noise. 
+
+Sysadmins face the challenge of fine-tuning thresholds and building intelligent alerting systems that provide timely, relevant notifications without overwhelming teams. 
+
+### Root Cause Analysis
+
+A sudden CPU spike could mean a dozen different things — a runaway process, a database lock, or even a hidden network bottleneck. In complex Linux stacks, symptoms rarely point directly to the problem. The challenge lies in piecing together clues from logs, metrics, and traces to find the actual issue. Without the right monitoring tools, you are stuck playing detective instead of fixing things. 
+
+### Security Visibility & Threats
+
+Monitoring for security is not just about detecting known threats; it’s about identifying anomalous behavior, unauthorized access, and suspicious processes. 
+
+The challenge lies in sifting through vast logs and system data to spot subtle indicators of compromise, maintain audit trails, and ensure continuous compliance in an evolving threat landscape. 
+
+### Maintenance Overhead & Downtime
+
+Monitoring can identify [Linux vulnerabilities](https://tuxcare.com/blog/linux-vulnerability/)— but patching them safely is another challenge. Reboots during kernel updates still cause downtime. Without [rebootless patching](https://tuxcare.com/resources/learning/live-patching/), maintenance becomes a recurring operational risk. Ensuring high availability during these necessary procedures, and minimizing the risk of reboots and downtime, is a constant balancing act for administrators. 
+
+## Key Metrics to Track on Linux Servers
+
+Effective Linux monitoring also hinges on tracking the right indicators. Below are the most important metrics across CPU, memory, disk, network, and system health, crucial for early issue detection and maintaining uptime. 
+
+### 1. CPU Utilization
+
+### 2. Memory Utilization
+
+### 3. Disk I/O
+
+### 4. Network Throughput & Errors
+
+### 5. Load Average
+
+### 6. Uptime and Availability
+
+### 7. Filesystem Usage
+
+### 8. Process and Service Health
+
+## Best Tools for Linux Monitoring
+
+Below are some of the top Linux monitoring tools to consider, covering both command-line utilities and enterprise-grade platforms. Each tool has different pros and cons, which will determine how suitable it is for your team’s unique monitoring needs. 
+
+### htop
+
+An enhanced, interactive command-line utility, htop provides a real-time view of CPU, memory, swap, process trees, and load averages. 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/htop-command.png)
+
+****Pros: ****
+
+****Cons: ****
+
+### btop
+
+A visually stunning and feature-rich system monitor, btop (and its predecessors like bashtop/bpytop) offers real-time insights into CPU, RAM, disk, and network activity through an appealing terminal interface. 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/btop-command.png)
+
+****Pros: ****
+
+****Cons: ****
+
+### iotop
+
+iotop is a command-line utility specifically designed to track disk I/O usage by process. It’s invaluable for real-time identification of which processes are causing disk bottlenecks, making it a go-to tool during performance slowdowns. 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/iotop-command.png)
+
+****Pros: ****
+
+****Cons: ****
+
+### Netdata
+
+[Netdata](https://www.netdata.cloud/)is a real-time, high-fidelity monitoring agent that provides instant insights into hundreds of system metrics via interactive web dashboards and health alerts. 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/netdata-dashboard.png)
+
+****Pros: ****
+
+****Cons: ****
+
+### Prometheus + Grafana
+
+This powerful combination leverages [Prometheus](https://prometheus.io/)to scrape and store time-series metrics, while [Grafana](https://grafana.com/)provides robust visualization through customizable dashboards and integrated alerting. 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/grafana_prometheus.png)
+
+****Pros: ****
+
+****Cons: ****
+
+### Zabbix
+
+[Zabbix](https://www.zabbix.com/)is a comprehensive enterprise monitoring solution capable of overseeing Linux servers, applications, network devices, and virtual machines. 
+
+![](https://tuxcare.com/wp-content/uploads/2023/10/zabbix-dashboard.png)
+
+****Pros: ****
+
+****Cons: ****
+
+## Monitoring Best Practices & Techniques for Linux System Administrators
+
+Effective Linux system monitoring goes beyond simply reacting to alerts; it requires a proactive and strategic approach. By adopting these key techniques, administrators can gain deeper insights, prevent issues, and ensure optimal system health. 
+
+### Embrace Automation for Routine Tasks
+
+Manual monitoring and maintenance tasks, especially for large infrastructures, are prone to human error and consume valuable time. 
+
+Automate repetitive processes like log analysis, performance data collection, and even basic threat detection tasks, such as identifying suspicious log entries. This frees up administrators to focus on complex problem-solving and strategic initiatives rather than rote work. 
+
+### Implement Infrastructure as Code (IaC) for Monitoring Configurations
+
+Managing monitoring configurations across numerous servers can quickly lead to inconsistencies if done manually. By treating monitoring setups as code, IaC tools allow you to define, version control, and automatically deploy configurations. This ensures uniformity, reduces configuration drift, and minimizes human error in your monitoring landscape. 
+
+### Track Microservices Communication with Observability
+
+In modern microservices architectures, understanding the interactions between distributed services is paramount. 
+
+Adopt observability practices, including distributed tracing and service mesh monitoring, to track communication flows, dependencies, and latency between services. This provides crucial insights into potential bottlenecks, error rates, and performance issues within complex applications. 
+
+### Fine-Tune Kernel Parameters Strategically
+
+Achieving optimal Linux server performance often requires more than default settings. Fine-tuning kernel parameters allows for system-level optimizations specific to your workload, impacting memory management, network stack behavior, and I/O scheduling. 
+
+This is an iterative process — changes should be tested in staging environments and monitored closely before applying to production. 
+
+### Proactively Analyze Abnormal Traffic Patterns
+
+Consistent analysis of network traffic patterns is a critical security practice. By monitoring for deviations from normal behavior – such as unusual port activity, sudden spikes in outbound data, or access from unexpected geographies – administrators can detect and prevent unauthorized access or ongoing cyberattacks in real-time. Automated anomaly detection tools can significantly aid in this vigilance. 
+
+## Linux Monitoring in Cloud and Virtual Environments
+
+While fundamental Linux metrics remain critical, effective monitoring in cloud or virtualized environments introduces distinct complexities. Instances are often ephemeral, scaling dynamically, and part of highly distributed microservices architectures. This demands a more flexible strategy, as traditional agent-based tools often fall short in tracking instances that spin up and down rapidly. 
+
+Key considerations include leveraging cloud-native monitoring services (e.g., AWS CloudWatch, Azure Monitor), which offer auto-discovery and native integration with cloud resources. Understanding the cloud provider’s shared responsibility model is also vital — clearly defining which components (like hardware and core networking) they monitor, versus what remains your responsibility (such as Linux VMs, apps, and data). 
+
+The shift towards observability becomes paramount, emphasizing the collection and correlation of metrics, logs, and traces across distributed components. This detailed visibility is crucial for tracking dynamic resource allocation, optimizing cloud spend by identifying underutilized resources, and maintaining consistent visibility as infrastructure constantly shifts. 
+
+## Elevate Your Linux Monitoring: Next Steps
+
+Effective Linux system monitoring, whether on-premise, in virtual environments, or across dynamic cloud infrastructures, demands more than just basic tools or reactive responses. As we’ve explored, mastering this evolving landscape requires strategic approaches to metric analysis, automation, and addressing the unique challenges of modern Linux deployments, particularly around security and uptime. [Linux automation tools](https://tuxcare.com/blog/linux-automation-tools/)can help by automating repetitive tasks, such as monitoring configuration, log analysis, and basic threat detection, allowing administrators to focus on complex issues. Given these demands, relying solely on manual processes can introduce risk and inefficiency. 
+
+This is where [TuxCare’s KernelCare Enterprise](https://tuxcare.com/enterprise-live-patching-services/kernelcare-enterprise/)becomes invaluable. With automated, rebootless patching, [KernelCare](https://docs.tuxcare.com/live-patching-services/)eliminates patch-related downtime and ensures your Linux infrastructure remains secure, compliant, and stable without disruption. 
+
+Ready to simplify Linux patching and improve security? Talk to a [TuxCare expert today](https://tuxcare.com/ask-us-a-question/)and discover how KernelCare can help you automate patch management and protect your Linux servers. 
+
+Summary ![2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More for Sysadmins](https://tuxcare.com/wp-content/uploads/2023/10/TuxCare_linux-monitoringb_Blog.png)Article Name 2025 Linux Monitoring: 10+ Ways To Monitor, Tools & More for Sysadmins Description Learn how to monitor Linux servers effectively using command-line tools, key performance metrics, and expert sysadmin strategies to boost performance and security. Author Rohan Timalsina Publisher Name TuxCare Publisher Logo ![TuxCare](https://tuxcare.com/wp-content/uploads/2023/08/TuxCare-300x300-1-300x300-2-150x150-1.png)Join Our Popular Newsletter 
+
+Join 4,500+ Linux & Open Source Professionals ! 
+
+2x a month. No spam. 
+
+Table of Contents 
+
+Get the open-source security answers you need [Ask Us a Question](/ask-us-a-question/)Join Our Popular Newsletter 
+
+Join 4,500+ Linux & Open Source Professionals ! 
+
+2x a month. No spam.
+
+---
+
+Title: How to Monitor System Resources and Performance in Linux
+Please enable cookies. Sorry, you have been blocked You are unable to access interserver.net Why have I been blocked? This website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data. What can I do to resolve this? You can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page. Cloudflare Ray ID: 9f5658055845eaef • Your IP: Click to reveal 107.174.25.136 • Performance & security by Cloudflare
+
+---
+
+Title: Essential Tools and Techniques for Linux Server Monitoring
+
+## #Linux
+
+## #ServerMonitoring
+
+## #HOW-TOs
+
+# Stay Ahead of the Game: Essential Tools and Techniques for Linux Server Monitoring
+
+by [George Whittaker](/users/george-whittaker)on February 27, 2025 ![Stay Ahead of the Game: Essential Tools and Techniques for Linux Server Monitoring](/sites/default/files/styles/360_250/public/nodeimage/story/stay-ahead-of-the-game-essential-tools-and-techniques-for-linux-server-monitoring.jpg?itok=y8iRlBe6)
+
+## Introduction
+
+In the ever-evolving digital world, Linux servers form the backbone of enterprises, web applications, and cloud infrastructure. Whether hosting websites, databases, or critical applications, ensuring the smooth operation of Linux servers is crucial. Effective monitoring and alerting help system administrators maintain performance, security, and uptime while proactively identifying potential issues before they escalate into major outages. 
+
+This guide explores essential Linux server monitoring tools, key performance metrics, and alerting techniques to keep your systems running optimally. 
+
+## Understanding Linux Server Monitoring
+
+**Why is Monitoring Important? **
+
+Monitoring Linux servers is not just about tracking resource usage; it plays a crucial role in: 
+
+**Key Metrics to Monitor **
+
+## Essential Linux Monitoring Tools
+
+**Command-Line Monitoring Tools (Built-in) **
+
+**Open-Source Monitoring Solutions **
+
+#### 1. Nagios
+
+#### 2. Zabbix
+
+#### 3. Prometheus & Grafana
+
+#### 4. Netdata
+
+#### 5. Monit
+
+**Log Management & Analysis Tools **
+
+#### 1. journalctl – Systemd logs viewer for debugging issues.
+
+#### 2. logwatch – Analyzes system logs and summarizes important events.
+
+#### 3. Graylog – Centralized log management and analysis.
+
+#### 4. ELK Stack (Elasticsearch, Logstash, Kibana)
+
+## Setting Up Alerts and Notifications
+
+**1. Configuring Alerts in Monitoring Tools **
+
+**2. Using Shell Scripts for Custom Alerts **
+
+A simple script to monitor disk space and send email alerts: 
+
+```
+#!/bin/bash
+THRESHOLD=80
+USAGE=$(df / | grep / | awk '{print $5}' | sed 's/%//g')
+if [ "$USAGE" -gt "$THRESHOLD" ]; then
+ echo "Disk usage is above $THRESHOLD%" | mail -s "Disk Space Alert" admin@example.com
+fi
+```
+
+**3. Automating Monitoring with Cron Jobs **
+
+**4. Integrating with Incident Management Systems **
+
+## Best Practices for Linux Server Monitoring
+
+**Implement Proactive Monitoring **
+
+**Use Multi-Layered Monitoring **
+
+**Avoid False Positives **
+
+**Ensure Regular Log Rotation and Analysis **
+
+**Keep Monitoring Tools and Scripts Updated **
+
+## Conclusion
+
+Effective Linux server monitoring and alerting are vital for system stability, security, and performance. By leveraging a combination of built-in Linux utilities, open-source monitoring solutions, and automated alerting mechanisms, administrators can ensure proactive management of their infrastructure. 
+
+By implementing best practices and choosing the right monitoring tools, you can prevent downtime, optimize resources, and improve overall system reliability. Start monitoring your Linux servers today and stay ahead of potential issues before they turn into major incidents! 
+
+![](/sites/default/files/pictures/george-whittaker-linuxjournal%20%281%29%20%281%29.jpeg)
+
+George Whittaker is the editor of Linux Journal, and also a regular contributor. George has been writing about technology for two decades, and has been a Linux user for over 15 years. In his free time he enjoys programming, reading, and gaming. 
+
+[Load Disqus comments](https://www.linuxjournal.com/content/stay-ahead-game-essential-tools-and-techniques-linux-server-monitoring#disqus_thread)
+
+## Recent Articles
+
+[Canonical Unveils Ubuntu AI Strategy: Local Models, User Control, and Smarter Workflows](/content/canonical-unveils-ubuntu-ai-strategy-local-models-user-control-and-smarter-workflows)[George Whittaker](/users/george-whittaker)[Thunderbird 150 Lands on Linux: Smarter Encryption, Better Tools, and a Polished Experience](/content/thunderbird-150-lands-linux-smarter-encryption-better-tools-and-polished-experience)[George Whittaker](/users/george-whittaker)[Linux Kernel 6.19 Reaches End of Life: Time to Move Forward](/content/linux-kernel-619-reaches-end-life-time-move-forward)[George Whittaker](/users/george-whittaker)[Archinstall 4.2 Shifts to Wayland-First Profiles, Leaving X.Org Behind](/content/archinstall-42-shifts-wayland-first-profiles-leaving-xorg-behind)[George Whittaker](/users/george-whittaker)[OpenClaw in 2026: What It Is, Who’s Using It, and Whether Your Business Should Adopt It](/content/openclaw-2026-what-it-whos-using-it-and-whether-your-business-should-adopt-it)[George Whittaker](/users/george-whittaker)[Linux Kernel Developers Adopt New Fuzzing Tools](/content/linux-kernel-developers-adopt-new-fuzzing-tools)[George Whittaker](/users/george-whittaker)×
+
+---
+
+Title: Chapter 2. Performance Monitoring Tools | 7
+# Chapter 2. Performance Monitoring Tools
+
+This chapter briefly describes some of the performance monitoring and configuration tools available for Red Hat Enterprise Linux 7. Where possible, this chapter directs readers to further information about how to use the tool, and examples of real life situations that the tool can be used to resolve. The following knowledge base article provides a more comprehensive list of performance monitoring tools suitable for use with Red Hat Enterprise Linux: [https://access.redhat.com/site/solutions/173863](https://access.redhat.com/site/solutions/173863). 
+
+## 2.1. /procCopy linkLink copied to clipboard!
+
+The `/proc`"file system" is a directory that contains a hierarchy of files that represent the current state of the Linux kernel. It allows users and applications to see the kernel's view of the system. The `/proc`directory also contains information about system hardware and any currently running processes. Most files in the `/proc`file system are read-only, but some files (primarily those in /proc/sys) can be manipulated by users and applications to communicate configuration changes to the kernel. For further information about viewing and editing files in the `/proc`directory, refer to the [Red Hat Enterprise Linux 7 System Administrator's Guide](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/index). [Github](https://github.com/redhat-documentation)[Youtube](https://www.youtube.com/@redhat)[Twitter](https://twitter.com/RedHat)
+
+### Learn
+
+### Try, buy, & sell
+
+### Communities
+
+### About Red Hat Documentation
+
+We help Red Hat users innovate and achieve their goals with our products and services with content they can trust. [Explore our recent updates](https://www.redhat.com/en/blog/whats-new-docsredhatcom). 
+
+### Making open source more inclusive
+
+Red Hat is committed to replacing problematic language in our code, documentation, and web properties. For more details, see the [Red Hat Blog]( https://www.redhat.com/en/blog/making-open-source-more-inclusive-eradicating-problematic-language). 
+
+### About Red Hat
+
+We deliver hardened solutions that make it easier for enterprises to work across platforms and environments, from the core datacenter to the network edge. 
+
+### Theme
+
+### Red Hat legal and privacy links
+
+© 2026 Red Hat 
+
+### Red Hat legal and privacy links

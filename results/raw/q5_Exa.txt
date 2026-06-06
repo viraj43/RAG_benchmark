@@ -1,0 +1,240 @@
+Title: The Case for Node.js Secure Configuration
+Key Highlights:
+What’s the case for a Node.js secure configuration when you deploy applications to production environments? These can be anything from unpatched vulnerabilities that lurk in outdated Node.js versions to third-party packages, waiting to be exploited by malicious actors. These vulnerabilities can range from granting unauthorized access to sensitive data to completely compromising your application.
+[...]
+Insecure configuration further amplifies the risk. Sensitive information like API keys and passwords stored in plain text become easy targets. Do you use the Node.js permission model`--allow-fs-read` to limit this threat of attackers reading sensitive files that they shouldn’t have access to? Even seemingly harmless practices like inadequate logging can expose sensitive information in logs, making it accessible to unauthorized users.
+[...]
+Furthermore, prototype pollution vulnerabilities just like the previously reported CVE-2023-30581 in which the use of`proto` in`process.mainModule.proto.require()` can bypass the policy mechanism, present an actual risk to Node.js runtime versions, your JavaScript code and to certain libraries and frameworks. These type of vulnerabilities allow attackers to manipulate core JavaScript objects, potentially granting them unauthorized access or control. Outdated dependencies add another layer of risk, harboring unpatched vulnerabilities even if your Node.js version is current. Attackers can exploit these outdated dependencies to gain a foothold in your system.
+[...]
+So how does
+[...]
+shield against these
+[...]
+Environment variables are a cornerstone of secure Node.js configuration, storing sensitive information like API keys and database credentials outside your application code. But beware the anti-patterns that can crack this protective shell!
+[...]
+Exposing the Nest: Resist the urge to directly access`process.env` in your code. This not only reveals the variable names but also potentially exposes other sensitive data stored there. Instead, rely on dedicated libraries like dotenv or secure-env to load and manage environment variables securely.
+[...]
+Trust, but Verify: Don’t blindly trust values retrieved from environment variables. Implement validation checks to ensure they conform to expected formats and data types. This helps prevent unexpected behavior and vulnerabilities arising from malformed or incorrect data. Tip: the`env-schema` npm package is useful for this!
+[...]
+The Forbidden Fruit of Code: Never embed secrets like passwords, tokens, or private keys directly within your code. This creates a single point of failure and makes it readily accessible to anyone with access to the codebase. Stick to environment variables at the very least to keep your code clean from sensitive data that may be leaked in the future.
+[...]
+- Beware the Accidental Treasure Map: While`.env` files are convenient for local development, remember their sensitivity. Never commit them to your source control repository! Doing so exposes your secrets to anyone with access to the code, potentially compromising your entire production environment. Use dedicated secrets management solutions or create a gitignore rule to exclude`.env` files from version control.
+[...]
+potential security risk into a robust shield for your Node
+[...]
+js application. I wrote
+[...]
+article on about
+[...]
+and configuration anti patterns in
+[...]
+CISA, which is America’s Cybersecurity and Infrastructure Security Agency, issued a document for known indicators of compromise associated with the Androxgh0st malware which harvests`.env` files. How so? the malware scans for Laravel PHP applications on the Internet and once it finds one it determines if they are misconfigured and exposing a`.env` file so it can steal the credentials and any API keys mentioned in it.
+[...]
+Imagine your Node.js application as a bustling city, with data and files flowing freely like traffic. But what happens when a malicious actor sneaks in, looking to exploit vulnerabilities and steal sensitive information? This is where the Node.js permission model comes in, offering a powerful tool to lock-down your application and keep unauthorized access at bay.
+[...]
+Enter Node.js command-line flags like`--allow-fs-read`. This flag, activated by the`--experimental-permission` switch, allow you to define exactly what your application can and cannot do. Need to read specific files for functionality? Grant limited access with`--allow-fs-read=
+
+---
+
+Title: Node.js Environment Variables: Best Practices & Security Guide
+Key Highlights:
+Node.js provides built-in access to environment variables through the`process.env` object. This global object contains all environment variables as key-value pairs.
+[...]
+In TypeScript, you'll want to add type safety to your environment variables. Here's a more robust approach:
+[...]
+function getConfig(): EnvironmentConfig {
+  const requiredEnvVars = ['DATABASE_URL', 'API_KEY'];
+  
+  for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+      throw new Error(`Missing required environment variable: ${envVar}`);
+    }
+  }
+
+  return {
+    nodeEnv: process.env.NODE_ENV || 'development',
+    port: parseInt(process.env.PORT || '3000', 10),
+    databaseUrl: process.env.DATABASE_URL!,
+    apiKey: process.env.API_KEY!,
+  };
+}
+[...]
+This pattern ensures your application fails fast if critical configuration is missing, rather than failing mysteriously in production.
+[...]
+Critical rule: Always add`.env` to your`.gitignore` file. This file contains secrets and should never be committed to version control.
+[...]
+This might seem obvious, but it's worth emphasizing. Never put sensitive information directly in your code:
+[...]
+// ✅ DO this instead
+[...]
+Even if you think a repository will stay private, assume it won't. GitHub's secret scanning has found millions of leaked credentials in public repositories.
+[...]
+### Use Different Variables for Different
+[...]
+Maintain separate environment variables for development, staging, and production. This prevents accidentally using production credentials in development or vice versa.
+[...]
+Environment variables containing secrets should be rotated periodically. Set up a schedule for rotating API keys, database passwords, and JWT secrets. Most cloud providers offer secret rotation features that automate this process.
+[...]
+In production, you typically won't use`.env` files. Instead, you'll set environment variables through your hosting platform or orchestration tool.
+[...]
+- Heroku: Use the dashboard or CLI (`heroku config:set KEY=value`)
+- Vercel: Add variables in project settings or use`vercel env`
+- AWS: Use Parameter Store or Secrets Manager
+- Google Cloud: Use Secret Manager
+- Azure: Use Key Vault
+[...]
+### Centralized Configuration Management
+[...]
+For larger organizations, consider centralized secret management solutions:
+[...]
+| Solution | Best For | Key Features |
+| --- | --- | --- |
+| HashiCorp Vault | Enterprise applications | Dynamic secrets, encryption, audit logs |
+| AWS Secrets Manager | AWS-based infrastructure | Automatic rotation, AWS integration |
+| Azure Key Vault | Azure-based infrastructure | Managed HSM, certificate management |
+| Doppler | Modern development teams | Easy sync, branch-specific configs |
+[...]
+Remember: good environment variable management isn't just about security—
+[...]
+reliable, maintainable applications that
+
+---
+
+Title: Joshua Cole - You’re Doing Environment Variables All Wrong - A Node.js Perspective
+Key Highlights:
+Environment variables aren’t always what you expect and it’s painful
+[...]
+check each one. Instead, use a library such as safe-env-vars to do the hard work and be safe in the knowledge your environment variables won’t cause you any headaches
+[...]
+We can store secrets separately to our source code. This helps us mitigate the risk of sensitive values such as API keys, credentials, and so on that would put our users at risk if they were to be exposed. This way, if a nefarious actor gains access to our source code, they won’t get their hands on the secrets at the same time. It makes it harder for them to do us damage.
+[...]
+number of specific people. By storing the
+[...]
+the source code
+[...]
+do their jobs effectively without the keys to the kingdom sitting within their reach.
+[...]
+In the expansive JavaScript universe a common pattern is to use the dot-env package to read in environment variables from a local`.env` file that is not committed to the repository. This is a much quicker (and importantly more visible) alternative to setting environment variables in the actual environment. Engineers can change the values quickly and easily whilst developing as the need arises.
+[...]
+There are a few. These are all risks that we need to mitigate for, vulnerabilities that can leave us open to attack, and mistakes that can cause unexpected behaviour at the worst times. Even in the best case scenario, badly behaving environment variables can waste a significant amount of time, especially in dynamically typed languages such as JavaScript.
+[...]
+#### 7. Behaviour and security
+[...]
+Environment variables are side effects. You might say they add impurities to our code. Our application can’t control the values it’s reading from the environment and must accept what it’s given. This means environment variables are akin to user input and carry the same risks. ☠️
+[...]
+The value of an environment variable could be unexpected, or worse, malicious. Best case, the value triggers a visible error that leads you down the garden path for an hour or two before you figure out what’s actually causing the issue. Worst case, you have exposed your application to input you can’t trust (and you have trusted it absolutely) without verifying it’s authenticity or correctness, and now you have been storing sensitive data in the attacker’s message queue for the last 2 weeks rather than your own. 😬
+[...]
+The trick as with all ‘user’ input outside our sphere of control, is to trust but verify, or in our case, trust but validate. There are a few things you want to do for every value you read in from the environment:
+[...]
+1. Presence checks - ensure expected environment variables are defined.
+2. Empty checks - ensure expected values are not empty strings.
+3. Value checks - ensure only expected values can be set.
+4. Typecasting - ensure values are cast to the expected type at the point you read them in.
+5. Single entry point - ensure all variables are pulled in at the same place, and not smeared around your codebase for people to stumble upon later.
+6. Dot env - read values from both a`.env` file and the environment.
+[...]
+### Package: safe-env-var
+[...]
+safe-env-vars will read environment variables from the environment as well as a`.env` file in a safe way with full TypeScript support. By default, it will throw an error if the environment variable you're trying to read is undefined or empty.
+[...]
+I would recommend you have a single point of entry for the environment variables in your application. One place where you read in all the values needed by the different modules and functions. This ensures that there’s only one place to look and one place to change when making modifications.
+[...]
+Don’t fall into the trap of believing that because you’ve been using environment variables for years that they’re safe and can’t surprise you. It’s better to trust but verify the values you’re reading using a robust and time-saving library such as safe-env-vars* which does the hard work for you.
+
+---
+
+Title: Why and how to put secrets in environment variables in Node.js?
+Key Highlights:
+## If you are concerned about security you won't put secrets into ENV.
+[...]
+You can't really prevent unprivileged users from getting access to ENV information. So if you put secrets in env, the bar is lowered for an attacker because they don't necessarily need a privileged account to see your app's secrets running under a different user.
+[...]
+- if your app spawns any subprocesses, your secrets will be exposed to them because they inherit your environment.
+- if you have debug process logging at a system level, process ENV can be exposed to unprivileged users because the system doesn't consider ENV to be secret.
+[...]
+If you are provisioning a production server, you can just as easily put your secrets in a `.env` file as a systemd `EnvironmentFile` using the familiar environment variable format.
+[...]
+However the trick is you want to treat this as secret app-loaded config rather than loading it into process environment (via systemd, bash, npm scripts, etc) or `process.env` within your app.
+[...]
+`dotenv` by default (when you call `.config()`) populates `process.env`. so if you want to use `dotenv` securely, you can parse your `.env` config using `dotenv.parse` so it doesn't put the secrets from your `.env` into `process.env`.
+[...]
+This would allow you to provision a `.env` file with production secrets and use a development `.env` file that you add to `.gitignore` so you don't commit your development file. However application developers need to remember to use `.parse` instead of `.config` or else it is a security risk.
+[...]
+Alternatively if you don't want to use `dotenv` since its primary design is focused on loading up ENV... just use a json or js config file that exports a config object (e.g. `config.js`). Same as `.env` you can have a dev version that is not committed and a production one that is auto-provisioned. This can be required within the app where needed and avoids the risk (you have with dotenv) of accidentally populating secrets into the environment. Of course bad app code can always still leak secrets, but at least they won't be leaked by default due to how the secrets are exposed to the app.
+[...]
+`dotenvx` supports encryption of values in on-disk `.env` files (ostensibly to prevent leaks if you are checking in config/secrets and shipping the files around...just don't!)...but `dotenvx` still populates `process.env` with the decrypted secrets...which is not secure. Don't put production secrets in your CI, don't put any config/secrets in your codebase. Let devops manage production config/secrets.
+[...]
+The downside of all this is that ENV gave us a very standard way to pass config to **any** type of app/process/script (ie not just nodejs) in production environments. ENV being insecure means we have to come up with a (ideally standard) mechanism for passing secure config to a variety of apps and scripts in production.
+[...]
+You would like this standard mechanism to be straight forward and relatively low-risk of them inadvertently opening up security issues on the app side (exposing production secrets to sub-processes). Of course nothing protects you 100% as if the app has access to the secret there are many ways it could leak it (writing to file, making http calls, etc)...but at least it wouldn't be due to the config loading/passing mechanism.
+[...]
+I would be
+[...]
+to stick with the `.env` because we already support EnvironmentFile provisioning and every app can deal with
+[...]
+file format (e.g. can `source` a `.env` with bash)...the problem is how to prevent apps/developers from accidentally using dotenv.config instead of dotenv.parse to keep
+[...]
+out of the app environment.
+[...]
+So we are probably just sticking with `config.sample.{env,json,js}` so the devlops team has a template to populate with production secrets. Config is loaded by the node app via require so it doesn't populate `process.env`. We also are adding command-line flag (or ENV) to our apps to allow the location of this config file to be specified so devops has the option to place the production config file outside of the app deploy directory (which can make continuous deployment a bit easier). The downside is that a config.js won't work easily for other languages, but devops can fairly easily script converting an ENV style variable format into other targets.
+[...]
+As I said, keeping secrets out of your ENV is for people that are concerned about security. Many blogs/guides/tutorials online show secret passing through ENV. The popularity of `dotenv` which (by default) loads secrets into the process environment also might lead you to believe this is the right way. Security is always a tradeoff between risk, effort/cost and inconvenience. Personally I think if you auto-provision production it isn't a big deal to fix this...the issue is more about coming up with a semi-standard mechanism that can work across a variety of apps/code-languages.
+[...]
+While working on projects, you will end up uploading your code on github, which is accessible to everyone. If you store your secrets in a config file, anybody with a github account will be able to read it, and hence it is a security risk. Storing the secrets as environment variables ensure their safe-keeping. Your config file should read these values from the `process.env` object. Something like this:
+[...]
+```
+const jwtSecretKey = process.env.JWT_SECRET_KEY;
+const googleApiKey = process.env.GOOGLE_API_KEY;
+const serverPort = process.env.PORT || 8000; // 8000 is the default value in case if the env variable has not been set
+[...]
+module.exports = {
+   jwtSecretKey: jwtSectetKey,
+   googleApiKey: googleApiKey,
+   serverPort: serverPort
+}
+[...]
+And any other piece of code using these secrets should require the config file.
+[...]
+Along with storing secrets as environment variables, you should also store any environment specific values as environment variables. For example, say your NodeJS server (thats is connected to a hosted Database) is run on three environments - Development, QA and PROD. Each of these environments will have different information regarding the DB HOST and PORT, the environment should connect to. Environment Variables are a good way to store the DB Host and Port on each individual environment, and to use the same code across all environments to connect to different databases by reading the environment variable.
+[...]
+You should also add your \*.env to the .gitignore file So pushing it to the public will ignore the file and you have only one file with all the environment variables.
+
+---
+
+Title: How is vault better than env file in terms of security?
+Key Highlights:
+How is vault better than env file in terms of security? - Vault - HashiCorp Discuss
+
+Skip to last reply Skip to top
+
+That's a wrap for HashiConf 2025! Check out the recap of our annual global cloud conference now: hashiconf.com.
+
+HCP Vagrant Registry is publicly available and ready for users to migrate their Vagrant Cloud artifacts.
+
+Review the migration guide to get started!
+
+If the migration does not complete successfully, review the Migration Troubleshooting guide or contact us at support+vagrantcloud@hashicorp.com with the subject`HCP Vagrant Migration`
+
+# How is vault better than env file in terms of security?
+
+You have selected 0 posts.
+
+3.9k views 2 links
+
+1 / 6
+
+Apr 2020
+
+Hi, I’m learning Vault to see if I’d like to use it in my service. My main question about Vault is: how does it advance security of credentials? I understand that managing credentials in one place is good and I see it has fancy functions. But in my case, I consider using it to replace`.env` file on my web server.`.env` file is vulnerable when access to my server is somehow snatched by an attacker. The attacker can access to filesystem then attacker can get all credentials. Let’s say I’m gonna introduce Vault to my system.
+
+- Then all the credentials in .env file will be moved to Vault.
+- my server will only hold credential for my server to access to Vault in filesystem. Let’s call this credential`Foo`.
+- there should be a process to initialize all credentials before starting service, which will be retrieved from Vault by Foo.
+
+So, if an attacker can get Foo from filesystem, then all credentials are at risk anyway. I don’t see benefits using Vault in security aspect. Please correct me if I got something wrong.
+
+3.9k views 2 links
+
+Reply
+
+Invalid date Invalid date

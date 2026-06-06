@@ -1,0 +1,350 @@
+Title: Partial Prerendering (experimental) | Next.js v14 Docs
+Key Highlights:
+Warning: Partial Prerendering is an experimental feature and is currently not suitable for production environments.
+[...]
+Partial Prerendering is an experimental feature that allows static portions of a route to be prerendered and served from the cache with dynamic holes streamed in, all in a single HTTP request.
+[...]
+Partial Prerendering is available in`next@canary`:
+[...]
+You can enable Partial Prerendering by setting the experimental`ppr` flag:
+[...]
+```
+/** @type {import('next').NextConfig} */const nextConfig = {  experimental: {    ppr: true,  },}module.exports = nextConfig
+```
+[...]
+- Partial Prerendering does not yet apply to client-side navigations. We are actively working on this.
+- Partial Prerendering is designed for the Node.js runtime only. Using the subset of the Node.js runtime is not needed when you can instantly serve the static shell.
+
+---
+
+Title: Guides: PPR Platform Guide | Next.js
+Key Highlights:
+Partial Prerendering (PPR) combines static and dynamic rendering in a single route. At build time, Next.js generates a static HTML shell and a `postponedState` blob for each PPR-enabled route. At request time, the shell is served immediately and dynamic portions are rendered and streamed to the client.
+[...]
+For each PPR route, Next.js produces:
+[...]
+- A static HTML shell containing all the content that can be prerendered, with Suspense fallbacks where dynamic content will appear.
+- A `postponedState` value: a serialized string. Treat it as opaque: pass it through without parsing or modifying it. Altering `postponedState` produces incorrect dynamic rendering output.
+- An RSC payload for the static portions of the page.
+[...]
+When a request arrives for a PPR route:
+[...]
+1. The server sends the static HTML shell to the client immediately.
+2. The server resumes rendering the dynamic portions using the postponed state.
+3. Dynamic content is streamed to the client, allowing React to hydrate the deferred Suspense boundaries.
+[...]
+The client sees the static shell instantly, then dynamic content appears as it resolves.
+[...]
+Each PPR route requires two artifacts to be stored together:
+[...]
+1. The static HTML shell.
+2. The `postponedState` blob.
+[...]
+These must be stored and updated atomically. When a PPR route is revalidated (via time-based or on-demand revalidation), Next.js regenerates both the shell and the postponed state together. Serving a new shell with an old postponed state, or vice versa, will produce incorrect dynamic content.
+[...]
+All requests go directly to the Next.js server. The server reads the shell from its local cache, sends it, then renders and streams the dynamic content. This is what `next start` does by default.
+[...]
+1. The CDN serves the cached shell immediately (edge latency).
+2. The CDN sends a resume request to the origin server (ideally in parallel with streaming the shell
+[...]
+3. The
+[...]
+renders only the dynamic portions and streams them back
+[...]
+4. The
+[...]
+ates the shell and dynamic content into a single streaming response to the client
+[...]
+The resume protocol tells the Next.js handler to skip the shell and render only the dynamic portions. It is used by CDN-to-origin architectures and adapter-based deployments that serve the shell separately.
+[...]
+In standard `next start`, the server handles both the shell and dynamic render in a single pass automatically.
+[...]
+HTTP request to
+[...]
+separate Next.js origin:
+[...]
+- Send a POST request to the route with the header `next-resume: 1`.
+- Include the `postponedState` blob as the request body.
+- The server will render only the deferred Suspense boundaries and stream the result.
+[...]
+> Good to know: When a POST request combines a Server Action with a PPR resume, the request body contains the postponed state followed by the action body. The `x-next-resume-state-length` header carries the byte length of the postponed state prefix so the handler can separate the two. For a pure PPR resume (the common case), the entire request body is the postponed state and this header is not needed.
+[...]
+When the platform invokes the handler function directly:
+[...]
+- Call the entrypoint handler with `req.method` set to `'POST'`, the `next-resume: 1` header on the request, and the `postponedState` as the request body. (You can also pass `requestMeta: { postponed: postponedState }` as the third argument to the handler invocation, which is equivalent but bypasses the HTTP layer entirely.)
+- The handler renders only the deferred Suspense boundaries and streams the result to `res`.
+- No HTTP round-trip is needed: the handler is invoked in-process.
+[...]
+In the adapter output, PPR routes are identified by `renderingMode: 'PARTIALLY_STATIC'` in the prerenders array. Iterate `outputs.prerenders` to find these entries and read `fallback.postponedState`.
+[...]
+`pprChain.headers` contains the headers needed for the resume protocol: `{ 'next-resume': '1' }`.
+[...]
+1. Read PPR outputs at build time. In your adapter's `onBuildComplete`, identify prerenders with `renderingMode: 'PARTIALLY_STATIC'`. Store the shell HTML and `postponedState` in your cache.
+2. Serve the shell at request time. For incoming requests to PPR routes, serve the cached shell immediately and begin streaming.
+[...]
+3. Resume dynamic rendering. For CDN-to-origin: send a POST request to the Next.js handler with the `next-resume: 1` header and the postponed state as the body. For adapter-based: call the handler directly with POST method and the postponed state in the request body (or pass `requestMeta: { postponed: postponedState }` to the handler). Stream the response back to the client.
+[...]
+4. Handle cache updates. Use `requestMeta.onCacheEntryV2` to capture new shell + postponed state pairs after revalidation, and update your cache atomically.
+[...]
+5. Support graceful degradation. If the postponed state is unavailable or stale, fall back to a full server render. The user gets a complete page without the shell-first optimization.
+
+---
+
+Title: How Partial Prerendering Works Under the Hood - Wyatt Johnson
+Key Highlights:
+At last year’s Next.js Conf, we announced a new rendering paradigm, Partial Prerendering (or PPR). Building on Next.js’s strong support for data and route caching, PPR optimizes the way Next.js serves static parts of a page quickly
+[...]
+server rendering of components that require
+[...]
+Since announcing experimental support for the feature, we’ve iterated on some of the core mechanisms that Next.js uses to detect request data access through a new experimental flag,`dynamicIO`.
+[...]
+When we announced PPR in Next.js 14, it relied on throwing errors to signal to Next.js that request data was accessed. We assumed it would work as well as other APIs we have, such as`redirect()` and`notFound()`, which still use error throwing as a signal today. The issue arose for developers migrating existing applications who now had errors being thrown in unexpected places.
+[...]
+In these cases, Next.js couldn’t determine which components accessed request data, as it relied on the surrounding suspense boundary to catch the special error that was thrown.
+[...]
+We initially tried to solve this problem by introducing the`unstable_rethrow(err)` API:
+[...]
+cookies().get("
+[...]
+catch (err
+[...]
+CHECK_FAILED")
+[...]
+This would re-throw internal errors that Next.js uses for signaling. However, this introduced a new problem: it required developers to remember to add it. Every call site that could potentially generate a Next.js internal error would need this re-throw function inserted before any other throw in the application code. We felt this wasn’t an acceptable developer experience.
+[...]
+We were left with two options. Since we could detect that request data was accessed, but not where, we could either mark the entire page as dynamic and provide a warning to developers, or rethink the detection mechanism. The first option wasn’t ideal, as it might eliminate the entire static shell on revalidation, depending on the application’s logic. We decided on the latter approach.
+[...]
+We needed a way to suspend the processing of user code when they tried to access request data. Errors were our first choice, but the problems with nested`try/catch` blocks meant that these signals that were meant to inform Next.js about request data being used would be unreliable, and possibly lead to longer than expected build times due to the retry logic.
+[...]
+The answer? Promises.
+[...]
+The key insight was to leverage JavaScript’s inherent asynchronous behavior. Instead of throwing errors that could be caught and mishandled, we needed our request APIs to return promises that would never resolve during a static prerender. This approach provides several advantages:
+[...]
+```
+// Before - synchronous with error throwing
+[...]
+if (isPrerendering) {
+[...]
+throw new PostponeError("Cannot access cookies during prerendering")
+  }
+  return getCookies()
+}
+[...]
+// After - asynchronous with promises
+async function cookies() {
+  if (isPrerendering) {
+    // Return a promise that never resolves
+    return new Promise(() => {})
+  }
+  return getCookies()
+}
+[...]
+This shift required updating all request APIs to be asynchronous:
+[...]
+```
+// Next.js 15 Request APIs
+await cookies()
+await headers()
+await connection()  // replaces unstable_noStore()
+[...]
+Next.js takes advantage of this by using a clever scheduling mechanism:
+[...]
+await { prelude, postponed } = new Promise((resolve, reject) => {
+  let result
+  setImmediate(() => {
+    try {
+      result = prerender(<App />, { signal: controller.signal })
+      resolve(result)
+    } catch (err) {
+      reject(err)
+    }
+  })
+
+  setImmediate(() => {
+    controller.abort()
+    resolve(result)
+  })
+})
+[...]
+This approach schedules a task to prerender the application, then immediately schedules another task to abort it. Node.js processes all microtasks (like resolving already-resolved promises) before moving to the next Task, allowing synchronous operations to complete while preventing asynchronous I/O from executing.
+[...]
+During build time, Next.js performs a prospective render to fill cache entries for any cacheable data. This render’s output is discarded, but the caches are primed. When the actual prerender occurs, these cached values can be resolved synchronously within the first task, allowing them to be included in the static shell.
+[...]
+```
+async function Page() {
+  const data = await fetch('...') // No cache
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <Component data={data} />
+    </Suspense>
+  )
+}
+[...]
+These require the resume render to stream in dynamic content.
+[...]
+Pages where all async operations are cached:
+[...]
+```
+async function Page() {
+  const data = await getData() // Cached
+  return <Component data={data} />
+}
+[...]
+PPR uses a single HTTP response stream to deliver both static and dynamic content. This approach minimizes roundtrips and optimizes performance:
+[...]
+1. Static shell streams immediately from the edge
+2. Resume render starts concurrently at the origin
+3. Dynamic content streams in as it becomes ready
+4. Single response contains everything
+[...]
+This timing is critical - while the browser downloads static resources (CSS, JS) hinted by the static shell, the server is already rendering dynamic content.
+[...]
+export default function Page() {
+  return (
+    <div>
+      <Header /> {/* Static - included in shell */}
+
+      <Suspense fallback={<CartSkeleton />}>
+        <Cart /> {/* Dynamic - streamed later */}
+      </Suspense>
+
+      <ProductListing /> {/* Static - included in shell */}
+    </div>
+  )
+}
+[...]
+Currently, PPR requires two experimental flags:
+[...]
+```
+// next.config.js
+module.exports = {
+  experimental: {
+    ppr: true,
+    dynamicIO: true
+  }
+}
+[...]
+The`dynamicIO` flag enables the promise-based detection mechanism. The plan is to eventually remove this flag as PPR stabilizes.
+[...]
+## Dynamic Path Parameters
+[...]
+A special consideration for pathname-based APIs: with traditional rendering, dynamic paths like`/products/[id]` would force the entire page to be dynamic. With PPR and async params:
+[...]
+```
+type Props = {
+  params: Promise<{ id: string }>
+}
+[...]
+export default function Page({ params }: Props) {
+  return (
+    <Suspense fallback={<ProductDetailsSkeleton />}>
+      <ProductDetails params={params} />
+    </Suspense>
+  )
+}
+```
+[...]
+This enables fallback static shells that work for any product ID, providing static-like performance even for dynamic routes.
+[...]
+- No API changes required - existing Suspense boundaries just work
+- Granular control over static/dynamic boundaries
+- Automatic optimization without manual configuration
+[...]
+breaking changes
+- Requires careful Susp
+
+---
+
+Title: Partial Prerendering in Next.js 14
+Key Highlights:
+With the release of PPR in Next.js 14, we can now gracefully handle this blend, allowing for pages that are mostly static but with dynamic segments where necessary. Now, part of your page can be prepared ahead of time, while the dynamic components can be rendered on the fly.
+[...]
+PPR allows us to move away from the rigid mental model of having to serve content dynamically or statically on the page level. With PPR, Next.js combines both static and dynamic pieces of content on the same page, where the static parts are rendered at build time while the dynamic parts can be rendered on each request.
+[...]
+In practice, this means that when a user hits the page, they'll immediately get served a 'static shell', so that they start seeing content straight away. The dynamic parts are then rendered in the background on the server, with static fallbacks served to the user as part of the initial static shell response.
+[...]
+PPR works by taking advantage of`React Suspense`. Suspense boundaries let you dictate which parts of your UI should appear together immediately, and which parts should be progressively revealed, with the ability to assign a static fallback whilst they’re being rendered on the server. So in the case of a mostly static page having one dynamic component, its dynamism can be prevented from affecting the rest of the page by wrapping it in a Suspense boundary, ensuring that the rest of the page is pre-rendered as a ‘static shell’ at build time.
+[...]
+At first glance, the user will immediately get a fallback UI as part of the static shell. As soon as the dynamic component is ready though, it’ll be streamed into the UI .
+[...]
+1. Edit your next.config.js file
+[...]
+Simply add the following experimental flag to your`next.config.js` file
+[...]
+```
+1experimental: {
+2    ppr: true,
+3}
+[...]
+#### 2. Wrap dynamic components in Suspense
+[...]
+When creating a page in Next.js, for each dynamic component on the page simply wrap the component in a`Suspense` boundary and specify a fallback. Here's some example code from Vercel's PPR demo, which you can check out here.
+[...]
+```
+1import { Suspense } from 'react';
+2import {
+3  RecommendedProducts,
+4  RecommendedProductsSkeleton,
+5} from '#/components/recommended-products';
+6import { Reviews, ReviewsSkeleton } from '#/components/reviews';
+7import { SingleProduct } from '#/components/single-product';
+8import { Ping } from '#/components/ping';
+9
+10export default function Page() {
+11  return (
+12    <div className="space-y-8 lg:space-y-14">
+13      <SingleProduct />
+14
+15      <Ping />
+16
+17      <Suspense fallback={<RecommendedProductsSkeleton />}>
+18        <RecommendedProducts />
+19      </Suspense>
+20
+21      <Ping />
+22
+23      <Suspense fallback={<ReviewsSkeleton />}>
+24        <Reviews />
+25      </Suspense>
+26    </div>
+27  );
+28}
+29
+```
+[...]
+- Partial Prerendering: PPR takes advantages of both static rendering and dynamic rendering, allowing developers to pre-render parts of the page and serve those immediately, whilst doing computation on the server to serve the rest of the page. Cold starts are a thing of the past!
+
+---
+
+Title: Making Sense of PPR in Next.js 14 | Ben Marshall
+Key Highlights:
+Think of PPR in Next.js as a well-crafted culinary strategy for web applications. Initially, Next.js pre-renders a basic, yet effective, static framework for each individual page. When a user accesses a page, this efficiently pre-rendered base is quickly served, ensuring a remarkably swift initial experience. Meanwhile, complex, user-specific elements are seamlessly added in real-time by the server.
+[...]
+PPR effectively combines ultra-quick static edge delivery with comprehensive dynamic capabilities. This blend, much like our pizza’s foundation, ensures quick delivery and stability, while dynamic elements are added as needed, tailored to suit each user’s unique preferences.
+[...]
+- PPR utilizes React’s feature, letting developers choose between static and dynamic parts.
+- The static base can be updated through Incremental Static Regeneration (ISR), allowing for future content tweaks.
+- If needed, Next.js shifts to dynamic rendering at the nearest Edge Region for a responsive experience.
+[...]
+```
+experimental: {    ppr
+[...]
+```
+export default function Page() {  return (    <main>      <header>        <h1>My Store</h1>        <Suspense fallback={<CartSkeleton />}>          <ShoppingCart />        </Suspense>      </header>      <Banner />      <Suspense fallback={<ProductListSkeleton />}>        <Recommendations />      </Suspense>      <NewProducts />    </main>  );}
+```
+[...]
+This recipe crafts a static pizza base, outlined by your` ` crusts. The initial dough and sauce (the fallback in React Suspense) are pre-baked.
+[...]
+Then, as the order gets specific – like a customer asking for extra cheese or vegan toppings (dynamic components) – those elements are added fresh, like reading cookies to customize the cart, or updating the banner for each user. Your pizza is no longer just a pizza; it’s a dynamic delight, customized and ready to serve!
+[...]
+PPR enhances web application
+[...]
+by pre-rendering a basic static framework for each page and then
+[...]
+adding complex, user-specific elements in real-time. This results in
+[...]
+load times and a responsive user experience.
+[...]
+PPR utilizes React’s feature, offering developers the choice between static and dynamic parts. It also supports Incremental Static Regeneration (ISR) for updating static content and dynamic rendering for a responsive experience.
+[...]
+To get started with PPR in Next.js 14, you can install Next.js 14 Canary and enable PPR in your next.config.js file. It’s ready in Vercel’s app directory.

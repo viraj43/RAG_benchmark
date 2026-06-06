@@ -1,0 +1,1900 @@
+Title: REST API Best Practices
+[Skip to content](#content "Skip to content")
+
+
+[REST API Tutorial](https://restfulapi.net/)
+
+# REST API Best Practices
+
+REST API design best practices guide us in building timeless APIs that are scalable, secure, efficient, and integrate seamlessly with other systems.
+
+![Photo of author](https://secure.gravatar.com/avatar/440b2ffa86b0f8f14d2d1e64cc0ddc8b9a2ffa2ad0fefcbe431460638bd88883?s=35&d=robohash&r=g)
+
+Written by: Lokesh Gupta
+
+Last Updated:
+
+![](https://restfulapi.net/wp-content/uploads/rest-api-best-practices.jpeg)
+
+In today’s interconnected software ecosystem, REST APIs enable communication between different systems and applications by offering modular, scalable, and maintainable interfaces. However, poorly designed APIs can cause inefficient communication, inconsistent behavior, and frustration to the API users. This article discusses key best practices for designing timeless and robust REST APIs.
+
+> The some of best practices discussed in this article are not direct recommendations from Roy Fielding (or his dissertation). Instead, they represent a collection of practical strategies learned through personal experience and validated by authoritative sources.
+
+## 1. Use Consistent Naming Conventions and URL Structure
+
+[RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) outlines the syntax and semantics for uniform resource identifiers (URIs) to maximize consistency, clarity, and interoperability across the web. From the RFC, we can extract the following best practices:
+
+The structure of a URI should reflect the logical relationships among the resources it represents. Hierarchically arranged paths (e.g., `/users/{userId}/orders`) help convey meaningful context about the resource and its dependencies. Avoid arbitrary or flat structures, which dilute semantic clarity.
+
+For example, the following URI expresses a hierarchy and implies that *orderId* belongs to a specific user.
+
+```
+GET /users/{userId}/orders/{orderId} // Recommended GET /orders/{orderId}?userId=123 // Do not use this
+```
+
+The reserved characters such as `/`, `?`, and `#` must be used only in accordance with their defined roles. For example, the (`/`) character should separate hierarchical components, while query parameters (`?`) are intended for non-hierarchical data filtering and sorting purposes.
+
+```
+// Correct use of '/' to denote hierarchical relationships: GET /users/123/orders/456 POST /books/789/reviews // Correct use of '?' to specify query parameters: GET /products?category=electronics&sort=price_desc // Correct use of '#' for fragment identifiers: GET /documentation#section2 
+```
+
+Consistent lowercase URIs are preferred to ensure compatibility across systems as some environments treat URIs as case-sensitive. Mixing uppercase and lowercase characters introduces the possibility of errors.
+
+```
+GET /categories/technology // Use this GET /Categories/Technology // DO NOT use this
+```
+
+URIs should represent resources, not actions. Use nouns for endpoints and avoid verbs. This structure aligns with the HTTP specification, which emphasizes resource-oriented design.
+
+```
+GET /books // Use this GET /getBooks // DO NOT use this
+```
+
+## 2. Use HTTP Methods Correctly
+
+[RFC 7231](https://datatracker.ietf.org/doc/html/rfc7231) and [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html) define and discuss the use of HTTP methods to represent different types of actions that can be requested over HTTP. These RFCs also discuss their intended purposes and properties like safety, idempotency, and cacheability.
+
+* A method is **idempotent** if multiple identical requests yield the same effect as a single request (e.g., `PUT`, `DELETE`).
+* A method is **safe** if it does not modify resources on the server (e.g., `GET`, `HEAD`).
+* A method is **cacheable** if its responses can be stored for reuse in future requests (e.g., `GET`, `HEAD`).
+
+| HTTP Method | Behavior | Idempotent | Safe | Cacheable |
+| --- | --- | --- | --- | --- |
+| **GET** | Retrieves a resource. | Yes | Yes | Yes |
+| **POST** | Sends data to create/update a resource. | No | No | No |
+| **PUT** | Replaces or updates a resource. | Yes | No | No |
+| **DELETE** | Deletes a resource. | Yes | No | No |
+| **HEAD** | Retrieves headers only, without body. | Yes | Yes | Yes |
+| **OPTIONS** | Describes communication options for a resource. | Yes | Yes | No |
+| **TRACE** | Echoes received request for diagnostic purposes. | Yes | Yes | No |
+| **CONNECT** | Establishes a tunnel, often used for HTTPS. | Yes | No | No |
+
+## 3. Statelessness is the Key
+
+Statelessness fundamentally originates from the REST architectural principles outlined by [Roy Fielding in his doctoral dissertation](https://ics.uci.edu/~fielding/pubs/dissertation/top.htm) and is one of the [guiding principles of REST](https://restfulapi.net/). A stateless API means that each request from a client to a server must contain all the necessary information for the server to understand and process the request. The server does not store client context between requests, enhancing scalability and reliability. The client is responsible for managing its state.
+
+For example, suppose a client wants to perform an operation that requires multiple requests. In that case, it must include all necessary information in each request, such as authentication credentials and other relevant data.
+
+The statelessness greatly simplifies server design and allows for infinite scalability and enhanced security. In contrast, a stateful design might require the server to remember the client’s session, possibly using cookies to track user interactions, potentially leading to scalability issues.
+
+## 4. Use Standard HTTP Response Codes Consistently
+
+HTTP status codes indicate whether a request was successful, failed, or resulted in some other condition that requires the client’s attention. The use of standard HTTP status codes suggests that clients handle responses appropriately based on their meaning. For example, a successful operation should always return a `200 OK`, while a request for a non-existent resource should return a `404 Not Found`.
+
+The following table summarizes the categories of HTTP status codes based on *RFC 7231* and other [authoritative sources](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status):
+
+| Category | Range | Description | Examples |
+| --- | --- | --- | --- |
+| **Informational** | 1xx | Indicates that the request has been received and is being processed. | `100 Continue` `101 Switching Protocols` |
+| **Successful** | 2xx | Indicates that the request was successfully received, understood, and accepted. | `200 OK` `201 Created` `204 No Content` |
+| **Redirection** | 3xx | Indicates that further action is needed to fulfill the request. | `301 Moved Permanently` `302 Found` `304 Not Modified` |
+| **Client Error** | 4xx | Indicates that there was an error with the request. | `400 Bad Request` `401 Unauthorized` `404 Not Found` |
+| **Server Error** | 5xx | Indicates that the server failed to fulfill a valid request. | `500 Internal Server Error` `502 Bad Gateway` `503 Service Unavailable` |
+
+## 5. Handle API Versioning Gracefully
+
+When a REST API evolves over time, it is crucial to maintain backward compatibility to avoid breaking existing client applications. APIs should be designed to allow clients to continue functioning without modification, even when new features or changes are introduced.
+
+There are several ways to version a REST API. Each versioning approach has its strengths and challenges that affect how clients interact with the API. The most common versioning approaches are:
+
+| Versioning Approach | Description | Example |
+| --- | --- | --- |
+| **URI Versioning** | Include the version number in the URI.  This approach provides clear and explicit versioning and simplifies client requests. However, it can lead to URI bloat and may require changes to existing URIs for new versions. | `/api/v1/resources` |
+| **Header Versioning** | Utilizing a custom header to indicate the desired version.  This approach requires clients to manage headers and can be less intuitive for those unfamiliar with header manipulation. | `X-API-Version: v1` |
+| **Content Negotiation** | Allowing clients to specify the version in the `Accept` header.  In this approach, clients must understand how to use content negotiation effectively. | `Accept: application/vnd.example.v1+json` |
+
+## 6. Ensure Backward Compatability
+
+Backward compatibility is a related concept to API versioning. We version an API when we need to change it, which is when the API can break the client integrations. Backward compatibility ensures that existing client integrations will keep working while new changes are deployed to the server.
+
+According to [Semantic Versioning 2.0.0](http://Semantic Versioning 2.0.0), **a poorly designed versioning strategy can cause either version lock and/or version promiscuity**.
+
+* **Version Lock** occurs when an API’s versioning is too strict such that the clients must use a specific version of the API without the flexibility to upgrade to newer versions easily.
+* **Version Promiscuity**, in contrast, refers to a situation where the API allows too much flexibility in terms of versioning, often by not clearly specifying which versions are compatible with one another.
+
+To avoid such issues, we must follow these guidelines:
+
+* When introducing new versions, provide a clear deprecation timeline for older versions. Communicate these changes through proper documentation and responses to API calls.
+* Maintain backward compatibility such that old endpoints remain functional alongside the new versions.
+* Maintain comprehensive API documentation that outlines changes between versions, including deprecated features and migration paths. Resources like the [Microsoft REST API Guidelines](https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design) emphasize the importance of clear communication.
+
+## 7. Implement Rate Limiting to Prevent Abuse
+
+The rate limiting ensures fair usage of API by managing how often a client can make requests within a specified time frame. Rate Limiting protects APIs from various forms of abuse, including:
+
+* **Denial of Service (DoS) Attacks**: By limiting the number of requests a client can make.
+* **Resource Exhaustion**: Rate limiting helps ensure that all clients have equitable access to the server’s limited resources. This prevents any single client from monopolizing them.
+
+Rate limiting can be done using various strategies such as:
+
+| Rate Limiting Strategy | Description | Example |
+| --- | --- | --- |
+| **Fixed Window** | Only a fixed number of requests are allowed within a given timeframe. After that period, the count resets. | Allowing 100 requests per minute. If a client exceeds this limit, further requests are rejected until the next minute begins. |
+| **Sliding Window** | Managing API requests by continuously monitoring the last N seconds/minutes of requests, rather than resetting at fixed intervals. | Allowing users to make 15 requests every 10 minutes. Instead of a hard reset at the 10-minute mark, the API tracks requests in the last 10-minute window. |
+| **Token Bucket** | Clients are given tokens that represent the number of allowed requests. Each request consumes a token, and tokens are replenished at a set rate. | A client starts with 10 tokens and can request additional tokens at a rate of 1 token every second. |
+| **Limit Concurrency** | Prevents enclosed policies from executing by more than the specified number of requests at a time. | Allowing a client to execute only 2 requests at any time. The additional requests may be queued or denied as per the usage agreement. |
+
+## 8. Monitor and Log API Usage for Observability and Troubleshooting
+
+Monitoring and tracking API requests and responses is crucial for gaining valuable insights into API performance, usage patterns, and potential issues. Several tools are available in the market for this purpose, and it is highly advisable to use a solution built for this particular purpose. Some of the API monitoring tools are:
+
+* New Relic
+* Datadog
+* Prometheus and Grafana (*open-source*)
+* AWS CloudWatch
+* Elastic APM
+* Apigee
+
+While these tools help in monitoring and visualizing the information, it is essential to feed the correct information into these systems. Follow these best practices for generating logs/events that these systems can use for better monitoring:
+
+* **Use structured logging formats** (e.g., JSON) to ensure logs are easily searchable and can be parsed by monitoring tools.
+* **Implement different log levels** (e.g., INFO, WARN, ERROR) to categorize log entries by severity.
+* **Use centralized logging solutions** (e.g., ELK Stack, Splunk) to aggregate logs from multiple sources.
+* **Employ real-time monitoring solutions** to track API health and metrics and alert teams of potential issues as they occur.
+* **Establish clear log retention policies** to manage storage costs while ensuring that logs are available for sufficient time to analyze trends and diagnose issues.
+
+## 9. Cache Responses to Optimize Performance
+
+Caching in APIs helps reduce latency, decrease server load, and improve response times by storing a copy of frequently requested data. Caching makes sense in APIs serving rarely updated data, such as user profile information, the list of countries, the list of states in a country, supported locales, etc.
+
+Caching can occur at different levels, including client-side, server-side, and intermediary caches (e.g., CDN). In the context of a REST API, generally, caching refers to server-side caching with a dynamic mechanism to invalidate the stale caches. Managing server-side cache becomes more complex when we plan to deploy the applications in multiple nodes.
+
+As specified in [RFC-9111](https://www.rfc-editor.org/rfc/rfc9111#section-5), caching in REST APIs relies on HTTP headers like `Cache-Control`, `ETag`, and `Last-Modified`. These headers provide instructions on how and when to store a response in the client or intermediary caches. Let’s discuss some of these headers and how they affect the caching behavior:
+
+| Header | Description | Example | Usage in REST APIs |
+| --- | --- | --- | --- |
+| **Cache-Control** | Specifies caching policies such as how long resources can be cached or if caching is allowed. | `Cache-Control: max-age=3600, must-revalidate` | Instructs clients and intermediaries to cache the resource for 3600 seconds. The `must-revalidate` ensures freshness. |
+| **ETag** | Provides a unique identifier (hash) for a specific version of the resource. | `ETag: "34e2-49a7-abc123"` | Clients use it to check if the resource has changed before making a new request. |
+| **Last-Modified** | Indicates the last time the resource was modified. | `Last-Modified: Tue, 20 Oct 2023 15:00:00 GMT` | Helps clients send conditional requests using `If-Modified-Since`. Saves bandwidth by returning 304 if unchanged. |
+| **Expires** | Sets an expiration date and time for the cached resource. | `Expires: Fri, 22 Oct 2024 20:00:00 GMT` | Specifies the date when the cached resource becomes stale. Often replaced with `Cache-Control`. |
+| **Vary** | Informs caches about which headers influence the response content. | `Vary: Accept-Encoding, User-Agent` | Ensures different cached versions based on specific request headers like `Accept-Encoding`. |
+| **If-None-Match** | A conditional request header sent with an *ETag* to check if the resource has changed. | `If-None-Match: "34e2-49a7-abc123"` | If the *ETag* matches, the server returns 304 (Not Modified). Reduces unnecessary data transfer. |
+| **If-Modified-Since** | A conditional request header to check if the resource has been modified since a specific date. | `If-Modified-Since: Tue, 20 Oct 2023 15:00:00 GMT` | If the resource is unchanged, the server responds with 304, preventing the full response. |
+
+## 10. Implement Filtering, Sorting, and Pagination
+
+Some APIs can return very large data, specially GET APIs. Implementing filtering, sorting, and pagination becomes essential to enhance performance and improve user experience.
+
+Filtering allows clients to narrow down results by specifying query parameters, such as `?status=active` or `?category=electronics` etc.
+
+```
+// fetches only Apple products from the electronics category GET /products?category=electronics&brand=apple 
+```
+
+Sorting enables users to retrieve ordered results by fields, like `name` or `created_at`. We can implement the ascending and descending sorting with parameters like `?sort=name` or `?sort=-name` (where the `-` indicates descending order).
+
+```
+// sorts products by their price in ascending order GET /products?sort=price 
+```
+
+Pagination controls how much data is returned at once, often by specifying `limit` and `offset` (or `page` and `size`). This breaks a large dataset into smaller, manageable chunks and thus prevents overwhelming the client or the server.
+
+```
+// fetches the third page of results, assuming each page contains 10 items. GET /products?page=3&size=10 
+```
+
+We get the best results when we combine these practices to serve a large dataset and enhance the user experience. Nordic’s [article](https://nordicapis.com/restful-api-pagination-best-practices/) on RESTful API pagination is a good resource for exploring the topic further.
+
+## 11. API Security is Not an Afterthought
+
+The security of an API is a non-negotiable aspect. We must use the latest security practices with proper authentication mechanisms like OAuth2, API keys, or JWT (JSON Web Tokens). Based on the requirements, we may implement role-based access control (RBAC) to restrict access to specific resources based on the user’s role.
+
+* Limit access and permissions granted to users or applications to only what is strictly necessary. Avoid providing excessive permissions to API clients.
+* Use HTTPS to encrypt data in transit and avoid exposure to man-in-the-middle attacks. To reduce exposure risks, consider encrypting sensitive data and masking personal data.
+* Validate and sanitize user inputs to protect against SQL injection and other attacks. Define clear data types and limits for every query parameter.
+
+Apart from the above checklist, follow these practices as well:
+
+* Always use SSL. No exceptions.
+* Set up alerts to respond quickly to unusual patterns.
+* Include security headers like `Content-Security-Policy`, `Strict-Transport-Security`, and `X-Content-Type-Options` to prevent certain types of attacks.
+* Monitor old versions of APIs closely for vulnerabilities. Ensure all active versions receive regular updates and security patches.
+
+## 12. Complement the API with Great Documentation
+
+In simple words, an API is only as good as its documentation. **As a rule, if you do not find enough internal documentation about how to use an API, it is a good enough reason for not using that API**.
+
+API documentation should be well formatted, and it is easier to locate the necessary information. This is a good suggestion to follow a well-known documentation plugin or tool that most developers are already aware of. This will reduce or eliminate the learning curve when navigating the information in the documentation.
+
+Good documentation is always full of examples for requests and responses. Always use request samples that a user can directly post to the API, and it will work as expected, except failing for authentication/authorization reasons.
+
+## 13. Conclusion
+
+REST API design best practices guide us in building APIs that are scalable, efficient, secure, and easy to use. Following these practices will ensure that your API can meet consumers’ evolving demands and integrate seamlessly with other systems.
+
+Happy Learning !!
+
+### Comments
+
+Subscribe
+
+1 Comment
+
+Most Voted
+
+Newest Oldest
+
+Inline Feedbacks
+
+View all comments
+
+![Photo of author](https://secure.gravatar.com/avatar/440b2ffa86b0f8f14d2d1e64cc0ddc8b9a2ffa2ad0fefcbe431460638bd88883?s=30&d=robohash&r=g)
+
+About Lokesh Gupta
+
+A fun-loving family man, passionate about computers and problem-solving, with over 15 years of experience in Java and related technologies. An avid Sci-Fi movie enthusiast and a fan of Christopher Nolan and Quentin Tarantino.
+
+[Follow on Twitter](https://twitter.com/HowToDoInJava)
+
+### [REST API Design for Long-Running Tasks](https://restfulapi.net/rest-api-design-for-long-running-tasks/)
+
+### [REST API Response Pagination, Sorting and Filtering](https://restfulapi.net/api-pagination-sorting-filtering/)
+
+ 
+
+---
+
+Title: REST API Best Practices: A Developer's Guide to Building Reliable APIs | Postman Blog
+![](https://tags.srv.stackadapt.com/rt?sid=kwTMKu1aqF64EjCJo9HyoC)
+
+
+![](https://blog.postman.com/wp-content/uploads/2023/07/REST-API-interview-questions-scaled.jpg)
+
+# REST API Best Practices: A Developer’s Guide to Building Reliable APIs
+
+![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-08.png)
+
+[The Postman Team](https://blog.postman.com/author/thepostmanteam/)
+
+### Quick reference
+
+* **Use nouns, not verbs.** URLs represent resources, and HTTP methods define what happens.
+* **Use correct HTTP methods.** GET, POST, PUT, PATCH, and DELETE each have clear semantics.
+* **Return meaningful status codes.** Clients should understand outcomes without parsing bodies.
+* **Version your API.** Plan versioning from the start to manage changes without breaking clients.
+* **Secure with HTTPS and authentication.** Never transmit sensitive data over unencrypted connections.
+* **Paginate large collections.** Break large result sets into manageable chunks for better performance.
+* **Standardize errors.** Consistent error shapes save debugging time.
+* **Design for idempotency.** Retries should not create duplicates.
+* **Observe everything.** Logs, metrics, and request IDs make issues diagnosable.
+* **Keep documentation executable.** Examples should match reality.
+
+[Try Postman today →](https://identity.getpostman.com/signup )
+
+A well-designed REST API is intuitive, secure, scalable, and easy to maintain. In production, reliability starts with consistency. Whether you’re designing your first REST API or refining an existing one, following proven best practices helps teams avoid breaking clients, reduce support overhead, and make APIs easier to adopt.
+
+This guide covers essential REST API design principles, along with practical examples that you can apply immediately.
+
+## Use consistent and meaningful resource naming
+
+Resource naming sets expectations for how your API behaves. Clear, consistent names make endpoints easier to understand and less likely to be misused.
+
+### Use nouns, not verbs
+
+REST endpoints should represent resources (things) rather than actions. HTTP methods already describe the action, so your URLs should focus on what you’re working with.
+
+**Good practice**
+
+```
+GET /users
+POST /orders
+DELETE /products/123
+```
+
+**Bad practice**
+
+```
+GET /getUsers
+POST /createOrder
+DELETE /deleteProduct/123
+```
+
+### Keep URLs predictable
+
+Use plural nouns for collections and follow consistent patterns throughout your API. Developers should be able to predict endpoint names based on patterns they’ve already seen.
+
+```
+GET /users → List all users
+GET /users/123 → Get specific user
+POST /users → Create new user
+PUT /users/123 → Update user
+DELETE /users/123 → Delete user
+```
+
+For nested resources, reflect relationships in the URL structure, but avoid going too deep.
+
+```
+GET /users/123/orders → Get orders for a specific user
+GET /orders/456/items → Get items in a specific order>/code>
+```
+
+**In production:** More than two levels of nesting often signals a resource modeling problem. Consider flattening or introducing a dedicated endpoint.
+
+## Use proper HTTP methods
+
+HTTP methods define the action being performed. Using them correctly makes your API predictable and allows clients to understand what each request will do.
+
+### GET retrieves data
+
+Use GET for read-only operations that don’t modify server state. GET requests should be safe to call repeatedly without side effects.
+
+```
+GET /products?category=electronics&limit=20
+```
+
+GET requests are cacheable and can include query parameters for filtering, sorting, and pagination. Never use GET for operations that change data.
+
+### POST creates new resources
+
+Use POST when creating new resources or triggering actions that change server state. The server typically assigns the new resource’s identifier.
+
+```
+POST /users
+Content-Type: application/json
+{
+"name": "Phil Ostman",
+"email": "p.ostman@example.com"
+}
+
+```
+
+Return 201 Created and include a `Location` header pointing to the new resource.
+
+### PUT updates or replaces resources
+
+Use PUT for full updates of existing resources. PUT is idempotent, meaning multiple identical requests produce the same result.
+
+```
+PUT /users/123
+Content-Type: application/json
+{
+"name": "Phil Ostman",
+"email": "new-email@example.com",
+"role": "Developer"
+}
+
+```
+
+### PATCH makes partial updates
+
+Use PATCH when you only need to modify specific fields without sending the entire resource.
+
+```
+PATCH /users/123
+Content-Type: application/json
+{
+"email": "updated@example.com"
+}
+
+```
+
+PATCH is particularly useful for large resources where sending the complete object would be inefficient.
+
+### DELETE removes resources
+
+Use DELETE to remove resources from the server. Like PUT, DELETE should be idempotent.
+
+```
+DELETE /users/123
+```
+
+After a successful deletion, return 204 No Content or 200 OK with details about what was deleted.
+
+## Implement proper HTTP status codes
+
+HTTP status codes communicate the result of each request. Using them correctly helps clients handle responses appropriately without parsing response bodies.
+
+### Success codes (2xx)
+
+* **200 OK**: Request succeeded, response contains data
+* **201 Created**: New resource created successfully
+* **204 No Content**: Request succeeded, no response body
+* **202 Accepted**: Request accepted for processing but not completed
+
+### Client error codes (4xx)
+
+* **400 Bad Request**: Invalid request format or parameters
+* **401 Unauthorized**: Authentication required or failed
+* **403 Forbidden**: Authenticated but lacks permissions
+* **404 Not Found**: Resource doesn’t exist
+* **409 Conflict**: Request conflicts with the current state
+* **422 Unprocessable Entity**: Valid format, but semantic errors
+
+### Server error codes (5xx)
+
+* **500 Internal Server Error**: Generic server failure
+* **502 Bad Gateway**: Invalid response from upstream server
+* **503 Service Unavailable**: Server temporarily unavailable
+* **504 Gateway Timeout**: Upstream server didn’t respond
+
+**In production:** Inconsistent status codes are one of the most common causes of client-side bugs.
+
+## Provide meaningful, consistent error responses
+
+Status codes tell clients what went wrong, but error response bodies explain why and how to fix it. Good error responses include enough detail for developers to troubleshoot issues without exposing sensitive information.
+
+### Standardize error structure
+
+Use a standard format for all error responses across your API.
+
+```
+{
+"error": {
+"code": "INVALID_EMAIL",
+"message": "The email address format is invalid",
+"details": "Email must contain an @ symbol and valid domain",
+"field": "email"
+}
+}
+
+```
+
+Use stable, machine-readable error codes along with human-readable messages.
+
+### Return all validation errors at once
+
+When validation fails, tell users exactly what’s wrong and how to fix it.
+
+```
+{
+"error": {
+"code": "VALIDATION_ERROR",
+"message": "Request validation failed",
+"details": [
+{
+"field": "email",
+"message": "Email address is required"
+},
+{
+"field": "password",
+"message": "Password must be at least 8 characters"
+}
+]
+}
+}
+
+```
+
+This saves clients from slow, iterative fixes.
+
+## Version your API deliberately
+
+APIs evolve over time, and versioning allows you to make improvements without breaking existing clients. Plan your versioning strategy from the start, even if you only have one version initially.
+
+### URI versioning
+
+Include the version number in the URL path. This approach is explicit and easy to understand.
+
+```
+GET /v1/users
+GET /v2/users
+```
+
+URI versioning makes it immediately clear which version a client is using and allows different versions to coexist on the same server.
+
+### Header versioning
+
+Pass the version in a custom header. This keeps URLs clean but requires clients to set headers correctly.
+
+```
+GET /users
+Accept: application/vnd.api.v1+json
+```
+
+Header versioning works well when you want cleaner URLs and have clients sophisticated enough to manage headers.
+
+### When to create a new version
+
+Introduce a new version for breaking changes: removed fields, type changes, or auth changes. Non-breaking additions usually don’t require a new version.
+
+## Paginate large collections
+
+Returning large datasets in a single response can create performance problems and a negative user experience. Pagination breaks large result sets into manageable chunks.
+
+### Page number pagination
+
+Use page numbers for a more traditional pagination experience.
+
+```
+GET /products?page=3&per_page=20
+```
+
+Include pagination metadata in responses to help clients navigate result sets.
+
+```
+{
+"data": [...],
+"pagination": {
+"current_page": 3,
+"total_pages": 15,
+"total_items": 287,
+"per_page": 20
+}
+}
+
+```
+
+### Limit and offset pagination
+
+Allow clients to specify how many results they want and where to start.
+
+```
+GET /products?limit=20&offset=40
+```
+
+This approach is straightforward but can miss items if the collection changes between requests.
+
+### Cursor-based pagination
+
+Use cursor tokens that point to specific positions in result sets.
+
+```
+GET /products?limit=20&cursor=eyJpZCI6MTIzfQ
+```
+
+Return a next cursor in the response that clients can use to fetch the next page.
+
+```
+{
+"data": [...],
+"pagination": {
+"next_cursor": "eyJpZCI6MTQzfQ",
+"has_more": true
+}
+}
+
+```
+
+**In production:** Cursor-based pagination is more reliable for feeds and high-write datasets.
+
+## Support filtering, sorting, and searching
+
+Beyond pagination, give clients control over what data they receive and how it’s organized.
+
+### Filtering
+
+Allow clients to filter results using query parameters.
+
+```
+GET /products?category=electronics&price_min=100&price_max=500
+```
+
+Use clear parameter names that make the filtering criteria obvious.
+
+### Sorting
+
+Enable sorting with parameters that specify the field and direction.
+
+```
+GET /products?sort=price:asc
+GET /users?sort=created_at:desc
+```
+
+Support multiple sort criteria when appropriate.
+
+```
+GET /products?sort=category:asc,price:desc
+```
+
+### Searching
+
+Provide search functionality for text-based queries.
+
+```
+GET /products?search=wireless keyboard
+GET /articles?q=api+design
+```
+
+Consider implementing more sophisticated search features like fuzzy matching or field-specific searches for complex use cases.
+
+## Secure your API with proper authentication
+
+Security is non-negotiable for APIs. Choose authentication methods appropriate for your use case and implement them consistently.
+
+### API keys
+
+Simple authentication using unique keys passed in headers.
+
+```
+GET /api/users
+X-API-Key: sk_live_abc123xyz789
+```
+
+API keys are well-suited for server-to-server communication, but they shouldn’t be the only security layer for sensitive operations.
+
+### Bearer tokens (OAuth 2.0)
+
+Use OAuth 2.0 for applications requiring user-specific authentication and authorization.
+
+```
+GET /api/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Bearer tokens support time-limited access and can include scope restrictions to limit the actions that authenticated clients can perform.
+
+### Always use HTTPS
+
+Encrypt all API traffic with HTTPS to protect authentication credentials and sensitive data in transit. HTTP transmits data in plain text, exposing it to interception.
+
+### Rate limiting
+
+Implement rate limiting to prevent abuse and ensure fair resource allocation. Return appropriate headers to inform clients about their usage.
+
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 847
+X-RateLimit-Reset: 1640995200
+```
+
+When rate limits are exceeded, return a 429 Too Many Requests status with information about when the client can retry.
+
+## Provide comprehensive documentation
+
+Documentation transforms your API from a black box into a tool that developers can use with confidence. Good documentation includes examples, explains edge cases, and stays current with API changes.
+
+### Document all endpoints
+
+For each endpoint, document the HTTP method, URL, required parameters, request body format, response format, status codes, and authentication requirements.
+
+### Include working examples
+
+Show actual requests and responses that developers can copy and test.
+
+```
+Request:
+POST /api/users
+Content-Type: application/json
+Authorization: Bearer token123
+
+{
+"name": "Phil Ostman",
+"email": "p.ostman@example.com"
+}
+
+Response:
+HTTP/1.1 201 Created
+Location: /api/users/12345
+
+{
+"id": "12345",
+"name": "Phil Ostman",
+"email": "p.ostman@example.com",
+"created_at": "2024-01-15T10:30:00Z"
+}
+
+```
+
+### Explain error cases
+
+Document common error scenarios and how clients should handle them. Include examples of error responses and their meanings.
+
+Tools like Postman make it easy to create interactive documentation that developers can use to explore your API without needing to write code.
+
+## Design for idempotency
+
+Idempotent operations produce the same result regardless of the number of times they’re executed. Network issues and retries are inevitable, and idempotency prevents duplicate actions.
+
+Safe methods (GET, HEAD) are naturally idempotent because they don’t modify state. PUT and DELETE should also be idempotent by design.
+
+```
+"PUT /users/123 → Updates user 123, same result if called multiple times
+DELETE /users/123 → Deletes user 123, subsequent calls return 404
+```
+
+POST is typically not idempotent because each request might create a new resource. To make POST operations safer, implement idempotency keys.
+
+```
+POST /payments
+Idempotency-Key: unique-key-abc123
+Content-Type: application/json { "amount": 100.00, "currency": "USD" } >
+```
+
+The server stores the idempotency key and returns the same response if the request is repeated with the same key, preventing duplicate payments.
+
+## Handle CORS properly
+
+Cross-Origin Resource Sharing (CORS) allows web applications from different domains to access your API. Configure CORS headers to specify which origins can access your API.
+
+```
+Access-Control-Allow-Origin: https://example.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization
+```
+
+For public APIs, you might use a wildcard to allow all origins, but this reduces security. For private APIs, explicitly list allowed origins.
+
+## Use appropriate content types
+
+Specify content types clearly so clients know how to parse responses and servers know how to interpret requests.
+
+### JSON is the standard
+
+JSON has become the standard for REST APIs. Use application/json as your primary content type.
+
+```
+Content-Type: application/json
+Accept: application/json
+```
+
+### Support content negotiation
+
+Allow clients to request different formats when appropriate.
+
+```
+GET /api/report
+Accept: application/pdf
+```
+
+The server can return different representations based on the Accept header, though JSON should remain your primary format.
+
+## Keep responses focused and efficient
+
+Design response bodies to include what clients need without excess data. Large responses slow down transfers and force clients to parse unnecessary information.
+
+### Use field selection
+
+Allow clients to specify which fields to include.
+
+```
+GET /users/123?fields=name,email
+```
+
+This reduces payload size and improves performance, particularly for mobile clients or those with slow connections.
+
+Avoid deeply nested structures
+
+Keep response structures relatively flat. Deep nesting makes responses harder to parse and navigate.
+
+**Good practice**
+
+```
+{
+"user": {
+"id": "123",
+"name": "Phil Ostman"
+},
+"organization_id": "org-456",
+"organization_name": "Tech Corp"
+}
+
+```
+
+**Bad practice**
+
+```
+{
+"user": {
+"id": "123",
+"name": "Phil Ostman",
+"organization": {
+"id": "org-456",
+"name": "Tech Corp",
+"details": {
+"industry": "Technology",
+"settings": {
+"timezone": "UTC"
+        }
+      }
+    }
+   }
+}
+
+```
+
+**In production:** Deep nesting often leaks internal data models into public APIs.
+
+## Observe, log, and monitor API usage
+
+Reliable APIs are observable APIs. Comprehensive logging helps you understand how your API is being used, diagnose problems, and identify performance bottlenecks:
+
+* Log request method, endpoint, status code, and latency
+* Track error rates and slow endpoints
+* Alert on anomalies
+
+### Use request IDs
+
+Include unique identifiers in responses that clients can reference when reporting issues.
+
+```
+X-Request-ID: f47ac10b-58cc-4372-a567-0e02b2c3d479
+```
+
+This makes it easy to correlate client reports with server logs and trace requests through your systems.
+
+## Plan for backward compatibility
+
+Once clients depend on your API, changes become risky. Design with future evolution in mind.
+
+### Add, don’t remove
+
+When possible, add new fields or endpoints rather than removing or changing existing ones. Clients that ignore new fields won’t break, but removing fields will.
+
+### Deprecation process
+
+When you must remove or change functionality, follow a clear deprecation process:
+
+* Announce changes early
+* Provide migration guidance
+* Support old and new versions in parallel
+
+Include deprecation warnings in responses to notify clients they’re using outdated endpoints.
+
+```
+Deprecated: true
+X-API-Warn: This endpoint is deprecated and will be removed on 2025-06-01. Use /v2/users instead.
+
+```
+
+## Test APIs continuously
+
+Rigorous testing catches issues before they affect clients. Test APIs across multiple dimensions to ensure reliability, beyond the happy paths:
+
+* Authentication failures
+* Validation errors
+* Rate limiting
+* Edge cases and retries
+
+Unit tests verify that individual components work correctly. Integration tests confirm components work together properly. End-to-end tests validate complete workflows from the client’s perspective.
+
+## Common mistakes to avoid
+
+Understanding pitfalls helps you avoid them in your designs.
+
+### Using GET for state changes
+
+Never use GET for operations that modify data. GET requests should be safe and idempotent.
+
+**Bad practice**
+
+```
+GET /users/123/delete
+GET /cart/add?product_id=789
+```
+
+**Good practice**
+
+```
+DELETE /users/123
+POST /cart/items
+```
+
+### Exposing implementation details
+
+Keep internal system details out of your API design. URLs and field names should reflect domain concepts, not database tables or internal architecture.
+
+**Bad practice**
+
+```
+GET /user_table_v2/query?db_id=123
+```
+
+**Good practice**
+
+```
+GET /users/123
+```
+
+### Inconsistent naming and conventions
+
+Use consistent patterns throughout your API. If you use snake\_case for field names in one endpoint, use it everywhere. If you pluralize collection names, do it consistently.
+
+## Final thoughts
+
+APIs can fail for many reasons, but one common culprit is drift. URLs, examples, error shapes, and documentation slowly fall out of sync with the published version.
+
+Treat all of your artifacts, including examples, tests, documentation, and monitoring, as part of the API contract. When they stay connected and executable, teams can catch breaking changes earlier and ship more reliable APIs.
+
++5
+
+In this post
+
+* [Use consistent and meaningful resource naming](#section-1)
+* [Use proper HTTP methods](#section-2)
+* [Implement proper HTTP status codes](#section-3)
+* [Provide meaningful, consistent error responses](#section-4)
+* [Version your API deliberately](#section-5)
+* [Paginate large collections](#section-6)
+* [Support filtering, sorting, and searching](#section-7)
+* [Secure your API with proper authentication](#section-8)
+* [Provide comprehensive documentation](#section-9)
+* [Design for idempotency](#design-for-idempotency)
+* [Handle CORS properly](#handle-cors-properly)
+* [Use appropriate content types](#use-appropriate-content-types)
+* [Keep responses focused and efficient](#keep-responses-focused-and-efficient)
+* [Observe, log, and monitor API usage](#section-14)
+* [Plan for backward compatibility](#plan-for-backward-compatibility)
+* [Test APIs continuously](#test-apis-continuously)
+* [Common mistakes to avoid](#section-17)
+* [Final thoughts](#final-thoughts)
+
+---
+
+[![Sidebar Image](https://blog.postman.com/wp-content/uploads/2025/12/1200x1200-button.png)](https://www.postman.com/ai/90-day-ai-readiness-playbook/)
+
+Tags: [REST API](https://blog.postman.com/tag/rest-api/)
+
+![User Avatar](https://blog.postman.com/wp-content/uploads/2021/11/avatars-06.png)
+
+The Postman Team
+
+* [![X (Twitter)](https://voyager.postman.com/logo/external/x-social-icon-black.svg)](https://twitter.com/getpostman)
+* [![LinkedIn](https://voyager.postman.com/logo/external/lnkdin-icon.svg)](https://www.linkedin.com/company/postman-platform)
+
+Postman is the single platform for designing, building, and scaling APIs—together. Join over 40 million users who have consolidated their workflows and leveled up their API game—all in one powerful platform.
+
+[View all posts by The Postman Team →](https://blog.postman.com/author/thepostmanteam/)
+
+What do you think about this topic? Tell us in a comment below.
+
+---
+
+Title: REST API Principles | A Comprehensive Overview - Blog
+[![Dreamfactory logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/Megamenu-logo.svg)](https://www.dreamfactory.com/) 
+
+API GENERATION
+
+[![question mark in a cog](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/what-is.svg)
+
+What is DreamFactory?](https://www.dreamfactory.com/what-is-dreamfactory) [![hello sign](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/about-us.svg)
+
+About Us](https://www.dreamfactory.com/about) [![documents](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/docs.svg)](https://docs.dreamfactory.com/) [![book spines](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/wiki.svg)](https://wiki.dreamfactory.com/Main_Page)
+
+API RESOURCES
+
+[![stacked blocks](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/case-studies.svg)
+
+Case Studies](https://www.dreamfactory.com/stories) [![papers](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/white-papers.svg)
+
+White Papers](https://www.dreamfactory.com/resources/whitepapers) [![graduation gap](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/academy.svg)](https://www.dreamfactory.com/academy) [![calculator](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/api-calculator.svg)
+
+API Calculator](https://calculator.dreamfactory.com/) [![keyhole](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/open-source.svg)
+
+Open Source](https://marketplace.digitalocean.com/apps/dreamfactory)
+
+TRENDING TOPICS
+
+[API Generation](https://blog.dreamfactory.com/a-complete-guide-to-api-generation) [API Management](https://blog.dreamfactory.com/what-is-api-management-a-brief-overview-of-api-management-concepts-and-tools/) [MS SQL Server](https://blog.dreamfactory.com/creating-a-microsoft-sql-server-api-in-less-than-5-minutes-with-dreamfactory) [Compare DreamFactory](https://blog.dreamfactory.com/hasura-vs-dreamfactory) [Snowflake](https://blog.dreamfactory.com/generate-a-snowflake-rest-api-in-less-than-5-minutes)
+
+[Microservices](https://blog.dreamfactory.com/microservices-examples) [SOAP to REST](https://blog.dreamfactory.com/how-to-turn-any-soap-web-service-into-a-rest-api) [Postgres](https://blog.dreamfactory.com/creating-a-postgresql-api-in-minutes-with-dreamfactory) [Tutorials](https://blog.dreamfactory.com/creating-a-microsoft-sql-server-api-in-less-than-5-minutes-with-dreamfactory)
+
+Connectors
+
+DATABASES
+
+[![MS SQL Server logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/mssql-logo.svg)
+
+MS SQL Server](https://www.dreamfactory.com/connectors/sql-server) [![Snowflake logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/snowflake.svg)
+
+Snowflake](https://www.dreamfactory.com/connectors/snowflake) [![Oracle logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/oracle.svg)
+
+Oracle](https://www.dreamfactory.com/connectors/oracle) [![PostgreSQL logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/postgresql.svg)
+
+PostgreSQL](https://www.dreamfactory.com/connectors/postgresql) [![MongoDB](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/mongodb.svg)
+
+MongoDB](https://www.dreamfactory.com/connectors/mongodb) [![IBM DB2 logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/ibm.svg)
+
+IBM DB2](https://www.dreamfactory.com/connectors/ibm-db2) [See all Databases![arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/see-all-arrow.svg)](https://www.dreamfactory.com/connectors?category=Databases)
+
+FILE SERVICES
+
+[![GridFS logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/gridfs.svg)
+
+GridFS](https://www.dreamfactory.com/connectors/gridfs) [![FTP/SFTP logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/ftp-sftp.svg)
+
+FTP/SFTP](https://www.dreamfactory.com/connectors/ftp-sftp) [![S3 logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/s3.svg)
+
+S3](https://www.dreamfactory.com/connectors/amazon-s3) [![Azureblob logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/azureblob-logo.png)
+
+Azureblob](https://www.dreamfactory.com/connectors/azure-blob) [![Azure Table Storage logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/azuretablestorage-logo.png)
+
+Azure Table Storage](https://www.dreamfactory.com/connectors/azure-table-storage) [![Local Storage logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/local-storage.svg)
+
+Local Storage](https://www.dreamfactory.com/connectors/local-storage) [See all File Services![arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/see-all-arrow.svg)](https://www.dreamfactory.com/connectors?category=File%20Services)
+
+SOAP
+
+[![SOAP to REST logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/soap.svg)
+
+SOAP to REST](https://www.dreamfactory.com/connectors/soap-to-rest)
+
+Integrate all of your enterprise data on a single secure platform.
+
+[See all Connectors![arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/see-all-arrow.svg)](https://www.dreamfactory.com/connectors)
+
+[Snowflake](https://www.dreamfactory.com/snowflake)
+
+[Blog](https://blog.dreamfactory.com/)
+
+[![phone icon](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/phone-icon.svg)](tel:+1-415-993-5877) [FREE 30 Minute Demo](https://www.dreamfactory.com/demo)
+
+[![Dreamfactory logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/Megamenu-logo.svg)](https://www.dreamfactory.com/)
+
+[Features](https://www.dreamfactory.com/features)
+
+Developers
+
+API GENERATION
+
+[![question mark in cog](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/what-is.svg)
+
+What is DreamFactory?](https://www.dreamfactory.com/what-is-dreamfactory) [![hello tag](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/about-us.svg)
+
+About Us](https://www.dreamfactory.com/about) [![documentation](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/docs.svg)
+
+Docs](https://docs.dreamfactory.com/) [![book spines](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/wiki.svg)
+
+Wiki](https://wiki.dreamfactory.com/Main_Page)
+
+API RESOURCES
+
+[![stacked blocks](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/case-studies.svg)
+
+Case Studies](https://www.dreamfactory.com/stories) [![papers](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/white-papers.svg)
+
+White Papers](https://www.dreamfactory.com/resources/whitepapers) [![graduation cap](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/academy.svg)
+
+Academy](https://www.dreamfactory.com/academy) [![calculator](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/api-calculator.svg)
+
+API Calculator](https://calculator.dreamfactory.com/) [![keyhole](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/open-source.svg)
+
+Open Source](https://marketplace.digitalocean.com/apps/dreamfactory)
+
+Connectors
+
+Integrate all of your enterprise data on a single secure platform.
+
+[See all connectors](https://www.dreamfactory.com/connectors)
+
+[![GridFS logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/mssql-logo.svg)](https://www.dreamfactory.com/connectors/sql-server) [![FTP/SFTP logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/snowflake.svg)](https://www.dreamfactory.com/connectors/snowflake) [![S3 logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/oracle.svg)](https://www.dreamfactory.com/connectors/oracle) [![Postgresql logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/postgresql.svg)](https://www.dreamfactory.com/connectors/postgresql) [![Azure Table Storage logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/mongodb.svg)](https://www.dreamfactory.com/connectors/mongodb) [![Local Storage logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/ibm.svg)](https://www.dreamfactory.com/connectors/ibm-db2)
+
+[See all Databases![arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/see-all-arrow.svg)](https://www.dreamfactory.com/connectors?category=Databases)
+
+[![GridFS logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/gridfs.svg)](https://www.dreamfactory.com/connectors/gridfs) [![FTP/SFTP logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/ftp-sftp.svg)](https://www.dreamfactory.com/connectors/ftp-sftp) [![S3 logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/s3.svg)](https://www.dreamfactory.com/connectors/amazon-s3) [![Azureblob logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/azureblob-logo.png)](https://www.dreamfactory.com/connectors/azure-blob) [![Azure Table Storage logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/azuretablestorage-logo.png)](https://www.dreamfactory.com/connectors/azure-table-storage) [![Local Storage logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/local-storage.svg)](https://www.dreamfactory.com/connectors/local-storage)
+
+[See all File Services![arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/see-all-arrow.svg)](https://www.dreamfactory.com/connectors?category=File%20Services)
+
+[![SOAP to REST logo](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/soap.svg)](https://www.dreamfactory.com/connectors/soap-to-rest) [See SOAP![arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/see-all-arrow.svg)](https://www.dreamfactory.com/connectors?category=SOAP)
+
+[Snowflake](https://www.dreamfactory.com/snowflake)
+
+[Blog](https://blog.dreamfactory.com/)
+
+[![phone icon](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/megamenu/phone-icon.svg)](tel:+1-415-993-5877) [FREE 30 Minute Demo](https://www.dreamfactory.com/demo)
+
+ [![back arrow](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/orange-arrow.svg) Blog](https://blog.dreamfactory.com/) 
+
+![REST API Principles | A Comprehensive Overview]()
+
+# REST API Principles | A Comprehensive Overview
+
+by Terence Bennett
+
+![calendar icon](https://blog.dreamfactory.com/hubfs/raw_assets/public/dreamfactory/images/calendar-icon.svg) January 7, 2026
+
+Table of contents
+
+RECOMMENDED ARTICLES
+
+* [A Complete Guide to API Generation](https://blog.dreamfactory.com/a-complete-guide-to-api-generation)
+* [10 Best API Management Tools](https://blog.dreamfactory.com/what-is-api-management-a-brief-overview-of-api-management-concepts-and-tools)
+* [Creating a Microsoft SQL Server API in Less Than 5 minutes with DreamFactory](https://blog.dreamfactory.com/creating-a-microsoft-sql-server-api-in-less-than-5-minutes-with-dreamfactory)
+* [Hasura vs. DreamFactory: A Comprehensive Comparison](https://blog.dreamfactory.com/hasura-vs-dreamfactory)
+* [Build A Snowflake REST API in Less Than 5 Minutes](https://blog.dreamfactory.com/generate-a-snowflake-rest-api-in-less-than-5-minutes)
+
+REST APIs are the basis of all interactions between different applications. Many companies and organizations today offer APIs to interact with their applications. REST APIs allow third-party application developers to perform operations such as transmitting or accessing data from one application to another. This is called a public API. This means that this API is intended for interaction with third-party apps. It can be completely open or restricted to certain clients via authentication (for example, OAuth). In this article, we'll be covering REST API principles.
+
+Here's the key things to know about REST API principles:
+
+* REST APIs (Representational State Transfer APIs) are a type of API architecture that provides several standards and conventions that must be followed to facilitate communication between applications.
+* REST APIs are designed to be stateless, scalable, flexible, and easy to use.
+* REST APIs are platform-independent and can be used with any programming language.
+* REST APIs support multiple data formats, such as JSON, XML, and plain text.
+* REST APIs can take advantage of HTTP caching mechanisms, reducing server load and improving response times for repeated requests.
+
+[![DreamFactory_blog_CTA_163x200@2x-May-07-2024-08-15-34-3229-AM](https://no-cache.hubspot.com/cta/default/44870387/interactive-167690643360.png)](/hs/cta/wi/redirect?encryptedPayload=AVxigLJkJYy6%2FL2badjyr%2B%2BctdWCA3dlpwsXlCpJ0kfCAMmnVwTwgUtae6AONjEMBRU9dRU1uBFuJlzRMJleIF5IiPU5dprFMoVZj2FWaOUcxPHe5pr7RehNGh9QH7WsxF%2FK2SJWvIxn16we7FmQ8AN2wjoPth3DpLOxDj3zFhLJxvWaMjiPbw%3D%3D&webInteractiveContentId=167690643360&portalId=44870387)
+
+## What Is the REST API Standard?
+
+REST (for representational state transfer) is a type of API architecture that provides several standards and conventions that must be followed to facilitate communication between applications. APIs that respect the REST standard are called REST APIs or RESTful APIs.
+
+## The Principles of a REST API Architecture
+
+The REST standard imposes six architectural constraints that must all be respected by a system in order for it to qualify as a RESTful system. Strict adherence to these six constraints ensures optimal reliability, scalability, and extensibility. The six principles of REST architecture are discussed
+
+### Separation of client and server
+
+Server-side and client-side responsibilities are separated so that each side can be implemented independently of the other. The server-side code (the API) and the client-side code can each be changed without affecting the other, as long as both continue to communicate in the same format. In a REST architecture, different clients send requests to the same endpoints, perform the same actions, and get the same responses.
+
+### Statelessness
+
+The communication between client and server does not keep track of the state of sessions from one request to the next. The state of a session is included in each request, so neither the client nor the server needs to know the state of the other to communicate. Each request is complete and self-sufficient. There is no need to maintain a continuous connection between client and server, which implies a greater tolerance to failure. In addition, this allows REST APIs to respond to requests from several clients without saturating the server's ports. The exception to this rule is authentication so that the client does not have to specify its authentication information on every request.
+
+### Uniformity of the interface
+
+The different actions and/or resources available with their specific endpoints and parameters must be decided and respected religiously, uniformly by the client and the server. Each response should contain enough information to be interpreted without the client needing any other information beforehand. Responses should not be too long and should contain links to other endpoints.
+
+### Caching
+
+Responses can be cached to avoid overloading the server unnecessarily. Caching must be well managed: The REST API must specify whether and for how long a response can be cached to avoid the client receiving outdated information.
+
+### Layered architecture
+
+A client connected to a REST API usually cannot distinguish whether it is communicating with the end server or an intermediate server. A REST architecture allows the API, for example, to receive requests on server A, store its data on server B, and manage authentications on server C.
+
+### Code on demand
+
+This constraint is optional. It means that an API can return executable code instead of a response in JSON or XML, for example. This means that a RESTful API can extend the client's code while simplifying it by providing executable code such as a JavaScript script or a Java applet.
+
+## REST API vs. SOAP API: What Is the Difference?
+
+Created in 1998, SOAP has long been the most widely used protocol for interfacing different systems via the web. Its specifications are maintained by the [World Wide Web Consortium (W3C)](https://www.techtarget.com/whatis/definition/W3C-World-Wide-Web-Consortium "World Wide Web Consortium (W3C)"). It is often wrongly compared to REST. Indeed, SOAP is a protocol, while REST is an architecture style. However, the two are not compatible because REST was created hoping to solve some problems associated with SOAP, which made it too inflexible a protocol.
+
+The major drawback of SOAP that led to the majority adoption of REST is the use of XML. Using this language for requests and responses can be complex and verbose, especially since it needs to be interpreted, which represents an additional burden on both the client and server sides. It is intolerant to errors, which is a colossal risk for the continuity of modern apps. The client code is thus very dependent on the server code and vice versa, so much that one cannot be changed without modifying the other. Using SOAP thus requires a heavier configuration and maintenance, less adapted to the agile and open aspect of current web development than REST APIs.
+
+Nevertheless, SOAP still has some advantages over REST in specific settings. It is compatible with all programming languages and many protocols such as HTTP, TCP, SMTP, JMS, or UDP. It also supports various extensions such as WS-Security, WS-Federation, WS-Coordination, etc. These extensions may or may not be used, for example, an API intended for public and open use will not need WS-Security.
+
+## Benefits of Using REST API
+
+Using REST APIs (Representational State Transfer APIs) offers numerous benefits in modern software development and web services:
+
+1. Simplicity and Ease of Use: REST APIs follow a straightforward architectural style using standard HTTP methods (GET, POST, PUT, DELETE), making them easy to understand, implement, and consume.
+2. Platform Independence: REST APIs are platform-independent, meaning they can be used with any programming language and can be accessed from various client devices, including web browsers, mobile devices, and IoT devices.
+3. Scalability: REST APIs are designed to be stateless, enabling horizontal scalability, where multiple instances of the API can run in parallel to handle increased load.
+4. Flexibility: REST APIs support multiple data formats, such as JSON, XML, and plain text, allowing clients to choose the format that suits their needs.
+5. Caching: REST APIs can take advantage of HTTP caching mechanisms, reducing server load and improving response times for repeated requests.
+6. Separation of Concerns: REST API design encourages a clear separation between client and server, enhancing modularity and maintainability in the system.
+7. Security: REST APIs can use standard security mechanisms such as OAuth for authentication and SSL/TLS for encryption, ensuring secure data transmission and access control.
+8. Language and Technology Agnostic: REST APIs can be used with different programming languages, frameworks, and technologies, enabling interoperability and integration across diverse systems.
+9. Integration: REST APIs facilitate the integration of different services and systems, allowing them to communicate and share data seamlessly.
+10. Evolvability: REST APIs support versioning, allowing developers to introduce changes and updates to the API without breaking existing client applications.
+
+### Best Practices for Designing REST APIs
+
+### 
+
+### Resource Naming Conventions
+
+Designing intuitive and consistent URI structures is crucial for creating user-friendly and maintainable REST APIs. Following best practices in resource naming helps clients understand and interact with your API more effectively.
+
+**Guidelines for Designing URI Structures:**
+
+1. **Use Nouns, Not Verbs:** URIs should represent resources, so use nouns to name endpoints. For example, use `/users` instead of `/getUsers`.
+2. **Hierarchical Structure:** Organize URIs to reflect resource hierarchy. For example, use `/users/{userId}/orders/{orderId}` to indicate that orders belong to users.
+3. **Plural Names for Collections:** Use plural nouns for collections of resources. For example, use `/users` for a collection of user resources.
+4. **Use Hyphens for Readability:** Use hyphens to improve readability of multi-word URIs. For example, use `/user-profiles` instead of `/userProfiles`.
+5. **Consistent Naming Conventions:** Apply a consistent naming convention throughout your API. Stick to a format like snake\_case or camelCase, and use it consistently.
+
+**Examples of Good and Bad Practices:**
+
+* Good: `/users`, `/users/{userId}`, `/users/{userId}/orders`
+* Bad: `/getUsers`, `/Users/{id}`, `/users/{userId}/getOrders`
+
+#### Versioning Strategies
+
+[Versioning APIs](/version-rest-apis) is essential for managing changes and ensuring backward compatibility for clients. Here are some common methods for versioning APIs:
+
+**1. URL Versioning:**
+
+* **Example:** `/v1/users`
+* **Pros:** Easy to understand and implement. Clear separation of versions.
+* **Cons:** Can lead to URI clutter if many versions are maintained.
+
+**2. Header Versioning:**
+
+* **Example:** `GET /users` with `Accept: application/vnd.example.v1+json`
+* **Pros:** Cleaner URLs. Versioning information is abstracted from the URI.
+* **Cons:** Less visible and harder to test with simple tools like cURL.
+
+**3. Query Parameter Versioning:**
+
+  
+
+* + **Example:** `/users?version=1`
+  + **Pros:** Easy to implement and test.
+  + **Cons:** Clutters query parameters and mixes versioning with other query options.
+
+#### Handling Errors and Status Codes
+
+Returning meaningful HTTP status codes and error messages is crucial for API usability and debugging. Here are some best practices:
+
+**1. Use Standard HTTP Status Codes:**
+
+* **200 OK:** Request succeeded.
+* **201 Created:** Resource created successfully.
+* **400 Bad Request:** Client-side input validation failed.
+* **401 Unauthorized:** Authentication required.
+* **403 Forbidden:** Client authenticated but does not have permission.
+* **404 Not Found:** Resource not found.
+* **500 Internal Server Error:** Server encountered an unexpected condition.
+
+**2. Standardizing Error Responses:**
+
+**Example Format:**
+
+`{"error":{"code": 400, "message": "Invalid input data", "details":[{"field": "email", "issue": "Email format is invalid"}]}}`
+
+  
+  
+
+#### Security Considerations
+
+Implementing robust security measures is vital to protect your REST APIs from various vulnerabilities.
+
+**1. Authentication and Authorization:**
+
+  
+
+* + **OAuth 2.0:** A widely-used authorization framework that allows third-party services to exchange user credentials without exposing user passwords.
+  + **JWT (JSON Web Tokens):** A compact, URL-safe means of representing claims to be transferred between two parties.
+
+**2. Protecting Against Common Vulnerabilities:**
+
+* **SQL Injection:** Use prepared statements and parameterized queries to prevent attackers from injecting SQL commands.
+* **Cross-Site Scripting (XSS):** Sanitize user input to prevent malicious scripts from being executed in the context of your web application.
+* **DDoS Attacks:** Implement rate limiting, throttling, and use API gateways to protect your API from being overwhelmed by excessive requests.
+
+By adhering to these best practices, you can design REST APIs that are intuitive, maintainable, secure, and aligned with REST API principles. This will enhance the reliability and usability of your APIs, providing a better experience for developers and users alike.
+
+[![DreamFactory_blog_CTA_163x200@2x-May-07-2024-08-15-34-3229-AM](https://no-cache.hubspot.com/cta/default/44870387/interactive-167690643360.png)](/hs/cta/wi/redirect?encryptedPayload=AVxigLJkJYy6%2FL2badjyr%2B%2BctdWCA3dlpwsXlCpJ0kfCAMmnVwTwgUtae6AONjEMBRU9dRU1uBFuJlzRMJleIF5IiPU5dprFMoVZj2FWaOUcxPHe5pr7RehNGh9QH7WsxF%2FK2SJWvIxn16we7FmQ8AN2wjoPth3DpLOxDj3zFhLJxvWaMjiPbw%3D%3D&webInteractiveContentId=167690643360&portalId=44870387)
+
+  
+  
+
+## Generating REST APIs with DreamFactory
+
+Regardless of the choice of protocol or architecture, a good quality API is one that is well documented, available, and scalable, and it should be tested regularly. DreamFactory is an API management solution that helps you streamline everything and bring your API-as-a-product mindset to life to get more out of the solutions your business is creating.
+
+[Start your 14-day free trial today and experience it for yourself.](https://genie.dreamfactory.com/register)
+
+## Frequently Asked Questions: REST API Principles
+
+### 
+
+### What is a REST API?
+
+A REST API (Representational State Transfer Application Programming Interface) is a set of rules and conventions that allow different software applications to communicate and exchange data over the internet. It follows the principles of REST, a stateless architectural style, to create scalable and flexible web services.
+
+### What are the key principles of REST APIs?
+
+The key principles of REST APIs include statelessness, uniform interface, resource-based architecture, self-descriptive messages, and hypermedia as the engine of application state (HATEOAS). These principles promote simplicity, modularity, and independence between client and server components.
+
+### How does a REST API achieve statelessness?
+
+REST APIs achieve [statelessness](https://blog.dreamfactory.com/stateful-vs-stateless-web-app-design/ "statelessness") by ensuring that each request from the client to the server must contain all the information required to understand and process the request. The server does not retain any session information about the client between requests, simplifying scalability and reducing coupling.
+
+### What does the uniform interface principle mean in REST APIs?
+
+The uniform interface principle establishes a standardized set of operations that all resources in a REST API should support. This includes using HTTP methods (GET, POST, PUT, DELETE) for specific actions on resources, consistent naming conventions, and using hyperlinks to navigate between resources.
+
+### How is resource-based architecture employed in REST APIs?
+
+REST APIs follow a resource-based architecture, where each piece of data or functionality is represented as a resource. Each resource is identified by a unique URI (Uniform Resource Identifier), and clients can interact with these resources using standard HTTP methods.
+
+### What are common best practices when designing REST APIs?
+
+Some common best practices for designing REST APIs include using meaningful and consistent resource naming, adhering to HTTP methods semantics, leveraging caching mechanisms for performance optimization, providing clear and concise [documentation](https://blog.dreamfactory.com/5-best-api-documentation-tools/ "documentation"), and implementing proper security measures like authentication and authorization.
+
+### What are the benefits of using REST APIs?
+
+REST APIs offer several benefits, including simplicity, platform independence, scalability, flexibility, and ease of integration. They also promote separation of concerns, enhanced security through standard mechanisms, and support for multiple data formats.
+
+##### Related Reading
+
+[7 Tips for Creating a Successful API | Dreamfactory](https://blog.dreamfactory.com/7-tips-for-creating-a-successful-api)
+
+Frequent deployment of APIs can quickly create a software system that is like an overgrown garden, riddled with weeds, bugs, failed integrations, and ill-fitting use cases. Overloaded API collections prevent changes without causing failures. More commonly, they limit the visibility needed to ... [Continue reading](https://blog.dreamfactory.com/7-tips-for-creating-a-successful-api)
+
+[![](https://blog.dreamfactory.com/hs-fs/hubfs/raw_assets/public/dreamfactory/images/cropped-Group-46154-32x32.png?width=32&height=32&name=cropped-Group-46154-32x32.png) DreamFactory Software - Blog](/)
+
+TAGS: - [API](https://blog.dreamfactory.com/tag/api)
+
+![Terence Bennett](https://blog.dreamfactory.com/hs-fs/hubfs/1624046620145.jpg?width=100&height=100&name=1624046620145.jpg)
+
+Terence Bennett
+
+Terence Bennett, CEO of DreamFactory, has a wealth of experience in government IT systems and Google Cloud. His impressive background includes being a former U.S. Navy Intelligence Officer and a former member of Google's Red Team. Prior to becoming CEO, he served as COO at DreamFactory Software.
+
+Stay Connected with   
+ The Connector Newsletter!
+
+Subscribe to stay up-to-date with DreamFactory's latest product updates, API best practices, and tech humor in your inbox.
+
+---
+
+Title: Best practices for REST API design - Stack Overflow
+[Stack Overflow Business](https://stackoverflow.co/)
+
+[**Stack Internal**: the knowledge intelligence layer that powers enterprise AI.](https://stackoverflow.co/internal/?utm_source=so-owned&utm_medium=blog&utm_campaign=nav-side-bar)[**Stack Data Licensing**: decades of verified, technical knowledge to boost AI performance and trust.](https://stackoverflow.co/data-licensing/?utm_source=so-owned&utm_medium=blog&utm_campaign=nav-side-bar)[**Stack Ads**: engage developers where it matters — in their daily workflow.](https://stackoverflow.co/advertising/employer-branding/?utm_source=so-owned&utm_medium=blog&utm_campaign=nav-side-bar)
+
+# Best practices for REST API design
+
+In this article, we'll look at how to design REST APIs to be easy to understand for anyone consuming them, future-proof, and secure and fast since they serve data to clients that may be confidential.
+
+REST APIs are one of the most common kinds of web interfaces available today. They allow various clients including browser apps to communicate with services via the REST API. Therefore, it's very important to design REST APIs properly so that we won't run into problems down the road. We have to take into account [security](https://stackoverflow.blog/2021/10/06/best-practices-for-authentication-and-authorization-for-rest-apis/), performance, and ease of use for API consumers.
+
+Otherwise, we create problems for clients that use our APIs, which isn’t pleasant and detracts people from using our API. If we don’t follow commonly accepted conventions, then we confuse the maintainers of the API and the clients that use them since it’s different from what everyone expects.
+
+In this article, we'll look at how to design REST APIs to be easy to understand for anyone consuming them, [future-proof](https://stackoverflow.blog/2022/05/19/crystal-balls-and-clairvoyance-future-proofing-in-a-world-of-inevitable-change/), and secure and fast since they serve data to clients that may be confidential.
+
+* [Accept and respond with JSON](#h-accept-and-respond-with-json)
+* [Use nouns instead of verbs in endpoint paths](#h-use-nouns-instead-of-verbs-in-endpoint-paths)
+* [Name collections with plural nouns](#h-name-collections-with-plural-nouns)
+* [Nesting resources for hierarchical objects](#h-nesting-resources-for-hierarchical-objects)
+* [Handle errors gracefully and return standard error codes](#h-handle-errors-gracefully-and-return-standard-error-codes)
+* [Allow filtering, sorting, and pagination](#h-allow-filtering-sorting-and-pagination)
+* [Maintain Good Security Practices](#h-maintain-good-security-practices)
+* [Cache data to improve performance](#h-cache-data-to-improve-performance)
+* [Versioning our APIs](#h-versioning-our-apis)
+
+## What is a REST API?
+
+A REST API is an application programming interface architecture style that conforms to specific architectural constraints, like stateless communication and cacheable data. It is not a protocol or standard. While REST APIs can be accessed through a number of communication protocols, most commonly, they are called over HTTPS, so the guidelines below apply to REST API endpoints that will be called over the internet.
+
+Note: For REST APIs called over the internet, you'll like want to follow the [best practices for REST API authentication](https://stackoverflow.blog/2021/10/06/best-practices-for-authentication-and-authorization-for-rest-apis/).
+
+## Accept and respond with JSON
+
+Even though [some people think REST should only return hypertext](https://htmx.org/essays/how-did-rest-come-to-mean-the-opposite-of-rest/) (including [Roy Fielding](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven) who created the term) REST APIs should accept JSON for request payload and also send responses to JSON. JSON is the standard for transferring data. Almost every networked technology can use it: JavaScript has built-in methods to encode and decode JSON either through the Fetch API or another HTTP client. Server-side technologies have libraries that can decode JSON without doing much work.
+
+There are other ways to transfer data. XML isn’t widely supported by frameworks without transforming the data ourselves to something that can be used, and that’s usually JSON. We can’t manipulate this data as easily on the client-side, especially in browsers. It ends up being a lot of extra work just to do normal data transfer.
+
+Form data is good for sending data, especially if we want to send files. But for text and numbers, we don’t need form data to transfer those since—with most frameworks—we can transfer JSON by just getting the data from it directly on the client side. It’s by far the most straightforward to do so.
+
+To make sure that when our REST API app responds with JSON that clients interpret it as such, we should set `Content-Type` in the response header to `application/json` after the request is made. Many server-side app frameworks set the response header automatically. Some HTTP clients look at the `Content-Type` response header and parse the data according to that format.
+
+The only exception is if we’re trying to send and receive files between client and server. Then we need to handle file responses and send form data from client to server. But that is a topic for another time.
+
+We should also make sure that our endpoints return JSON as a response. Many server-side frameworks have this as a built-in feature.
+
+Let’s take a look at an example API that accepts JSON payloads. This example will use the [Express](https://expressjs.com/) back end framework for Node.js. We can use the [`body-parser` middleware](https://www.npmjs.com/package/body-parser) to parse the JSON request body, and then we can call the `res.json` method with the object that we want to return as the JSON response as follows:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.post('/', (req, res) => {   res.json(req.body); }); app.listen(3000, () => console.log('server started')); 
+```
+
+`bodyParser.json()` parses the JSON request body string into a JavaScript object and then assigns it to the `req.body` object.
+
+Set the `Content-Type` header in the response to `application/json; charset=utf-8` without any changes. The method above applies to most other back end frameworks.
+
+## Use nouns instead of verbs in endpoint paths
+
+We shouldn't use verbs in our endpoint paths. Instead, we should use the nouns which represent the entity that the endpoint that we're retrieving or manipulating as the pathname.
+
+This is because our HTTP request method already has the verb. Having verbs in our API endpoint paths isn’t useful and it makes it unnecessarily long since it doesn’t convey any new information. The chosen verbs could vary by the developer’s whim. For instance, some like ‘get’ and some like ‘retrieve’, so it’s just better to let the HTTP GET verb tell us what and endpoint does.
+
+The action should be indicated by the HTTP request method that we're making. The most common methods include GET, POST, PUT, and DELETE.
+
+* GET retrieves resources.
+* POST submits new data to the server.
+* PUT updates existing data.
+* DELETE removes data.
+
+The verbs map to [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations.
+
+With the two principles we discussed above in mind, we should create routes like GET `/articles/` for getting news articles. Likewise, POST `/articles/` is for adding a new article , PUT `/articles/:id` is for updating the article with the given `id`. DELETE `/articles/:id` is for deleting an existing article with the given ID.
+
+`/articles` represents a REST API resource. For instance, we can use Express to add the following endpoints for manipulate articles as follows:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.get('/articles', (req, res) => {   const articles = [];   // code to retrieve an article...   res.json(articles); }); app.post('/articles', (req, res) => {   // code to add a new article...   res.json(req.body); }); app.put('/articles/:id', (req, res) => {   const { id } = req.params;   // code to update an article...   res.json(req.body); }); app.delete('/articles/:id', (req, res) => {   const { id } = req.params;   // code to delete an article...   res.json({ deleted: id }); }); app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we defined the endpoints to manipulate articles. As we can see, the path names do not have any verbs in them. All we have are nouns. The verbs are in the HTTP verbs.
+
+The POST, PUT, and DELETE endpoints all take JSON as the request body, and they all return JSON as the response, including the GET endpoint.
+
+## Use logical nesting on endpoints
+
+When designing endpoints, it makes sense to group those that contain associated information. That is, if one object can contain another object, you should design the endpoint to reflect that. This is good practice regardless of whether your data is structured like this in your database. In fact, it may be advisable to avoid mirroring your database structure in your endpoints to avoid giving attackers unnecessary information.
+
+For example, if we want an endpoint to get the comments for a news article, we should append the `/comments` path to the end of the `/articles` path. We can do that with the following code in Express:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.get('/articles/:articleId/comments', (req, res) => {   const { articleId } = req.params;   const comments = [];   // code to get comments by articleId   res.json(comments); }); app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we can use the GET method on the path `'/articles/:articleId/comments'`. We get `comments` on the article identified by `articleId` and then return it in the response. We add `'comments'` after the `'/articles/:articleId'` path segment to indicate that it's a child resource of `/articles`.
+
+This makes sense since `comments` are the children objects of the `articles`, assuming each article has its own comments. Otherwise, it’s confusing to the user since this structure is generally accepted to be for accessing child objects. The same principle also applies to the POST, PUT, and DELETE endpoints. They can all use the same kind of nesting structure for the path names.
+
+However, nesting can go too far. After about the second or third level, nested endpoints can get unwieldy. Consider, instead, returning the URL to those resources instead, especially if that data is not necessarily contained within the top level object.
+
+For example, suppose you wanted to return the author of particular comments. You could use `/articles/:articleId/comments/:commentId/author`. But that's getting out of hand. Instead, return the URI for that particular user within the JSON response instead:
+
+`"author": "/users/:userId"`
+
+## Handle errors gracefully and return standard error codes
+
+To eliminate confusion for API users when an error occurs, we should handle errors gracefully and return HTTP response codes that indicate what kind of error occurred. This gives maintainers of the API enough information to understand the problem that’s occurred. We don’t want errors to bring down our system, so we can leave them unhandled, which means that the API consumer has to handle them.
+
+Common error HTTP status codes include:
+
+* 400 Bad Request - This means that client-side input fails validation.
+* 401 Unauthorized - This means the user isn't not authorized to access a resource. It usually returns when the user isn't authenticated.
+* 403 Forbidden - This means the user is authenticated, but it's not allowed to access a resource.
+* 404 Not Found - This indicates that a resource is not found.
+* 500 Internal server error - This is a generic server error. It probably shouldn't be thrown explicitly.
+* 502 [Bad Gateway](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/502) - This indicates an invalid response from an upstream server.
+* 503 Service Unavailable - This indicates that something unexpected happened on server side (It can be anything like server overload, some parts of the system failed, etc.).
+
+We should be throwing errors that correspond to the problem that our app has encountered. For example, if we want to reject the data from the request payload, then we should return a 400 response as follows in an Express API:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); // existing users const users = [   { email: 'abc@foo.com' } ] app.use(bodyParser.json()); app.post('/users', (req, res) => {   const { email } = req.body;   const userExists = users.find(u => u.email === email);   if (userExists) {     return res.status(400).json({ error: 'User already exists' })   }   res.json(req.body); }); app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we have a list of existing users in the `users` array with the given email.
+
+Then if we try to submit the payload with the `email` value that already exists in `users`, we'll get a 400 response status code with a `'User already exists'` message to let users know that the user already exists. With that information, the user can correct the action by changing the email to something that doesn't exist.
+
+Error codes need to have messages accompanied with them so that the maintainers have enough information to troubleshoot the issue, but attackers can’t use the error content to carry our attacks like stealing information or bringing down the system.
+
+Whenever our API does not successfully complete, we should fail gracefully by sending an error with information to help users make corrective action.
+
+## Allow filtering, sorting, and pagination
+
+The databases behind a REST API can get very large. Sometimes, there's so much data that it shouldn’t be returned all at once because it’s way too slow or will bring down our systems. Therefore, we need ways to filter items.
+
+We also need ways to paginate data so that we only return a few results at a time. We don't want to tie up resources for too long by trying to get all the requested data at once.
+
+Filtering and pagination both increase performance by reducing the usage of server resources. As more data accumulates in the database, the more important these features become.
+
+Here’s a small example where an API can accept a query string with various query parameters to let us filter out items by their fields:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); // employees data in a database const employees = [   { firstName: 'Jane', lastName: 'Smith', age: 20 },   //...   { firstName: 'John', lastName: 'Smith', age: 30 },   { firstName: 'Mary', lastName: 'Green', age: 50 }, ] app.use(bodyParser.json()); app.get('/employees', (req, res) => {   const { firstName, lastName, age } = req.query;   let results = [...employees];   if (firstName) {     results = results.filter(r => r.firstName === firstName);   }   if (lastName) {     results = results.filter(r => r.lastName === lastName);   }   if (age) {     results = results.filter(r => +r.age === +age);   }   res.json(results); }); app.listen(3000, () => console.log('server started'));
+```
+
+In the code above, we have the `req.query` variable to get the query parameters. We then extract the property values by destructuring the individual query parameters into variables using the JavaScript destructuring syntax. Finally, we run `filter` on with each query parameter value to locate the items that we want to return.
+
+Once we have done that, we return the `results` as the response. Therefore, when we make a GET request to the following path with the query string:
+
+`/employees?lastName=Smith&age=30`
+
+We get:
+
+```
+[     {         "firstName": "John",         "lastName": "Smith",         "age": 30     } ]
+```
+
+as the returned response since we filtered by `lastName` and `age`.
+
+Likewise, we can accept the `page` query parameter and return a group of entries in the position from `(page - 1) * 20` to `page * 20`.
+
+We can also specify the fields to sort by in the query string. For instance, we can get the parameter from a query string with the fields we want to sort the data for. Then we can sort them by those individual fields.
+
+For instance, we may want to extract the query string from a URL like:
+
+`http://example.com/articles?sort=+author,-datepublished`
+
+Where `+` means ascending and `-` means descending. So we sort by author’s name in alphabetical order and `datepublished` from most recent to least recent.
+
+## Maintain good security practices
+
+Most communication between client and server should be private since we often send and receive private information. Therefore, using SSL/TLS for security is a must.
+
+A SSL certificate isn't too difficult to load onto a server and the cost is free or very low. There's no reason not to make our REST APIs communicate over secure channels instead of in the open.
+
+People shouldn't be able to access more information that they requested. For example, a normal user shouldn't be able to access information of another user. They also shouldn't be able to access data of admins.
+
+To enforce the principle of least privilege, we need to add role checks either for a single role, or have more granular roles for each user.
+
+If we choose to group users into a few roles, then the roles should have the permissions that cover all they need and no more. If we have more granular permissions for each feature that users have access to, then we have to make sure that admins can add and remove those features from each user accordingly. Also, we need to add some preset roles that can be applied to a group users so that we don’t have to do that for every user manually.
+
+## Cache data to improve performance
+
+We can add caching to return data from the local memory cache instead of querying the database to get the data every time we want to retrieve some data that users request. The good thing about caching is that users can get data faster. However, the data that users get may be outdated. This may also lead to issues when debugging in production environments when something goes wrong as we keep seeing old data.
+
+There are many kinds of caching solutions like [Redis](https://redis.io/), in-memory caching, and more. We can change the way data is cached as our needs change.
+
+For instance, Express has the [`apicache`](https://www.npmjs.com/package/apicache) middleware to add caching to our app without much configuration. We can add a simple in-memory cache into our server like so:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const apicache = require('apicache'); const app = express(); let cache = apicache.middleware; app.use(cache('5 minutes')); // employees data in a database const employees = [   { firstName: 'Jane', lastName: 'Smith', age: 20 },   //...   { firstName: 'John', lastName: 'Smith', age: 30 },   { firstName: 'Mary', lastName: 'Green', age: 50 }, ] app.use(bodyParser.json()); app.get('/employees', (req, res) => {   res.json(employees); }); app.listen(3000, () => console.log('server started'));
+```
+
+The code above just references the `apicache` middleware with `apicache.middleware` and then we have:
+
+`app.use(cache('5 minutes'))`
+
+to apply the caching to the whole app. We cache the results for five minutes, for example. We can adjust this for our needs.
+
+If you are using caching, you should also include [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) information in your headers. This will help users effectively use your caching system.
+
+## Versioning our APIs
+
+We should have different versions of API if we're making any changes to them that may break clients. The versioning can be done according to semantic version (for example, 2.0.6 to indicate major version 2 and the sixth patch) like most apps do nowadays.
+
+This way, we can gradually phase out old endpoints instead of forcing everyone to move to the new API at the same time. The v1 endpoint can stay active for people who don’t want to change, while the v2, with its shiny new features, can serve those who are ready to upgrade. This is especially important if our API is public. We should version them so that we won't break third party apps that use our APIs.
+
+Versioning is usually done with `/v1/`, `/v2/`, etc. added at the start of the API path.
+
+For example, we can do that with Express as follows:
+
+```
+const express = require('express'); const bodyParser = require('body-parser'); const app = express(); app.use(bodyParser.json()); app.get('/v1/employees', (req, res) => {   const employees = [];   // code to get employees   res.json(employees); }); app.get('/v2/employees', (req, res) => {   const employees = [];   // different code to get employees   res.json(employees); }); app.listen(3000, () => console.log('server started'));
+```
+
+We just add the version number to the start of the endpoint URL path to version them.
+
+## Conclusion
+
+The most important takeaways for designing high-quality REST APIs is to have consistency by following web standards and conventions. JSON, SSL/TLS, and HTTP status codes are all standard building blocks of the modern web.
+
+Performance is also an important consideration. We can increase it by not returning too much data at once. Also, we can use caching so that we don't have to query for data all the time.
+
+Paths of endpoints should be consistent, we use nouns only since the HTTP methods indicate the action we want to take. Paths of nested resources should come after the path of the parent resource. They should tell us what we’re getting or manipulating without the need to read extra documentation to understand what it’s doing.
+
+## Add to the discussion
+
+Login with your **stackoverflow.com** account to take part in the discussion.
+
+---
+
+Title: RESTful API Design Guide: Principles & Best Practices
+Higher Quality, Stronger Performance, Increased Stability, Better Developer Experience, [discover everything we've shipped recently](https://strapi.io/blog/strapi-release-roundup-everything-that-changed-between-january-and-february-2026)!
+
+* + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Create APIs
+
+    Design REST and GraphQL Content Delivery APIs to connect to any frontend.](/create-apis)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Layout.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Content Management
+
+    Craft experiences and easily manage editing, publishing, and translation.](/content-management)
+  + [Personalize your CMS to meet your project's unique requirements.](/customization)
+  + [Work together easily on code and content.](/collaboration)
+  + [Host your projects on robust, secure servers in minutes.](/hosting)
+  + [Implement robust security measures to protect your information.](/security)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![sparkle_fill_d74ee2b638.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi AI
+
+    Automate Content Modeling, Translations & more](/ai)
+  + [PaaS hosting for Strapi projects.](/cloud)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Buildings.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Enterprise Edition
+
+    A self hosted, Enterprise-ready Edition.](/enterprise)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![ShoppingCart.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi Market
+
+    Marketplace of plugins and integrations.](https://market.strapi.io/)
+  + [Discover all the features available in Strapi today.](/features)
+* + [Manage your brand narrative.](/solutions/corporate-website-cms)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code (2).svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Backend Framework
+
+    Build, customize, and scale backends.](/solutions/app-builder-backend-framework)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![DeviceMobile.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Mobile Apps
+
+    One CMS, any devices.](/solutions/mobile-cms)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Basket.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)E-commerce
+
+    Level up your eCommerce experiences](/solutions/ecommerce-cms)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Developers
+
+    Integrate Strapi with your favorite tools](/for-developers)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Feather.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Content Managers
+
+    Manage Content Autonomously](/for-content-teams)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Briefcase.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Business leaders
+
+    Unlock the benefit of structured content](/for-business-teams)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![medal-fill.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Digital Agencies
+
+    Accelerate project delivery and provide a Client-Friendly Content Editing](/headless-cms-for-web-agencies)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Coins.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Financial Services
+
+    Build trustful relations with your customers](/financial-services)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![HeadCircuit.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Tech and Business Services
+
+    Stand out with exceptional B2B content.](/tech-business-services)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Megaphone.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Telco, Media, and Gaming
+
+    Create and manage content on any platform](/telco-media-gaming)
+* [Developers](/community)
+
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Article.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Blog
+
+    Latest Strapi news & updates](/blog)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Handshake.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Partners
+
+    Find official partner or become one](/partners)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Confetti.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Case studies
+
+    Discover who uses Strapi](/user-stories)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Code.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Open Source
+
+    Contribute & collaborate on GitHub](https://github.com/strapi/strapi)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![ChatsCircle.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Forum
+
+    Discuss, ask questions and find answers](https://forum.strapi.io/)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![ChatsCircle.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Discord
+
+    Discuss, ask question and find answers](https://discord.strapi.io/)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Play.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Video Tutorials
+
+    Discuss, ask question and find answers](https://www.youtube.com/strapi)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Calendar.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Events
+
+    Upcoming and On-demand Events](/events)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Vector (6).svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi Goodies
+
+    Discover the latest Strapi goodies](https://shop.strapi.io/en)
+* [Docs](https://docs.strapi.io/)
+* [Pricing](/pricing-cms)
+* [Cloud](https://cloud.strapi.io/)
+
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Cloud.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Discover Strapi Cloud
+
+    PaaS hosting for Strapi projects](/cloud)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![SignIn.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Login to Strapi Cloud
+
+    Login or Sign up for Strapi Cloud.](https://cloud.strapi.io/login)
+  + [![](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2720%27%20height=%2720%27/%3e)![Book.svg](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)Strapi Cloud Docs
+
+    Strapi Cloud hosting technical documentation](https://docs.strapi.io/cloud/intro)
+
+## Looking for our logo ?
+
+![strapi-logo-figma-lines.png]()
+
+[Download Logo Pack](https://www.strapi.io/hubfs/New%20logos/Strapi%20logo%20kit.zip)
+
+[See more Strapi assets](https://handbook.strapi.io/strapi-brand-book-2022)
+
+* [Latest articles](/blog)
+* [Company](/blog/categories/company)
+* [Engineering](/blog/categories/engineering)
+* [Tutorials](/blog/categories/tutorials?type=v4)
+* [Ecosystem](/blog/categories/ecosystem)
+
+* Last updated: August 21, 2025(Strapi 5 era)
+* 10 min read
+
+# What is a RESTful API and How to Build One
+
+[JavaScript](/blog/tag/javascript)[Beginner](/blog/tag/beginner)[API](/blog/tag/api)[Software Architecture](/blog/tag/post-tag)
+
+![T02DG925U-U039QKS8JVC-87b1021e7476-192.jpeg]()
+
+[Paul Bratslavsky](/user/paul-bratslavsky)
+
+August 21, 2025
+
+[![tweet selection](/_next/static/images/44ead644c7e54312afbe05acfcde038c.svg)](/blog/restful-api-design-guide-principles-best-practices#)
+
+![What is a RESTful API and How to Build One.png]()
+
+You've just inherited an API where `/getUsers`, `/user-list`, and `/fetch_all_users` all exist, each returning slightly different data in completely different formats. The previous developer insists it's "RESTful" because it returns JSON. Sound familiar?
+
+Despite REST being around since 2000, most APIs claiming to be RESTful are actually a collection of HTTP endpoints held together by hope and extensive documentation.
+
+The problem isn't that REST is complicated—it's that without clear principles, APIs inevitably decay into an inconsistent mess that frustrates both developers and consumers.
+
+This guide establishes the principles and patterns you need to build REST APIs that remain consistent and maintainable as they grow, whether you're starting fresh or trying to bring order to existing chaos.
+
+**In Brief:**
+
+* Apply core REST principles: model resources as nouns, use HTTP methods for actions, maintain statelessness, and leverage caching for scalability
+* Design predictable APIs with consistent URL patterns, standardized request/response structures, and stateless authentication using JWTs or OAuth 2.0
+* Implement production-ready practices including URL versioning from day one, meaningful error responses with proper HTTP status codes, and performance optimizations like pagination and field filtering
+* Build maintainable systems that remain consistent as they grow by following HTTP semantics and avoiding common pitfalls like session state or verb-heavy URLs
+
+## **What Is A RESTful API?**
+
+A RESTful API is a web service that follows REST (Representational State Transfer) principles—an architectural style where resources are accessed through standard HTTP methods like GET, POST, PUT, and DELETE.
+
+Instead of custom endpoints for every action, RESTful APIs treat everything as resources with unique URIs that respond predictably to these HTTP verbs
+
+Serving JSON over HTTP doesn't automatically make an API RESTful. The difference is clear when comparing `/deleteUser?id=123` with `DELETE /users/123`. The latter leverages HTTP semantics, remains stateless, and clearly communicates intent to any developer.
+
+### **Resources Over Actions**
+
+At the core of REST is a mental shift: model nouns, not verbs. A collection of users lives at `/users`, a single user at `/users/123`. Actions are implied by the HTTP method you choose, not baked into the path.
+
+This naming discipline pays off when you need multiple representations of the same resource. With HTTP content negotiation, the client can ask for JSON, XML, or even CSV without changing the endpoint:
+
+```
+# JSON by default # JSON  by defaultcurl https://api.example.com/users/123 curl https://api.example.com/users/123 # XML representation # XML  representationcurl -H "Accept: application/xml" https://api.example.com/users/123 curl - H "Accept: application/xml"  https://api.example.com/users/123
+```
+
+Clients hold the *application state* (pagination position, filters, UI selections). The server only stores the *resource state*—the canonical data—and never tracks who asked for it. That separation lets you evolve front-end experiences without rewriting backend logic.
+
+### **The Stateless Principle**
+
+Statelessness means each request contains everything the server needs to fulfill it; no hidden session context lives on the backend.
+
+If you store a user object in memory after login, you've broken the contract and made horizontal scaling harder. A cleaner approach is to pass a JWT or OAuth 2.0 bearer token with every call:
+
+```
+curl -H "Authorization: Bearer " https://api.example.com/users/me curl - H "Authorization: Bearer "  https://api.example.com/users/me
+```
+
+Because any node can serve any request, you can add or remove servers behind a load balancer without user-visible downtime.
+
+Statelessness also simplifies failure handling—clients can safely retry idempotent operations, and servers never scramble to rebuild lost session data. The principle is non-negotiable in cloud-native architectures and is a foundational practice in REST design.
+
+### **HTTP Methods as Uniform Interface**
+
+The uniform interface constraint tells you to lean on the semantics HTTP already provides:
+
+* `GET /users` – retrieve a list (safe, idempotent)
+* `POST /users` – create a new user (non-idempotent)
+* `GET /users/123` – fetch a specific user
+* `PUT /users/123` – replace a user record (idempotent)
+* `PATCH /users/123` – update selected fields
+* `DELETE /users/123` – remove the resource (idempotent)
+
+Idempotency matters for reliability: if a network timeout forces a retry, `PUT` and `DELETE` won't create duplicates or cascade unintended side effects, while a duplicate `POST` very well might.
+
+Strictly following verb semantics eliminates guesswork for client developers and aligns your API with tooling, proxies, and caching layers that already understand HTTP. This approach is key for predictable debugging and monitoring.
+
+Real systems occasionally need bulk operations or complex searches. When a single HTTP verb can't express the intent cleanly, you can expose purpose-built endpoints like `/users/search` or accept a `POST /users/bulk-delete` that takes an array of IDs. The trick is to treat these as exceptions, not a license to scatter verbs across your URI space.
+
+### **Caching and Layered Architecture**
+
+REST assumes intermediaries—reverse proxies, CDNs, gateways—can sit between client and server without changing application behavior. Proper cache headers are the glue:
+
+```
+ETag: "9f62089e" ETag: "9f62089e"Cache-Control: public, max-age=3600 Cache - Control: public, max - age = 3600Last-Modified: Wed, 24 Apr 2024 10:12:00 GMT Last - Modified: Wed, 24  Apr 2024  10: 12: 00  GMT
+```
+
+If the client sends `If-None-Match: "9f62089e"`, the server can reply `304 Not Modified`, cutting bandwidth and compute costs. [AWS API Gateway response caching](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-optimize.html) delivers substantial latency drops and lower backend load. Well-tuned caches are one of the quickest wins for API performance.
+
+Layering also means you can introduce a CDN, [security scanner](https://strapi.io/blog/best-practices-for-software-development-security), or throttling proxy later without rewriting clients or services. Be cautious with user-specific or real-time data—by marking such responses `Cache-Control: private, no-store`, you prevent stale or confidential content from leaking. Apply caching strategically and you'll see throughput soar without compromising correctness.
+
+By sticking to these constraints—resource orientation, statelessness, a uniform HTTP interface, and cache-friendly layering—you create APIs that are both developer-friendly and operationally resilient.
+
+## **How to Design Scalable REST APIs**
+
+Scalability starts with predictability. When every endpoint follows the same grammar, you spend time on product logic, not guessing whether the next call is `/user-list` or `/getUsers`. Three patterns make this work: URL design, payload consistency, and [stateless authentication](https://strapi.io/blog/guide-on-authenticating-requests-with-the-rest-api).
+
+### **Name Resources and Structure URLs Correctly**
+
+A well-named URL is the API equivalent of clean code—you understand its intent before opening the docs. Stick to plural, lowercase nouns—`/users`, not `/getUser`—and keep the hierarchy shallow.
+
+```
+GET /users # list GET / users # listPOST /users # create POST / users # createGET /users/123 # retrieve GET / users/ 123  # retrievePUT /users/123 # replace PUT / users/ 123  # replacePATCH /users/123 # partial update PATCH / users/ 123  # partial updateDELETE /users/123 # remove DELETE / users/ 123  # remove
+```
+
+Avoid deep nesting that mirrors database joins. A path like `/users/123/orders` is readable, while `/users/123/orders/456/items/789/reviews` becomes fragile.
+
+When relationships grow complex, expose them as top-level resources and link with query parameters or IDs. `GET /orders?userId=123` scales better than embedding five levels of parents in the path.
+
+Filters, sorting, and pagination belong in the query string:
+
+```
+/users?role=admin/ users ? role = admin/orders?sort=-created_at/ orders ? sort =- created_at/posts?page=2&limit=20/ posts ? page = 2 & limit = 20
+```
+
+This pattern keeps URLs stable as you add query capabilities—no breaking changes, no version bump.
+
+### **Structure Consistent Requests and Responses**
+
+Once your URLs are predictable, make the payloads just as boring—in the best possible way. A simple response envelope with `data`, `meta`, and `error` fields is commonly used in API design, but there is no direct evidence recommending it or stating that it covers 99% of use cases.
+
+```
+{{ "data": { "data": { "id": 123,  "id": 123, "name": "Ada Lovelace",  "name": "Ada Lovelace", "email": "ada@example.com"  "email": "ada@example.com" }, }, "meta": { "meta": { "traceId": "d4e5f6"  "traceId": "d4e5f6" }, }, "error": null  "error": null}}
+```
+
+Successful creations return HTTP 201 with a `Location` header pointing to the new resource; partial updates send 200 or 204 depending on whether you return a body. For large datasets, cursor-based pagination (`after` / `before` tokens) avoids the accuracy issues of offset-based paging.
+
+Selective field requests keep payloads lean:
+
+```
+GET /users/123?fields=name,email GET / users/ 123 ? fields =name,email
+```
+
+If a client needs related data, decide between embedding or linking. A lightweight [HATEOAS style](https://restfulapi.net/hateoas/)—adding a `_links` object with URLs—strikes the balance between discoverability and payload size advocated in RESTfulAPI.net.
+
+Batch operations are fine as long as the request still represents a resource. Instead of `/bulkDeleteUsers`, consider a custom endpoint such as `POST /users/batchDelete` with a JSON body listing IDs. This approach is more aligned with HTTP semantics and best REST API practices, while sparing the client dozens of calls.
+
+Consistency here prevents accidental breaking changes. Front-end teams can scaffold stubs before your backend is finished, and automated tests don't need custom assertions per endpoint.
+
+### **Implement Stateless Authentication**
+
+Statelessness is the bedrock of horizontal scaling, so avoid server sessions. Use bearer tokens in the `Authorization` header; JWTs are compact and self-contained, making them a popular choice in [modern guides](https://strapi.io/blog/evolution-of-apis-from-pre-rest-era-to-modern-restful-and-beyond) and security best practices.
+
+```
+Authorization: Bearer eyJhbGciOiJI... Authorization: Bearer eyJhbGciOiJI...
+```
+
+For third-party access, layer OAuth 2.0 on top of JWT. The flow stays stateless—each request carries its own credentials—and you gain fine-grained scopes without custom middleware. [Service-to-service calls](https://strapi.io/blog/api-vs-web-service-differences-explained) can fall back to simple [API keys](https://strapi.io/blog/how-to-store-API-keys-securely), still passed in headers so any instance of your API can verify them.
+
+Scalability is also about fairness. Expose rate-limit headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`) so clients back off gracefully, a pattern highlighted in 2024 best-practice roundups. When limits are hit, return 429 with a `Retry-After` header; you protect your cluster without silent failures.
+
+Don't forget the security headers that browsers expect: enforce HTTPS, configure CORS explicitly, and set Content-Security-Policy if your API serves JSONP or other executable responses.
+
+Role-based access control rounds out the model—embed roles in your JWT claims, then gate routes in middleware. Strapi's REST layer does this out of the box, so you can define roles in the Admin Panel and let the framework handle the checks.
+
+Predictable URLs, disciplined payloads, and stateless security form the trifecta of a scalable REST API. Nail these early and you'll spend future sprints adding features, not firefighting contract drift.
+
+## **Best Practices for Production-Ready APIs**
+
+Prototype APIs break the moment real traffic, third-party integrations, or new business requirements appear.
+
+To avoid frantic retrofits later, you need a few practices baked in from day one. Let's explore how you can implement each of these without adding dead weight to your codebase.
+
+### **Version Your API from Day One**
+
+Rolling out a breaking change without versioning is the fastest way to enrage every consumer you have. A clear URL version such as `/v1/users` is the least ambiguous path because the version is visible in every request and easy to match in routing logic.
+
+Industry guides emphasize URL or semantic versioning to make compatibility contracts explicit and discoverable for humans and machines alike.
+
+Create a dedicated folder—or route module—for each major version so you can share business logic but isolate transport concerns:
+
+```
+src/src/├─ api/ ├─ api/│ ├─ v1/ │  ├─ v1/│ │ └─ users.js │  │  └─ users.js│ └─ v2/ │  └─ v2/│ └─ users.js │  └─ users.js
+```
+
+Version only for breaking changes; new fields or optional parameters belong in the same version. When a new major release is unavoidable, publish a deprecation sunset:
+
+```
+Sunset: Tue, 31 Dec 2024 23:59:59 GMT Sunset: Tue, 31  Dec 2024  23: 59: 59  GMTLink: v2/users>; rel="successor-version" Link: v2/users>; rel="successor-version" v2/ users>; rel ="successor-version"
+```
+
+Pair the header with migration docs and a grace window. Retrofitting versions later means duplicated endpoints, chaotic client updates, and fragile routing—avoid that pain entirely by versioning from the start.
+
+### **Return Errors That Actually Help**
+
+A 200 response carrying `"success":false` forces clients to parse bodies just to detect failure and clouds monitoring dashboards. Stick to proper status codes—4xx for client problems, 5xx for server faults—and wrap details in a predictable envelope, as recommended by modern best-practice guides.
+
+```
+{{ "error": { "error": { "code": "VALIDATION_FAILED",  "code": "VALIDATION_FAILED", "message": "email is required",  "message": "email is required", "details": [ "details": [ { "field": "email", "issue": "missing" } { "field": "email", "issue": "missing" } ], ], "traceId": "abc123-def456"  "traceId": "abc123-def456" } }}}
+```
+
+The `code` lets you document reusable error classes, `details` highlight exact issues, and `traceId` ties logs to client reports. Consistency is critical: if one endpoint returns this envelope, every endpoint should. Your support team will thank you, and consumers can build reliable retry or UI logic without special cases.
+
+### **Optimize for Performance Early**
+
+[Performance tuning](https://strapi.io/blog/how-to-optimize-strapi-performance) after launch usually means rewriting code under pressure. Instead, layer a few lightweight optimizations into your design now.
+
+Large collections should never dump full datasets. Offer `?limit=50&cursor=eyJpZCI6...` so clients pull data incrementally. This pagination approach scales better than offset-based methods because cursor position remains stable even when new records are added.
+
+Let callers specify only what they need with field filtering like `/users?fields=name,email` to shrink payloads and rendering time. This simple parameter can reduce response sizes by 70% or more when dealing with rich user profiles or product catalogs.
+
+Smart caching prevents redundant work. Use `ETag` and `Cache-Control` headers so gateways or CDNs can serve unchanged resources, a built-in feature of many platforms. Even a basic cache hit rate of 40% can provide moderate relief to server load during traffic spikes, with higher rates yielding more dramatic reductions.
+
+Eager loading fetches related data in a single query server-side to prevent N+1 patterns that spike latency. Instead of making separate calls for each user's orders, pull everything in one optimized query and structure the response appropriately.
+
+Strapi's generated REST endpoints already expose pagination, filtering, and conditional GET headers, so you get most of these wins for free. Even if you're building from scratch, adopting them early means your API stays fast when the user count jumps instead of after.
+
+## **Start Building REST APIs Worth Inheriting**
+
+REST shines when every request looks familiar: nouns for resources, standard HTTP verbs for intent, no hidden server state, and URLs you can guess without documentation. Designing around the principles we covered gives you an API that consumers trust.
+
+Your next move is practical: audit one legacy endpoint, spot the rule it breaks, and fix it. Then codify those rules in a team style guide.
+
+If you're starting fresh, Strapi bakes in useful conventions and auto-generates APIs for each Collection Type, so you focus on product logic instead of plumbing. Versioning and token-based authentication require additional configuration. Craft it well today and future you—and every developer who integrates tomorrow—will thank you.
+
+# Download: Community Edition
+
+Begin our journey with our Quick Start Guide. Click below to get started!
+
+* [Get started](https://docs.strapi.io/dev-docs/quick-start)
+
+![](/_next/static/images/b42e1a02e95e33dfff2fe95775daab6d.svg)![](/_next/static/images/028c9ab392bdbb8f9ee1c72ed662a51f.svg)![](/_next/static/images/6eb6f7fd77b60f259c55f28ff9a2e867.svg)![](/_next/static/images/42eb02ade045a98e305294d2c742bbcd.svg)
+
+[![tweet selection](/_next/static/images/44ead644c7e54312afbe05acfcde038c.svg)](/blog/restful-api-design-guide-principles-best-practices#)
+
+![T02DG925U-U039QKS8JVC-87b1021e7476-192.jpeg]()
+
+[Paul Bratslavsky](/user/paul-bratslavsky)
+
+Developer Advocate

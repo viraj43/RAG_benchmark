@@ -1,0 +1,1097 @@
+Title: useSyncExternalStore: Demystified for Practical React Development | Epic React by Kent C. Dodds
+[Articles](/articles)
+
+# useSyncExternalStore: Demystified for Practical React Development
+
+![Kent C. Dodds](/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fkent-c-dodds.e298a945.png&w=128&q=100)
+
+Kent C. Dodds
+
+React's `useSyncExternalStore` is one of those hooks that most developers don't reach for every day, but when you need it, you *really* need it. It's crucial for integrating React components with external state management systems or browser APIs that React doesn't control. Unfortunately, it's also frequently misunderstood. Let's clear up the confusion, walk through real-world examples, and tackle the most common mistakes.
+
+## Why does useSyncExternalStore exist? The Problem of "Tearing"
+
+React's built-in state (`useState`, `useReducer`) and Context API are excellent for managing data that lives *inside* your React application. But what happens when your component needs to display data from a source *outside* React's control? Consider:
+
+* **Browser APIs:** `navigator.onLine` (online status), `document.visibilityState` (page visibility), `window.matchMedia` (media queries).
+* **Third-party state management libraries:** Older versions of Redux or MobX, or custom-built stores that weren't designed with React's concurrent features in mind. (Note: Modern versions of libraries like Redux, Zustand, and Jotai often use `useSyncExternalStore` internally for their React bindings).
+* **Global JavaScript variables or custom event systems:** Any mutable data source that React doesn't manage.
+
+Before `useSyncExternalStore`, developers typically used `useEffect` and `useState` to subscribe to these external sources and update local component state. While this worked in simpler cases, it could lead to inconsistencies with React's concurrent rendering capabilities.
+
+**Concurrent rendering** allows React to work on multiple UI updates simultaneously. Pausing, resuming, or abandoning rendering work as needed. This significantly improves perceived performance. However, if an external store changes while React is in the middle of rendering a component tree, different components might read different versions of the external data. This inconsistency is called **"tearing,"** where your UI literally "tears" by showing conflicting information.
+
+`useSyncExternalStore` solves this by providing a React-managed, synchronous way to subscribe to an external store. It guarantees that all components in a render pass see the same, consistent snapshot of the data, even during concurrent updates, thus preventing tearing.
+
+## The API, Explained
+
+`const synchronizedState = useSyncExternalStore(
+
+getServerSnapshot? // Optional`
+
+Let's take a closer look at the arguments:
+
+1. **`subscribe(callback)`**:
+
+   * This function is responsible for setting up a subscription to your external data store.
+   * It takes one argument: a `callback` function provided by React.
+   * Whenever the data in the external store changes, your `subscribe` function **must** call this `callback`. This informs React that the store has changed and a re-render might be necessary.
+   * It **must** return an `unsubscribe` function. React will call this cleanup function when the component unmounts or if the `subscribe` function itself changes between renders.
+2. **`getSnapshot()`**:
+
+   * This function's job is to return a snapshot of the current data from the store that your component needs.
+   * It must be **pure** (no side effects) and **synchronous** (return the value immediately). React might call it multiple times, even if the store hasn't changed, so it needs to be fast.
+   * Crucially, if the underlying data hasn't changed, `getSnapshot` should return the **same value by reference** (if it's an object or array) or the same primitive value as the last time it was called. This allows React to optimize re-renders using `Object.is` comparison. More on this in the "Common Mistakes" section.
+3. **`getServerSnapshot?()` (Optional)**:
+
+   * This function is only needed for Server-Side Rendering (SSR) and client-side hydration.
+   * It should return the initial snapshot of the data as it should appear on the server.
+   * If your external store is client-only (e.g., relies on browser APIs not present on the server), you might provide a default or placeholder value here.
+   * If omitted and used in an SSR context, the component will typically suspend on the client until hydration, or React might throw an error if the server-rendered HTML doesn't match the initial client render.
+
+## Example: Tracking Online Status (Browser API)
+
+Let's create a custom hook `useOnlineStatus` to track if the user's browser is online.
+
+`import { useSyncExternalStore } from 'react'
+
+// 1. Define getSnapshot outside the component:
+
+// It reads the current state from the external source.
+
+function getOnlineStatusSnapshot() {
+
+return navigator.onLine
+
+// 2. Define subscribe outside the component:
+
+// It sets up listeners and calls the React-provided callback on change.
+
+function subscribeToOnlineStatus(callback) {
+
+window.addEventListener('online', callback)
+
+window.addEventListener('offline', callback)
+
+// Return the cleanup function
+
+return () => {
+
+window.removeEventListener('online', callback)
+
+window.removeEventListener('offline', callback)
+
+}
+
+}
+
+// 3. Create the custom hook
+
+export function useOnlineStatus() {
+
+// useSyncExternalStore ensures synchronous reads and tearing prevention
+
+const isOnline = useSyncExternalStore(
+
+subscribeToOnlineStatus,
+
+getOnlineStatusSnapshot,
+
+// For a robust SSR scenario, you should provide getServerSnapshot:
+
+() => true, // Assuming client is 'online' or a sensible default
+
+)
+
+return isOnline
+
+}
+
+// Usage in a component:
+
+function StatusBar() {
+
+const isOnline = useOnlineStatus()
+
+return
+
+# {isOnline ? '✅ Online' : '❌ Disconnected'}
+
+}`
+
+This example demonstrates the core pattern: stable `subscribe` and `getSnapshot` functions interacting with the external source (`navigator.onLine` and its events).
+
+## Common Mistakes, Gotchas, and How to Get Them Right
+
+People have asked me lots of questions about `useSyncExternalStore`. Here are some of the most common ones.
+
+### 1. "Why not just use `useEffect` + `useState`?"
+
+While `useEffect` and `useState` can subscribe to external stores, this pattern is prone to tearing in concurrent rendering. React might pause rendering a component, an external store might update, and then React might resume rendering with stale data or cause inconsistencies across the UI. `useSyncExternalStore` is specifically designed to integrate with React's rendering lifecycle, ensuring that reads are synchronous and consistent during a render pass. **If you're syncing with state outside React, `useSyncExternalStore` is the correct, robust solution.**
+
+### 2. "My `subscribe` or `getSnapshot` functions are re-created on every render!"
+
+If you define `subscribe` or `getSnapshot` inline within your component or custom hook without memoization, they will be new functions on every render.
+
+`// ❌ Bad: subscribe and getSnapshot are re-created every render
+
+function MyComponentUsesStore() {
+
+// These functions get new identities on each render of MyComponentUsesStore
+
+function subscribe(callback) {
+
+/* ... */
+
+}
+
+function getSnapshot() {
+
+/* ... */
+
+}
+
+const value = useSyncExternalStore(subscribe, getSnapshot)
+
+// ...
+
+}`
+
+When `useSyncExternalStore` receives a *new* `subscribe` function instance, it will re-subscribe to the store (calling the old unsubscribe function first, then the new subscribe). This is inefficient and can lead to bugs or memory leaks if not handled perfectly.
+
+**Solution:**
+
+* **Define them outside your component:** As shown in the `useOnlineStatus` example. This is the simplest and often best way.
+* **Memoize them with `useCallback`:** If your `subscribe` or `getSnapshot` functions depend on props or state (e.g., an ID to subscribe to a specific document), wrap them in `useCallback`.
+
+`// ✅ Good: subscribe and getSnapshot are stable
+
+function subscribeToStore(callback) {
+
+/* ... */
+
+}
+
+function getStoreSnapshot() {
+
+/* ... */
+
+}
+
+function MyComponentUsesStore() {
+
+const value = useSyncExternalStore(subscribeToStore, getStoreSnapshot)
+
+// ...
+
+}
+
+// ✅ Also Good (if dependent on props, e.g., storeId):
+
+import { useCallback, useSyncExternalStore } from 'react'
+
+function MyComponentUsesStore({ storeId }) {
+
+const subscribe = useCallback(
+
+(callback) => {
+
+return externalStoreAPI.subscribe(storeId, callback)
+
+},
+
+[storeId],
+
+)
+
+const getSnapshot = useCallback(() => {
+
+return externalStoreAPI.getSnapshot(storeId)
+
+}, [storeId])
+
+const value = useSyncExternalStore(subscribe, getSnapshot)
+
+// ...
+
+}`
+
+### 3. "Why is `getSnapshot` called so many times?"
+
+React may call `getSnapshot` multiple times during a render pass, and potentially even if no re-render occurs (e.g., to verify consistency). This is expected behavior. **Therefore, `getSnapshot` must be:**
+
+* **Fast:** Avoid expensive computations.
+* **Pure:** No side effects. Don't modify anything outside its scope.
+* **Consistent:** If the underlying store data relevant to the snapshot hasn't changed, `getSnapshot` must return the exact same value (referential equality for objects/arrays using `Object.is`).
+
+React uses the return value of `getSnapshot` to determine if a re-render is needed. If it frequently returns new object/array instances even for unchanged data, it will cause unnecessary re-renders (see mistake #8 below).
+
+### 4. "I get an error: `useSyncExternalStore` is not a function."
+
+This almost always means you're using a version of React older than 18. `useSyncExternalStore` was introduced in React 18. **Solution:** Upgrade your `react` and `react-dom` packages to at least `v18.0.0`.
+
+### 5. "How do I properly use this with Server-Side Rendering (SSR)?"
+
+If your external store can provide a meaningful value on the server, you **must** provide the third argument, `getServerSnapshot`. If you don't, you'll get the following error in the console:
+
+`Missing getServerSnapshot, which is required for server-rendered content. Will
+
+revert to client rendering.`
+
+Here's an example of how to use `getServerSnapshot`:
+
+`const value = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`
+
+`getServerSnapshot` should return the initial state of the store as it should be rendered on the server. For example, if you're syncing with `localStorage` (which doesn't exist on the server), `getServerSnapshot` might return `null` or a default value. Just know that this could cause a flash of incorrect content. So you'll want to come up with a creative design to handle this (or even better, use a cookie or a server-side state management solution for this).
+
+If you omit `getServerSnapshot` and the component renders on the server, React expects the initial client-side render (after hydration) to match the server-rendered HTML. If `getSnapshot()` on the client returns something different from what was implicitly rendered on the server (or if the server can't render it), you'll get a hydration mismatch error. If the component using the hook suspends on the server (e.g. because it can't get a value), then it will also suspend on the client during hydration until the `subscribe` function is called and a client-side snapshot is available.
+
+### 6. "Can I use this with Next.js, Remix, or other SSR frameworks?"
+
+Yes, absolutely! This hook is essential for safely using external stores in such environments.
+
+* **If the store is server-compatible:** Provide `getServerSnapshot`.
+* **If the store is browser-only** (e.g., `window.matchMedia`):
+  + `getServerSnapshot` should return a sensible default (e.g., `false` for a media query, or `true` for `navigator.onLine`).
+  + The client-side `getSnapshot` will then provide the actual browser value upon hydration. React will ensure a smooth transition.
+  + Example for `window.matchMedia`:
+
+    `// In your hook
+
+    const getServerSnapshot = () => false // Or whatever default makes sense
+
+    // ...
+
+    useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`
+  + Alternatively, if no sensible server default exists, you might conditionally render the component only on the client, or wrap it in  if not providing `getServerSnapshot` and expect it to suspend during hydration.
+
+### 7. "When should I use this instead of Redux, Zustand, Jotai, or React Context?"
+
+This is a common point of confusion.
+
+* **React Context:** Use Context for React state that needs to be shared across a component tree *without* prop drilling. It's for state *managed by React*.
+* **Redux, Zustand, Jotai, etc.:** Modern versions of these libraries often use `useSyncExternalStore` *internally* to bridge their external store logic with React's concurrent rendering. As an *end-user* of these libraries, you typically use their provided hooks (`useSelector`, `useStore`) and don't call `useSyncExternalStore` directly.
+
+You, as an application developer, would directly use `useSyncExternalStore` when:
+
+1. **Integrating with a non-React-aware external store:** This could be a third-party vanilla JS library, a global variable, a Web Worker, or any system that manages state outside of React and doesn't have its own React binding.
+2. **Subscribing directly to browser APIs:** Like `navigator.onLine`, `document.visibilityState`, `window.matchMedia`, etc.
+3. **Building your own state management library:** If you're authoring a new state management solution, `useSyncExternalStore` is the primitive you'd use to make it compatible with React's concurrent features.
+
+So, it's not an "either/or" with libraries like Zustand; rather, `useSyncExternalStore` is often an *implementation detail* for them or a tool for you when those libraries aren't the right fit for interfacing with a particular external data source.
+
+### 8. "How do I avoid infinite loops or unnecessary re-renders due to `getSnapshot`?"
+
+React uses `Object.is()` to compare the previous snapshot with the current one returned by `getSnapshot`. If `getSnapshot` returns a new object or array reference on every call, React will think the state has changed, leading to re-renders even if the underlying data is identical.
+
+`// External store (example)
+
+const myExternalStore = {
+
+_data: { user: { name: 'Alex', preferences: { theme: 'dark' } } },
+
+listeners: [],
+
+getData() {
+
+return this._data
+
+},
+
+subscribe(listener) {
+
+/* ... */ return () => {
+
+/* ... */
+
+}
+
+},
+
+// ... methods to update _data and notify listeners
+
+}
+
+// ❌ Bad: getSnapshot always returns a new object
+
+function getPreferencesSnapshot_Bad() {
+
+// Even if preferences haven't changed, this is a new object instance every time.
+
+return { ...myExternalStore.getData().user.preferences }
+
+}
+
+// ✅ Good: Return the same object reference if data hasn't changed.
+
+// This requires your store or your snapshot logic to be a bit smarter.
+
+// Option 1: If the store itself manages immutable data for selections.
+
+function getPreferencesSnapshot_Good_Immutable() {
+
+// Assumes myExternalStore.getData().user.preferences *is* the immutable object,
+
+// replaced only when it actually changes.
+
+return myExternalStore.getData().user.preferences
+
+}
+
+// Option 2: Manually cache the derived snapshot.
+
+let lastKnownPreferences = myExternalStore.getData().user.preferences
+
+let cachedPreferencesSnapshot = { ...lastKnownPreferences }
+
+function getPreferencesSnapshot_Good_Cached() {
+
+const currentPreferences = myExternalStore.getData().user.preferences
+
+// Shallow comparison; for deep objects, you might need a deep comparison
+
+// or ensure the store replaces `currentPreferences` by reference on any nested change.
+
+if (currentPreferences !== lastKnownPreferences) {
+
+cachedPreferencesSnapshot = { ...currentPreferences }
+
+lastKnownPreferences = currentPreferences
+
+}
+
+return cachedPreferencesSnapshot
+
+}`
+
+**The key is referential stability:** If the data didn't change, `getSnapshot` must return the *exact same object instance* as before. If it's a primitive (string, number, boolean), this is less of an issue unless you're re-computing it unnecessarily.
+
+## Bonus: Reusable `useMediaQuery` Hook
+
+Here's how you can build a reusable hook for media queries, ensuring `subscribe` and `getSnapshot` are stable using `useCallback` if the query can change. This is from the Epic React workshop on [Advanced React APIs](https://www.epicreact.dev/workshops/advanced-react-apis).
+
+`import { Suspense, useSyncExternalStore } from 'react'
+
+import * as ReactDOM from 'react-dom/client'
+
+export function makeMediaQueryStore(mediaQuery: string) {
+
+function getSnapshot() {
+
+return window.matchMedia(mediaQuery).matches
+
+}
+
+function subscribe(callback: () => void) {
+
+const mediaQueryList = window.matchMedia(mediaQuery)
+
+mediaQueryList.addEventListener('change', callback)
+
+return () => {
+
+mediaQueryList.removeEventListener('change', callback)
+
+}
+
+}
+
+return function useMediaQuery() {
+
+return useSyncExternalStore(subscribe, getSnapshot)
+
+}
+
+}
+
+const useNarrowMediaQuery = makeMediaQueryStore('(max-width: 600px)')
+
+function NarrowScreenNotifier() {
+
+const isNarrow = useNarrowMediaQuery()
+
+return isNarrow ? 'You are on a narrow screen' : 'You are on a wide screen'
+
+}
+
+function App() {
+
+return (
+
+This is your narrow screen state:
+
+)
+
+}
+
+const root = ReactDOM.hydrateRoot(rootEl, , {
+
+onRecoverableError(error) {
+
+if (String(error).includes('Missing getServerSnapshot')) return
+
+console.error(error)
+
+},
+
+})`
+
+Note: In the `useMediaQuery` example, `useEffect` with `useState` might seem simpler for client-only scenarios if you are not in concurrent mode or don't deeply care about tearing for this specific feature. However, `useSyncExternalStore` is the most robust way to handle this, especially with SSR and concurrent features. Notice that even though we're assuming server rendering (with `hydrateRoot`), we're not supplying a `getServerSnapshot` because we don't have a way to check the media query on the server. So we add a `onRecoverableError` handler to avoid the unnecessary error logging.
+
+## Troubleshooting Checklist
+
+When debugging `useSyncExternalStore`:
+
+* **React Version:** Are you on React 18 or newer?
+* **Stable Functions:** Are your `subscribe` and `getSnapshot` functions stable (defined outside the component or memoized with `useCallback`)?
+* **`getSnapshot` Purity & Performance:** Is `getSnapshot` fast, pure, and does it return the same value reference (`Object.is` true) if the underlying data hasn't changed?
+* **`subscribe` Correctness:** Does `subscribe` correctly call the React-provided `callback` *only when the store actually changes*? Does it return a proper `unsubscribe` function?
+* **SSR:** If using SSR, have you provided a `getServerSnapshot` function? Does it return a value consistent with what the client might see initially or a safe default?
+* **External State Only:** Are you certain you're using this for state *truly external* to React? React state and context have their own mechanisms.
+
+## Wrap-up
+
+`useSyncExternalStore` is a specialized but powerful hook for safely connecting React components to external data sources in the concurrent era. By understanding its purpose (to prevent tearing and ensure consistent reads) and by following these best practices, you can confidently integrate React with any external state management system or browser API.
+
+* [Official React Docs for `useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore)
+* For more advanced patterns and use cases, exploring how libraries like Zustand or Redux (v8+) utilize this hook internally can be very insightful.
+
+Happy (and safe) syncing! And check out [the Epic React workshop on Advanced React APIs](https://www.epicreact.dev/workshops/advanced-react-apis) for more advanced patterns and use cases!
+
+## Get my free 7-part email course on React!
+
+Delivered straight to your inbox.
+
+## More Articles
+
+* [## What is React?
+
+  Whether you're brand new to building dynamic web applications or you've been working with React for a long time, let's contextualize the most widely used UI framework in the world: React.
+
+  ![Kent C. Dodds](/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fkent-c-dodds.e298a945.png&w=128&q=100)
+
+  Kent C. Dodds](/what-is-react)
+* [## Why React needs a key prop
+
+  Why can't React just magically know what to do without a key?
+
+  ![Kent C. Dodds](/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fkent-c-dodds.e298a945.png&w=128&q=100)
+
+  Kent C. Dodds](/why-react-needs-a-key-prop)
+* [## Use React to Smoothly Transition Images and Titles
+
+  Create smooth, animated page transitions in React 19 with the ViewTransition component. Wrap elements with matching names and React handles the rest.
+
+  ![Kent C. Dodds](/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fkent-c-dodds.e298a945.png&w=128&q=100)
+
+  Kent C. Dodds](/use-react-view-transition-to-smoothly-transition-images-and-titles-lu6ks)
+* [## Composing Server and Client Components: The Modern React's Superpower
+
+  How React's new model lets you build interactive, data-rich UIs without the pain of old-school script tags and prop drilling.
+
+  ![Kent C. Dodds](/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fkent-c-dodds.e298a945.png&w=128&q=100)
+
+  Kent C. Dodds](/composing-server-and-client-components-the-modern-reacts-superpower-08yn9)
+
+---
+
+Title: useSyncExternalStore : A better alternative to useEffect
+# useSyncExternalStore : A better alternative to useEffect
+
+#### Published by [**unishubh1@gmail.com**](https://smartscribs.com/author/unishubh1gmail-com/) on
+
+React.js has, at it’s disposal, an army of hooks. These hooks not only streamline the development flow, they make the code cleaner and easy to understand. If you have ever worked in react you might know very well about these tiny life saving hooks. React provides a bunch of hooks, but the most important and widely used one is `useEffect`  
+It’s like the Swiss Army knife of React hooks, helping developers tackle all sorts of tasks. Seriously, it’s the go-to for many things. Now, don’t get me wrong, useEffect is fantastic—it’s like the rockstar of React hooks. But here’s the deal, because it’s so versatile, people often end up using it for everything, and that can lead to a bit of a mess.  
+One classic scenario where useEffect gets a bit misused is when folks try to use it for subscribing to external data stores. Sure, it seems like a good idea at first—useEffect is flexible, right? But here’s the catch: when you use it this way, your code can become a bit of a headache. It might start acting weird, causing memory leaks, and triggering re-renders when you least expect it. It’s like trying to fit a square peg into a round hole.  
+But then what to do? How do you subscribe to external data stores? Well React provides an out of the box hook for this `useSyncExternalDatastore` . In this article `useSyncExternalStore : A better alternative to useEffect` , we will discuss how to use `useSyncExternalStore` for subscribing to external data stores.
+
+## What is an external data store?
+
+Imagine you’re building an app with React, and you need a place to store all your data. That’s where an `external data store` comes in. It’s like a super organized and secure storage room for your app’s data. You can put things in there and take them out whenever you need.
+
+Now, let’s talk about a real-life example: the `Firestore`. Think of it like a magical cloud storage for your app’s data. You can save stuff in there, and it updates in real-time. So, if you change something in one part of your app, it instantly changes in the storage too. It’s like having a smart and quick assistant organizing your data backstage while your app takes the spotlight. Firebase Realtime Database is just one of these cool storage options that React developers use to make their apps work smoothly.
+
+## useEffect : The bad way
+
+Now let us get our hands dirty, let us write a sample component that uses `useEffect` to subscribe to a node in firestore.
+
+```
+import React, { useState, useEffect } from 'react'; import firebase from 'firebase/app'; import 'firebase/firestore'; // Import Firestore const FirebaseExample = () => { const [data, setData] = useState([]); useEffect(() => { const fetchData = async () => { const db = firebase.firestore(); // Use Firestore instead of database const collectionRef = db.collection('my-collection').doc('my-document'); // Use a collection instead of a node // Problem 1: Multiple subscriptions on component re-renders const unsubscribe = collectionRef.onSnapshot((snapshot) => { const newData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data(), })); setData(newData); }); // Problem 2: Unsubscribing only when the component unmounts return () => { unsubscribe(); // This will unsubscribe from the Firestore listener }; }; fetchData(); }, []); return (
+
+## Firebase Firestore Example
+
+
+
+{data.map((item) => (* {item.name}
+))}
+
+); }; export default FirebaseExample; 
+```
+
+As you can see, in the above code block, we are using useEffect to subscribe to an external datastore (firestore). Now let’s discuss about the potential problems in this approach.
+
+1. **Multiple Subscriptions on Component Re-renders:**  
+   In the example, the collectionRef.onSnapshot is inside the useEffect, which means every time the component re-renders, a new subscription is created. Over time, if the component re-renders frequently (due to state changes or other reasons), you’ll end up with multiple subscriptions, leading to unexpected behavior and potential memory leaks.
+2. **Unsubscribing Only When the Component Unmounts:**  
+     
+   The cleanup function (return () => {…}) attempts to unsubscribe from the Firestore. However, it’s not effective for handling the multiple subscriptions created during re-renders. Also, if the component unmounts while a subscription is active, it’s cleaned up, but if it unmounts and then mounts again quickly, you might lose data between unmount and remount.
+
+These issues can make your code harder to maintain, prone to unexpected behaviors, and might affect the performance of your application. It’s where a more specialized solution, like the `useSyncExternalStore` hook, comes in handy to streamline the process of syncing with external data stores in a cleaner way.
+
+## useSyncExternalStore: A cleaner way
+
+This hook (useSyncExternalStore) is an out of the box solution provided by ReactJS to answer all the questions raised in the above paragraph.
+
+```
+const snapshot = useSyncExternalStore(subscribe, getSnapshot)
+```
+
+This is the general syntax of this hook. It takes in two functions as arguments and returns the current snapshot of the external datastore. Let us discuss about the 2 arguments.
+
+1. `subscribe`: A function that takes a single `callback` argument and subscribes it to the store. When the store changes, it should invoke the provided `callback`. This will cause the component to re-render. The `subscribe` function should return a function that cleans up the subscription.
+2. `getSnapshot`: A function that returns a snapshot of the data in the store that’s needed by the component. While the store has not changed, repeated calls to `getSnapshot` must return the same value. If the store changes and the returned value is different (as compared by [`Object.is`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is)), React re-renders the component.
+
+Let us see how we can use this hook to achieve the same functionality as in above example.  
+First of all let us create a file `firebase.js` that encapsulates all the logic for interacting with firestore and exposes the functions for getting subscribing and getting the snapshot.
+
+```
+let data; const firebaseStore = { getSnapshot: () => { return data; }, subscribe: (callback) => { const unsub = onSnapshot(doc(db, "my-collection", "my-document"), (doc) => { data = doc.data()?.test; callback(); }); return () => { data = undefined; unsub(); }; }, }; export default firebaseStore; 
+```
+
+In this file, we expose two functions to subscribe to datastore and to get snapshot. Please notice that the `subscribe` function takes a `callback` function as an argument and calls it as and when the data changes. This helps the main component to re-render when the data changes.  
+  
+Now let us use this in the main file.
+
+```
+const FirebaseExample = () => { const data = useSyncExternalStore(firebaseStore.subscribe, firebaseStore.getSnapshot); return (
+
+## Firebase Firestore Example
+
+
+
+{data.map((item) => (* {item.name}
+))}
+
+); }; export default FirebaseExample; 
+```
+
+And this is it, see how this hook makes the code look so simple and clean.  
+And it also eradicates the potential problems that were raised in the above approach. Since the subscription logic is no longer placed inside useEffect, it is not created every time the component is re rendered.
+
+And this is why useSyncExternalStore : A better alternative to useEffect to subscribe to external datastore.  
+  
+Please share this article if you found it helpful and for other articles on Javascript [click here](https://smartscribs.com/category/javascript/)
+
+Categories: [Javascript](https://smartscribs.com/category/javascript/)
+
+Tags: [hooks](https://smartscribs.com/tag/hooks/)[javascript](https://smartscribs.com/tag/javascript/)[JavaSscript](https://smartscribs.com/tag/javasscript/)[JS](https://smartscribs.com/tag/js/)[react](https://smartscribs.com/tag/react/)
+
+---
+
+### 0 Comments
+
+### Leave a Reply [Cancel reply](/usesyncexternalstore-a-better-alternative-to-useeffect/#respond)
+
+## Related Posts
+
+###### [Design Patterns](https://smartscribs.com/category/design-patterns/ "View all posts in Design Patterns") [Devops](https://smartscribs.com/category/devops/ "View all posts in Devops") [Javascript](https://smartscribs.com/category/javascript/ "View all posts in Javascript")
+
+#### [Our First Hurdle on the Path to Scalability](https://smartscribs.com/our-first-hurdle-on-the-path-to-scalability/ "Our First Hurdle on the Path to Scalability")
+
+Just over a month ago, we found ourselves facing an alarming and concerning issue. An increasing number of our API requests were abandoned, some vanishing without a trace in our logs. As our traffic continued [Read more…](https://smartscribs.com/our-first-hurdle-on-the-path-to-scalability/)
+
+###### [Design Patterns](https://smartscribs.com/category/design-patterns/ "View all posts in Design Patterns") [Javascript](https://smartscribs.com/category/javascript/ "View all posts in Javascript")
+
+#### [Chat app with Node and React JS – II](https://smartscribs.com/chat-app-with-node-and-react-js-ii/ "Chat app with Node and React JS – II")
+
+This is the second article in the series building a chat app with Node and React JS. If you have not read the first part, you can read it here. As discussed, MQTT provides a [Read more…](https://smartscribs.com/chat-app-with-node-and-react-js-ii/)
+
+###### [Design Patterns](https://smartscribs.com/category/design-patterns/ "View all posts in Design Patterns") [Javascript](https://smartscribs.com/category/javascript/ "View all posts in Javascript")
+
+#### [Chat app with Node and React JS – I](https://smartscribs.com/chat-app-with-node-and-react-js-i/ "Chat app with Node and React JS – I")
+
+Real-time chat applications have become an increasingly popular means of communication. A lot of applications and online tools are now present in the market that allows users to chat with anyone in real-time. In addition [Read more…](https://smartscribs.com/chat-app-with-node-and-react-js-i/)
+
+[Wordpress Social Share Plugin](https://www.ultimatelysocial.com/usm-premium/?utm_source=usmi_settings_page&utm_campaign=footer_credit_new&utm_medium=banner)  powered by Ultimatelysocial
+
+## Enjoy this blog? Please spread the word :)
+
+ 
+
+---
+
+Title: *The concept of using it to sync with an external system makes far more sense.* ... | Hacker News
+|  |  |  |
+| --- | --- | --- |
+| |  |  | | --- | --- | | **[Hacker News](news)**[new](newest) | [past](front) | [comments](newcomments) | <ask> | <show> | <jobs> | <submit> | [login](login?goto=item%3Fid%3D34147344) | |
+| |  | | --- | | [onion2k](user?id=onion2k) [on Dec 27, 2022](item?id=34147344)  | [parent](item?id=34143676) | [context](item?id=34142168#34147344) | [favorite](fave?id=34147344&auth=8571e0a24feaa64215f9cfcf219adcc060d370de) | on: [A Visual Guide to React's useEffect (2021)](item?id=34142168 "A Visual Guide to React's useEffect (2021)")   *The concept of using it to sync with an external system makes far more sense.* React 18 introduced a new hook called useSyncExternalStore for that, which implies useEffect isn't quite right for that purpose otherwise there'd be no need for a new hook. |     |  |  | | --- | --- | | |  | | --- | | [belmont\_sup](user?id=belmont_sup) [on Dec 27, 2022](item?id=34149529)  [[–]](javascript:void(0))   First time I saw this hook. This seems more like a library implementor’s hook to sync stores from redux, mobx, etc. You can of course wrap your GET/POST requests to an external network API too but that seems like a lot of unnecessary code to pull in external data. | | | |  | | --- | | [onion2k](user?id=onion2k) [on Dec 27, 2022](item?id=34154846)  | [parent](#34149529) [[–]](javascript:void(0))   You never just want to "pull in external data" in a real app though. You need to make the request, deal with injecting auth tokens or headers, handle errors, handle different responses, update global and local state, possibly trigger side effects when the loading starts and ends, do something in a "finally" callback... If your app is non-trivial then you'll almost always end up using a library of some sort. That's where useSyncExternalStore is useful. If you're using useEffect then you're probably not making external requests well. If you don't need it then you should be questioning whether you even need *React*, not whether or not you need useEffect. | | | |  | | --- | | [belmont\_sup](user?id=belmont_sup) [on Jan 5, 2023](item?id=34255829)  | [root](#34149529) | [parent](#34154846) [[–]](javascript:void(0))   I do agree that better built-in methods should exist that does most of what people have been using useEffect for. Many frameworks come with many tools for specific use cases but react has always left it to the community. If this or new ones are helpful enough, then I’m up to use them. However, your last statement is a bit too presumptuous to assume that not needing useSyncExternalStore means that someone does not need React. I recommend Remix for most apps now if possible, and the number of times anyone needs to use either hooks discussed is very minimal. Remix uses React. Think your last reply overlaps with the first half of my message. I reach for swr or similar to manage the lifecycle of client side network requests (or any async requests) if necessary. I would imagine that these libraries or new ones adopt useSyncExternalStore internally. If I want to use this hook myself, it seems quite a bit more work to have to write a subscription-based store just to make certain network requests. Many apps aren’t real time either.  Take a single case: analytics. I want it to trigger whenever the page loads (and can’t be done server side for whatever reason). Are you saying that I need the kitchen sink to make this fire-and-forget request? useEffect is fine here. Am I not making an external request well? I just read the useSyncExternalStore RFC. Its primary purpose is to handle external state change in a concurrent environment. Makes sense. Is it to become the default for all “external requests?” Idk. But let’s agree that not all requests require the same care. | | |
+| [Consider applying for YC's Summer 2026 batch! Applications are open till May 4](https://www.ycombinator.com/apply/)  [Guidelines](newsguidelines.html) | [FAQ](newsfaq.html) | [Lists](lists) | [API](https://github.com/HackerNews/API) | [Security](security.html) | [Legal](https://www.ycombinator.com/legal/) | [Apply to YC](https://www.ycombinator.com/apply/) | [Contact](mailto:hn@ycombinator.com) |
+
+---
+
+Title: Exploring useSyncExternalStore, a lesser-known React Hook - LogRocket Blog
+[###### Advisory boards aren’t only for executives. Join the LogRocket Content Advisory Board today →](https://lp.logrocket.com/blg/content-advisory-board-signup)
+
+[![LogRocket blog logo](https://blog.logrocket.com/wp-content/themes/logrocket/assets/logrocket-logo.png)](https://logrocket.com) 
+
+* [Blog](https://blog.logrocket.com/)
+  + [Dev](https://blog.logrocket.com/dev)
+  + [Product Management](https://blog.logrocket.com/product-management)
+  + [UX Design](https://blog.logrocket.com/ux-design)
+  + [Podcast](https://podrocket.logrocket.com)
+  + [Product Leadership](https://stories.logrocket.com/)
+* [Features](https://logrocket.com/features)
+* [Solutions](#)
+  + [Solve User-Reported Issues](https://logrocket.com/solutions/solve-user-issues)
+  + [Surface User Struggle](https://logrocket.com/solutions/surface-user-struggle)
+  + [Optimize Conversion and Adoption](https://logrocket.com/solutions/optimize-conversion-adoption)
+
+* [Start Monitoring for Free](https://app.logrocket.com/)
+* [Sign In](https://app.logrocket.com/)
+
+Abhinav Anshul
+
+   
+
+Mar 8, 2024 ⋅ 5 min read
+
+# Exploring useSyncExternalStore, a lesser-known React Hook
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/08/abhinav-anshul.png)](https://blog.logrocket.com/author/abhinavanshul/) 
+
+[Abhinav Anshul](https://blog.logrocket.com/author/abhinavanshul/) Doing interesting things on the Web.
+
+![](https://blog.logrocket.com/wp-content/uploads/2023/04/logrocket-logo-1.png)
+
+## See how LogRocket's Galileo AI surfaces the most severe issues for you
+
+### No signup required
+
+Check it out
+
+You might already be familiar with the set of [built-in Hooks that React offers](https://blog.logrocket.com/react-hooks-cheat-sheet-solutions-common-problems/), such as `useState`, `useEffect`, `useMemo`, and many others. Among these is the `useSyncExternalStore` Hook, which is quite commonly used among library authors but is rarely seen in client-side React projects.
+
+![Exploring Use Sync External Store, One Of React's Lesser Known Hooks](https://blog.logrocket.com/wp-content/uploads/2024/03/Exploring-useSyncExternalStore-React-Hook.png)
+
+In this article, we’ll explore the `useSyncExternalStore` Hook to get a better understanding of what it is, how it works, why it’s useful, and when you should leverage it in your frontend projects. We’ll also build a mini demo project to explore a simple practical use case — you can [explore the code on GitHub](https://github.com/abhinav-anshul/logrocket-usesyncexternalstore).
+
+### 🚀 Sign up for The Replay newsletter
+
+[**The Replay**](https://blog.logrocket.com/the-replay-archive/) is a weekly newsletter for dev and engineering leaders.
+
+Delivered once a week, it's your curated guide to the most important conversations around frontend dev, emerging AI tools, and the state of modern software.
+
+## Introduction to `useSyncExternalStore`
+
+`useSyncExternalStore` can be the perfect API if you want to subscribe to an external data store. Most of the time, developers opt for the `useEffect` Hook. However, `useSyncExternalStore` can be more appropriate if your data exists outside the React tree.
+
+A basic `useSyncExternalStore` API takes in three parameters:
+
+```
+useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) 
+```
+
+Let’s take a closer look at these parameters:
+
+* `subscribe` is a callback that takes in a function that subscribes to the external store data
+* `getSnapshot` is a function that returns the current snapshot of external store data
+* `getServerSnapshot` is an optional parameter that sends you a snapshot of the initial store data. you can use it during the initial hydration of the server data
+
+`useSyncExternalStore` returns the current snapshot of the external data you’re subscribed to.
+
+Consider a situation where you have external data that is not in your React tree — in other words, it exists outside of your frontend code or the app in general. In that case, you can use `useSyncExternalStore` to subscribe to that data store.
+
+To understand the `useSyncExternalStore` Hook better, let’s look at a very simple implementation. You can assign it to a variable — like `list` in the case below — and render it to the UI as required:
+
+```
+import { useSyncExternalStore } from 'react'; import externalStore from './externalStore.js'; function Home() { const list = useSyncExternalStore(externalStore.subscribe, externalStore.getSnapshot); return ( <>
+
+{list.map((itm, index) => (
+
+{itm?.title}
+
+))}
+
+> ); } 
+```
+
+As you can see, the `externalStore` is now subscribed and you will get real-time snapshots of any changes that’s being performed on the `externalStore` data. You can use the `list` to further map down the items from the external source and have a real-time UI rendering.
+
+Any changes in the external store will be immediately reflected, and React will re-render the UI based on snapshot changes.
+
+## Use cases for `useSyncExternalStore`
+
+The `useSyncExternalStore` Hook is an ideal solution for a lot of niche use cases, such as:
+
+* **Caching data from external APIs**: As this Hook is mostly used to subscribe external third-party data sources, caching that data gets simpler as well. You can keep your app’s data in sync with the external data source and later can also use it for offline support
+* **WebSocket connection**: As a WebSocket is a “continuous” connection, you can use this Hook to manage the WebSocket connection state data in real-time
+* **Managing browser storage**: In such cases where you need to sync data between the web browser’s storage — like [IndexedDB](https://blog.logrocket.com/using-indexeddb-complete-guide/) or [`localStorage`](https://blog.logrocket.com/using-localstorage-react-hooks/) — and the application’s state, you can use `useSyncExternalStore` to subscribe to updates in the external store
+
+There could be many such cases where this Hook could be very useful and easier to manage than the ever-popular `useEffect` Hook. Let’s compare these two Hooks in the next section.
+
+## `useSyncExternalStore` vs. `useEffect`
+
+You might opt for the more commonly used [`useEffect` Hook](https://blog.logrocket.com/useeffect-react-hook-complete-guide/) to achieve something similar to the example above:
+
+```
+const [list, setList] = useState([]); useEffect(() => { const fetchData = async () => { try { // assuming externalStore has a fetchData method or it is an async operation const newList = await externalStore.fetchData(); setList(newList); } catch (error) { console.error(error); } }; // calling the async function here fetchData(); }, []); 
+```
+
+However, the `useEffect` Hook doesn’t provide current snapshots for each state update, and it’s more prone to errors than the `useSyncExternalStore` Hook. Additionally, it suffers from its infamous re-rendering problem. Let’s briefly review this problem next.
+
+A major issue you’re likely to encounter when dealing with the `useEffect` Hook is the sequence of rendering. After the browser finishes painting, only the `useEffect` Hook will fire. This delay — although intentional — introduces unexpected bugs and challenges in managing the correct chain of events.
+
+Consider the following example:
+
+```
+function Counter() { const [count, setCount] = useState(0); useEffect(() => { console.log('count- ', count); // Imagine some asynchronous task here, like fetching data from an API // This could introduce a delay between the state update and the effect running // afterwards. }, [count]); const increment = () => { setCount(count + 1); }; console.log('outside the effect count - ', count); return (
+
+Counter
+
+
+
+Count: {count}
+
+); } export default Counter; 
+```
+
+You might expect the counter app to run in a straightforward way where the state updates, the component re-renders, and then finally, the effect runs. However, things gets a little tricky here due to the delay with the API calls, and the sequence of events might not be what we expect.
+
+Now consider an app with many such side effects and different dependency arrays. In that case, it will be a nightmare to track the state updates with correct sequences.
+
+---
+
+[![](https://blog.logrocket.com/wp-content/uploads/2022/11/Screen-Shot-2022-09-22-at-12.55.13-PM.png)
+
+## Over 200k developers use LogRocket to create better digital experiences
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/08/rocket-button-icon.png)Learn more →](https://lp.logrocket.com/blg/learn-more)
+
+---
+
+If your data is located externally and doesn’t depend on existing React APIs to process, then you can avoid all of that and use the `useSyncExternalStore` Hook to fix this performance gap. This Hook fires immediately, causing no delays, unlike the `useEffect` Hook.
+
+`useSyncExternalStore` also prevents the previously mentioned re-rendering problem that you are likely to face with `useEffect` whenever the state changes. Interestingly, states subscribed with `useSyncExternalStore` won’t re-render twice, fixing huge performance problems.
+
+## `useSyncExternalStore` vs. `useState`
+
+While using the `useSyncExternalStore` Hook, you might feel that you’re simply subscribing to a state and assigning it to a variable, similar to [using the `useState` Hook](https://blog.logrocket.com/guide-usestate-react/). However, `useSyncExternalStore` goes further than simply assigning states.
+
+One limitation of the `useState` Hook is that it’s designed to manage state in a “per-component” way. In other words, the state you define is restricted to its own React component and cannot be accessed globally. You could use callbacks, force states globally, or even use prop-drilling states across the component, but that‘s likely to slow down your React app.
+
+The `useSyncExternalStore` Hook prevents this issue by setting up a global state that you can subscribe to from any React component, no matter how deeply nested it is. Even better, if you’re dealing with a non-React codebase, all you have to care about is the subscription event.
+
+`useSyncExternalStore` will send you proper snapshots of the current state of the global storage that you can consume in any React component.
+
+---
+
+ 
+
+---
+
+## Building a to-do app using `useSyncExternalStore`
+
+Let’s see how useful the `useSyncExternalStore` Hook can be in a real project by building a demo to-do app. First, create a `store.js` file that will act as an external global state. We will later subscribe to this state for our to-dos:
+
+```
+let todos = []; let subscribers = new Set(); const store = { getTodos() { // getting all todos return todos; }, // subscribe and unsubscribe from the store using callback subscribe(callback) { subscribers.add(callback); return () => subscribers.delete(callback); }, // adding todo to the state addTodo(text) { todos = [ ...todos, { id: new Date().getTime(), text: text, completed: false, }, ]; subscribers.forEach((callback) => { callback(); }); }, // toggle for todo completion using id toggleTodo(id) { todos = todos.map((todo) => { return todo.id === id ? { ...todo, completed: !todo.completed } : todo; }); subscribers.forEach((callback) => callback()); }, }; // exporting the default store state export default store; 
+```
+
+Your `store` is now ready to subscribe to within the React component. Go ahead and create a simple `Todo` component that will render the to-do items to the UI by subscribing to the store you created earlier:
+
+```
+import { useSyncExternalStore } from "react"; import store from "./store.js"; function Todo() { // subscribing to the store const todosStore = useSyncExternalStore(store.subscribe, store.getTodos); return (
+
+{todosStore.map((todo, index) => (
+
+store.toggleTodo(todo.id)} /> // toggle based on completion logic {todo.completed ?
+
+{todo.text}
+
+: todo.text}
+
+))}
+
+); } export default Todo; 
+```
+
+With that, our mini demo project using `useSyncExternalStore` is complete. The result should look something like the below:  
+ ![Simple Demo To Do App Built Using Use Sync External Store Hook](https://blog.logrocket.com/wp-content/uploads/2024/03/Simple-demo-to-do-app-useSyncExternalStore.png)  
+ You can check out the [project code in this GitHub repository](https://github.com/abhinav-anshul/logrocket-usesyncexternalstore).
+
+## Conclusion
+
+React provides a lot of built-in Hooks, some of which are pretty commonly used among developers. However, really useful Hooks like `useSyncExternalStore` often get overshadowed.
+
+In this post, you’ve seen how there are many excellent use cases for this Hook that not only improve the overall app experience but can prevent pesky bugs you might encounter with the `useEffect` Hook.
+
+If you are a JavaScript library author, you might already be using this for performance gains that you can’t achieve with either the `useEffect` Hook or the `useState` Hook. As we explored in this article, when used correctly, the `useSyncExternalStore` Hook can save you a ton of development time.
+
+## Get set up with LogRocket's modern React error tracking in minutes:
+
+1. Visit [https://logrocket.com/signup/](https://lp.logrocket.com/blg/react-signup-general) to get an app ID
+2. Install LogRocket via npm or script tag. `LogRocket.init()` must be called client-side, not server-side
+
+   * [npm](#plug-tab-1)
+   * [Script tag](#plug-tab-2)
+
+   ```
+   $ npm i --save logrocket // Code: import LogRocket from 'logrocket'; LogRocket.init('app/id'); 
+   ```
+
+   ```
+   // Add to your HTML:   
+   ```
+3. (Optional) Install plugins for deeper integrations with your stack:
+   * Redux middleware
+   * NgRx middleware
+   * Vuex plugin
+
+ [Get started now](https://lp.logrocket.com/blg/react-signup-general)
+
+* [#react](https://blog.logrocket.com/tag/react/)
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/06/footer-cta-dots-left.png) ![](https://blog.logrocket.com/wp-content/uploads/2022/06/footer-cta-dots-right.png)
+
+![](https://blog.logrocket.com/wp-content/uploads/2022/09/logrocket-logo-frontend-analytics.png)
+
+## Stop guessing about your digital experience with LogRocket
+
+[Get started for free](https://lp.logrocket.com/blg/signup)
+
+#### Recent posts:
+
+[![the replay march 18](https://blog.logrocket.com/wp-content/uploads/2026/03/The-Replay-Graphic-20.png)
+
+#### The Replay (3/18/26): Hiring in the AI era, coding isn’t dead, and more](https://blog.logrocket.com/the-replay-3-18-26/)
+
+Discover what’s new in The Replay, LogRocket’s newsletter for dev and engineering leaders, in the March 18th issue.
+
+[![](https://secure.gravatar.com/avatar/bdb8fc1c58c8a14e8c52f80c0ff964372237e773db8d0d1a179151099f28c358?s=50&d=mm&r=g)](https://blog.logrocket.com/author/matthewmaccormack/)  [Matt MacCormack](https://blog.logrocket.com/author/matthewmaccormack/)
+
+Mar 18, 2026 ⋅ 29 sec read
+
+[![ken pickering ai hiring quote card](https://blog.logrocket.com/wp-content/uploads/2026/03/3.18-Ken-Pickering-Engineering-Hiring.png)
+
+#### Thinking beats coding: How to hire the right engineers in the AI era](https://blog.logrocket.com/how-to-hire-the-right-engineers-in-the-ai-era/)
+
+A CTO outlines his case for how leaders should prioritize complex thinking over framework knowledge when hiring engineers for the AI era.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2026/01/ken_pickering-150x150.jpeg)](https://blog.logrocket.com/author/ken_pickering/)  [Ken Pickering](https://blog.logrocket.com/author/ken_pickering/)
+
+Mar 18, 2026 ⋅ 4 min read
+
+[![](https://blog.logrocket.com/wp-content/uploads/2026/03/Exploring-Vercels-JSON-Render-build-dynamic-UI-from-structured-data.png)
+
+#### Exploring Vercel’s JSON Render: build dynamic UI from structured data](https://blog.logrocket.com/vercel-json-render-dynamic-ui/)
+
+Build dynamic, AI-generated UI safely with Vercel’s JSON Render using structured JSON, validated components, and React.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2021/01/AirBrush_20210107121828-150x150.jpg)](https://blog.logrocket.com/author/emmanueljohn/)  [Emmanuel John](https://blog.logrocket.com/author/emmanueljohn/)
+
+Mar 17, 2026 ⋅ 11 min read
+
+[![](https://blog.logrocket.com/wp-content/uploads/2026/03/Stop-wasting-money-on-AI-10-ways-to-cut-token-usage.png)
+
+#### Stop wasting money on AI: 10 ways to cut token usage](https://blog.logrocket.com/stop-wasting-ai-tokens-10-ways-to-reduce-usage/)
+
+Learn practical techniques to reduce token usage in LLM applications and build more cost-efficient, scalable AI systems.
+
+[![](https://blog.logrocket.com/wp-content/uploads/2021/01/AirBrush_20210107121828-150x150.jpg)](https://blog.logrocket.com/author/emmanueljohn/)  [Emmanuel John](https://blog.logrocket.com/author/emmanueljohn/)
+
+Mar 16, 2026 ⋅ 8 min read
+
+[View all posts](https://blog.logrocket.com/)
+
+### Leave a Reply [Cancel reply](/exploring-usesyncexternalstore-react-hook#respond)
+
+Hey there, want to help make our blog better?
+
+Join LogRocket’s Content Advisory Board. You’ll help inform the type of content we create and get access to exclusive meetups, social accreditation, and swag.
+
+[Sign up now](https://lp.logrocket.com/blg/content-advisory-board-signup)
+
+ 
+
+---
+
+Title: How useSyncExternalStore Transformed My React State Management - DEV Community
+![DEV Community](https://media2.dev.to/dynamic/image/quality=100/https://dev-to-uploads.s3.amazonaws.com/uploads/logos/resized_logo_UQww2soKuUsjaOGNB38o.png)
+
+## DEV Community
+
+![](https://assets.dev.to/assets/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg)
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+![Ashish Patel](https://media2.dev.to/dynamic/image/width=50,height=50,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F264358%2F90f3f58f-687d-48a9-8ca2-bd8c54ff4127.jpeg)
+
+Posted on Sep 24, 2025
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)
+
+# How useSyncExternalStore Transformed My React State Management
+
+As a React developer, I’ve always been conscious of how I manage state, especially when integrating with external data sources or global stores. Over the years, I’ve used different patterns—`useEffect` hooks, custom subscriptions, and third-party libraries like Redux or Zustand. But recently, while working on a React 18+ project, I discovered `useSyncExternalStore`, and it genuinely changed my perspective on syncing external state with React components.
+
+`useEffect`
+`useSyncExternalStore`
+
+### My Initial Pain Points with External Store Subscriptions
+
+In one project, I needed to build a real-time dashboard listening to data from a custom in-memory store. Initially, I wrote the subscription logic using `useEffect` and `useState`. However, I ran into tricky bugs—sometimes the UI wouldn’t reflect the latest state correctly during fast updates, and in SSR scenarios, the server-rendered content didn’t always match the hydrated client UI.
+
+`useEffect`
+`useState`
+
+The problem was subtle but frustrating. React’s concurrent rendering means components can render multiple times before committing, and the old subscription patterns weren’t designed for that.
+
+### Discovering `useSyncExternalStore`
+
+`useSyncExternalStore`
+
+When I came across React’s `useSyncExternalStore` hook, it was a lightbulb moment. This hook is created specifically to handle subscriptions to external “stores” safely with React 18’s concurrent features and supports server-side rendering.
+
+`useSyncExternalStore`
+
+It allows React to safely read a snapshot of external state and subscribe to updates, so UI stays consistent without race conditions or hydration mismatches.
+
+### How I Used It in My Project
+
+I refactored my custom store and React component to use `useSyncExternalStore` like this:
+
+`useSyncExternalStore`
+`// My custom store
+let count = 0;
+const listeners = new Set();
+export const counterStore = {
+getSnapshot() {
+return count;
+},
+subscribe(callback) {
+listeners.add(callback);
+return () => listeners.delete(callback);
+},
+increment() {
+count++;
+listeners.forEach(listener => listener());
+},
+};`
+
+And in React:
+
+`import React, { useSyncExternalStore } from "react";
+import { counterStore } from "./counterStore";
+function Counter() {
+const count = useSyncExternalStore(
+counterStore.subscribe,
+counterStore.getSnapshot,
+counterStore.getSnapshot // SSR fallback
+);
+return (
+<div>
+<p>Count: {count}</p>
+<button onClick={counterStore.increment}>Increment</button>
+</div>
+);
+}`
+
+This switch made UI updates flawless—no more stale renders or mismatches. Updates were consistent and aligned perfectly with React 18’s rendering lifecycle.
+
+### Why This Matters for React Developers
+
+Before this, I was tempted to keep using familiar patterns with `useEffect` for subscriptions, but these do not future-proof apps for the latest React features. SSR was especially complicated without snapshot fallbacks.
+
+`useEffect`
+
+`useSyncExternalStore` solves these by:
+
+`useSyncExternalStore`
+
+### Other Use Cases I Tried
+
+I also used `useSyncExternalStore` to track window width via a custom hook. It replaced my old `useEffect` based event listener pattern and handled SSR with a sensible default width fallback.
+
+`useSyncExternalStore`
+`useEffect`
+`function useWindowWidth() {
+return useSyncExternalStore(
+(callback) => {
+window.addEventListener("resize", callback);
+return () => window.removeEventListener("resize", callback);
+},
+() => window.innerWidth,
+() => 1024 // default width for SSR
+);
+}`
+
+### Final Thoughts
+
+Switching to `useSyncExternalStore` was a small change with a big impact on the reliability and maintainability of my React apps, especially with concurrent features and SSR becoming the norm.
+
+`useSyncExternalStore`
+
+If managing external subscriptions or custom global state today, I highly recommend exploring this hook. It’s already powering popular state libraries under the hood, so take advantage of it directly!
+
+Hope my experience helps others avoid the pitfalls I ran into and build more resilient React apps.
+
+Would love to hear how others are using this hook or challenges faced!
+
+## Top comments (0)
+
+![pic](https://media2.dev.to/dynamic/image/width=256,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+Templates let you quickly answer FAQs or store snippets for re-use.
+
+Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's [permalink](#).
+
+Hide child comments as well
+
+Confirm
+
+For further actions, you may consider blocking this person and/or [reporting abuse](/report-abuse)
+
+![](https://media2.dev.to/dynamic/image/width=90,height=90,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F264358%2F90f3f58f-687d-48a9-8ca2-bd8c54ff4127.jpeg)
+
+### More from [Ashish Patel](/ashishxcode)
+
+💎 DEV Diamond Sponsors
+
+Thank you to our Diamond Sponsors for supporting the DEV Community
+
+![Google AI - Official AI Model and Platform Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fxjlyhbdqehj3akhz166w.png)
+
+Google AI is the official AI Model and Platform Partner of DEV
+
+![Neon - Official Database Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fbnl88cil6afxzmgwrgtt.png)
+
+Neon is the official database partner of DEV
+
+![Algolia - Official Search Partner](https://media2.dev.to/dynamic/image/width=880%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv30ephnolfvnlwgwm0yz.png)
+
+Algolia is the official search partner of DEV
+
+[DEV Community](/) — A space to discuss and keep up software development and manage your software career
+
+Built on [Forem](https://www.forem.com) — the [open source](https://dev.to/t/opensource) software that powers [DEV](https://dev.to) and other inclusive communities.
+
+Made with love and [Ruby on Rails](https://dev.to/t/rails). DEV Community © 2016 - 2026.
+
+![DEV Community](https://media2.dev.to/dynamic/image/width=190,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png)
+
+We're a place where coders share, stay up-to-date and grow their careers.
+
+![](https://assets.dev.to/assets/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg)
+![](https://assets.dev.to/assets/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg)
+![](https://assets.dev.to/assets/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg)

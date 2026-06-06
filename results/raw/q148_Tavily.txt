@@ -1,0 +1,1996 @@
+Title: Kubernetes Architecture Explained: Nodes, Pods, and Clusters
+![DevOps Blog](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/Horizontal-1--1-.png)
+![DevOps Blog](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/Horizontal--2--1.png)
+
+# Kubernetes Architecture Explained: Nodes, Pods, and Clusters
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Kubernetes Architecture Explained: Nodes, Pods, and Clusters](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/10/Kubernetes-Architecture-Explained.png)
+
+#### Highlights
+
+## Introduction: Understanding the Heart of Kubernetes
+
+When people talk about Kubernetes, they often describe it as a “container orchestration system.” But what truly makes Kubernetes so powerful is its **architecture** - a carefully designed structure that allows it to manage thousands of containers, balance workloads, and keep applications running smoothly across any environment.
+
+To understand **how Kubernetes works**, you first need to understand **how it’s built**. The **Kubernetes architecture** is made up of multiple components that work together - just like a living system with a brain, hands, and nerves. Each component has a defined purpose: some make decisions, some execute them, and others maintain order when things go wrong.
+
+At its core, Kubernetes follows a **cluster-based architecture**, where every deployment consists of a **control plane** (often referred to as the master node) and a set of **worker nodes**. This design allows Kubernetes to distribute workloads efficiently and recover from failures automatically, ensuring high availability for your applications.
+
+In this guide, we’ll break down **Kubernetes architecture explained** - from **nodes and pods** to the **control plane and cluster structure**. You’ll learn how these pieces fit together, how they communicate, and how Kubernetes turns a group of machines into one intelligent, self-managing system.
+
+By the end, you’ll not only understand what each component does, but also why this architecture has made Kubernetes the **de facto standard for container orchestration** in modern DevOps and cloud environments.
+
+## What Is Kubernetes Architecture? (Big Picture Overview)
+
+Before diving into each part of the system, let’s first understand what we mean by **Kubernetes architecture**.
+
+In simple terms, **Kubernetes architecture** is the **design and structure that defines how Kubernetes operates as a distributed system**. It’s what allows multiple machines to work together as a single, unified environment that runs, manages, and scales containerized applications automatically.
+
+At the highest level, **Kubernetes cluster architecture** consists of two main layers:
+
+Together, these two layers form what’s known as a **Kubernetes cluster** - the complete environment where applications live and communicate. Each node, whether it’s a master or a worker, has its own role, responsibilities, and components. The control plane directs and coordinates, while worker nodes execute those instructions.
+
+The strength of **Kubernetes cluster architecture** lies in its **decentralized and resilient design**. Even if a node fails, Kubernetes automatically shifts workloads to healthy nodes, ensuring that your system continues running smoothly. This is what makes Kubernetes the foundation of **reliable and self-healing container orchestration**.
+
+When people search for **Kubernetes architecture explained**, they’re really looking to understand this concept:
+
+In the upcoming sections, we’ll explore each layer of this architecture in detail. We’ll start with the **Kubernetes cluster** - the foundation that ties everything together - before moving into the specific components that make it work.
+
+## The Kubernetes Cluster - The Foundation
+
+A **Kubernetes cluster** is the heart of the entire system. It’s the environment where every part of Kubernetes comes together to manage, schedule, and run containerized applications effectively.
+
+In the simplest form, a cluster is a **collection of nodes** - one or more **control plane nodes** that manage the system and multiple **worker nodes** that run your workloads. Together, these nodes create a unified platform that can host applications at any scale.
+
+This is what makes **Kubernetes architecture** so powerful: you’re not managing a single machine anymore; you’re managing an entire **cluster of machines** that behave as one logical system.
+
+### How the Cluster Works
+
+When you deploy an application on Kubernetes, you don’t tell it which machine to use. You simply define your desired state - for example, “run three replicas of this web app.” The **control plane** (which we’ll explore next) takes that instruction, decides where those replicas should run, and assigns them to available **worker nodes**.
+
+The nodes then launch containers inside **Pods**, manage networking, and ensure everything stays running as expected. If a node goes down, the control plane detects the issue and reschedules those Pods on healthy nodes - this is the **self-healing capability** at the core of **how Kubernetes works**.
+
+### Key Traits of a Kubernetes Cluster
+
+### Why the Cluster Matters
+
+The **Kubernetes cluster architecture** is what turns simple container hosting into a full-scale **orchestration platform**. Without the cluster model, Kubernetes wouldn’t be able to achieve its most powerful capabilities - **automatic scaling**, **load distribution**, and **high availability**.
+
+Every feature that makes Kubernetes special - from Pods and Services to the control plane and nodes - depends on this cluster foundation.
+
+In short, a **Kubernetes cluster** is like a **team of coordinated machines** working together toward one goal: to run your applications reliably, no matter what happens underneath.
+
+## Control Plane Components - The Brain of Kubernetes
+
+Every Kubernetes cluster has a **control plane**, often called the **brain of Kubernetes**. This is where all the major decisions happen - scheduling workloads, monitoring health, and maintaining the desired state of your applications.
+
+If the **worker nodes** are the hands of Kubernetes, the **control plane** is the part that plans, coordinates, and ensures everything runs exactly as intended.
+
+The **Kubernetes control plane** runs several key **components** that work together to manage the cluster. Let’s look at each one and understand its role in keeping the system healthy and responsive.
+
+### 1. API Server - The Front Door of the Cluster
+
+The **Kubernetes API Server** is the entry point to the entire cluster. Every request - whether from a user, the `kubectl` command-line tool, or internal components - goes through the API Server first.
+
+`kubectl`
+
+It validates and processes these requests before updating the cluster’s state in the database (etcd). You can think of it as the **central hub** that every other component depends on.
+
+### 2. etcd - The Cluster’s Memory
+
+**etcd** is a highly reliable, key-value database that stores all the cluster data. It keeps the official record of what’s running, what should be running, and the configuration of every Kubernetes component.
+
+If the API Server is the brain’s logic center, **etcd is its long-term memory** - without it, Kubernetes wouldn’t know the current state of the cluster.
+
+### 3. Scheduler - The Decision Maker
+
+When you create a new Pod, the **Kubernetes Scheduler** decides where it should run. It checks all available worker nodes and matches each Pod to the one with the right resources, labels, and constraints.
+
+This ensures that workloads are evenly distributed across the cluster and that no single node gets overloaded. The Scheduler’s smart decision-making is one of the key reasons **how Kubernetes works** efficiently in large environments.
+
+### 4. Controller Manager - The Cluster’s Automation Engine
+
+The **Controller Manager** continuously monitors the state of the cluster and takes corrective actions whenever something drifts from the desired state.
+
+For example:
+
+The Controller Manager acts like an **autopilot system**, constantly ensuring that what you defined as your desired configuration matches the actual running environment.
+
+### How These Components Work Together
+
+Here’s how the **Kubernetes control plane** keeps the cluster stable:
+
+This continuous feedback loop keeps Kubernetes clusters **self-healing, automated, and scalable**, no matter how complex your infrastructure grows.
+
+In essence, the **control plane** is what transforms Kubernetes from a collection of nodes into a **smart, self-managing orchestration platform**. Without it, Kubernetes would just be a group of disconnected systems.
+
+## Worker Node Components - The Hands of Kubernetes
+
+If the **control plane** is the brain of Kubernetes, the **worker nodes** are its hands - they perform the actual work of running your containers and keeping your applications alive.
+
+Each node in a **Kubernetes cluster** is a separate machine (physical or virtual) that hosts the Pods where containers run. The control plane gives the orders, but it’s the worker nodes that execute them.
+
+These nodes include several essential **Kubernetes components** that make this communication and execution possible.
+
+### 1. Kubelet - The Node’s Local Agent
+
+The **kubelet** is a lightweight agent that runs on every worker node. It’s responsible for making sure the containers assigned to that node are running exactly as instructed by the control plane.
+
+Here’s what it does:
+
+If a Pod fails, the kubelet ensures it’s restarted or replaced according to the defined rules.
+
+### 2. Kube-Proxy - The Network Manager
+
+The **kube-proxy** handles all network communication inside the cluster. It manages traffic routing to ensure that requests reach the correct Pods, no matter where they’re running.
+
+Its key responsibilities include:
+
+Without kube-proxy, the distributed nature of Kubernetes networking would make communication between Pods and Services nearly impossible.
+
+### 3. Container Runtime - The Engine Running the Containers
+
+The **container runtime** is the underlying software that actually runs the containers inside Pods. Kubernetes supports multiple runtimes, including **containerd** and **CRI-O**, which are now preferred over the legacy Docker runtime.
+
+The runtime is what pulls container images, starts containers, and manages their lifecycles based on kubelet’s instructions.
+
+In short, the runtime does the heavy lifting, while the kubelet and kube-proxy ensure everything runs and communicates correctly.
+
+### How Worker Nodes Fit into Kubernetes Architecture
+
+In the broader **Kubernetes architecture explained**, worker nodes act as the **execution layer**. They don’t make decisions - they carry them out. The control plane decides what needs to happen, and the worker nodes make it happen by running the containers and maintaining network connectivity.
+
+This division of roles between **master node vs worker node** ensures that Kubernetes clusters remain scalable and reliable. If one worker node fails, another one automatically picks up the load, keeping your applications available.
+
+### Why Worker Nodes Matter
+
+The worker node layer is where all real workloads live. Every web app, database, or background service you deploy in Kubernetes ultimately runs on these nodes. They form the physical and logical base that turns instructions from the control plane into running containers your users can access.
+
+## Pods - The Smallest Unit of Deployment
+
+Inside every Kubernetes cluster, all the action happens within **Pods**. A **Pod** is the smallest deployable unit in **Kubernetes architecture** - the place where your application’s containers actually run.
+
+When the control plane schedules workloads, it doesn’t place containers directly onto nodes. Instead, it places **Pods** - which then contain one or more containers that share the same network and storage resources.
+
+### What Is a Pod?
+
+A **Pod** represents a single instance of a running process in your cluster. Most of the time, a Pod runs just **one container**, but it can also run multiple containers that need to work together closely.
+
+For example, a web server container and a helper container that updates static files might run inside the same Pod - sharing the same lifecycle, IP address, and storage volume.
+
+### How Pods Work
+
+When you deploy an application, Kubernetes:
+
+If a Pod fails or a node goes offline, the **Controller Manager** ensures that a new Pod is created elsewhere, maintaining your desired state.
+
+This system is what makes Kubernetes **self-healing** - applications recover automatically, without human intervention.
+
+### Pods and Networking
+
+Each Pod in Kubernetes gets its **own IP address** within the cluster. Containers inside the same Pod can communicate with each other directly using `localhost`, while communication between Pods happens through **Services** (which we’ll explore in later blogs).
+
+`localhost`
+
+This design simplifies **how Kubernetes works** internally - treating each Pod as an isolated, self-contained environment.
+
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/10/k1.png)
+
+### Pods, Nodes, and the Bigger Picture
+
+Every Pod runs on a **Kubernetes node**, and the control plane continuously monitors them through the **kubelet**. Pods are not permanent; they’re created, destroyed, and replaced dynamically based on your application’s configuration.
+
+That’s why you never interact with Pods directly in most cases - instead, you use higher-level **Kubernetes components**like **Deployments** or **ReplicaSets**, which manage Pods automatically.
+
+### Why Pods Matter
+
+Pods are at the heart of everything Kubernetes does. They’re the building blocks that connect the **control plane’s intelligence** with the **nodes’ execution power**. Whether you’re running a web server, database, or API, it all lives inside a Pod.
+
+Understanding Pods is the first step toward mastering **Kubernetes architecture explained** - because every other component revolves around them.
+
+## How Kubernetes Works - Step-by-Step Workflow
+
+Now that we’ve explored the **Kubernetes components** individually - from the control plane to the worker nodes and Pods - it’s time to see how they all come together in action.
+
+This is where the real power of **Kubernetes architecture** becomes clear. Everything in Kubernetes revolves around a simple idea: **the desired state**. You tell Kubernetes what your application should look like - and it continuously works behind the scenes to make sure that state is achieved and maintained.
+
+Let’s walk through the process step by step.
+
+### Step 1: Defining the Desired State
+
+You start by describing your application in a YAML configuration file.  
+For example, you might say:
+
+This file defines what you want Kubernetes to do - not how to do it. That’s the core of **how Kubernetes works**: it’s **declarative**, not procedural.
+
+You then apply the configuration using the `kubectl apply -f` command. This request goes straight to the **API Server**, the entry point of the cluster.
+
+`kubectl apply -f`
+
+### Step 2: API Server Processes the Request
+
+The **Kubernetes API Server** receives the request and validates it. Once confirmed, it records your desired state in **etcd**, the cluster’s key-value database. At this point, your desired configuration officially becomes part of the cluster’s state.
+
+### Step 3: Scheduler Assigns Pods to Nodes
+
+Next, the **Scheduler** scans the available worker nodes and decides where to place the new Pods. It considers:
+
+Once the Scheduler selects the best nodes, it instructs the **kubelet** on those nodes to create the required Pods.
+
+### Step 4: Kubelet Creates and Monitors Pods
+
+On each selected **worker node**, the **kubelet** receives Pod specifications and interacts with the **container runtime** (like containerd or CRI-O) to start the containers. It constantly checks that these Pods are running correctly and reports back to the control plane.
+
+If a Pod crashes or becomes unresponsive, the kubelet immediately notifies the **Controller Manager**, which triggers the creation of a replacement Pod elsewhere.
+
+### Step 5: Kube-Proxy Manages Networking
+
+The **kube-proxy** ensures that network traffic is properly routed to the correct Pods. It maintains load-balancing rules and handles connections between different Pods and Services across nodes.
+
+This makes the system feel like a unified network, even though it’s distributed across multiple machines.
+
+### Step 6: Controller Manager Ensures Desired State
+
+Meanwhile, the **Controller Manager** constantly compares the **desired state** (stored in etcd) with the **current state**(reported by nodes). If there’s any difference - such as a missing Pod, failed node, or resource imbalance - the controller takes corrective action automatically.
+
+This continuous reconciliation process is the heartbeat of **Kubernetes architecture explained** - keeping your cluster stable and predictable.
+
+### Step 7: Scaling, Updates, and Maintenance
+
+Once everything is running, you can scale your application by simply changing the number of replicas in your configuration. Kubernetes automatically adds or removes Pods across nodes to match your new state.
+
+When you roll out an update, Kubernetes performs a **rolling update**, replacing old Pods with new ones without downtime. If something goes wrong, you can **rollback instantly** to a previous version - all controlled through the same declarative model.
+
+### In Short: How Kubernetes Works
+
+| **Stage** | **Component Involved** | **Function** |
+| --- | --- | --- |
+| Define desired state | API Server + etcd | Store what you want to run |
+| Schedule workloads | Scheduler | Decide where Pods should run |
+| Execute workloads | Kubelet + Runtime | Run and monitor containers |
+| Manage networking | Kube-Proxy | Route traffic to Pods |
+| Maintain stability | Controller Manager | Keep cluster in sync |
+
+Together, these steps make Kubernetes **self-managing, fault-tolerant, and scalable** - a system that continuously keeps your applications running exactly as you intended.
+
+## Master Node vs Worker Node - Key Differences
+
+In a Kubernetes cluster, not all nodes serve the same purpose. Every cluster is divided into two main categories of nodes - **master nodes** and **worker nodes** - each playing a unique role in keeping the system balanced, resilient, and automated.
+
+Understanding this distinction is essential for anyone learning **Kubernetes architecture explained**, as it defines how the entire cluster functions as one coordinated system.
+
+### Master Node - The Control Center
+
+The **master node** (also known as the **control plane**) is responsible for managing and orchestrating everything inside the cluster. It doesn’t run application workloads itself - instead, it ensures the right workloads are scheduled, healthy, and properly distributed across worker nodes.
+
+Key responsibilities include:
+
+Essentially, the master node acts as the **decision-maker**. It sees the entire cluster, understands what should be running, and makes sure reality matches that vision.
+
+### Worker Node - The Execution Layer
+
+The **worker nodes** are where your applications actually live. They’re responsible for running **Pods**, maintaining container health, and managing local networking and storage.
+
+Each worker node runs a few critical components:
+
+Worker nodes report their status to the control plane and execute whatever tasks are assigned. If a node fails, Kubernetes automatically shifts workloads to another available worker node, keeping the system resilient.
+
+### Master Node vs Worker Node - Comparison Table
+
+| **Feature / Role** | **Master Node (Control Plane)** | **Worker Node** |
+| --- | --- | --- |
+| **Primary Function** | Manages the cluster and makes decisions | Runs workloads and executes containers |
+| **Key Components** | API Server, etcd, Scheduler, Controller Manager | Kubelet, Kube-Proxy, Container Runtime |
+| **Workload Execution** | No (management only) | Yes (Pods and containers) |
+| **State Management** | Maintains desired and actual state of cluster | Reports local state to control plane |
+| **Failure Recovery** | Restores workloads on healthy nodes | Recreates or moves Pods when needed |
+| **Scalability Role** | Manages scaling strategy | Hosts scaled workloads |
+
+### How They Work Together
+
+This separation ensures that the **Kubernetes cluster architecture** remains both **centralized in control** and **distributed in execution**. If one worker node fails, others keep running.
+
+If a master node goes down, a backup control plane can take over - ensuring continuous availability.
+
+### Why This Design Matters
+
+The division between **master node vs worker node** allows Kubernetes to scale infinitely while maintaining consistency. You can add new worker nodes to handle more workloads or replicate control planes for redundancy - all without disrupting existing applications.
+
+This architecture is what makes Kubernetes flexible, fault-tolerant, and perfectly suited for cloud-native environments.
+
+## Visualizing Kubernetes Architecture (KodeKloud Tip)
+
+Understanding Kubernetes through theory is one thing - but truly mastering it requires *seeing* how the system behaves in real time. Kubernetes architecture is highly visual by nature: nodes, pods, and clusters constantly communicating, scaling, and recovering in harmony.
+
+That’s why one of the best ways to learn **Kubernetes architecture explained** is through **visualization and hands-on exploration**.
+
+### Visualizing the Cluster Structure
+
+A **Kubernetes cluster architecture** can be visualized as three interconnected layers:
+
+These layers communicate continuously through the **API Server**, ensuring that workloads are scheduled correctly, the system’s state is monitored, and everything remains synchronized.
+
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/10/k8-1.png)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/10/k6.png)
+
+### Learn by Seeing and Doing
+
+If you prefer **learning visually and interactively**, KodeKloud provides some of the best resources available to truly experience **how Kubernetes works** in action:
+
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/icon/Symbol-3.svg)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/thumbnail/kodekloud-studio-1.jpeg)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/icon/favicon_144x144-2.png)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/thumbnail/_pHLjGmYVp9Qv6r57IhDnEsej2tgpxSyBzD8kUUvDetLLPLGSkDlh77JLxtchccZhBwG8iqq-s900-c-k-c0x00ffffff-no-rj-2)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/icon/67a4a75e8c572bff61235ddd_Dark-20Favicon-20KK-214.png)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/thumbnail/642111a4885ad99c1619241e_Logo-20-1--2.svg)
+![](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/10/k10.png)
+
+## FAQs
+
+#### Do I need Docker to use Kubernetes?
+
+No - modern Kubernetes doesn’t depend on Docker.  
+It uses ****container runtimes**** like ****containerd**** or ****CRI-O****, which handle container execution more efficiently. Docker images still work, but Kubernetes doesn’t need the Docker engine anymore.
+
+#### How much memory or CPU do I need to run a local Kubernetes cluster?
+
+For tools like ****Minikube**** or ****Kind****, 2 CPUs and 4 GB RAM are enough to start experimenting. But for a smoother experience (and real-world practice), ****KodeKloud’s labs**** give you cloud-powered clusters with zero local setup.
+
+#### Is Kubernetes used only with cloud providers like AWS or GCP?
+
+Not at all.  
+You can run Kubernetes ****on-premises****, ****on your laptop****, or ****in any cloud****. Cloud providers just make scaling and managing clusters easier, but Kubernetes itself is completely platform-agnostic.
+
+#### How do companies monitor what’s happening inside Kubernetes?
+
+They use observability tools like ****Prometheus****, ****Grafana****, and ****Lens**** to track cluster health, resource usage, and Pod logs. KodeKloud’s advanced labs even simulate these setups so you can see monitoring in action.
+
+#### Can I use Kubernetes for non-containerized applications?
+
+No - Kubernetes is designed specifically for ****containerized workloads****.  
+If your app isn’t containerized yet, start by learning ****Docker**** and packaging your app - then move to Kubernetes for orchestration.
+
+## Join 1M+ Learners
+
+Learn & Practice DevOps, Cloud, AI, and Much More — All Through Hands-On, Interactive Labs!
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![How to See What's Using Your Resources on a Linux Server](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/04/How-to-See-What-s-Using-Your-Resources-on-a-Linux-Server.png)
+
+### [How to See What's Using Your Resources on a Linux Server](/blog/how-to-see-whats-using-your-resources-on-a-linux-server/)
+
+![Alexandru Andrei](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/3-10-1-1.png)
+![Alexandru Andrei](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/3-10-1-1.png)
+![What Is the Shared Responsibility Model in Cloud Computing?](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/Shared-Responsibility-Model-in-Cloud-Computing.png)
+
+### [What Is the Shared Responsibility Model in Cloud Computing?](/blog/cloud-shared-responsibility-model-explained/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![What Is Serverless Computing? A Beginner's Guide with Real-World Examples](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/What-Is-Serverless-Computing.png)
+
+### [What Is Serverless Computing? A Beginner's Guide with Real-World Examples](/blog/what-is-serverless-computing/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![AWS vs Azure vs GCP: An Honest Comparison for 2026](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/AWS-vs-Azure-vs-GCP-An-Honest-Comparison-for-2026.png)
+
+### [AWS vs Azure vs GCP: An Honest Comparison for 2026](/blog/aws-vs-azure-vs-gcp/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Cloud Tutorials That Prepare You for Cloud Certifications in 2026](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/What-Makes-a-Great-DevOps-Engineer-2.png)
+
+### [Cloud Tutorials That Prepare You for Cloud Certifications in 2026](/blog/cloud-tutorials-that-prepare-you-for-cloud-certifications-in-2026/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Best Cloud Courses & Training for Beginners to Pros in 2026](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/Best-Cloud-Courses-and-Training-for-Beginners-to-Pros-in-2026.png)
+
+### [Best Cloud Courses & Training for Beginners to Pros in 2026](/blog/best-cloud-courses-2026/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Cloud Certification Roadmap: AWS, Azure & GCP Explained](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/What-Makes-a-Great-DevOps-Engineer.png)
+
+### [Cloud Certification Roadmap: AWS, Azure & GCP Explained](/blog/cloud-certification-roadmap-aws-azure-gcp/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Why Choosing the Right Learning Path Matters for Your Tech Career](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/03/Freelancing-Tips-What-I-Learned-After-100-Clients.png)
+
+### [Why Choosing the Right Learning Path Matters for Your Tech Career](/blog/right-learning-path-for-devops-cloud-and-ai-careers/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![AWS DevOps Best Practices in 2026: Automation, Monitoring, and Security](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/02/AWS-for-Beginners-A-2025-Guide-to-Cloud-Basics.png)
+
+### [AWS DevOps Best Practices in 2026: Automation, Monitoring, and Security](/blog/aws-devops-best-practices-in-2026/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Top 10 AI & Automation Courses Engineers Are Learning](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/size/w400/2026/02/MCP-Explained-Simply_-How-AI-Can-Actually-Do-Things-Now-2.png)
+
+### [Top 10 AI & Automation Courses Engineers Are Learning](/blog/top-10-ai-courses-engineers-are-learning/)
+
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+![Nimesha Jinarajadasa](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/IMG_8348-1.JPG)
+
+## Subscribe to Newsletter
+
+Join me on this exciting journey as we explore the boundless world of web design together.
+
+## Discussion
+
+![DevOps Blog](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/Horizontal-1--1-.png)
+![DevOps Blog](https://storage.ghost.io/c/69/67/6967c46d-4021-41a7-943c-75a0de810032/content/images/2025/07/Horizontal--2--1.png)
+
+---
+
+Title: Kubernetes Architecture Explained (2026 Edition) - DevOps Cube
+[![DevOpsCube – Easy DevOps, SRE Guides & Reviews](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/size/w30/2025/03/Comtechies-Logo--10-.png)](https://devopscube.com) 
+[DevOps Deals](/black-friday-deals/)
+
+# Kubernetes Architecture Explained (2026 Edition)
+
+* [![Bibin Wilson](https://www.gravatar.com/avatar/b715b3921f3d3ea5702f0e672b00a9a7?s=250&r=x&d=mp)](/author/bibin/ "Bibin Wilson")
+
+[Bibin Wilson](/author/bibin/)
+
+18 min read
+
+![Kubernetes Architecture](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/size/w30/2025/03/kubernetes-architecture-1.png)
+
+In this guide, you will explore Kubernetes architecture inside-out. Our illustrated guide breaks down every component, from the control plane to the kubelet, showing you how the Kubernetes cluster really works.
+
+So if you're looking to:
+
+1. Understand the architecture of Kubernetes
+2. Grasp the fundamental concepts underlying Kubernetes components.
+3. Learn about Each Kubernetes component in detail
+4. Explore the workflows that connect these components
+
+Then you will find this Kubernetes architecture guide invaluable.
+
+****Note****: To understand Kubernetes architecture better, there are some prerequisites Please check the prerequisites in the [kubernetes learning guide](https://devopscube.ghost.io/learn-kubernetes-complete-roadmap/?ref=devopscube.com) to know more.
+
+## What is Kubernetes Architecture?
+
+The following **Kubernetes architecture diagram** shows all the components of the Kubernetes cluster and how external systems connect to the Kubernetes cluster.
+
+![Kubernetes Architecture Diagram](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-1.gif)
+
+Click to view in HD
+
+The first and foremost thing you should understand about Kubernetes is, that it is a **distributed system**. Meaning, it has multiple components spread across different servers over a network. These servers could be Virtual machines or bare metal servers. We call it a Kubernetes cluster.
+
+A Kubernetes cluster consists of control plane nodes and worker nodes.
+
+### Control Plane
+
+The control plane is responsible for container orchestration and maintaining the desired state of the cluster. It has the following components.
+
+1. kube-apiserver
+2. etcd
+3. kube-scheduler
+4. kube-controller-manager
+5. cloud-controller-manager
+
+A cluster can have one or more control plane nodes.
+
+### Worker Node
+
+The Worker nodes are responsible for running containerized applications. The worker Node has the following components.
+
+1. kubelet
+2. kube-proxy
+3. Container runtime
+
+Now lets deep dive in to each of these components.
+
+If you are a beginner and do not have much hands-on experience, some of the concepts in this guide might be a bit hard to grasp. If that’s the case, I recommend coming back to the deep dive sessions after you have spent some time working through our [Kubernetes tutorial](https://devopscube.com/kubernetes-tutorials-beginners/).
+
+## Core Components of the Kubernetes Control Plane
+
+First, let's take a look at each control plane component and the important concepts behind each component.
+
+### 1. kube-apiserver
+
+The **kube-apiserver** is the central hub of the Kubernetes cluster that exposes the Kubernetes API. It is highly scalable and can handle large number of concurrent requests.
+
+End users, and other cluster components, talk to the cluster via the API server. Very rarely monitoring systems and third-party services may talk to API servers to interact with the cluster.
+
+So when you use [kubectl](https://devopscube.com/kubectl-aliases/) to manage the cluster, at the backend you are actually communicating with the API server through **HTTP REST APIs** over TLS.
+
+Also, the communication between the API server and other components in the cluster happens over TLS to prevent unauthorized access to the cluster.
+
+![kuberetes API server Diagram](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-api-1.gif)
+
+Click to view in HD
+
+Kubernetes **api-server** is responsible for the following.
+
+1. **API management**: Exposes the cluster API endpoint and handles all API requests. The API is version and it supports multiple API versions simultaneously.
+2. **Authentication** (Using client certificates, bearer tokens, and HTTP Basic Authentication) and **Authorization** (ABAC and RBAC evaluation)
+3. Processing API requests and validating data for the API objects like pods, services, etc. (Validation and Mutation Admission controllers)
+4. the API server coordinates all the processes between the control plane and worker node components.
+5. API server also contains an [aggregation layer](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/apiserver-aggregation/?ref=devopscube.com) which allows you to extend Kubernetes API to create custom API resources and controllers.
+6. The only component that the **kube-apiserver initiates a connection to** is the **etcd** component. All the other components connect to the API server.
+7. The API server also **supports watching resources** for changes. For example, clients can establish a watch on specific resources and receive real-time notifications when those resources are created, modified, or deleted.
+8. Each component (Kubelet, scheduler, controllers) **independently watches the API server** to figure out what it needs to do.
+
+Also the api-server has a built-in **apiserver proxy**.
+
+It is part of the API server process. It is primarily used to enable access to ClusterIP services from outside the cluster.
+
+****Security**** ****Note****: To reduce the cluster attack surface, it is crucial to secure the API server. The Shadowserver Foundation has conducted an experiment that discovered [380 000 publicly accessible Kubernetes API servers](https://www.shadowserver.org/news/over-380-000-open-kubernetes-api-servers/?ref=devopscube.com).
+
+### 2. etcd
+
+Kubernetes is a distributed system and it needs an efficient distributed database like etcd that supports its distributed nature. It acts as both a backend service discovery and a database. You can call it the brain of the Kubernetes cluster.
+
+[etcd](https://github.com/etcd-io/etcd?ref=devopscube.com) is an open-source strongly consistent, distributed key-value store. So what does it mean?
+
+1. **Strongly consistent:** If an update is made to a node, strong consistency will ensure it gets updated to all the other nodes in the cluster immediately. Also if you look at [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem?ref=devopscube.com), achieving 100% availability with strong consistency and Partition Tolerance is impossible.
+2. **Distributed**: etcd is designed to run on multiple nodes as a cluster without sacrificing consistency.
+3. **Key Value Store:** A nonrelational database that stores data as keys and values. It also exposes a key-value API. The datastore is built on top of [BboltDB](https://github.com/etcd-io/bbolt?ref=devopscube.com) which is a fork of BoltDB.
+
+etcd uses [raft consensus algorithm](https://raft.github.io/?ref=devopscube.com) for strong consistency and availability. It works in a leader-member fashion for high availability and to withstand node failures.
+
+So, how does etcd work with Kubernetes?
+
+To put it simply, when you use kubectl to get kubernetes object details, you are getting it from etcd. Also, when you deploy an object like a pod, an entry gets created in etcd.
+
+In a nutshell, here is what you need to know about etcd.
+
+1. etcd stores all configurations, states, and metadata of Kubernetes objects (pods, secrets, daemonsets, [deployments](https://devopscube.com/kubernetes-deployment-tutorial/), configmaps, statefulsets, etc).
+2. `etcd` allows a client to subscribe to events using `Watch()` API . Kubernetes api-server uses the etcd’s watch functionality to track the change in the state of an object.
+3. etcd exposes key-value API [using gRPC](https://etcd.io/docs/v3.5/learning/api/?ref=devopscube.com). Also, the [gRPC gateway](https://etcd.io/docs/v3.3/dev-guide/api_grpc_gateway/?ref=devopscube.com) is a RESTful proxy that translates all the HTTP API calls into gRPC messages. This makes it an ideal database for Kubernetes.
+4. etcd stores all objects under the **/registry** directory key in key-value format. For example, information on a pod named Nginx in the default namespace can be found under **/registry/pods/default/nginx**
+
+![kubernetes etcd Diagram](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-etcd-1.gif)
+
+Click to view in HD
+
+Also, etcd it is the only **Statefulset** component in the control plane.
+
+The number of nodes in an etcd cluster directly affects its fault tolerance. Here's how it breaks down:
+
+1. **3 nodes**: Can tolerate 1 node failure (quorum = 2)
+2. **5 nodes**: Can tolerate 2 node failures (quorum = 3)
+3. **7 nodes**: Can tolerate 3 node failures (quorum = 4)
+
+And so on. The general formula for the number of node failures a cluster can tolerate is:
+
+```
+fault tolerance = (n - 1) / 2
+```
+
+Where `n` is the total number of nodes.
+
+### 3. kube-scheduler
+
+The kube-scheduler is responsible for **scheduling Kubernetes pods on worker nodes**.
+
+When you deploy a pod, you specify the pod requirements such as CPU, memory, affinity, taints or tolerations, priority, persistent volumes (PV), etc. The scheduler's primary task is to identify the create request and choose the best node for a pod that satisfies the requirements.
+
+The following image shows a high-level overview of **how the scheduler works**.
+
+![Kubernetes Scheduler](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-sc-1.gif)
+
+Click to view in HD
+
+In a Kubernetes cluster, there will be more than one worker node. So how does the scheduler select the node out of all worker nodes?
+
+Here is how the scheduler works.
+
+1. To choose the best node, the Kube-scheduler uses **filtering and scoring** operations.
+2. In **filtering**, the scheduler finds the best-suited nodes where the pod can be scheduled. For example, if there are five worker nodes with resource availability to run the pod, it selects all five nodes. If there are no nodes, then the pod is unschedulable and moved to the scheduling queue. If It is a large cluster, let's say 100 worker nodes, and the scheduler doesn't iterate over all the nodes. There is a scheduler configuration parameter called **`percentageOfNodesToScore`**. The default value is typically **50%**. So it tries to iterate over 50% of nodes in a round-robin fashion. If the worker nodes are spread across multiple zones, then the scheduler iterates over nodes in different zones. For very large clusters the default **`percentageOfNodesToScore`** is 5%.
+3. In the **scoring phase**, the scheduler ranks the nodes by assigning a score to the filtered worker nodes. The scheduler makes the scoring by calling multiple [scheduling plugins](https://kubernetes.io/docs/reference/scheduling/config/?ref=devopscube.com#scheduling-plugins). Finally, the worker node with the highest rank will be selected for scheduling the pod. If all the nodes have the same rank, a node will be selected at random.
+4. Once the node is selected, the scheduler creates a binding event in the API server. Meaning an event to bind a pod and node.
+
+![How Kubernetes Scheduler chooses a Node](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-sc-logic-1.gif)
+
+Click to view in HD
+
+Here is what you need to know about a scheduler.
+
+1. It is a controller that listens to pod creation events in the API server.
+2. The scheduler has two phases. **Scheduling cycle** and the **Binding cycle**. Together it is called the scheduling context.Thescheduling cycle selects a worker node and the binding cycle applies that change to the cluster.
+3. The scheduler always places the high-priority pods ahead of the low-priority pods for scheduling. Also, in some cases, after the pod starts running in the selected node, the pod might get evicted or moved to other nodes. If you want to understand more, read the [Kubernetes pod priority guide](https://devopscube.com/pod-priorityclass-preemption/)
+4. You can create custom schedulers and run multiple schedulers in a cluster along with the native scheduler. When you deploy a pod you can specify the custom scheduler in the pod manifest. So the scheduling decisions will be taken based on the custom scheduler logic.
+5. The scheduler has a [pluggable scheduling framework](https://kubernetes.io/docs/concepts/scheduling-eviction/scheduling-framework/?ref=devopscube.com). Meaning, that you can add your custom plugin to the scheduling workflow.
+
+💡
+
+For specialised hardware (like GPUs, FPGAs, smart NICs) the scheduler can make use of Dynamic Resource Allocation (DRA).  
+  
+It is a feature in Kubernetes (stable since v1.34) that gives the scheduler real information about hardware devices in the cluster.  
+  
+So if DRA is enabled, the scheduler can do ****hardware-aware scheduling for specialized devices**** that are particularly useful for AI/ML workloads.
+
+### 4. Kube Controller Manager
+
+**What is a controller?** [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/?ref=devopscube.com) are programs that run infinite control loops. Meaning it runs continuously and watches the actual and desired state of objects. If there is a difference in the actual and desired state, it ensures that the kubernetes resource/object is in the desired state.
+
+As per the official documentation,
+
+In Kubernetes, controllers are control loops that watch the state of your cluster, then make or request changes where needed. Each controller tries to move the current cluster state closer to the desired state.
+
+Let's say you want to create a deployment, you specify the desired state in the manifest YAML file (declarative approach). For example, 2 replicas, one volume mount, configmap, etc. The in-built deployment controller ensures that the deployment is in the desired state all the time. If a user updates the deployment with 5 replicas, the deployment controller recognizes it and ensures the desired state is 5 replicas.
+
+**Kube controller manager** is a component that manages all the Kubernetes controllers. Kubernetes resources/objects like pods, namespaces, jobs, replicaset are managed by respective controllers.
+
+![Kube Controller Manager](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-cm-1.gif)
+
+Click to view in HD
+
+Following is the list of important built-in Kubernetes controllers.
+
+1. Deployment controller
+2. Replicaset controller
+3. DaemonSet controller
+4. Job Controller ([Kubernetes Jobs](https://devopscube.com/create-kubernetes-jobs-cron-jobs/))
+5. CronJob Controller
+6. endpoints controller
+7. namespace controller
+8. [service accounts](https://devopscube.com/kubernetes-api-access-service-account/) controller.
+9. Node controller
+
+Here is what you should know about the Kube controller manager.
+
+1. It manages all the controllers and the controllers try to keep the cluster in the desired state.
+2. You can extend kubernetes with **custom controllers** associated with a custom resource definition.
+
+### 5. Cloud Controller Manager (CCM)
+
+When kubernetes is deployed in cloud environments, the cloud controller manager acts as a bridge between Cloud Platform APIs and the Kubernetes cluster.
+
+This way, the core kubernetes core components can work independently and allow the cloud providers to integrate with kubernetes using Cloud Controller binaries.
+
+[Cloud controller integration](https://devopscube.com/aws-cloud-controller-manager/) allows a Kubernetes cluster to provision cloud resources like instances (for nodes), and Load Balancers (for services)
+
+![Kubernetes Cloud Controller Manager (CCM)](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/02-k8s-architecture-ccm-1-1.gif)
+
+Click to view in HD
+
+Cloud Controller Manager contains a set of **cloud platform-specific controllers** that ensure the desired state of cloud-specific components (nodes, [Loadbalancers](https://devopscube.com/aws-load-balancers/), storage, etc). Following are the three main controllers that are part of the cloud controller manager.
+
+1. **Node controller:** This controller updates node-related information by talking to the cloud provider API. For example, node labeling & annotation, getting hostname, CPU & memory availability, nodes health, etc.
+2. **Route controller:** It is responsible for configuring networking routes on a cloud platform. So that pods in different nodes can talk to each other.
+3. **Service controller**: It takes care of deploying load balancers for kubernetes services, assigning IP addresses, etc.
+
+Following are some of the classic examples of cloud controller manager.
+
+1. Deploying Kubernetes Service of type Load balancer. Here Kubernetes provisions a Cloud-specific Loadbalancer and integrates with Kubernetes Service.
+2. Provisioning storage volumes (PV) for pods backed by cloud storage solutions.
+
+Overall **Cloud Controller Manager manages the** lifecycle of cloud-specific resources used by kubernetes.
+
+## Core Components of Kubernetes Worker Node
+
+Now let's look at each of the worker node components.
+
+### 1. Kubelet
+
+Kubelet is an agent component that runs on every node in the cluster. It does not run as a container instead runs as a daemon, managed by systemd.
+
+It is responsible for registering worker nodes with the API server and working with the podSpec (Pod specification - YAML or JSON) primarily from the API server. podSpec defines the containers that should run inside the pod, their resources (e.g. CPU and memory limits), and other settings such as environment variables, volumes, and labels.
+
+It then brings the `podSpec` to the desired state by creating containers.
+
+To put it simply, kubelet is responsible for the following.
+
+1. Creating, modifying, and deleting containers for the pod.
+2. Responsible for handling liveliness, readiness, and startup probes.
+3. Responsible for Mounting volumes by reading pod configuration and creating respective directories on the host for the volume mount.
+4. Collecting and reporting Node and pod status via calls to the API server with implementations like `cAdvisor` and `CRI`.
+
+Kubelet is also a controller that watches for pod changes and utilizes the node's container runtime to pull images, run containers, etc.
+
+Other than PodSpecs from the API server, kubelet can accept podSpec from a file, HTTP endpoint, and HTTP server. A good example of “podSpec from a file” is Kubernetes static pods.
+
+Static pods are controlled by kubelet, not the API servers.
+
+This means you can create pods by providing a pod YAML location to the Kubelet component. However, static pods created by Kubelet are not managed by the API server.
+
+Here is a real-world example use case of the static pod.
+
+While bootstrapping the control plane, kubelet starts the api-server, scheduler, and controller manager as static pods from podSpecs located at `/etc/kubernetes/manifests`
+
+Following are some of the key things about kubelet.
+
+1. Kubelet uses the CRI (container runtime interface) gRPC interface to talk to the container runtime.
+2. It also exposes an HTTP endpoint to stream logs and provides exec sessions for clients.
+3. Uses the CSI (container storage interface) gRPC to configure block volumes.
+4. It uses the CNI plugin configured in the cluster to allocate the pod IP address and set up any necessary network routes and firewall rules for the pod.
+
+![Kubernetes component kubelet explained ](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/kubelet-architecture-1.png)
+
+Click to view in HD
+
+💡
+
+As of Kubernetes v1.35 (General Availability), kubelet can adjust a Pod’s CPU and memory requests and limits while the Pod is running, often without restarting the container as part of in-place pod resize feature.
+
+### 2. Kube proxy (Optional)
+
+To understand Kube proxy, you need to have a basic knowledge of Kubernetes Service & endpoint objects.
+
+Service in Kubernetes is a way to expose a set of pods internally or to external traffic. When you create the service object, it gets a virtual IP assigned to it. It is called clusterIP. It is only accessible within the Kubernetes cluster.
+
+The Endpoint object contains all the IP addresses and ports of pod groups under a Service object. The endpoints controller is responsible for maintaining a list of pod IP addresses (endpoints). The service controller is responsible for configuring endpoints to a service.
+
+You cannot ping the ClusterIP because it is only used for service discovery, unlike pod IPs which are pingable.
+
+Now let's understand Kube Proxy.
+
+Kube-proxy is a daemon that runs on every node as a [daemonset](https://devopscube.com/kubernetes-daemonset/). It is a proxy component that implements the Kubernetes Services concept for pods. (single DNS for a set of pods with load balancing). It primarily proxies UDP, TCP, and SCTP and does not understand HTTP.
+
+When you expose pods using a Service (ClusterIP), Kube-proxy creates network rules to send traffic to the backend pods (endpoints) grouped under the Service object. Meaning, all the load balancing, and service discovery are handled by the Kube proxy.
+
+**So how does Kube-proxy work?**
+
+Kube proxy talks to the API server to get the details about the Service (ClusterIP) and respective pod IPs & ports (endpoints). It also monitors for changes in service and endpoints.
+
+Kube-proxy then uses any one of the following modes to create/update rules for routing traffic to pods behind a Service
+
+1. [**IPTables**](https://wiki.centos.org/HowTos/Network/IPTables?ref=devopscube.com): It is the default mode. In IPTables mode, the traffic is handled by IPtable rules. This means that for each service, IPtable rules are created. These rules capture the traffic coming to the ClusterIP and then forward it to the backend pods. Also, In this mode, kube-proxy chooses the backend pod random for load balancing. Once the connection is established, the requests go to the same pod until the connection is terminated.
+2. [**NFTables**](http://kubernetes.io/blog/2025/02/28/nftables-kube-proxy/?ref=devopscube.com): This mode It primarily addresses the performance and scalability limitations in `iptables`, typically in large clusters with thousands of services.
+3. **Userspace** (legacy & not recommended)
+4. **Kernelspace**: This mode is only for Windows systems.
+
+![how does kube proxy work - Workflow](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/image-14-19.png)
+
+Click to view in HD
+
+If you would like to understand the performance difference between kube-proxy IPtables and IPVS mode, [read this article](https://www.tigera.io/blog/comparing-kube-proxy-modes-iptables-or-ipvs/?ref=devopscube.com).
+
+I have **mentioned "optional"** in the kube-proxy heading. Here is why.
+
+Modern CNI plugins implement their own packet forwarding and load balancing logic that matches what kube-proxy does. It means kubernetes **networking still works without kube-proxy** running. In that case, kube-proxy can be skipped.
+
+A classic example for this use case is [Cilium](https://github.com/cilium/cilium?ref=devopscube.com) (eBPF-based CNI). It uses [**eBPF**](https://ebpf.io/?ref=devopscube.com) **in the Linux kernel** to handle Kubernetes Service traffic (ClusterIP, NodePort, LoadBalancer) directly, without relying on the iptables/nftables/IPVS rules that kube-proxy uses.
+
+### 3. Container Runtime
+
+You probably know about [Java Runtime (JRE)](https://aws.amazon.com/what-is/java-runtime-environment/?ref=devopscube.com). It is the software required to run Java programs on a host. In the same way, container runtime is a software component that is required to run containers.
+
+Container runtime runs on all the nodes in the Kubernetes cluster. It is responsible for pulling images from container registries, running containers, allocating and isolating resources for containers, and managing the entire lifecycle of a container on a host.
+
+To understand this better, let's take a look at two key concepts:
+
+1. **Container Runtime Interface (CRI):** It is a set of APIs that allows Kubernetes to interact with different container runtimes. It allows different container runtimes to be used interchangeably with Kubernetes. The CRI defines the API for creating, starting, stopping, and deleting containers, as well as for managing images and container networks.
+2. **Open Container Initiative (OCI):** It is a set of standards for container formats and runtimes
+
+Kubernetes supports multiple [container runtimes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/?ref=devopscube.com) (CRI-O, Docker Engine, containerd, etc) that are compliant with [**Container Runtime Interface (CRI)**](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-node/container-runtime-interface.md?ref=devopscube.com). This means, all these container runtimes implement the CRI interface and expose gRPC [CRI APIs](https://kubernetes.io/docs/concepts/architecture/cri/?ref=devopscube.com) (runtime and image service endpoints).
+
+So how does Kubernetes make use of the container runtime?
+
+As we learned in the Kubelet section, the kubelet agent is responsible for interacting with the container runtime using CRI APIs to manage the lifecycle of a container. It also gets all the container information from the container runtime and provides it to the control plane.
+
+Let's take an example of [CRI-O](https://cri-o.io/?ref=devopscube.com) container runtime interface. Here is a high-level overview of how container runtime works with kubernetes.
+
+![Kubernetes container runtime CRI-O overview](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/image-5-20.png)
+
+Click to view in HD
+
+1. When there is a new request for a pod from the API server, the kubelet talks to CRI-O daemon to launch the required containers via Kubernetes Container Runtime Interface.
+2. CRI-O checks and pulls the required container image from the configured container registry using **`containers/image`** library.
+3. CRI-O then generates OCI runtime specification (JSON) for a container.
+4. CRI-O then launches an OCI-compatible runtime (runc) to start the container process as per the runtime specification.
+
+## Kubernetes Cluster Addon Components
+
+Apart from the core components, the kubernetes cluster needs addon components to be fully operational. Choosing an addon depends on the project requirements and use cases.
+
+Following are some of the popular addon components that you might need on a cluster.
+
+1. **CNI Plugin (Container Network Interface)**
+2. **CoreDNS (For DNS server):** CoreDNS acts as a DNS server within the Kubernetes cluster. By enabling this addon, you can enable DNS-based service discovery.
+3. **Metrics Server (For Resource Metrics):** This addon helps you collect performance data and resource usage of Nodes and pods in the cluster.
+4. **Web UI (Kubernetes Dashboard):** This addon enables the Kubernetes dashboard to manage the object via web UI.
+
+### 1. CNI Plugin
+
+First, you need to understand [**Container Networking Interface (CNI)**](https://www.cni.dev/?ref=devopscube.com)
+
+It is a plugin-based architecture with vendor-neutral [specifications](https://github.com/containernetworking/cni/blob/spec-v1.0.0/SPEC.md?ref=devopscube.com) and libraries for creating network interfaces for Containers.
+
+It is not specific to Kubernetes. With CNI container networking can be standardized across container orchestration tools like Kubernetes, Mesos, CloudFoundry, Podman, Docker, etc.
+
+When it comes to container networking, companies might have different requirements such as network isolation, security, encryption, etc. As container technology advanced, many network providers created CNI-based solutions for containers with a wide range of networking capabilities. You can call it CNI-Plugins
+
+This allows users to choose a networking solution that best fits their needs from different providers.
+
+How does the CNI Plugin work with Kubernetes?
+
+1. The Kube-controller-manager is responsible for assigning pod CIDR to each node. Each pod gets a unique IP address from the pod CIDR.
+2. Kubelet interacts with container runtime to launch the scheduled pod. The CRI plugin which is part of the Container runtime interacts with the CNI plugin to configure the pod network.
+3. CNI Plugin enables networking between pods spread across the same or different nodes using an overlay network.
+
+![Kubernetes CNI Plugin workflow](https://storage.ghost.io/c/5f/2f/5f2f4d20-2abf-4534-8d40-7aa233aedd43/content/images/2025/03/image-18-17.png)
+
+Click to view in HD
+
+Following are high-level functionalities provided by CNI plugins.
+
+1. Pod Networking
+2. Pod network security & isolation using Network Policies to control the traffic flow between pods and between namespaces.
+
+Some popular CNI plugins include:
+
+1. Calico
+2. Flannel
+3. Cilium (Uses eBPF)
+4. [Amazon VPC CNI](https://devopscube.com/secondary-network-eks-cluster/) (For AWS VPC)
+5. Azure CNI (For Azure Virtual network)Kubernetes networking is a big topic and it differs based on the hosting platforms.
+
+## Kubernetes Native Objects (What the Architecture Manages)
+
+Till now we have learned about the core Kubernetes components and how each component works.
+
+All these components work towards managing the following key Kubernetes objects.
+
+### Workload Objects
+
+The following are the key workload objects.
+
+1. [Pod](https://devopscube.com/kubernetes-pod/): The smallest deployable units
+2. Replicaset: It ensures a set number of Pod replicas
+3. [Deployment](https://devopscube.com/kubernetes-deployment-tutorial/): It manages ReplicaSets and upgrades
+4. [Daemonset](https://devopscube.com/kubernetes-daemonset/): It runs a copy of a Pod on selected nodes.
+5. Statefulset: It manages stateful applications with stable identity
+6. [Jobs & Cronjobs](https://devopscube.com/create-kubernetes-jobs-cron-jobs/): It runs batch or scheduled tasks.
+
+### Configuration & Secrets
+
+The following objects hold the data for the workloads.
+
+1. **ConfigMaps**: For non-sensitive configuration data.
+2. **Secrets**: For sensitive data like credentials
+
+When it comes to networking, the following Kubernetes objects play a key role.
+
+1. Services: It provides stable networking endpoints for Pods
+2. [Ingress](https://devopscube.com/kubernetes-ingress-tutorial/): Provides HTTP/S routing layers.
+3. [Gateway API](https://devopscube.com/kubernetes-gateway-api/): Advanced implementation of Ingress with added support for service mesh.
+4. Network policies: To define allow/deny traffic rules
+
+Also, Kubernetes is extendable using the following.
+
+* **Custom Resource Definitions (CRDs): This helps in** extending the k8s API with new object types.
+* **Custom Controllers / Operators:** It automates how these custom objects behave.
+
+So the cluster components also manage the objects created using custom controllers and custom resource definitions.
+
+For [AI/ML](https://devopscube.com/kubernetes-ai-ml-features/) workloads, Kubernetes offer native features like Device Plugins, Gateway API Inference, [OCI image volumes](https://devopscube.com/oci-image-volume-kubernetes-pods/) etc.
+
+## Kubernetes Architecture FAQs
+
+### What is the main purpose of the Kubernetes control plane?
+
+The control plane is responsible for maintaining the desired state of the cluster and the applications running on it. It consists of components such as the API server, etcd, Scheduler, and controller manager.
+
+### What is the purpose of the worker nodes in a Kubernetes cluster?
+
+Worker nodes are the servers (either bare-metal or virtual) that run the container in the cluster. They are managed by the control plane and receive instructions from it on how to run the containers that are part of pods.
+
+### How is communication between the control plane and worker nodes secured in Kubernetes?
+
+Communication between the control plane and worker nodes is secured using PKI certificates and communication between different components happens over TLS. This way, only trusted components can communicate with each other.
+
+### What is the purpose of the etcd key-value store in Kubernetes?
+
+Etcd primarily stores the kubernetes objects, cluster information, node information, and configuration data of the cluster, such as the desired state of the applications running on the cluster.
+
+### What happens to Kubernetes applications if the etcd goes down?
+
+While the running applications will not be affected if etcd experiences an outage. It will not be possible to create or update any objects without a functioning etcd
+
+### Is kube-proxy still required?
+
+No. While it remains part of the core, most high-performance clusters now use eBPF (like Cilium) to handle networking more efficiently.
+
+### Is Kubernetes a Paas or IaaS?
+
+Kubernetes is a platform for the container orchestration so it has both capabilities of PasS and IaaS.
+
+### What is L4 and L7 routing in Kubernetes?
+
+Kubernetes Service object uses IP and Port for the traffic routing that is knows as L4 routing and Gateway API uses HTTP details like path, host, etc so is the L7 routing.
+
+## Conclusion
+
+Understanding **Kubernetes architecture** helps you with day-to-day Kubernetes implementation and operations.
+
+When implementing a production-level cluster setup, having the right knowledge of Kubernetes components will help you run and troubleshoot applications.
+
+Also, kubernetes is no longer just a "container orchestrator" tool. It is the distributed operating system for the AI era. It is becoming the top platform choice for AI/MLOps workloads as its architecture supports features required for AI/MLOps workflows.
+
+In 2026, the architecture has evolved with features like i**n-place scaling**, **GPU-centric scheduling**, and **eBPF-powered networking** and more.
+
+Over to you!
+
+Hope this guide helps you in understanding the core Kubernetes better. If you have any doubts or suggestions, do drop a comment below.
+
+[Kubernetes](/tag/kubernetes/)
+
+[Share](https://twitter.com/share?text=Kubernetes%20Architecture%20Explained%20(2026%20Edition)&url=https://devopscube.com/kubernetes-architecture-explained/ "Share on X")   [Share](https://bsky.app/intent/compose?text=Kubernetes%20Architecture%20Explained%20(2026%20Edition)%20https://devopscube.com/kubernetes-architecture-explained/ "Share on Bluesky")   [Share](https://www.facebook.com/sharer.php?u=https://devopscube.com/kubernetes-architecture-explained/ "Share on Facebook")   [Share](https://www.linkedin.com/shareArticle?mini=true&url=https://devopscube.com/kubernetes-architecture-explained/&title=Kubernetes%20Architecture%20Explained%20(2026%20Edition)&summary=Kubernetes%20Architecture%20Explained%20(2026%20Edition) "Share on Linkedin")   [Email](mailto:?subject=Kubernetes%20Architecture%20Explained%20(2026%20Edition)&body=https://devopscube.com/kubernetes-architecture-explained/ Kubernetes%20Architecture%20Explained%20(2026%20Edition) "Share by email")
+
+About the author
+
+[![Bibin Wilson](https://www.gravatar.com/avatar/b715b3921f3d3ea5702f0e672b00a9a7?s=250&r=x&d=mp)](/author/bibin/) 
+
+## [Bibin Wilson](/author/bibin/)
+
+Bibin Wilson (authored over 300 tech tutorials) is a cloud and DevOps consultant with over 12+ years of IT experience. He has extensive hands-on experience with public cloud platforms and Kubernetes.
+
+Read next
+
+[### Istio Architecture: The Definitive Guide to Ambient Mesh](/istio-architecture/)  [### ElevenLabs Review 2026: Is the Voice Quality Worth Paying For?](/elevenlabs-review/)  [### How to Deploy Llama 3 with Docker and vLLM (Full Optimization Guide)](/deploying-llama-with-docker-and-vllm/)  [### How to Use In-Place Pod Resize with VPA in Kubernetes](/vpa-in-place-pod-resize/)  [### How to Provision Persistent Volume on EKS Cluster](/provsion-persistent-volume-on-eks/)
+
+ 
+
+---
+
+Title: Kubernetes Architecture Breakdown - Gigamon Blog
+[![Gigamon logo](https://www.gigamon.com/content/dam/website-assets/icons/gigamon-logo-white.svg "Gigamon logo")](https://www.gigamon.com/)
+
+ProductsSolutionsPartnersSupportCustomersResourcesCompany
+
+Login
+
+* [VÜE Community](https://community.gigamon.com/gigamoncp/s/login/?utm_source=gigamon.com&utm_medium=referral&utm_campaign=community-links&utm_content=nav-login "VÜE Community")
+* [Partner Portal](https://gigamon.my.site.com/partnercommunity/s/login "Partner Portal")
+
+EN
+
+Language
+
+* [English](https://www.gigamon.com/ "English")
+* [Français](https://www.gigamon.com/fr/ "Français")
+* [Deutsch](https://www.gigamon.com/de/ "Deutsch")
+* [日本語](https://www.gigamon.com/jp/ "日本語")
+* [한국어](https://www.gigamon.com/kr/ "한국어")
+* [简体中文](https://www.gigamon.com/cn/ "简体中文")
+
+---
+
+### Gigamon Deep Observability Pipeline
+
+Supercharge your security and observability tools with network-derived intelligence to eliminate blind spots and reduce tool costs.
+
+[LEARN MORE](https://www.gigamon.com/products/deep-observability-pipeline.html)
+
+#### CLOUD VISIBILITY
+
+* [GigaVUE Cloud Suite](https://www.gigamon.com/products/access-traffic/cloud-suite.html "GigaVUE Cloud Suite")
+* [AWS](https://www.gigamon.com/solutions/cloud/public-cloud/gigavue-cloud-suite-aws.html "AWS")
+* [Azure](https://www.gigamon.com/solutions/cloud/public-cloud/gigavue-cloud-suite-azure.html "Azure")
+* [Google Cloud](https://www.gigamon.com/solutions/cloud/public-cloud/gigavue-cloud-suite-google-cloud-platform.html "Google Cloud")
+* [Kubernetes](https://www.gigamon.com/solutions/cloud/private-cloud/gigavue-cloud-suite-kubernetes.html "Kubernetes")
+* [Nutanix](https://www.gigamon.com/solutions/cloud/private-cloud/gigavue-cloud-suite-nutanix.html "Nutanix")
+* [OpenStack](https://www.gigamon.com/solutions/cloud/private-cloud/gigavue-cloud-suite-openstack.html "OpenStack")
+* [VMware](https://www.gigamon.com/solutions/cloud/private-cloud/gigavue-cloud-suite-vmware.html "VMware")
+
+#### DATA CENTER VISIBILITY
+
+* [GigaVUE Appliances](https://www.gigamon.com/products/access-traffic/physical-nodes.html "GigaVUE Appliances")
+* [HC Series](https://www.gigamon.com/products/access-traffic/physical-nodes/gigavue-hc-series.html "HC Series")
+* [Network Taps](https://www.gigamon.com/products/access-traffic/network-taps.html "Network Taps")
+* [Traffic Aggregators](https://www.gigamon.com/products/access-traffic/traffic-aggregators.html "Traffic Aggregators")
+
+#### NETWORK SECURITY
+
+* [TLS/SSL Decryption](https://www.gigamon.com/products/optimize-traffic/traffic-intelligence/gigasmart/ssl-tls-decryption.html "TLS/SSL Decryption")
+* [Application Filtering](https://www.gigamon.com/products/optimize-traffic/application-intelligence/application-filtering-intelligence.html "Application Filtering")
+* [Application Metadata](https://www.gigamon.com/products/optimize-traffic/application-intelligence/application-metadata.html "Application Metadata")
+
+#### TRAFFIC INTELLIGENCE
+
+* [GigaVUE Fabric Manager](https://www.gigamon.com/products/management/gigavue-fm.html "GigaVUE Fabric Manager")
+* [GigaSMART](https://www.gigamon.com/products/optimize-traffic/traffic-intelligence/gigasmart.html "GigaSMART")
+
+---
+
+### A NEW AI ERA BEGINS
+
+AI builds on deep observability to enhance traffic intelligence, threat detection, and governance across the hybrid cloud.
+
+[MEET GIGAMON AI](https://www.gigamon.com/solutions/gigamon-ai.html)
+
+#### CLOUD VISIBILITY
+
+* [Accelerate Cloud Migration](https://www.gigamon.com/solutions/accelerate-cloud-migration.html "Accelerate Cloud Migration")
+* [Acquire Multi-Cloud Observability](https://www.gigamon.com/solutions/multi-cloud.html "Acquire Multi-Cloud Observability")
+* [Assure Cloud Security and Compliance](https://www.gigamon.com/solutions/assure-cloud-security-compliance.html "Assure Cloud Security and Compliance")
+* [Eliminate Lateral Blind Spots](https://www.gigamon.com/solutions/east-west-visibility.html "Eliminate Lateral Blind Spots")
+* [Reduce Cloud Cost](https://www.gigamon.com/solutions/manage-cloud-cost-complexity.html "Reduce Cloud Cost")
+
+#### DATA CENTER VISIBILITY
+
+* [Lower Your Tool Costs](https://www.gigamon.com/solutions/cut-network-and-security-costs-by-50-percent.html "Lower Your Tool Costs")
+* [Make Network Changes Without Disruption](https://www.gigamon.com/solutions/make-network-changes-without-disruption.html "Make Network Changes Without Disruption")
+* [Put NetOps Back in Control](https://www.gigamon.com/solutions/network-operations.html "Put NetOps Back in Control")
+
+#### NETWORK SECURITY
+
+* [Build a Zero Trust Architecture](https://www.gigamon.com/campaigns/zero-trust.html "Build a Zero Trust Architecture")
+* [Stronger Security Starts with Network Visibility](https://www.gigamon.com/solutions/security-operations.html "Stronger Security Starts with Network Visibility")
+
+#### INDUSTRY
+
+* [Federal](https://www.gigamon.com/solutions/industry/federal.html "Federal")
+* [Financial Services](https://www.gigamon.com/solutions/industry/financial-services.html "Financial Services")
+* [Healthcare](https://www.gigamon.com/solutions/industry/healthcare.html "Healthcare")
+* [IoT, OT, ICS](https://www.gigamon.com/solutions/industry/IOT.html "IoT, OT, ICS")
+* [State, Local, Education](https://www.gigamon.com/solutions/industry/sled.html "State, Local, Education")
+* [Service Providers](https://www.gigamon.com/solutions/service-provider.html "Service Providers")
+
+---
+
+### A Thriving Partner Ecosystem
+
+Gigamon reseller and integration partners design, implement and optimize best-of-breed and validated joint solutions.
+
+#### FIND A PARTNER
+
+* [Technology Alliance Partners](https://www.gigamon.com/partners/technology-partners.html "Technology Alliance Partners")
+* [Channel Partners](https://www.gigamon.com/partners/channel-partners.html "Channel Partners")
+* [Partner Locator](https://gigamon.my.salesforce-sites.com/partnerlocator/ "Partner Locator")
+
+#### NOT A PARTNER?
+
+* [Become a Partner](https://www.gigamon.com/partners/channel-partners/become-a-partner.html "Become a Partner")
+
+#### ALREADY A PARTNER?
+
+* [Partner Portal Login](https://gigamon.my.site.com/partnercommunity/s/login "Partner Portal Login")
+
+---
+
+### Proven Support and Services
+
+Our global support team is committed to creating experiences of unmatched quality, scalability and efficiency.
+
+#### OVERVIEW
+
+* [Support and Services](https://www.gigamon.com/support/support-and-services.html "Support and Services")
+* [Policies](https://www.gigamon.com/support/policies.html "Policies")
+* [Warranty](https://www.gigamon.com/support/warranty.html "Warranty")
+
+#### GET SUPPORT
+
+* [Contact Support](https://www.gigamon.com/support/support-and-services/contact-support.html "Contact Support")
+* [Education Services](https://www.gigamon.com/support/education-services.html "Education Services")
+* [Professional Services](https://www.gigamon.com/support/professional-services.html "Professional Services")
+
+#### ASK THE COMMUNITY
+
+* [Customer VÜE Dashboard](https://community.gigamon.com/gigamoncp/s/?utm_source=gigamon.com&utm_medium=referral&utm_campaign=community-links&utm_content=nav-support "Customer VÜE Dashboard")
+* [Discussion Forum](https://community.gigamon.com/gigamoncp/s/groups?utm_source=gigamon.com&utm_medium=referral&utm_campaign=community-links&utm_content=nav-support "Discussion Forum")
+* [Knowledge Articles](https://community.gigamon.com/gigamoncp/s/answers-and-articles?utm_source=gigamon.com&utm_medium=referral&utm_campaign=community-links&utm_content=nav-support "Knowledge Articles")
+* [Product Documentation](https://community.gigamon.com/gigamoncp/s/docs?utm_source=gigamon.com&utm_medium=referral&utm_campaign=community-links&utm_content=nav-support "Product Documentation")
+
+---
+
+### voice of the customer
+
+Gigamon serves the most security conscious government agencies and businesses around the world, enabling them to gain deep observability they require to better secure and manage hybrid cloud infrastructure.
+
+#### CUSTOMERS
+
+* [View All](https://www.gigamon.com/company/customers.html "View All")
+
+![cegedim](https://www.gigamon.com/content/dam/website-assets/thumbnails/nav-thumb-uhmm.png.imgo.png)
+
+[U.S. Holocaust Memorial Museum](https://www.gigamon.com/content/dam/resource-library/english/case-study---use-cases/cs-us-holocaust-memorial-museum.pdf)
+
+[Building a foundation for data integrity and security.](https://www.gigamon.com/content/dam/resource-library/english/case-study---use-cases/cs-us-holocaust-memorial-museum.pdf)
+
+![Corpay (formerly FLEETCOR)](https://www.gigamon.com/content/dam/website-assets/thumbnails/navthumb-fleetcor.png.imgo.png)
+
+[Corpay](https://www.gigamon.com/resources/resource-library/video/vi-corpay-enhances-hybrid-cloud-security-through-proactive-threat-identification.html)
+
+[Enhances hybrid cloud security through proactive threat identification.](https://www.gigamon.com/resources/resource-library/video/vi-corpay-enhances-hybrid-cloud-security-through-proactive-threat-identification.html)
+
+![DoD](https://www.gigamon.com/content/dam/website-assets/customers/navthumb-dept-defense.png.imgo.png)
+
+[Department of Defense](https://www.gigamon.com/content/dam/resource-library/english/case-study---use-cases/cs-department-of-defense.pdf)
+
+[Confidently feeds different tool sets in the physical and virtual world.](https://www.gigamon.com/content/dam/resource-library/english/case-study---use-cases/cs-department-of-defense.pdf)
+
+---
+
+### Resource Library
+
+Your one-stop hub to explore content resources and stay current on the latest in how to amplify the power of your cloud, security and observability tools.
+
+#### RESOURCES
+
+* [Resource Library](https://www.gigamon.com/search-results.html?&t=All&sort=relevancy#t=Resources "Resource Library")
+* [Learning Center](https://www.gigamon.com/resources/learning-center.html "Learning Center")
+* [Tech Hub Videos](https://www.gigamon.com/lp/tech-hub.html "Tech Hub Videos")
+* [Webinars](https://www.gigamon.com/resources/resource-library/webinar-hub.html "Webinars")
+
+![navthumb precryption](https://www.gigamon.com/content/dam/website-assets/thumbnails/nav-thumb_HCSS.png.imgo.png "gen ai")
+
+[Recalibrate Risk Now](https://www.gigamon.com/campaigns/hybrid-cloud-security-survey.html)
+
+[2025 survey now live.  
+ AI threats are rising.  
+ See how to gain control.](https://www.gigamon.com/campaigns/hybrid-cloud-security-survey.html)
+
+![navthumb precryption](https://www.gigamon.com/content/dam/website-assets/thumbnails/nav-thumb_gen-ai.png.imgo.png "gen ai")
+
+[AI for Deep Observability](https://www.gigamon.com/content/dam/resource-library/english/solution-brief/sb-gigamon-genai.pdf)
+
+[Insights and governance redefined.](https://www.gigamon.com/content/dam/resource-library/english/solution-brief/sb-gigamon-genai.pdf)
+
+![tech hub](https://www.gigamon.com/content/dam/website-assets/thumbnails/nav-thumb_techhub.png.imgo.png)
+
+[Tech Hub](https://www.gigamon.com/lp/tech-hub.html)
+
+[Explore short demos highlighting real-life use cases.](https://www.gigamon.com/lp/tech-hub.html)
+
+---
+
+### WHY GIGAMON
+
+We offer a deep observability pipeline that efficiently delivers network-derived intelligence to cloud, security, and observability tools to eliminate blind spots, optimize traffic, and reduce tool costs, enabling you to better secure and manage hybrid cloud infrastructure.
+
+[LEARN MORE](https://www.gigamon.com/company/company-information.html)
+
+#### IN THE NEWS
+
+* [Blog](https://blog.gigamon.com "Blog")
+* [Events](https://www.gigamon.com/company/news-and-events/events.html "Events")
+* [Newsroom](https://www.gigamon.com/company/news-and-events/newsroom.html "Newsroom")
+
+#### COMPANY INFORMATION
+
+* [About Us](https://www.gigamon.com/company/company-information.html "About Us")
+* [Careers](https://www.gigamon.com/company/careers.html "Careers")
+* [Customers](https://www.gigamon.com/company/customers.html "Customers")
+
+![Company Overview](https://www.gigamon.com/content/dam/website-assets/thumbnails/navthumb-overview.jpg.imgo.jpg)
+
+[Gigamon Overview: A Leader in Deep Observability](https://www.gigamon.com/content/dam/resource-library/english/other/br-company-overview.pdf)
+
+[See the full picture. Secure your hybrid cloud.](https://www.gigamon.com/content/dam/resource-library/english/other/br-company-overview.pdf)
+
+![GPTW](https://www.gigamon.com/content/dam/website-assets/thumbnails/nav-thumb-greatplace.png.imgo.png)
+
+[Join the Team](https://jobs.jobvite.com/gigamon)
+
+[Become a part of the OneGigamon team. Search for your next opportunity.](https://jobs.jobvite.com/gigamon)
+
+ [DEMOS](https://www.gigamon.com/lp/free-trial.html "DEMOS")  [CONTACT SALES](https://www.gigamon.com/contact-sales.html "CONTACT SALES")
+
+[![Gigamon | Blog](https://blog.gigamon.com/wp-content/themes/gigamonblogvfour/images/gigamon-blog-logo.svg)](https://blog.gigamon.com)
+
+CATEGORY:
+
+[All POSTS](https://blog.gigamon.com)
+
+[Cloud](https://blog.gigamon.com/category/cloud/)
+
+[Security](https://blog.gigamon.com/category/security/)
+
+[Zero Trust](https://blog.gigamon.com/category/zero-trust/)
+
+[Networking](https://blog.gigamon.com/category/networking/)
+
+[Service Provider](https://blog.gigamon.com/category/service-provider/)
+
+[Trending](https://blog.gigamon.com/category/trending/)
+
+SHARE
+
+[Home](https://blog.gigamon.com/) » [Cloud](https://blog.gigamon.com/category/cloud/) » Kubernetes Architecture Breakdown
+
+[Cloud](https://blog.gigamon.com/category/cloud/) / May 4, 2021
+
+# Kubernetes Architecture Breakdown
+
+[![Dan Daniels](https://blog.gigamon.com/wp-content/themes/gigamonblogvfour/images/gigamon-nopic.png) Dan Daniels](https://blog.gigamon.com/author/dan-daniels/)
+
+Containerization facilitates application sharing and microservices adoption, enabling faster development and deployment. Containers are lightweight, portable, and easily scalable, with Kubernetes emerging as the leading orchestration tool for managing container-based applications.
+
+## **What Is Kubernetes Architecture?**
+
+Kubernetes (sometimes designated as *k8s*) automates containerized application deployment across a cluster of machines, eliminating the need for manual administration. Originally designed by Google and currently maintained by the [Cloud Native](https://blog.gigamon.com/2020/11/10/what-is-cloud-native/) Computing Foundation (which is under the umbrella of the Linux Foundation), Kubernetes is an open-source solution, making it extremely adaptable to the needs of individual organizations.
+
+Simply put, Kubernetes is a single interface that allows organizations to deploy containers to clouds, virtual machines, and physical hardware of all kinds. To understand how Kubernetes works, let’s take a high-level look at the Kubernetes architecture.
+
+The Kubernetes architecture can be broken down into *clusters*. A Kubernetes cluster consists of nodes for running containerized applications. Lightweight, flexible, and capable of more efficiently fulfilling the same role as a virtual machine, Kubernetes clusters make it easier for organizations to build, move, and manage applications across environments. Being platform agnostic, Kubernetes clusters are not restricted to individual operating systems; they can run *anywhere*.
+
+## **Nodes and Components**
+
+Kubernetes-based containers are placed into *pods*, which encapsulate individual containers and their underlying microservices and can be easily added or removed. Pods run on *nodes*. In terms of structure, each Kubernetes cluster is made up of a “master” node, and multiple “worker” nodes. Master nodes fulfill the role of “server,” while the worker nodes act as “clients” that host pods and connect to and run on the master nodes.
+
+Master nodes are the brains of the Kubernetes system. Master nodes allow users to define aspects of the system, such as pods, configuration, deployments, and other factors for Kubernetes to maintain.
+
+The master node, called the control plane, consists of the following Kubernetes components:
+
+* **Kube-apiserver:** The cluster’s front end, the kube-apiserver receives requests from users, management devices, and command-line interfaces.
+* **Etcd:** Accessible only from the API server, etcd acts as backup storage for all cluster data.
+* **Kube-scheduler:** As new pods are created, the kube-scheduler identifies these new pods and assigns them to a node. Kube-scheduler also stores worker-node resource usage information.
+* **Kube-controller-manager:** Kube-controller-manager runs controller processes, with each controller as a separate process performing a single, specific function.
+
+Kubernetes orchestration is driven by a suite of controller functions responsible for managing various aspects of the cluster’s operations. These functions ensure the availability, scalability, and reliability of workloads running within the Kubernetes ecosystem. Let’s explore the key controller functions:
+
+* **Replication controller:** Ensures the correct number of pods is maintained in the cluster by managing pod replication and scaling.
+* **Node controller:** Monitors the health of each node within the cluster, detecting when nodes come online or become unresponsive.
+* **Endpoints controller:** Connects pods and services by populating the endpoints object, facilitating communication between them.
+* **Service account and token controllers:** Allocate API access tokens and default accounts to new namespaces in the cluster, ensuring secure authentication and authorization.
+* **Cloud-controller-manager:** Links the Kubernetes cluster to the cloud provider’s API, managing cloud-specific controls and integrations. This component is essential for clusters hosted partly or entirely in the cloud, optimizing performance and ensuring fault tolerance.
+
+Every Kubernetes cluster contains at least one worker node, so that applications always remain accessible, even when a node fails. Every worker node in the cluster contains the following:
+
+* **Kubelet:** The kubelet is the lowest-level component in the Kubernetes architecture. It is responsible for ensuring that the containers have started and that they are running.
+* **Container runtime:**Container runtimes are ready-to-use software packages containing everything the node needs to run an application. This includes the code and any required runtime, application and system libraries, and default values for essential settings. Third-party plugins (such as Docker) are usually added to help perform this function.
+* **Kube-proxy:** The kube-proxy maintains network rules with the nodes, making network communication to pods from network sessions possible. The kube-proxy ensures that every node has the right IP address and uses local *iptables* for routing and traffic load balancing.
+
+Essentially, single containers composed of microservices code are grouped into individual pods. The master node schedules the pod to a worker node, coordinating with the container runtime to facilitate launch. If a pod fails, it is discarded, and a replica pod is created. The replica pod is identical to the original, other than the fact that it includes a different set of IPs. But while this allows for significant flexibility, it also creates potential problems, including processing issues and IP churn, potentially impacting the reliability of the containerization. Kubernetes services provide the solution.
+
+## **Kubernetes Services**
+
+Much like how a living body will replicate cells as old ones die off, Kubernetes services are designed to discover and terminate failed pods, creating new, functionally identical pods to take their place. To do this, it uses key-value pairs known as *labels* and *selectors*. These work together, allowing the service to automatically identify pods with labels that match selectors. By comparing the observed state against the desired state in the manifest file, Kubernetes can maintain or scale the current system. Kubernetes runs constant checks, or *control loops*, making changes where necessary to bring everything in line with the user-defined paradigm. Kubernetes services provide stable IP addresses, DNS names, and ports so that even while containers are being added or removed, overall network information remains unaffected.
+
+## **Kubernetes Architecture Best Practices**
+
+Kubernetes architecture embodies core principles of availability, scalability, portability, and security, essential for modern cloud-native applications. In this section, we dive into best practices that optimize Kubernetes deployments to ensure robustness, flexibility, and resilience. From achieving high availability through meticulous workload distribution to enhancing security with stringent access controls, these practices empower organizations to harness the full potential of Kubernetes in their infrastructure.
+
+* **High availability:** Achieving high availability in Kubernetes involves ensuring both application and infrastructure availability. Components such as replication controllers, replica sets, and pet sets are employed to maintain application availability. Users can configure stateful workloads for high availability using pet sets. Furthermore, Kubernetes offers a wide range of storage backends and supports various configurations for infrastructure availability.
+* **Scalability:** Scalability in Kubernetes is facilitated by its microservices architecture, where applications are composed of multiple containers grouped into pods. Kubernetes supports cluster auto-scaling, enabling dynamic addition of nodes to the cluster for scaling pods across when necessary. Additionally, Kubernetes on certain cloud platforms supports auto-scaling, providing seamless coordination between Kubernetes and the underlying infrastructure.
+* **Portability:** Kubernetes is designed to be highly portable, allowing deployment across different cloud platforms, container runtimes, operating systems, and environments. Organizations can deploy Kubernetes locally, on bare metal, or in virtualization environments. Hybrid cloud capabilities can also be realized by deploying clusters on-premises and across multiple cloud providers.
+* **Security:** Security is a paramount consideration in Kubernetes architecture. Role-based access control (RBAC) is enforced across the cluster, ensuring granular access management. Integrating image-scanning processes into CI/CD pipelines enhances security by identifying vulnerabilities during the build and run phases. Container security is further strengthened by using non-root users, read-only file systems, and avoiding default values to minimize potential vulnerabilities.
+
+## **Kubernetes in the Cloud**
+
+As previously stated, Kubernetes is designed to allow for effective containerization regardless of the environment. However third-party cloud platforms can make it difficult for Kubernetes to retrieve the information it needs about nodes within the cluster. With each cloud provider approaching operational implementation differently, Kubernetes requires an all-purpose solution.
+
+Kubernetes cloud controller manager (CCM) is a background program that embeds cloud-specific control logic, making it possible for users to link their clusters into a cloud provider’s API. Using a plugin-mechanism structure, CCM allows for the full range of cloud providers to integrate with Kubernetes.
+
+## **Enhancing Kubernetes Architecture Security**
+
+Securing Kubernetes clusters, nodes, and containers is paramount to safeguarding your digital assets. To fortify your defenses, adhere to these principles:
+
+* **Stay up to date:** Keep your Kubernetes installation current with the latest version. Regular updates ensure you benefit from the latest security patches and enhancements. Only the most recent three versions are supported with security updates.
+* **Lock down API access:** Configure the Kubernetes API server with utmost security. Disable anonymous and unauthenticated access. Utilize Transport Layer Security (TLS) encryption for all communications between the API server and kubelets, ensuring data integrity and confidentiality.
+* **Fortify etcd:** While etcd is inherently trustworthy, it’s imperative to secure its connections. Exclusively allow client connections over TLS to maintain the confidentiality and integrity of data exchanged with etcd.
+* **Secure the kubelet:** Harden the kubelet to prevent unauthorized access. Activate stringent access controls by setting the kubelet to reject anonymous requests. Employ the NodeRestriction admission controller to restrict the kubelet’s privileges, mitigating potential security risks.
+* **Leverage native controls:** Mitigate operational risks by harnessing Kubernetes-native security mechanisms. Embrace native Kubernetes controls to enforce robust security policies seamlessly. Aligning with native controls minimizes conflicts between your custom security measures and the orchestrator, promoting smoother operations and enhanced security posture.
+
+Securing Kubernetes architecture demands a proactive approach to mitigate evolving threats and vulnerabilities. By implementing best practices such as these, organizations can bolster their defenses against potential breaches. However, safeguarding Kubernetes environments requires more than just adherence to best practices — it necessitates comprehensive visibility and analytics capabilities.
+
+## Gigamon for Kubernetes Visibility
+
+Containerization with microservices is a solution to the problem of application portability across various hardware and virtual machines, and Kubernetes is a solution to the problem of effective container orchestration. In this same vein, [Gigamon GigaVUE® Cloud Suite](https://www.gigamon.com/solutions/cloud.html)™ for Kubernetes provides essential network visibility and security analytics to the Kubernetes architecture.
+
+Containerized applications are vulnerable to attack. Given that every application within a container may represent different potential attack vectors, and that legacy threat-detection mechanisms are ill-suited to dynamic containerized environments, [complete container visibility is absolutely essential](https://blog.gigamon.com/2019/09/19/if-you-dont-have-container-visibility-your-organization-is-at-risk/). Gigamon GigaVUE Cloud Suite employs three key components, designed to ensure total container visibility:
+
+* **Universal Cloud Tap (UCT) controller:** UCT controllers are deployed in each worker node, receiving copied packets from every other controller on the node. This allows GigaVUE to collect relevant traffic with minimal impact on the node.
+* **GigaVUE V Series and HC nodes:** GigaVUE V Series and HC hardware appliances aggregate traffic, extracting appropriate traffic for distribution to relevant tools. These components ensure that tools are receiving the right traffic without becoming overburdened while generating reliable network intelligence.
+* **GigaVUE-FM:** GigaVUE-FM works with the master node to identify where new worker nodes have been established. It then creates new UCT controllers for those nodes, configuring their policies and scaling them as needed.
+
+Kubernetes is a complex solution that incorporates a wide range of different components. But at its heart, Kubernetes architecture follows a relatively simple model: The user defines how the system should function; Kubernetes aligns the cluster to match that desired state. By understanding the components and the roles that each play, as well as the roles played by GigaVUE Cloud Suite in optimizing container visibility, users can more confidently enjoy the full benefits of containerization.
+
+##### Click to learn more about [GigaVUE Cloud Suite for Kubernetes](https://www.gigamon.com/solutions/cloud/private-cloud/gigavue-cloud-suite-kubernetes.html).
+
+#### Featured Webinars
+
+[Hear from our experts](https://www.gigamon.com/resources/resource-library/webinar-hub.html?intcid=blog) on the latest trends and best practices to optimize your network visibility and analysis.
+
+![](/wp-content/uploads/2022/10/community-vue-1.png)
+
+##### CONTINUE THE DISCUSSION
+
+People are talking about this in the Gigamon Community’s [Hybrid/Public Cloud](https://community.gigamon.com/gigamoncp/s/group/0F91O0000009cN2SAI/hybridpublic-cloud) group.
+
+**Share your thoughts today**
+
+---
+
+OLDER ARTICLE  
+ [Building Resilience Through the Cloud in a Post-Pandemic World](https://blog.gigamon.com/2021/05/03/building-resilience-through-the-cloud-in-a-post-pandemic-world/)
+
+NEWER ARTICLE  
+ [Partner Spotlight: Trace3 Gets Customer Wins by Bringing Together Insights from Security and Operations](https://blog.gigamon.com/2021/05/04/partner-spotlight-trace3-gets-customer-wins-by-bringing-together-insights-from-security-and-operations/)
+
+* [Website Terms](https://www.gigamon.com/terms-agreement.html)
+* [Privacy Policy](https://www.gigamon.com/privacy-policy.html)
+* [Cookie Policy](https://www.gigamon.com/cookie-policy.html)
+* [Security](https://www.gigamon.com/security-disclosure.html)
+* [Legal](https://www.gigamon.com/legal.html)
+
+* © Gigamon 2026
+
+![Back to top](https://blog.gigamon.com/wp-content/themes/gigamonblogvfour/images/arrow-top.svg)
+
+ 
+
+---
+
+Title: Kubernetes: Architecture and Components explained
+# Kubernetes: Architecture and Components explained | by Himanshu Sangshetti | Medium
+
+[Sitemap](https://medium.com/sitemap/sitemap.xml)
+
+[Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+[](https://medium.com/?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Get app
+
+[Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------)
+
+[Search](https://medium.com/search?source=post_page---top_nav_layout_nav-----------------------------------------)
+
+Sign up
+
+[Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=post_page---top_nav_layout_nav-----------------------global_nav------------------)
+
+![Image 1: Amandinkar](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Top highlight
+
+# Kubernetes: Architecture and Components explained
+
+## **WHAT IS KUBERNETES?**
+
+[![Image 2: Himanshu Sangshetti](https://miro.medium.com/v2/da:true/resize:fill:32:32/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---byline--e489e98db15d---------------------------------------)
+
+[Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---byline--e489e98db15d---------------------------------------)
+
+Follow
+
+8 min read
+
+·
+
+Aug 18, 2023
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Fe489e98db15d&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&user=Himanshu+Sangshetti&userId=d17e3633127&source=---header_actions--e489e98db15d---------------------clap_footer------------------)
+
+273
+
+2
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fe489e98db15d&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---header_actions--e489e98db15d---------------------bookmark_footer------------------)
+
+[Listen](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3De489e98db15d&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---header_actions--e489e98db15d---------------------post_audio_button------------------)
+
+Share
+
+Kubernetes, often abbreviated as K8s, is an open-source container orchestration platform that automates the deployment, scaling, and management of containerized applications. It provides a framework to efficiently manage the complexities of deploying and running applications in containers across a cluster of machines.
+
+### **KUBERNETES ARCHITECTURE AND COMPONENTS:**
+
+Press enter or click to view image in full size
+
+![Image 3](https://miro.medium.com/v2/resize:fit:700/1*9TA8CE3DyPkNzgZ0Kymbwg.png)
+
+### **— CONTROL PLANE:**
+
+The master control plane is the central management unit of a Kubernetes cluster. It oversees the entire cluster’s operation and coordination, making high-level decisions about how applications should run and ensuring that the actual state of the cluster matches the desired state.
+
+1.   **API Server**:The API Server acts as the entry point for interactions with the Kubernetes cluster. It exposes the Kubernetes API, which allows users, administrators, and other components to communicate with the cluster.
+2.   **etcd**:etcd is a distributed key-value store that serves as Kubernetes’ backing store for all cluster data. It holds the configuration data and the state of the entire cluster. This includes information about Pods, Services, replication settings, and more.
+3.   **Controller Manager**:The Controller Manager is responsible for monitoring the state of various objects in the cluster and taking corrective actions to ensure the desired state is maintained. It includes several built-in controllers, such as the Replication Controller, Deployment Controller, and StatefulSet Controller.
+4.   **Scheduler**:The Scheduler is responsible for placing Pods onto suitable worker nodes. It takes into account factors like resource availability, constraints, and optimization goals.
+
+Together, these components form the master control plane, which acts as the brain and command center of the Kubernetes cluster.
+
+### **— WORKER NODES:**
+
+Worker nodes, also known as worker machines or worker servers, are the heart of a Kubernetes cluster. They are responsible for running containers and executing the actual workloads of your applications.
+
+1.   **Kubelet:** The Kubelet is an agent that runs on each worker node and communicates with the master control plane. Its primary responsibility is to ensure that containers within Pods are running and healthy as per the desired state defined in the cluster’s configuration. The Kubelet works closely with the master control plane to start, stop, and manage containers based on Pod specifications.
+2.   **Kube Proxy:** Kube Proxy sets up routing and load balancing so that applications can seamlessly communicate with each other and external resources.
+3.   **Container Runtime**:A container runtime is the software responsible for running containers on the worker nodes.
+4.   **Container Storage Interfaces (CSI)**:Worker nodes need to provide storage for persistent data. Kubernetes supports different storage solutions through Container Storage Interfaces (CSI). These interfaces allow different storage providers to integrate with Kubernetes and offer persistent storage volumes for applications.
+
+### **— PODS:**
+
+Pods are fundamental building blocks in Kubernetes that group one or more containers together and provide a shared environment for them to run within the same network and storage context.
+
+1.   **Container Co-location**:Pods allow you to colocate containers that need to work closely together within the same network namespace. This means they can communicate using localhost and share the same IP address and port space.
+2.   **Shared Storage and Volumes**:Containers within a Pod share the same storage volumes, which allows them to easily exchange data and files. Volumes are attached to the Pod and can be used by any of the containers within it.
+3.   **Single Unit of Deployment**: Kubernetes schedules Pods as the smallest deployable unit. If you want to scale or manage your application, you work with Pod replicas, not individual containers.
+4.   **Init Containers**:A Pod can include init containers, which are containers that run before the main application containers.
+
+### **— CONTROLLER:**
+
+In Kubernetes, controllers are crucial components responsible for maintaining the desired state of resources in the cluster. They monitor changes to resources and ensure that the actual state matches the intended state specified in the cluster’s configuration. Controllers help automate tasks like scaling, self-healing, and application management.
+
+1.   **Replication Controller**:The Replication Controller ensures a specified number of identical replica Pods are running at all times. If a Pod fails or is deleted, the Replication Controller creates a new one to maintain the desired number.
+2.   **Deployment**:Deployments provide declarative updates to applications. They allow you to define how many replica Pods should be running and how to update them over time. Deployments support rolling updates, which gradually replace old Pods with new ones to minimize service disruption. You can easily roll back to a previous version if issues arise.
+3.   **StatefulSet**: StatefulSets are used to manage stateful applications that require unique identities and persistent storage. They ensure that each Pod gets a stable, unique hostname and are created and scaled in a predictable order.
+4.   **DaemonSet**: DaemonSets ensure that a specific Pod runs on every node in the cluster. They’re useful for deploying monitoring agents, log collectors, or networking components that require presence on all nodes.
+5.   **Horizontal Pod Autoscaler (HPA)**:The HPA controller automatically scales the number of replica Pods based on CPU usage or custom metrics. It ensures that your application adapts to varying levels of traffic and demand by increasing or decreasing the number of running Pods.
+6.   **Vertical Pod Autoscaler (VPA)**:The VPA controller adjusts resource requests and limits for Pods based on their actual usage. It optimizes resource allocation to improve performance and efficiency.
+
+### **— SERVICES:**
+
+In Kubernetes, Services are a fundamental concept that enables communication and load balancing between different sets of Pods, making your applications easily discover able and resilient.
+
+## Get Himanshu Sangshetti’s stories in your inbox
+
+Join Medium for free to get updates from this writer.
+
+Subscribe
+
+Subscribe
+
+- [x] 
+
+Remember me for faster sign in
+
+ 
+
+**1. Service Types**:There are different types of Services in Kubernetes, each designed for specific use cases:
+
+*   **ClusterIP**: Creates an internal virtual IP that exposes the Service within the cluster. This type is suitable for communication between different parts of your application within the cluster.
+*   **NodePort:** Exposes the Service on a static port on each node’s IP. This makes the Service accessible from outside the cluster, typically for development or testing purposes.
+*   **LoadBalancer**: Creates an external load balancer that distributes traffic to the Service across multiple nodes. This type is useful when you need to expose your Service to the internet or an external network.
+*   **ExternalName:** Maps the Service to a DNS name, allowing you to reference services external to the cluster.
+
+2. **Selectors and Labels**:Services use selectors and labels to identify the Pods they should target. Labels are key-value pairs attached to Pods, and selectors define which Pods the Service should include. For example, a Service with a selector might target all Pods with the label “app=web.”
+
+3. **Load Balancing:**Services provide load balancing across multiple Pods with the same label. When you send traffic to a Service, it distributes the traffic evenly among the available Pods. This ensures that no single Pod gets overwhelmed with requests.
+
+4. **Headless Services**:A Headless Service is a special type of Service that doesn’t load balance or provide a stable IP. Instead, it allows you to access individual Pods directly using their IPs or DNS names. This is useful for applications that require direct communication with specific Pods.
+
+### **— VOLUMES:**
+
+Volumes are a way to provide persistent storage to containers within Pods. They enable data to be shared and preserved across container restarts, rescheduling, and even Pod failures. Volumes enhance the flexibility and reliability of containerized applications.
+
+1. **Types of Volumes**: Kubernetes supports various types of volumes to accommodate different storage needs:
+
+*   **EmptyDir**: A temporary storage that’s created when a Pod is assigned to a node and deleted when the Pod is removed or rescheduled.
+*   **HostPath**: Mounts a file or directory from the host machine’s filesystem into the container. Useful for testing and development, but not recommended for production due to portability and security concerns.
+*   **PersistentVolumeClaim (PVC):** An abstract way to request and manage a persistent storage volume. PVCs can dynamically provision storage based on a predefined storage class.
+*   **ConfigMap and Secret Volumes:** Special volumes that allow you to inject ConfigMap or Secret data as files into containers.
+*   **NFS:** Network File System volumes allow you to use network-attached storage in your containers.
+*   **CSI (Container Storage Interface) Volumes**: A plugin framework that allows storage providers to develop volume plugins without having to modify Kubernetes core code.
+
+### **— CONFIGMAPS AND SECRETS:**
+
+1.   **ConfigMaps**: ConfigMaps are used to store non-sensitive configuration data as key-value pairs. This data can include settings, environment variables, command-line arguments, configuration files, or any other configuration-related information that your application needs.
+2.   **Secrets**: Secrets are similar to ConfigMaps but are specifically designed for storing sensitive information, such as passwords, API keys, certificates, and tokens. Secrets provide an additional layer of security by ensuring that sensitive data is not stored in plain text within your container images or configuration files.
+
+### **— NAMESPACES:**
+
+In Kubernetes, namespaces are a way to organize and partition resources within a cluster. They provide a way to create multiple virtual clusters within the same physical cluster, allowing you to separate and manage resources for different teams, projects, or environments.
+
+1**. Purpose of Namespaces:**
+
+Namespaces serve several purposes:
+
+*   Resource Isolation: Namespaces create isolated environments, so resources in one namespace are distinct from those in another. This helps prevent resource conflicts and accidental interference.
+*   Resource Management: Namespaces help organize and manage resources more effectively, especially in large and complex deployments.
+*   Access Control: Namespaces enable fine-grained access control. You can grant different teams or users access only to specific namespaces and the resources within them.
+*   Tenant Separation: If you’re using Kubernetes to offer services to multiple customers or tenants, namespaces help isolate their resources.
+
+2.**Default Namespace**:When you create a Kubernetes cluster, there’s a default namespace where resources are created if you don’t specify a namespace explicitly. It’s recommended to use namespaces to keep your cluster organized, even if you’re not dealing with multiple tenants or teams.
+
+3**. Namespace Scope**:Certain resources, like Nodes and PersistentVolumes, are not tied to a specific namespace and are accessible from all namespaces. Other resources, such as Pods, Services, ConfigMaps, and Secrets, belong to a specific namespace.
+
+4. **Access Control and Quotas**:Namespaces allow you to implement Role-Based Access Control (RBAC) to manage who can access or modify resources within a namespace. Additionally, you can set resource quotas and limits on namespaces to prevent resource overuse.
+
+### **— INGRESS:**
+
+Ingress is a resource that manages external access to services within your cluster. It acts as a way to configure and manage routing rules for incoming traffic, allowing you to expose your services to the outside world, often using HTTP and HTTPS protocols.
+
+1. **Purpose of Ingress**:The primary purpose of Ingress is to provide a way to manage external access to your services without modifying the application code. It serves as an entry point to your cluster, allowing you to route traffic to the appropriate services based on rules you define.
+
+2. **How Ingress Works**:Ingress resources define rules that map incoming requests to specific services. These rules are based on hostnames, paths, and other criteria. When a request matches a rule, the Ingress controller routes the traffic to the appropriate service or backend.
+
+3. **Ingress Controller**:An Ingress resource doesn’t actually handle the traffic routing; it’s the responsibility of an Ingress controller. The Ingress controller watches for changes to Ingress resources and configures the underlying infrastructure to implement the defined routing rules.
+
+Basic understanding about the Kubernetes components was understood,I hope you found this blog helpful.
+
+[Kubernetes](https://medium.com/tag/kubernetes?source=post_page-----e489e98db15d---------------------------------------)
+
+[Kubernetes Architecture](https://medium.com/tag/kubernetes-architecture?source=post_page-----e489e98db15d---------------------------------------)
+
+[Kubernetes Components](https://medium.com/tag/kubernetes-components?source=post_page-----e489e98db15d---------------------------------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Fe489e98db15d&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&user=Himanshu+Sangshetti&userId=d17e3633127&source=---footer_actions--e489e98db15d---------------------clap_footer------------------)
+
+273
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Fe489e98db15d&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&user=Himanshu+Sangshetti&userId=d17e3633127&source=---footer_actions--e489e98db15d---------------------clap_footer------------------)
+
+273
+
+2
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fe489e98db15d&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---footer_actions--e489e98db15d---------------------bookmark_footer------------------)
+
+[![Image 4: Himanshu Sangshetti](https://miro.medium.com/v2/resize:fill:48:48/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---post_author_info--e489e98db15d---------------------------------------)
+
+[![Image 5: Himanshu Sangshetti](https://miro.medium.com/v2/resize:fill:64:64/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---post_author_info--e489e98db15d---------------------------------------)
+
+Follow
+
+[## Written by Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---post_author_info--e489e98db15d---------------------------------------)
+
+[117 followers](https://medium.com/@himanshusangshetty/followers?source=post_page---post_author_info--e489e98db15d---------------------------------------)
+
+·[11 following](https://medium.com/@himanshusangshetty/following?source=post_page---post_author_info--e489e98db15d---------------------------------------)
+
+Cloud enthusiast
+
+Follow
+
+## Responses (2)
+
+[](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page---post_responses--e489e98db15d---------------------------------------)
+
+![Image 6: Amandinkar](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)
+
+Write a response
+
+[What are your thoughts?](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---post_responses--e489e98db15d---------------------respond_sidebar------------------)
+
+Cancel
+
+Respond
+
+[![Image 7: sumanth](https://miro.medium.com/v2/resize:fill:32:32/1*QEulS88_MSX1Tjl9uUDGwA.jpeg)](https://medium.com/@badampraveena1981?source=post_page---post_responses--e489e98db15d----0-----------------------------------)
+
+[sumanth](https://medium.com/@badampraveena1981?source=post_page---post_responses--e489e98db15d----0-----------------------------------)
+
+[Aug 21, 2025(edited)](https://medium.com/@badampraveena1981/very-helpful-28e5e673101c?source=post_page---post_responses--e489e98db15d----0-----------------------------------)
+
+Very helpful
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2F28e5e673101c&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40badampraveena1981%2Fvery-helpful-28e5e673101c&user=sumanth&userId=cd2ddc33e553&source=---post_responses--28e5e673101c----0-----------------respond_sidebar------------------)
+
+1
+
+Reply
+
+[![Image 8: Amandinkar](https://miro.medium.com/v2/resize:fill:32:32/1*dmbNkD5D-u45r44go_cf0g.png)](https://medium.com/@amandinkar67?source=post_page---post_responses--e489e98db15d----1-----------------------------------)
+
+[Amandinkar](https://medium.com/@amandinkar67?source=post_page---post_responses--e489e98db15d----1-----------------------------------)
+
+[Jan 12](https://medium.com/@amandinkar67/really-great-explanation-fee1a5a667af?source=post_page---post_responses--e489e98db15d----1-----------------------------------)
+
+really great explanation.
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2Ffee1a5a667af&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40amandinkar67%2Freally-great-explanation-fee1a5a667af&user=Amandinkar&userId=5110f0f90c65&source=---post_responses--fee1a5a667af----1-----------------respond_sidebar------------------)
+
+Reply
+
+## More from Himanshu Sangshetti
+
+![Image 9: Deploying a ML model on Amazon SageMaker](https://miro.medium.com/v2/resize:fit:679/format:webp/0*mWOpBoy_SGxCxSmH.png)
+
+[![Image 10: Himanshu Sangshetti](https://miro.medium.com/v2/resize:fill:20:20/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----0---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----0---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[## Deploying a ML model on Amazon SageMaker ### Amazon SageMaker is a fully managed service provided by Amazon Web Services (AWS) for building, training, and deploying machine learning…](https://medium.com/@himanshusangshetty/deploying-a-ml-model-on-amazon-sagemaker-421f3510fb8f?source=post_page---author_recirc--e489e98db15d----0---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+Dec 18, 2023
+
+[100 1](https://medium.com/@himanshusangshetty/deploying-a-ml-model-on-amazon-sagemaker-421f3510fb8f?source=post_page---author_recirc--e489e98db15d----0---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---author_recirc--e489e98db15d----0-----------------explicit_signal----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F421f3510fb8f&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fdeploying-a-ml-model-on-amazon-sagemaker-421f3510fb8f&source=---author_recirc--e489e98db15d----0-----------------bookmark_preview----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+![Image 11: Advanced Context Engineering Techniques: A Technical Deep Dive](https://miro.medium.com/v2/resize:fit:679/format:webp/0*mqncam-Pn0fknxsc.png)
+
+[![Image 12: Himanshu Sangshetti](https://miro.medium.com/v2/resize:fill:20:20/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----1---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----1---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[## Advanced Context Engineering Techniques: A Technical Deep Dive ### Introduction: The Context Engineering Problem](https://medium.com/@himanshusangshetty/advanced-context-engineering-techniques-a-technical-deep-dive-b997e74cab92?source=post_page---author_recirc--e489e98db15d----1---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+Feb 16
+
+[2](https://medium.com/@himanshusangshetty/advanced-context-engineering-techniques-a-technical-deep-dive-b997e74cab92?source=post_page---author_recirc--e489e98db15d----1---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---author_recirc--e489e98db15d----1-----------------explicit_signal----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fb997e74cab92&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fadvanced-context-engineering-techniques-a-technical-deep-dive-b997e74cab92&source=---author_recirc--e489e98db15d----1-----------------bookmark_preview----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+![Image 13: State-of-the-Art Autonomous Agent Architecture: Design Patterns and Best Practices](https://miro.medium.com/v2/resize:fit:679/format:webp/1*EdDyzrar4yYJE2igHhn4eg.png)
+
+[![Image 14: Himanshu Sangshetti](https://miro.medium.com/v2/resize:fill:20:20/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----2---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----2---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[## State-of-the-Art Autonomous Agent Architecture: Design Patterns and Best Practices ### Autonomous agents represent the next evolution in AI systems- moving beyond single-turn interactions to persistent, goal-oriented systems…](https://medium.com/@himanshusangshetty/state-of-the-art-autonomous-agent-architecture-design-patterns-and-best-practices-f456addd9f07?source=post_page---author_recirc--e489e98db15d----2---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+Feb 16
+
+[2](https://medium.com/@himanshusangshetty/state-of-the-art-autonomous-agent-architecture-design-patterns-and-best-practices-f456addd9f07?source=post_page---author_recirc--e489e98db15d----2---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---author_recirc--e489e98db15d----2-----------------explicit_signal----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ff456addd9f07&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fstate-of-the-art-autonomous-agent-architecture-design-patterns-and-best-practices-f456addd9f07&source=---author_recirc--e489e98db15d----2-----------------bookmark_preview----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+![Image 15: Deploying RAG Applications on AWS with Amazon Bedrock and OpenSearch](https://miro.medium.com/v2/resize:fit:679/format:webp/1*Fi7408CuPevomlRBu4-yFw.png)
+
+[![Image 16: Himanshu Sangshetti](https://miro.medium.com/v2/resize:fill:20:20/0*ex_QVv_PLYr3NmB9)](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----3---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d----3---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[## Deploying RAG Applications on AWS with Amazon Bedrock and OpenSearch ### Retrieval Augmented Generation (RAG) has emerged as one of the most practical patterns for building LLM applications that need to work with…](https://medium.com/@himanshusangshetty/deploying-rag-applications-on-aws-with-amazon-bedrock-and-opensearch-f5c30af7fecb?source=post_page---author_recirc--e489e98db15d----3---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+Dec 4, 2025
+
+[](https://medium.com/@himanshusangshetty/deploying-rag-applications-on-aws-with-amazon-bedrock-and-opensearch-f5c30af7fecb?source=post_page---author_recirc--e489e98db15d----3---------------------7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---author_recirc--e489e98db15d----3-----------------explicit_signal----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ff5c30af7fecb&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fdeploying-rag-applications-on-aws-with-amazon-bedrock-and-opensearch-f5c30af7fecb&source=---author_recirc--e489e98db15d----3-----------------bookmark_preview----7772fdf3_4a67_4236_914e_e1ad258f09df--------------)
+
+[See all from Himanshu Sangshetti](https://medium.com/@himanshusangshetty?source=post_page---author_recirc--e489e98db15d---------------------------------------)
+
+## Recommended from Medium
+
+![Image 17: Don’t Become a DevOps Engineer in 2026!](https://miro.medium.com/v2/resize:fit:679/format:webp/1*jbajxX_SZsz_WdtxVW1Xtw.png)
+
+[![Image 18: Dhanush N](https://miro.medium.com/v2/resize:fill:20:20/1*g-aoUi88UKMpAxezY9NcmQ.png)](https://medium.com/@dhanushnehru?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[Dhanush N](https://medium.com/@dhanushnehru?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[## Don’t Become a DevOps Engineer in 2026! ### Stop writing YAML. Stop babysitting pipelines. The game has fundamentally changed.](https://medium.com/@dhanushnehru/dont-become-a-devops-engineer-in-2026-f2e94541e700?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+Mar 2
+
+[464 17](https://medium.com/@dhanushnehru/dont-become-a-devops-engineer-in-2026-f2e94541e700?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---read_next_recirc--e489e98db15d----0-----------------explicit_signal----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Ff2e94541e700&operation=register&redirect=https%3A%2F%2Fdhanushnehru.medium.com%2Fdont-become-a-devops-engineer-in-2026-f2e94541e700&source=---read_next_recirc--e489e98db15d----0-----------------bookmark_preview----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+![Image 19: Stop Memorizing Design Patterns: Use This Decision Tree Instead](https://miro.medium.com/v2/resize:fit:679/format:webp/1*OMTFZFYrlDxmpmZqaTaBog.png)
+
+[![Image 20: Pratik Chaudhari](https://miro.medium.com/v2/resize:fill:20:20/1*eqsXCHPDEsT02-7vUIqU9g.jpeg)](https://medium.com/@pratikchaudhariworks?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[Pratik Chaudhari](https://medium.com/@pratikchaudhariworks?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[## Stop Memorizing Design Patterns: Use This Decision Tree Instead ### A practical, story-driven guide to choosing the right pattern without memorizing 23 definitions.](https://medium.com/@pratikchaudhariworks/stop-memorizing-design-patterns-use-this-decision-tree-instead-2e2633a5a225?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+Feb 20
+
+[93](https://medium.com/@pratikchaudhariworks/stop-memorizing-design-patterns-use-this-decision-tree-instead-2e2633a5a225?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---read_next_recirc--e489e98db15d----1-----------------explicit_signal----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F2e2633a5a225&operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40pratikchaudhariworks%2Fstop-memorizing-design-patterns-use-this-decision-tree-instead-2e2633a5a225&source=---read_next_recirc--e489e98db15d----1-----------------bookmark_preview----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+![Image 21: 6 brain images](https://miro.medium.com/v2/resize:fit:679/format:webp/1*Q-mzQNzJSVYkVGgsmHVjfw.png)
+
+[![Image 22: Write A Catalyst](https://miro.medium.com/v2/resize:fill:20:20/1*KCHN5TM3Ga2PqZHA4hNbaw.png)](https://medium.com/write-a-catalyst?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+In
+
+[Write A Catalyst](https://medium.com/write-a-catalyst?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+by
+
+[Dr. Patricia Schmidt](https://medium.com/@creatorschmidt?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[## As a Neuroscientist, I Quit These 5 Morning Habits That Destroy Your Brain ### Most people do #1 within 10 minutes of waking (and it sabotages your entire day)](https://medium.com/write-a-catalyst/as-a-neuroscientist-i-quit-these-5-morning-habits-that-destroy-your-brain-3efe1f410226?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+Jan 14
+
+[46K 938](https://medium.com/write-a-catalyst/as-a-neuroscientist-i-quit-these-5-morning-habits-that-destroy-your-brain-3efe1f410226?source=post_page---read_next_recirc--e489e98db15d----0---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---read_next_recirc--e489e98db15d----0-----------------explicit_signal----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F3efe1f410226&operation=register&redirect=https%3A%2F%2Fmedium.com%2Fwrite-a-catalyst%2Fas-a-neuroscientist-i-quit-these-5-morning-habits-that-destroy-your-brain-3efe1f410226&source=---read_next_recirc--e489e98db15d----0-----------------bookmark_preview----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+![Image 23: I Woke Up at 4:30 AM Every Day for 30 Days — Here Is What Nobody Tells You](https://miro.medium.com/v2/resize:fit:679/format:webp/1*0XnPmr19m6XJf9vZ9ojJ-Q.png)
+
+[![Image 24: ILLUMINATION](https://miro.medium.com/v2/resize:fill:20:20/1*AZxiin1Cvws3J0TwNUP2sQ.png)](https://medium.com/illumination?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+In
+
+[ILLUMINATION](https://medium.com/illumination?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+by
+
+[Sufyan Maan, M.Eng](https://medium.com/@sufyanmaan?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[## I Woke Up at 4:30 AM Every Day for 30 Days — Here Is What Nobody Tells You ### Here is what actually happened, from someone who did it & tracked everything.](https://medium.com/illumination/i-woke-up-at-4-30-am-every-day-for-30-days-here-is-what-nobody-tells-you-054bf0160903?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+Apr 4
+
+[7.4K 323](https://medium.com/illumination/i-woke-up-at-4-30-am-every-day-for-30-days-here-is-what-nobody-tells-you-054bf0160903?source=post_page---read_next_recirc--e489e98db15d----1---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---read_next_recirc--e489e98db15d----1-----------------explicit_signal----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F054bf0160903&operation=register&redirect=https%3A%2F%2Fmedium.com%2Fillumination%2Fi-woke-up-at-4-30-am-every-day-for-30-days-here-is-what-nobody-tells-you-054bf0160903&source=---read_next_recirc--e489e98db15d----1-----------------bookmark_preview----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+![Image 25: Stop Memorizing Design Patterns: Use This Decision Tree Instead](https://miro.medium.com/v2/resize:fit:679/format:webp/1*xfboC-sVIT2hzWkgQZT_7w.png)
+
+[![Image 26: Women in Technology](https://miro.medium.com/v2/resize:fill:20:20/1*kd0DvPkLdn59Emtg_rnsqg.png)](https://medium.com/womenintechnology?source=post_page---read_next_recirc--e489e98db15d----2---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+In
+
+[Women in Technology](https://medium.com/womenintechnology?source=post_page---read_next_recirc--e489e98db15d----2---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+by
+
+[Alina Kovtun✨](https://medium.com/@akovtun?source=post_page---read_next_recirc--e489e98db15d----2---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[## Stop Memorizing Design Patterns: Use This Decision Tree Instead ### Choose design patterns based on pain points: apply the right pattern with minimal over-engineering in any OO language.](https://medium.com/womenintechnology/stop-memorizing-design-patterns-use-this-decision-tree-instead-e84f22fca9fa?source=post_page---read_next_recirc--e489e98db15d----2---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+Jan 29
+
+[7.3K 75](https://medium.com/womenintechnology/stop-memorizing-design-patterns-use-this-decision-tree-instead-e84f22fca9fa?source=post_page---read_next_recirc--e489e98db15d----2---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---read_next_recirc--e489e98db15d----2-----------------explicit_signal----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2Fe84f22fca9fa&operation=register&redirect=https%3A%2F%2Fmedium.com%2Fwomenintechnology%2Fstop-memorizing-design-patterns-use-this-decision-tree-instead-e84f22fca9fa&source=---read_next_recirc--e489e98db15d----2-----------------bookmark_preview----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+![Image 27: Building a Ticketing System: Concurrency, Locks, and Race Conditions](https://miro.medium.com/v2/resize:fit:679/format:webp/1*kHmNBOqo5a14TpOC7A119w.png)
+
+[![Image 28: Arvind Kumar](https://miro.medium.com/v2/resize:fill:20:20/1*qLgT62h04Vn1WA1vdYL9lg.png)](https://medium.com/@codefarm0?source=post_page---read_next_recirc--e489e98db15d----3---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[Arvind Kumar](https://medium.com/@codefarm0?source=post_page---read_next_recirc--e489e98db15d----3---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[## Building a Ticketing System: Concurrency, Locks, and Race Conditions ### What happens when 100,000 fans try to book the same concert ticket at exactly 10:00 AM? Let’s design a ticketing system that prevents…](https://medium.com/@codefarm0/building-a-ticketing-system-concurrency-locks-and-race-conditions-182e0932d962?source=post_page---read_next_recirc--e489e98db15d----3---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+Oct 30, 2025
+
+[2.1K 24](https://medium.com/@codefarm0/building-a-ticketing-system-concurrency-locks-and-race-conditions-182e0932d962?source=post_page---read_next_recirc--e489e98db15d----3---------------------5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2F%40himanshusangshetty%2Fkubernetes-architecture-and-components-explained-e489e98db15d&source=---read_next_recirc--e489e98db15d----3-----------------explicit_signal----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[](https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F182e0932d962&operation=register&redirect=https%3A%2F%2Fcodefarm0.medium.com%2Fbuilding-a-ticketing-system-concurrency-locks-and-race-conditions-182e0932d962&source=---read_next_recirc--e489e98db15d----3-----------------bookmark_preview----5b3c9bba_12de_4270_a063_2d3bbed1ee55--------------)
+
+[See more recommendations](https://medium.com/?source=post_page---read_next_recirc--e489e98db15d---------------------------------------)
+
+[Help](https://help.medium.com/hc/en-us?source=post_page-----e489e98db15d---------------------------------------)
+
+[Status](https://status.medium.com/?source=post_page-----e489e98db15d---------------------------------------)
+
+[About](https://medium.com/about?autoplay=1&source=post_page-----e489e98db15d---------------------------------------)
+
+[Careers](https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----e489e98db15d---------------------------------------)
+
+[Press](mailto:pressinquiries@medium.com)
+
+[Blog](https://blog.medium.com/?source=post_page-----e489e98db15d---------------------------------------)
+
+[Privacy](https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----e489e98db15d---------------------------------------)
+
+[Rules](https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----e489e98db15d---------------------------------------)
+
+[Terms](https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----e489e98db15d---------------------------------------)
+
+[Text to speech](https://speechify.com/medium?source=post_page-----e489e98db15d---------------------------------------)
+
+---
+
+Title: Cluster Architecture | Kubernetes
+# Cluster Architecture
+
+The architectural concepts behind Kubernetes.
+
+A Kubernetes cluster consists of a control plane plus a set of worker machines, called nodes, that run containerized applications. Every cluster needs at least one worker node in order to run Pods.
+
+The worker node(s) host the Pods that are the components of the application workload. The control plane manages the worker nodes and the Pods in the cluster. In production environments, the control plane usually runs across multiple computers and a cluster usually runs multiple nodes, providing fault-tolerance and high availability.
+
+This document outlines the various components you need to have for a complete and working Kubernetes cluster.
+
+About this architecture
+
+The diagram in Figure 1 presents an example reference architecture for a Kubernetes cluster. The actual distribution of components can vary based on specific cluster setups and requirements.
+
+In the diagram, each node runs the [`kube-proxy`](#kube-proxy) component. You need a network proxy component on each node to ensure that the [Service](/docs/concepts/services-networking/service/ "A way to expose an application running on a set of Pods as a network service.") API and associated behaviors are available on your cluster network. However, some network plugins provide their own, third party implementation of proxying. When you use that kind of network plugin, the node does not need to run `kube-proxy`.
+
+## Control plane components
+
+The control plane's components make global decisions about the cluster (for example, scheduling), as well as detecting and responding to cluster events (for example, starting up a new [pod](/docs/concepts/workloads/pods/ "A Pod represents a set of running containers in your cluster.") when a Deployment's `replicas` field is unsatisfied).
+
+Control plane components can be run on any machine in the cluster. However, for simplicity, setup scripts typically start all control plane components on the same machine, and do not run user containers on this machine. See [Creating Highly Available clusters with kubeadm](/docs/setup/production-environment/tools/kubeadm/high-availability/) for an example control plane setup that runs across multiple machines.
+
+### kube-apiserver
+
+The API server is a component of the Kubernetes [control plane](/docs/reference/glossary/?all=true#term-control-plane "The container orchestration layer that exposes the API and interfaces to define, deploy, and manage the lifecycle of containers.") that exposes the Kubernetes API. The API server is the front end for the Kubernetes control plane.
+
+The main implementation of a Kubernetes API server is [kube-apiserver](/docs/reference/generated/kube-apiserver/). kube-apiserver is designed to scale horizontally—that is, it scales by deploying more instances. You can run several instances of kube-apiserver and balance traffic between those instances.
+
+### etcd
+
+Consistent and highly-available key value store used as Kubernetes' backing store for all cluster data.
+
+If your Kubernetes cluster uses etcd as its backing store, make sure you have a [back up](/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster) plan for the data.
+
+You can find in-depth information about etcd in the official [documentation](https://etcd.io/docs/).
+
+### kube-scheduler
+
+Control plane component that watches for newly created [Pods](/docs/concepts/workloads/pods/ "A Pod represents a set of running containers in your cluster.") with no assigned [node](/docs/concepts/architecture/nodes/ "A node is a worker machine in Kubernetes."), and selects a node for them to run on.
+
+Factors taken into account for scheduling decisions include: individual and collective [resource](/docs/reference/glossary/?all=true#term-infrastructure-resource "A defined amount of infrastructure available for consumption (CPU, memory, etc).") requirements, hardware/software/policy constraints, affinity and anti-affinity specifications, data locality, inter-workload interference, and deadlines.
+
+### kube-controller-manager
+
+Control plane component that runs [controller](/docs/concepts/architecture/controller/ "A control loop that watches the shared state of the cluster through the apiserver and makes changes attempting to move the current state towards the desired state.") processes.
+
+Logically, each [controller](/docs/concepts/architecture/controller/ "A control loop that watches the shared state of the cluster through the apiserver and makes changes attempting to move the current state towards the desired state.") is a separate process, but to reduce complexity, they are all compiled into a single binary and run in a single process.
+
+There are many different types of controllers. Some examples of them are:
+
+* Node controller: Responsible for noticing and responding when nodes go down.
+* Job controller: Watches for Job objects that represent one-off tasks, then creates Pods to run those tasks to completion.
+* EndpointSlice controller: Populates EndpointSlice objects (to provide a link between Services and Pods).
+* ServiceAccount controller: Create default ServiceAccounts for new namespaces.
+
+The above is not an exhaustive list.
+
+### cloud-controller-manager
+
+A Kubernetes [control plane](/docs/reference/glossary/?all=true#term-control-plane "The container orchestration layer that exposes the API and interfaces to define, deploy, and manage the lifecycle of containers.") component that embeds cloud-specific control logic. The cloud controller manager lets you link your cluster into your cloud provider's API, and separates out the components that interact with that cloud platform from components that only interact with your cluster.
+
+The cloud-controller-manager only runs controllers that are specific to your cloud provider. If you are running Kubernetes on your own premises, or in a learning environment inside your own PC, the cluster does not have a cloud controller manager.
+
+As with the kube-controller-manager, the cloud-controller-manager combines several logically independent control loops into a single binary that you run as a single process. You can scale horizontally (run more than one copy) to improve performance or to help tolerate failures.
+
+The following controllers can have cloud provider dependencies:
+
+* Node controller: For checking the cloud provider to determine if a node has been deleted in the cloud after it stops responding
+* Route controller: For setting up routes in the underlying cloud infrastructure
+* Service controller: For creating, updating and deleting cloud provider load balancers
+
+---
+
+## Node components
+
+Node components run on every node, maintaining running pods and providing the Kubernetes runtime environment.
+
+### kubelet
+
+An agent that runs on each [node](/docs/concepts/architecture/nodes/ "A node is a worker machine in Kubernetes.") in the cluster. It makes sure that [containers](/docs/concepts/containers/ "A lightweight and portable executable image that contains software and all of its dependencies.") are running in a [Pod](/docs/concepts/workloads/pods/ "A Pod represents a set of running containers in your cluster.").
+
+The [kubelet](/docs/reference/command-line-tools-reference/kubelet/) takes a set of PodSpecs that are provided through various mechanisms and ensures that the containers described in those PodSpecs are running and healthy. The kubelet doesn't manage containers which were not created by Kubernetes.
+
+### kube-proxy (optional)
+
+kube-proxy is a network proxy that runs on each [node](/docs/concepts/architecture/nodes/ "A node is a worker machine in Kubernetes.") in your cluster, implementing part of the Kubernetes [Service](/docs/concepts/services-networking/service/ "A way to expose an application running on a set of Pods as a network service.") concept.
+
+[kube-proxy](/docs/reference/command-line-tools-reference/kube-proxy/) maintains network rules on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster.
+
+kube-proxy uses the operating system packet filtering layer if there is one and it's available. Otherwise, kube-proxy forwards the traffic itself.
+
+If you use a [network plugin](#network-plugins) that implements packet forwarding for Services by itself, and providing equivalent behavior to kube-proxy, then you do not need to run kube-proxy on the nodes in your cluster.
+
+### Container runtime
+
+A fundamental component that empowers Kubernetes to run containers effectively. It is responsible for managing the execution and lifecycle of containers within the Kubernetes environment.
+
+Kubernetes supports container runtimes such as [containerd](https://containerd.io/docs/ "A container runtime with an emphasis on simplicity, robustness and portability"), [CRI-O](https://cri-o.io/#what-is-cri-o "A lightweight container runtime specifically for Kubernetes"), and any other implementation of the [Kubernetes CRI (Container Runtime Interface)](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-node/container-runtime-interface.md).
+
+## Addons
+
+Addons use Kubernetes resources ([DaemonSet](/docs/concepts/workloads/controllers/daemonset "Ensures a copy of a Pod is running across a set of nodes in a cluster."), [Deployment](/docs/concepts/workloads/controllers/deployment/ "Manages a replicated application on your cluster."), etc) to implement cluster features. Because these are providing cluster-level features, namespaced resources for addons belong within the `kube-system` namespace.
+
+Selected addons are described below; for an extended list of available addons, please see [Addons](/docs/concepts/cluster-administration/addons/).
+
+### DNS
+
+While the other addons are not strictly required, all Kubernetes clusters should have [cluster DNS](/docs/concepts/services-networking/dns-pod-service/), as many examples rely on it.
+
+Cluster DNS is a DNS server, in addition to the other DNS server(s) in your environment, which serves DNS records for Kubernetes services.
+
+Containers started by Kubernetes automatically include this DNS server in their DNS searches.
+
+### Web UI (Dashboard)
+
+[Dashboard](/docs/tasks/access-application-cluster/web-ui-dashboard/) is a general purpose, web-based UI for Kubernetes clusters. It allows users to manage and troubleshoot applications running in the cluster, as well as the cluster itself.
+
+### Container resource monitoring
+
+[Container Resource Monitoring](/docs/tasks/debug/debug-cluster/resource-usage-monitoring/) records generic time-series metrics about containers in a central database, and provides a UI for browsing that data.
+
+### Cluster-level Logging
+
+A [cluster-level logging](/docs/concepts/cluster-administration/logging/) mechanism is responsible for saving container logs to a central log store with a search/browsing interface.
+
+### Network plugins
+
+[Network plugins](/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/) are software components that implement the container network interface (CNI) specification. They are responsible for allocating IP addresses to pods and enabling them to communicate with each other within the cluster.
+
+## Architecture variations
+
+While the core components of Kubernetes remain consistent, the way they are deployed and managed can vary. Understanding these variations is crucial for designing and maintaining Kubernetes clusters that meet specific operational needs.
+
+### Control plane deployment options
+
+The control plane components can be deployed in several ways:
+
+Traditional deployment
+:   Control plane components run directly on dedicated machines or VMs, often managed as systemd services.
+
+Static Pods
+:   Control plane components are deployed as static Pods, managed by the kubelet on specific nodes. This is a common approach used by tools like kubeadm.
+
+Self-hosted
+:   The control plane runs as Pods within the Kubernetes cluster itself, managed by Deployments and StatefulSets or other Kubernetes primitives.
+
+Managed Kubernetes services
+:   Cloud providers often abstract away the control plane, managing its components as part of their service offering.
+
+### Workload placement considerations
+
+The placement of workloads, including the control plane components, can vary based on cluster size, performance requirements, and operational policies:
+
+* In smaller or development clusters, control plane components and user workloads might run on the same nodes.
+* Larger production clusters often dedicate specific nodes to control plane components, separating them from user workloads.
+* Some organizations run critical add-ons or monitoring tools on control plane nodes.
+
+### Cluster management tools
+
+Tools like kubeadm, kops, and Kubespray offer different approaches to deploying and managing clusters, each with its own method of component layout and management.
+
+### Customization and extensibility
+
+Kubernetes architecture allows for significant customization:
+
+* Custom schedulers can be deployed to work alongside the default Kubernetes scheduler or to replace it entirely.
+* API servers can be extended with CustomResourceDefinitions and API Aggregation.
+* Cloud providers can integrate deeply with Kubernetes using the cloud-controller-manager.
+
+The flexibility of Kubernetes architecture allows organizations to tailor their clusters to specific needs, balancing factors such as operational complexity, performance, and management overhead.
+
+## What's next
+
+Learn more about the following:
+
+* [Nodes](/docs/concepts/architecture/nodes/) and [their communication](/docs/concepts/architecture/control-plane-node-communication/) with the control plane.
+* Kubernetes [controllers](/docs/concepts/architecture/controller/).
+* [kube-scheduler](/docs/concepts/scheduling-eviction/kube-scheduler/) which is the default scheduler for Kubernetes.
+* Etcd's official [documentation](https://etcd.io/docs/).
+* Several [container runtimes](/docs/setup/production-environment/container-runtimes/) in Kubernetes.
+* Integrating with cloud providers using [cloud-controller-manager](/docs/concepts/architecture/cloud-controller/).
+* [kubectl](/docs/reference/generated/kubectl/kubectl-commands) commands.
+
+---
+
+##### [Nodes](/docs/concepts/architecture/nodes/)
+
+##### [Communication between Nodes and the Control Plane](/docs/concepts/architecture/control-plane-node-communication/)
+
+##### [Controllers](/docs/concepts/architecture/controller/)
+
+##### [Leases](/docs/concepts/architecture/leases/)
+
+##### [Cloud Controller Manager](/docs/concepts/architecture/cloud-controller/)
+
+##### [About cgroup v2](/docs/concepts/architecture/cgroups/)
+
+##### [Kubernetes Self-Healing](/docs/concepts/architecture/self-healing/)
+
+##### [Garbage Collection](/docs/concepts/architecture/garbage-collection/)
+
+##### [Mixed Version Proxy](/docs/concepts/architecture/mixed-version-proxy/)
+
+## Feedback
+
+Was this page helpful?
+
+Thanks for the feedback. If you have a specific, answerable question about how to use Kubernetes, ask it on [Stack Overflow](https://stackoverflow.com/questions/tagged/kubernetes). Open an issue in the [GitHub Repository](https://www.github.com/kubernetes/website/) if you want to [report a problem](https://github.com/kubernetes/website/issues/new?title=Issue%20with%20k8s.io) or [suggest an improvement](https://github.com/kubernetes/website/issues/new?title=Improvement%20for%20k8s.io).
+
+Last modified November 16, 2025 at 9:04 PM PST: [Move paragraph to correct section (7448d1725b)](https://github.com/kubernetes/website/commit/7448d1725b04055c05797c2238a674a872c1fa36)
+
+[Edit this page](https://github.com/kubernetes/website/edit/main/content/en/docs/concepts/architecture/_index.md)  [Create child page](https://github.com/kubernetes/website/new/main/content/en/docs/concepts/architecture/_index.md?filename=change-me.md&value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A)  [Create an issue](https://github.com/kubernetes/website/issues/new?title=Cluster%20Architecture)  [Print entire section](https://kubernetes.io/docs/concepts/architecture/_print/)

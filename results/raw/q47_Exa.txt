@@ -1,0 +1,274 @@
+Title: GPUs for Artificial Intelligence (AI) – Intel
+Key Highlights:
+GPUs are powerful hardware components for accelerating AI applications that use large and complex neural networks.
+[...]
+GPUs for AI are powerful processing units designed to boost system performance when processing a large volume of data simultaneously.
+[...]
+Their architecture is optimized for a form of computation known as parallel processing, which makes them effective at demanding applications, including AI and machine learning, scientific simulations, and rendering graphics for gaming.
+[...]
+Composed of hundreds or even tens of thousands of cores—or processing units—GPUs have a unique parallel structure that makes them fast and efficient at doing many calculations simultaneously. For that reason, GPUs are considered a vital piece of hardware for many advanced AI use cases.
+[...]
+Often, GPUs are enlisted to provide the additional resources needed to accelerate these operations. For example, having a GPU in your hardware configuration can help reduce the time it takes to train a large-scale neural network, which could take days or weeks to complete on the central processing unit (CPU) alone. In short, the GPU could be said to supercharge AI operations.
+[...]
+Because GPUs can deliver accelerated computational performance, they are often superior when working with large and complex AI models, including many types of deep learning models. On the other hand, they may be excessive for AI applications that use smaller models and require fewer resources. It’s important to choose hardware that provides the right amount of performance based on the scale and complexity of the workload at hand.
+[...]
+For example, large and complex deep learning models are used for applications like deep reinforcement learning (teaching robots to walk, autonomous cars), advanced computer vision applications (monitoring deforestation with satellite imagery), doing sophisticated generative AI (GenAI)(high-resolution images, training large language models (LLMs) on Wikipedia), along with countless other AI applications that incorporate a very large amount of data. These applications often necessitate GPU- accelerated computing.
+[...]
+GPUs are effective at driving compute-intensive models across multiple phases of deployment. They can substantially speed up the processes of:
+[...]
+- Training—feeding an AI model data
+- Fine-tuning—enhancing an AI model for improved accuracy at specific tasks
+- Inference—using a trained AI model to draw conclusions on new data when substantial compute resources are demanded
+[...]
+Capable of performing trillions of calculations per second, GPUs can be indispensable for accelerating large and complex AI models. Their benefits include:
+[...]
+- Parallel processing: The parallel architecture of GPUs is optimized for high throughput—or the rate at which data can be processed. This makes GPUs highly efficient at executing the vast number of operations involved in training neural networks and using them for inference. That efficiency translates to faster processing times, significantly accelerating AI models.
+[...]
+- Scalability: Multiple GPUs can run in parallel with the workload divided between them. Grouping GPUs into clusters can further expand an AI system’s computational capabilities. The technique is often implemented in data centers and research labs when training complex neural networks. Very large clusters of server-class GPUs can be used to build supercomputers and enable high performance computing.
+[...]
+- Optimized software: GPU acceleration is typically used within an AI framework, like TensorFlow or PyTorch. These collections of libraries and tools are optimized for parallel processing, allowing developers to tap into GPU resources more easily.
+[...]
+While GPUs excel at executing heavy AI workloads, cost and energy usage concerns should be considered when choosing the optimal hardware for AI applications:
+[...]
+- Cost-effectiveness: GPUs are cost-effective solutions for training and inference use cases with compute-intensive workloads, such as when deploying complex neural networks. Starting with a leaner, potentially pretrained model can help reduce large outlays on hardware and cooling solutions, as they can run on hardware you may already own.
+[...]
+- Energy efficiency: AI
+[...]
+have made strides in
+[...]
+efficiency through software optimizations and
+[...]
+improved energy consumption
+[...]
+GPUs are relied on to supercharge AI in virtually every type of compute infrastructure. They are used in public and private data centers, at the edge, and in hybrid and traditional computing environments where they are slotted into server racks, nodes, and individual workstations:
+[...]
+- In the data center, GPUs are used to process workloads that are large in scale or have high power requirements, such as extracting information from a large collection of video footage. They are also used to perform resource-intensive workloads, like training and data analytics, and to process data collected from multiple edge sources when latency is not a concern.
+[...]
+- At the edge, discrete GPUs may be ideal for use cases requiring high performance and complex model support. They are commonly used for inference tasks like monitoring camera imagery or coordinating complex robotic movements in a warehouse. They also play a role in hybrid edge approaches, in which workloads are distributed between the edge and the data center. Fast and lightweight processors can generate near-real-time insights at the edge, while data center GPUs provide deeper context on data transmitted to the cloud. The hybrid edge helps to conserve bandwidth, improve latency, increase security, and ensure data compliance.
+[...]
+Discover purpose-built AI hardware that delivers outstanding performance and efficiency for AI workloads, including generative AI and deep learning.
+
+---
+
+Title: GPU Performance Background User's Guide - NVIDIA Docs
+Key Highlights:
+This guide provides background on the structure of a GPU, how operations are executed, and common limitations with deep learning operations.
+[...]
+It is helpful to understand the basics of GPU execution when reasoning about how efficiently particular layers or neural networks are utilizing a given GPU.
+[...]
+The GPU is a highly parallel processor architecture, composed of processing elements and a memory hierarchy. At a high level, NVIDIA® GPUs consist of a number of Streaming Multiprocessors (SMs), on-chip L2 cache, and high-bandwidth DRAM. Arithmetic and other instructions are executed by the SMs; data and code are accessed from DRAM via the L2 cache. As an example, an NVIDIA A100 GPU contains 108 SMs, a 40 MB L2 cache, and up to 2039 GB/s bandwidth from 80 GB of HBM2 memory.
+[...]
+Each SM has its own instruction schedulers and various instruction execution pipelines. Multiply-add is the most frequent operation in modern neural networks, acting as a building block for fully-connected and convolutional layers, both of which can be viewed as a collection of vector dot-products. The following table shows a single SM’s multiply-add operations per clock for various data types on NVIDIA’s recent GPU architectures. Each multiply-add comprises two operations, thus one would multiply the throughput in the table by 2 to get FLOP counts per clock. To get the FLOPS rate for GPU one would then multiply these by the number of SMs and SM clock rate. For example, an A100 GPU with 108 SMs and 1.41 GHz clock rate has peak dense throughputs of 156 TF32 TFLOPS and 312 FP16 TFLOPS (throughputs achieved by applications depend on a number of factors discussed throughout this document).
+[...]
+As shown in Figure 2, FP16 operations can be executed in either Tensor Cores or NVIDIA CUDA® cores. Furthermore, the NVIDIA Turing™ architecture can execute INT8 operations in either Tensor Cores or CUDA cores. Tensor Cores were introduced in the NVIDIA Volta™ GPU architecture to accelerate matrix multiply and accumulate operations for machine learning and scientific applications. These instructions operate on small matrix blocks (for example, 4x4 blocks). Note that Tensor Cores can compute and accumulate products in higher precision than the inputs. For example, during training with FP16 inputs, Tensor Cores can compute products without loss of precision and accumulate in FP32. When math operations cannot be formulated in terms of matrix blocks they are executed in other CUDA cores. For example, the element-
+[...]
+addition of two half-
+[...]
+would be performed by
+[...]
+To utilize their parallel resources, GPUs execute many threads concurrently.
+[...]
+1. GPUs execute functions using a 2-level hierarchy of threads. A given function’s threads are grouped into equally-sized thread blocks, and a set of thread blocks are launched to execute the function.
+2. GPUs hide dependent instruction latency by switching to the execution of other threads. Thus, the number of threads needed to effectively utilize a GPU is much higher than the number of cores or instruction pipelines.
+[...]
+The 2-level thread hierarchy is a result of GPUs having many SMs, each of which in turn has pipelines for executing many threads and enables its threads to communicate via shared memory and synchronization. At runtime, a thread block is placed on an SM for execution, enabling all threads in a thread block to communicate and synchronize efficiently. Launching a function with a single thread block would only give work to a single SM, therefore to fully utilize a GPU with multiple SMs one needs to launch many thread blocks. Since an SM can execute multiple thread blocks concurrently, typically one wants the number of thread blocks to be several times higher than the number of SMs. The reason for this is to minimize the “tail” effect, where at the end of a function execution only a few active thread blocks remain, thus underutilizing the GPU for that period of time as illustrated in Figure 3.
+[...]
+Performance of a function on a given processor is limited by one of the following three factors; memory bandwidth, math bandwidth and latency.
+[...]
+The left-hand side, the ratio of algorithm implementation operations and the number of bytes accessed, is known as the algorithm’
+[...]
+arithmetic intensity. The right-hand side, the ratio of a processor’s math and memory bandwidths, is sometimes called ops:byte ratio. Thus, an algorithm is math limited on a given processor if the algorithm’s arithmetic intensity is higher than the processor’s ops:byte ratio. Conversely, an algorithm is memory limited if its arithmetic intensity is lower than the processor’s`ops:byte` ratio.
+[...]
+The arithmetic intensity and ops:byte ratio analysis
+[...]
+sufficiently large to saturate
+[...]
+s math and memory pipelines.
+[...]
+not large enough,
+[...]
+does not have sufficient parallelism, the
+[...]
+will be under-utilized and performance will be limited by latency. For example, consider the launch
+[...]
+6000 math operations.
+[...]
+B and the execution should
+[...]
+math-limited on a V100 GPU, creating only
+[...]
+single thread grossly under-utilizes the GPU, leaving nearly all
+[...]
+pipelines and execution resources
+[...]
+-order approximation
+[...]
+profiler information should
+[...]
+their operations fall
+[...]
+three main categories according to the
+[...]
+Operations in the dot-product
+[...]
+the corresponding matrices are large enough. However, for the smaller sizes, these
+[...]
+end up being
+[...]
+For example,
+[...]
+fully-connected
+[...]
+single vector (
+[...]
+tensor for a
+[...]
+-batch of size 1)) is
+[...]
+Matrix-matrix multiplication
+[...]
+is discussed in more detail in the
+[...]
+Matrix Multiplication Background User's Guide.
+[...]
+To roughly approximate what limits the performance of a particular function on a given GPU, one can take the following steps:
+[...]
+Determine if there is sufficient parallelism to saturate the GPU by estimating the number and size of thread blocks. If the number of thread blocks is at least roughly 4x higher than the number of SMs, and thread blocks consist of a few hundred threads each, then there is likely sufficient parallelism.
+[...]
+The most likely performance limiter is:
+[...]
+- Latency if there is not sufficient parallelism
+- Math if there is sufficient parallelism and algorithm arithmetic intensity is higher than the GPU ops:byte ratio.
+- Memory if there is sufficient parallelism and algorithm arithmetic intensity is lower than the GPU ops:byte ratio.
+
+---
+
+Title: GPUs for Deep Learning: Why Use Them & Which Ones?
+Key Highlights:
+Machine learning researchers and data scientists constantly struggle to achieve faster deep learning training times. Traditional CPUs, even powerful ones, struggle with the immense computational burden of these complex models. Graphics Processing Units (GPUs) offer a significant performance boost to address this challenge.
+[...]
+This article provides an**in-depth guide to GPU-accelerated deep learning**. It will explore the reasons behind GPUs' dominance in deep learning and equip you with the knowledge to make informed decisions when choosing a GPU for your deep learning projects.
+[...]
+Why Use GPUs for Deep Learning?
+[...]
+Here are the primary reasons why GPUs are preferred for deep learning:
+[...]
+GPUs excel in parallel processing, which is crucial fordeep learningtasks that involve extensive computations. GPUs consist of thousands of smaller, efficient coresdesignedfor handling multiple tasks simultaneously. This design is ideal for deep learning, where tasks like matrix multiplications and convolutions are performed in parallel. Furthermore, with the ability to execute many threads concurrently, GPUs can handle multiple operations simultaneously, making them significantly faster thanCPUsfor many deep learning tasks.
+[...]
+GPUs can performa vast number ofcalculations per second, often measured in teraflops. This high throughput accelerates the training of deep learning models, which require extensive computation. GPUs also excel inprocessing large batchesof data simultaneously, which is crucial for training models with large datasets.
+[...]
+### Optimized for Matrix Operations
+[...]
+Deep learning relies heavily on operations involving large matrices and tensors (multi-dimensional arrays). GPUs are optimized for these operations, providing significant speedups over traditional CPU computations. Many deep learning libraries, such as cuBLAS (CUDA Basic Linear Algebra Subroutines) and cuDNN (CUDA Deep Neural Network library), are specifically designed to leverage GPU capabilities for efficient matrix operations.
+[...]
+GPUs have high memorybandwidth, enabling them to quickly move large amounts of data between memory and processing units. This capability is critical for deep learning tasks that involve large datasets and models. Additionally, the architecture of GPUs allows for efficient use of shared memory among cores, reducinglatencyand increasing performance for data-intensive operations.
+[...]
+GPUs offer higher performance per watt, making them more energy-efficient for deep learning workloads. Modern GPUs are designed with advanced cooling and power management systems, ensuring they can operate efficiently even under heavy loads.
+[...]
+There is a robust software ecosystem that supports GPU acceleration, making developing and optimizing deep learning models easier.
+[...]
+Deep learning frameworkslikeTensorFlow and PyTorchare optimized for GPU acceleration. These frameworks provide built-in support for GPUs, simplifying the development and training of deep learning models. NVIDIA’s CUDA platform offers a comprehensive environment for developing GPU-accelerated applications, including tools, libraries, andAPIsspecifically designed for deep learning. Additionally, a large community of developers and researchers provides extensive resources and support for GPU-based tools and frameworks.
+[...]
+### Scalability
+[...]
+GPUs can easilyscaleto handle larger models and datasets, enhancing performance through multi-GPU systems. Deep learning tasks can be distributed across multiple GPUs, which is particularly beneficial for training large models or processing massive datasets that a single GPU cannot handle. Furthermore, distributed training techniques, such as data and model parallelism, enable the training process to be spread across multiple GPUs and machines, significantly reducing training time.
+[...]
+GPUs are more cost-effective for deep learning workloads than equivalent CPU-based systems due to their hardware efficiency and availability through cloud services. Manycloud providersoffer GPU instances that allow users to rent high-performance GPUs on demand, which is often more economical than maintaining local GPU infrastructure.
+[...]
+### Real-Time Inference
+[...]
+Inference in deep learning involves using a trained model to make predictions or decisions based on new data, with GPUs enabling low-latency,real-timeinference essential for immediate processingapplications. GPUs provide the computational power necessary for autonomous driving, real-time video analysis, and interactive AI systems, which rely on real-time inference. Additionally, tools like TensorRT optimize models for inference on GPUs, delivering faster and more efficient performance.
+[...]
+Yes,machine learningmodels can be trained without a GPU, but the process will be significantly slower compared to using a GPU.
+[...]
+CPUs are capable of handling machine learning tasks, especially for smaller datasets and simpler models. However, for large datasets and complex models, training on a CPU can take days or even weeks, whereas a GPU reduces the training time to hours or days. GPUs are specifically designed to handle the parallel processing required for deep learning tasks, making them much more efficient for this purpose.
+[...]
+The RTX series is generally better for deep learning than the GTX series. RTX GPUs come with tensor cores, which are specialized hardware components designed to accelerate machine learning tasks. Tensor cores enable mixed-precision training, which improves computational efficiency and speed.
+[...]
+GPUs are the backbone of deep learning because they are exceptionally suited to handle the field's computational demands. Their parallel processing architecture tackles the massive datasets and complex models commonplace in deep learning with remarkable efficiency. They achieve this through a design optimized for matrix operations, a fundamental function in deep learningalgorithms. Furthermore, GPUs boast high memory bandwidth, enabling rapid data access and processing, which translates to faster training times and efficient model performance.
+[...]
+Another significant advantage of GPUs is their versatility. A wide range of options is available, catering to diverse needs and budgets. From entry-level models like the NVIDIA GeForce GTX 1650, suitable for smaller projects, to high-end options like the NVIDIA A100, designed for large-scale enterprise applications, there is a GPU to suit any need and budget.
+
+---
+
+Title: Accelerating AI with GPUs: A New Computing Model | NVIDIA Blog
+Key Highlights:
+For as long as we have been designing computers, AI has been the final frontier. Building intelligent machines that can perceive the world as we do, understand our language, and learn from examples has been the life’s work of computer scientists for over five decades. Yet, it took the combination of Yann LeCun’s work in convolutional neural nets, Geoff Hinton’s back-propagation and Stochastic Gradient Descent approach to training, and Andrew Ng’s large-scale use of GPUs to accelerate deep neural networks(DNNs) to ignite the big bang of modern AI — deep learning.
+[...]
+At the time, NVIDIA was busy advancing GPU-accelerated computing, a new computing model that uses massively parallel graphics processors to accelerate applications also parallel in nature. Scientists and researchers jumped on to GPUs to do molecular-scale simulations to determine the effectiveness of a life-saving drug, to visualize our organs in 3D (reconstructed from light doses of a CT scan), or to do galactic-scale simulations to discover the laws that govern our universe. One researcher, using our GPUs for quantum chromodynamics simulations, said to me: “Because of NVIDIA’s work, I can now do my life’s work, in my lifetime.” This is wonderfully rewarding. It has always been our mission to give people the power to make a better future. NVIDIA GPUs have democratized supercomputing and researchers have now discovered that power.
+[...]
+By 2011, AI researchers around the world had discovered NVIDIA GPUs. The Google Brain project had just achieved amazing results — it learned to recognize cats and people by watching movies on YouTube. But it required 2,000 CPUs in servers powered and cooled in one of Google’s giant data centers. Few have computers of this scale. Enter NVIDIA and the GPU. Bryan Catanzaro in NVIDIA Research teamed with Andrew Ng’s team at Stanford to use GPUs for deep learning. As it turned out, 12 NVIDIA GPUs could deliver the deep-learning performance of 2,000 CPUs. Researchers at NYU, the University of Toronto, and the Swiss AI Lab accelerated their DNNs on GPUs. Then, the fireworks started.
+[...]
+Alex Krizhevsky of the University of Toronto won the 2012 ImageNet computer image recognition competition.(1) Krizhevsky beat — by a huge margin — handcrafted software written by computer
+[...]
+Krizhevsky and his team wrote
+[...]
+code. Rather, using deep
+[...]
+, their computer learned to
+[...]
+by itself. They designed a neural
+[...]
+called AlexNet and
+[...]
+math operations on NVIDIA GPUs. Krizhevksy’s AlexNet had beaten the best
+[...]
+-coded software.
+[...]
+neural networks,
+[...]
+many beating human
+[...]
+level accuracy.
+[...]
+Computer programs contain commands that are largely executed sequentially. Deep learning is a fundamentally new software model where billions of software-neurons and trillions of connections are trained, in parallel. Running DNN algorithms and learning from examples, the computer is essentially writing its own software. This radically different software model needs a new computer platform to run efficiently. Accelerated computing is an ideal approach and the GPU is the ideal processor. As Nature recently noted, early progress in deep learning was “made possible by the advent of fast graphics processing units (GPUs) that were convenient to program and allowed researchers to train networks 10 or 20 times faster.”(6) A combination of factors is essential to create a new AI computing— performance, programming productivity, and open accessibility.
+[...]
+Performance. NVIDIA GPUs are naturally great at parallel workloads and speed up DNNs by 10-20x, reducing each of the many training iterations from weeks to days. We didn’t stop there. By collaborating with AI developers, we continued to improve our GPU designs, system architecture, compilers, and algorithms, and sped up training deep neural networks by 50x in just three years — a much faster pace than Moore’s Law. We expect another 10x boost in the next few years.
+[...]
+Programmability. AI innovation is on a breakneck pace. Ease of programming and developer productivity are paramount. The programmability and richness of NVIDIA’s CUDA platform allow researchers to innovate quickly — building new configurations of CNNs, DNNs, deep inception networks, RNN s, LSTM s, and reinforcement learning networks.
+[...]
+Accessibility. Developers want to create anywhere and deploy everywhere. NVIDIA GPUs are available all over the world, from every PC OEM; in desktops, notebooks, servers, or supercomputers; and in the cloud from Amazon, IBM, and Microsoft. All major AI development frameworks are NVIDIA GPU accelerated — from internet companies, to research, to startups. No matter the AI development system preferred, it will be faster with GPU acceleration. We have also created GPUs for just about every computing form-factor so that DNNs can power intelligent machines of all kinds. GeForce is for PC. Tesla is for cloud and supercomputers. Jetson is for robots and drones. And DRIVE PX is for cars. All share the same architecture and accelerate deep learning.
+[...]
+Baidu, Google, Facebook, Microsoft were the first adopters of NVIDIA GPUs for deep learning. This AI technology is how they respond to your spoken word, translate speech or text to another language, recognize and automatically tag images, and recommend newsfeeds, entertainment, and products that are tailored to what each of us likes and cares about. Startups and established companies are now racing to use AI to create new products and services, or improve their operations. In just two years, the number of companies NVIDIA collaborates with on deep learning has jumped nearly 35x to over 3,400 companies. Industries such as healthcare, life sciences, energy, financial services, automotive, manufacturing, and entertainment will benefit by inferring insight from mountains of data. And, with Facebook, Google, and Microsoft opening their deep-learning platforms for all to use, AI-powered applications will spread fast. In light of this trend, Wired recently heralded the “rise of the GPU.”
+[...]
+to understand how
+[...]
+deployed in GE Healthcare
+[...]
+The impact to the computer industry will also be exponential. Deep learning is a fundamentally new software model. So we need a new computer platform to run it — an architecture that can efficiently execute programmer-coded commands as well as the massively parallel training of deep neural networks. We are betting that GPU-accelerated computing is the horse to ride. Popular Science recently called the GPU “the workhorse of modern A.I.” We agree.
+
+---
+
+Title: What is a GPU? The Engine Behind AI Acceleration | DigitalOcean
+Key Highlights:
+Consider an AI model analyzing medical scans that must rapidly process high-resolution images to identify anomalies with accuracy. Similarly, chatbots and virtual assistants rely on natural language processing (NLP) models running on GPUs to analyze and generate responses in real-time. These models learn from millions of data points to improve accuracy and efficiency. As AI models grow in complexity, GPUs continue to push the boundaries of what’s possible. In this article, we’ll explore how GPUs work and enable AI tasks—from personalized recommendations to computer vision.
+[...]
+A graphics processing unit (GPU) is a specialized processor originally built to handle graphics rendering, but it has become the engine behind AI acceleration due to its ability to execute many operations in parallel.
+[...]
+GPUs accelerate AI by dramatically speeding up the math operations in training and running deep learning models, cutting down tasks that would take a CPU much longer—this is why GPUs are standard in modern AI research and cloud ML services.
+[...]
+In essence, the GPU’s parallel processing power makes it indispensable for high-performance computing tasks, from powering the visuals in video games to crunching the numbers in large-scale neural networks that drive today’s AI breakthroughs.
+[...]
+A graphics processing unit (GPU) is an electronic circuit designed to rapidly process large amounts of data in parallel. Unlike a CPU, its multiple cores work together to handle complex calculations at much greater speeds. This parallelism is useful for applications that require massive data processing, such as neural network training, cryptography, and real-time physics simulations.
+[...]
+GPUs were originally developed in the 1970s to handle the demanding graphics rendering required for video games. Over time, researchers discovered that their parallel processing capabilities made them ideal for scientific computing and machine learning. NVIDIA’s introduction of CUDA in the 2000s marked a turning point, which allowed developers to integrate GPUs for general-purpose computing, including AI and deep learning.
+[...]
+/ML performance | Optimized for
+[...]
+/ML due
+[...]
+sequential processing |
+[...]
+Use cases |
+[...]
+GPUs execute thousands of small, simultaneous calculations in parallel, which dramatically accelerates workflows ranging from scientific simulations to neural network training. Here’s how it works:
+[...]
+After computation, GPUs process and deliver real-time results for AI use cases such as speech recognition, object detection, and recommendation systems. Optimized memory access and low-latency execution allow models to infer predictions instantly, which is important for time-sensitive applications like autonomous driving and fraud detection.
+[...]
+### AI and deep learning
+[...]
+If you’re working with AI and deep learning, a GPU can speed up model training. Neural networks involve massive amounts of matrix and tensor computations, which GPUs handle in parallel and make them faster than CPUs for these tasks. Whether you’re training a chatbot, improving image recognition, or building recommendation systems, GPUs reduce the time it takes to process data and adjust model parameters.
+[...]
+How do you accelerate training for deep learning models? You can speed up deep learning training by using GPUs, optimizing batch sizes, and deploying distributed training across multiple GPUs or TPUs. Using mixed-precision training and frameworks like TensorFlow or PyTorch with CUDA also helps maximize efficiency.
+[...]
+Whether you need a GPU for TensorFlow depends on factors like model complexity, dataset size, and processing speed requirements. If you’re training deep learning models with multiple layers or working with large datasets, a GPU can speed up computations. Tasks like running large batch sizes or real-time AI applications also benefit from a GPU’s parallel processing power.

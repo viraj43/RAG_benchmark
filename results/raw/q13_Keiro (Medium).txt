@@ -1,0 +1,325 @@
+Title: Ubuntu 24.04 LTS release notes
+**Definition:** NET 8 is now default   OpenJDK¶ OpenJDK LTS 21 is the default in Ubuntu 24.
+
+**Key Points:** Some of the major changes since Ubuntu Jammy include:  Support for decrypting read-only OLE2-based XLS files that are encrypted with the default password. LXD¶ Keeping with the theme of further streamlining Ubuntu, starting with this release, LXD snap won’t be pre-installed in the Ubuntu server by default. Derivative images, such as the minimized version of Ubuntu server or Ubuntu Pro are available as plans under this main offer.
+
+        Skip to content         Back to top  Give feedback               Ubuntu 24.04 LTS release notes¶ These release notes for Ubuntu 24.04 LTS (Noble Numbat) provide an overview of the release and document the known issues with Ubuntu and its flavors. For details of the changes applied since 24.04, refer to the following changelogs:   24.04.4 24.04.3 24.04.2 24.04.1   For the release schedule of Ubuntu 24.04 LTS and its point releases, refer to:   Release schedule    Support lifespan¶ Ubuntu 24.04 LTS will be security maintained for 5 years until 31 May 2029. Users can choose to extend this to 10 years with Ubuntu Pro or 12 years with the Legacy add-on.   Upgrades¶ Users of Ubuntu 23.10 have been offered an automatic upgrade to 24.04 since shortly after the release. Users of 22.04 LTS will also start being offered the automatic upgrade now that 24.04.1 LTS has been released.   Changes since 22.04 LTS¶ If you’re upgrading from Ubuntu 22.04 LTS to 24.04 LTS, you get all the changes that happened in the six months since Ubuntu 23.10, as well as the changes in all the interim releases between 22.04 LTS and 24.04 LTS. For details, see the complete interim release notes: 22.10, 23.04 and 23.10. Finally, review the following changes since Ubuntu 23.10.   New features in 24.04 LTS¶  Year 2038 support for the armhf architecture¶ Ubuntu 24.04 LTS solves the Year 2038 problem that existed on armhf. More than a thousand packages have been updated to handle time using a 64-bit value rather than a 32-bit one, making it possible to handle times up to 292 billion years in the future.   Updated Packages¶   Linux kernel 🐧¶ Ubuntu 24.04 LTS includes the new 6.8 Linux kernel that brings many new features. Detailed changes are reported in the Noble Kernel Release Notes post.   systemd v255.4¶ The init system was updated to systemd v255.4. See the upstream changelog for more information about individual features.   Netplan v1.0 🌐¶ The network stack was updated to Netplan version 1.0. Supporting simultaneous WPA2 & WPA3, Mellanox VF-LAG for high-performance SR-IOV networking and VXLAN improvements. It also provides a stable libnetplan1 API and a new netplan status --diff sub-command to find differences between configuration and system state. For more information please see the Introducing Netplan v1.0 blog post.   Toolchain Upgrades 🛠️¶  GCC 🐄 is updated to the 14, binutils to 2.42, and glibc to 2.39. Python 🐍 now defaults to version 3.12 OpenJDK ☕ now defaults to LTS version 21 LLVM 🐉 now defaults to version 18 Rust 🦀 toolchain defaults to version 1.75 Golang 🐀 is updated to 1.22 .NET 8 is now default   OpenJDK¶ OpenJDK LTS 21 is the default in Ubuntu 24.04 LTS while maintaining support for versions 17, 11, and 8. OpenJDK 17 and 21 are also TCK certified, which means they adhere to Java standards and ensure interoperability with other Java platforms. A special FIPS-compliant OpenJDK 11 package is also available for Ubuntu Pro users.   .NET¶ With the introduction of .NET 8, Ubuntu is taking a significant step forward in supporting the .NET community. .NET 8 will be fully supported on Ubuntu 24.04 LTS and 22.04 LTS for the entire lifecycle of both releases. This enables developers to upgrade their applications to newer .NET versions before upgrading their Ubuntu release. Starting with 24.04 LTS the .NET support has also been extended to the IBM System Z platform. .NET 6 and .NET 7 packages with limited support are available via a PPA.   Apport¶ Apport added integration with systemd-coredump to handle crashes. Developers on Ubuntu can co-install systemd-coredump now and use coredumpctl to analyze crash data. Apport will continue to collect crash information and submit it to the Ubuntu Error Tracker and Launchpad.    Security Improvements 🔒¶  Unprivileged user namespace restrictions¶ In combination with the apparmor package, the Ubuntu kernel now restricts the use of unprivileged user namespaces. This affects all programs on the system that are unprivileged and unconfined. A default AppArmor profile is provided that allows the use of user namespaces for unprivileged and unconfined applications but will deny the subsequent use of any capabilities within the user namespace. A common use-case for unprivileged user namespaces is applications that construct their own sandboxes or work with styles of container workloads. As such, AppArmor profiles that allow the use of unprivileged user namespaces are also provided for common applications and frameworks that come from the Ubuntu archive, as well as popular third party applications like Google Chrome, Discord and others. This is a subsequent step towards trying to mitigate the larger attack surface presented by unprivileged user namespaces (the first being the introduction of this feature in Ubuntu 23.10 where it was not enabled by default). Whilst significant effort has been expended to try and identify all applications that may require such profiles, it is expected that there may be cases where additional profiles are required. In this case, there are several options if you run into problems:  Confine your applications with an AppArmor profile. Because this can be potentially onerous, a new unconfined profile mode/flag has been added to AppArmor. This designates the profile to essentially act like the unconfined mode for AppArmor where an application is not restricted, and it allows additional permissions to be added, such as the userns, permission. Such profile for, e.g. Google Chrome, would look like the following, and it would be located within the /etc/apparmor.d/chrome file: abi <abi/4.0>, include <tunables/global> /opt/google/chrome/chrome flags=(unconfined) { userns, # Site-specific additions and overrides. See local/README for details. include if exists <local/chrome> }   Alternatively, a complete AppArmor profile for the application can be created (see the AppArmor documentation).  Launch your application in a way that doesn’t use unprivileged user namespaces, e.g. google-chrome-stable --no-sandbox. However, since this disables the use of an internal security feature within the application, this is not recommended. Instead, use the unconfined profile mode described above instead. Disable this restriction on the entire system for one boot by executing echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns. This setting is lost on reboot. This similar to the previous behaviour, but it does not mitigate against kernel exploits that abuse the unprivileged user namespaces feature. Disable this restriction using a persistent setting by adding a new file (/etc/sysctl.d/60-apparmor-namespace.conf) with the following contents: kernel.apparmor_restrict_unprivileged_userns=0   Reboot. This is similar to the previous behaviour, but it does not mitigate against kernel exploits that abuse the unprivileged user namespaces feature.     TLS 1.0, 1.1 and DTLS 1.0 are forcefully disabled¶  for software using openssl this was the case since 20.04 for software using gnutls, this is now enforced (with openconnect being a notable exception)    More consistent application of openssl and gnutls system configurations¶ Some libraries do not raise errors when their configuration is not accessible; this could happen when AppArmor does not allow access to the configuration files. Due to how widespread openssl and gnutls are, the AppArmor rules now grant access to their configuration files by default. Their system-wide configuration will therefore be followed better.   Deprecation and disablement of 1024-bit RSA APT repository signing keys¶ APT in 24.04 requires repositories to be signed with the RSA keys no smaller than 2048 bits, Ed25519, or Ed448. As work to resign old Launchpad PPAs with a stronger keys is still ongoing for some weeks, this is initially only a warning. Once Launchpad PPAs have been resigned, you will need to manually migrate any affected PPAs to new signin
+
+---
+
+Title: Ubuntu release cycle
+**Definition:** Find out which versions of Ubuntu and Canonical products are supported, for how long, and what's best for your deployment – from LTS versions to available security coverage options.
+
+**Key Points:** Ubuntu Pro
+ 
+ 
+ 
+ Ubuntu Pro is Canonical's enhanced security and support subscription for Ubuntu systems. Expanded Security Maintenance (ESM)
+ 
+ 
+ 
+ ESM extends the life of LTS releases by providing 10 years of security updates for the 'Main' repository and also adds 10 years of security coverage for the 'Universe' repository. Learn more about Ubuntu Core ›
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Ubuntu Minimal
+ 
+ 
+ Ubuntu Minimal is a lightweight image that includes only the essential packages, making it ideal for building custom environments or optimizing deployments for performance and footprint.
+
+|  | Standard | Ubuntu Pro Subscribe to Ubuntu | 
+|---|---|---|
+| 26.04 LTS Ubuntu Supported architectures | May 2031 | Apr 2036 | 
+| 25.10 Ubuntu Supported architectures amd | Jul 2026 | Not applicable | 
+| 24.04 LTS Ubuntu Supported architectures | May 2029 | Apr 2034 | 
+| 22.04 LTS Ubuntu Supported architectures | May 2027 | Apr 2032 | 
+| 20.04 LTS Ubuntu Supported architectures | May 2025 Covered by Ubuntu Pro | Apr 2030 | 
+| 18.04 LTS Ubuntu Supported architectures | May 2023 Covered by Ubuntu Pro | Apr 2028 | 
+| 16.04 LTS Ubuntu Supported architectures | Apr 2021 Covered by Ubuntu Pro | Apr 2026 Covered with legacy add-on | 
+| 14.04 LTS Ubuntu Supported architectures | Apr 2019 Covered by Ubuntu Pro | Apr 2024 Covered with legacy add-on | 
+
+
+| Version | Standard | Ubuntu Pro Subscribe to Ubuntu | 
+|---|---|---|
+| 26.04 LTS Ubuntu Supported architectures | Standard security maintenance May 2031 | Expanded security maintenance Apr 2036 B | 
+| 25.10 Ubuntu Supported architectures amd | Standard security maintenance Jul 2026 | Expanded security maintenance Not applic | 
+| 24.04 LTS Ubuntu Supported architectures | Standard security maintenance May 2029 | Expanded security maintenance Apr 2034 B | 
+| 22.04 LTS Ubuntu Supported architectures | Standard security maintenance May 2027 | Expanded security maintenance Apr 2032 B | 
+| 20.04 LTS Ubuntu Supported architectures | Standard security maintenance May 2025 C | Expanded security maintenance Apr 2030 B | 
+| 18.04 LTS Ubuntu Supported architectures | Standard security maintenance May 2023 C | Expanded security maintenance Apr 2028 B | 
+| 16.04 LTS Ubuntu Supported architectures | Standard security maintenance Apr 2021 C | Expanded security maintenance Apr 2026 C | 
+| 14.04 LTS Ubuntu Supported architectures | Standard security maintenance Apr 2019 C | Expanded security maintenance Apr 2024 C | 
+
+
+## Security and support coverage for LTS releases
+Standard Security Maintenance for packages in Main
+                    
+                    Expanded Security Maintenance for packages in Universe
+                  
+                  
+	
+		
+	
+	Ubuntu Pro
+
+                
+                
+                  Expanded Security Maintenance for packages in Main and Universe 
+                  
+	
+		
+	
+	Ubuntu Pro
+
+                
+                
+                  Break and bug fix support
+                  
+	
+		
+	
+	Ubuntu Pro
+       
+                
+                
+                  Legacy add-on for security coverage and support
+                  
+	
+		
+	
+	Ubuntu Pro
+1-5 years
+                Security:
+                
+                  
+                    
+                      Standard Security Maintenance for packages in Main
+                    
+                  
+                  
+                    
+                      Expanded Security Maintenance for packages in Universe
+                    
+                    
+	
+		
+	
+	Ubuntu Pro
+
+                  
+                
+                
+                Support:
+                
+                  
+                    
+                      Break fix and bug support
+                    
+                    
+	
+		
+	
+	Ubuntu Pro
+
+                  
+                
+              
+              
+                6-10 years
+                Security:
+                
+                  
+                    
+                      Expanded Security Maintenance for packages in Universe
+                    
+                    
+	
+		
+	
+	Ubuntu Pro
+
+                  
+                
+                
+                Support:
+                
+                  
+                    
+                      Break fix and bug support
+                    
+                    
+	
+		
+	
+	Ubuntu Pro
+
+                  
+                
+              
+              
+                11-15 years
+                Security:
+                
+                  
+                    
+                      Legacy add-on for security coverage and support
+                    
+                    
+	
+		
+	
+	Ubuntu Pro
+
+                  
+                
+                
+                Support:
+                
+                  
+                    
+                      Legacy coverage for break fix and bug support
+                    
+                    
+	
+		
+	
+	Ubuntu Pro
+
+
+
+
+---
+
+Title: Ubuntu 24.04 LTS
+**Definition:** LTS is now available
+ 
+
+ 
+ by
+ Richard Ferreira
+ on 29 August 2024
+ 
+
+ 
+ 
+
+ 
+ 
+ 
+ Article
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ Ubuntu Pro 24.
+
+**Key Points:** Your submission was sent successfully! Close
+ 
+ 
+ 
+
+ 
+ 
+ 
+ Thank you for signing up for our newsletter! Close notification
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ Please try again or 
+ file a bug report.
+
+## Hardening automation for CIS benchmarks now available for Ubuntu 24.04 LTS
+by
+        Henry Coggill
+        on 20 March 2025
+
+
+## Upgrade your desktop: Ubuntu 24.04.1 LTS is now available
+by
+        Richard Ferreira
+        on 29 August 2024
+
+
+## Ubuntu Pro 24.04 LTS Lands on Google Cloud: Power Up Your Cloud Experience
+by
+        Hugo Huang
+        on 13 May 2024
+
+
+## What’s New in Ubuntu 24.04 LTS for Microsoft/Azure Users
+by
+        Jehudi
+        on 29 April 2024
+
+
+## Canonical releases Ubuntu 24.04 LTS Noble Numbat
+by
+        Canonical
+        on 25 April 2024
+
+
+## Ubuntu Desktop 24.04 LTS: Noble Numbat deep dive
+by
+        Oliver Smith
+        on 25 April 2024
+
+
+## What’s new in security for Ubuntu 24.04 LTS?
+by
+        Alex Murray
+        on 24 April 2024
+
+
+## Canonical releases Landscape 24.04 LTS
+by
+        Canonical
+        on 1 May 2024
+
+
+
+
+---
+
+Title: Ubuntu 24.04 LTS: 20 Major Changes to Look Out For
+**Key Points:** Configure (or disable) Ubuntu Tiling Assistant from the (new) Ubuntu Desktop section in Settings. New ‘Firmware Updater’ tool
+
+Ubuntu’s new firmware update tool 
+
+Keeping hardware firmware updated in Ubuntu has always been easy-ish but it’s arguably even easier in Ubuntu 24. Thinner Ubuntu font
+
+The Ubuntu desktop uses (surprise) the Ubuntu font by default and in Ubuntu 24.
+
+## 13. Thinner Ubuntu font
+The Ubuntu desktop uses (surprise) the Ubuntu font by default and in Ubuntu 24.04 LTS you’ll notice that it’s thinner (and arguably sharper) than the version in Ubuntu 22.04 LTS. It’s not magic, it’s not your eyes, it’s an intentional change.
+
+

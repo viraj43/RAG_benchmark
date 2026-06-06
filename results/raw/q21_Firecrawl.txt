@@ -1,0 +1,1165 @@
+Title: Containers vs Virtual Machines | Atlassian
+Get it free
+
+Sign in
+
+# Containers vs. virtual machines
+
+Learn the differences between containers and virtual machines (VMs), popular providers for each, and how they can be used together
+
+![](https://dam-cdn.atl.orangelogic.com/AssetLink/8glj004sxsy6662874i41dhoab645p5q.png)
+
+By Ian Buchanan, Atlassian Principal Solutions Engineer
+
+Ian Buchanan is a Principal Solutions Engineer for DevOps at Atlassian where he focuses on the emerging DevOps community and the application of Jira, Bitbucket, and Bamboo for better continuous integration and continuous delivery. While Ian Buchanan has broad and deep experience with both Java and .NET, he is best known as a champion of lean and agile practices in large enterprises.
+
+During his career, he has successfully managed enterprise software development tools in all phases of their lifecycle, from cradle to grave. He has driven organization-wide process improvement with results of greater productivity, higher quality, and improved customer satisfaction. He has built multi-national agile teams that value self-direction and self-organization. When not speaking or coding, you are likely to find Ian indulging his passions in parsers, meta-programming, and domain-specific languages.
+
+Try Compass for free
+
+Improve your developer experience, catalog all services, and increase software health.
+
+[Get it free](https://www.atlassian.com/try/cloud/signup?bundle=compass)
+
+Containers and virtual machines are very similar resource virtualization technologies. Virtualization is the process in which a system singular resource like RAM, CPU, Disk, or Networking can be ‘virtualized’ and represented as multiple resources. The key differentiator between containers and virtual machines is that virtual machines virtualize an entire machine down to the hardware layers and containers only virtualize software layers above the operating system level.
+
+![A container showing the differences between virtual machines and containers.](https://dam-cdn.atl.orangelogic.com/AssetLink/8rey324iqvflta48it3i685ys31yv4wj.png)
+
+## What is a container?
+
+Containers are lightweight software packages that contain all the dependencies required to execute the contained software application. These dependencies include things like system libraries, external third-party code packages, and other operating system level applications. The dependencies included in a container exist in stack levels that are higher than the operating system.
+
+### Pros
+
+- **Iteration speed:** Because containers are lightweight and only include high level software, they are very fast to modify and iterate on.
+
+- **Robust ecosystem:** Most container runtime systems offer a hosted public repository of pre-made containers. These container repositories contain many popular software applications like databases or messaging systems and can be instantly downloaded and executed, saving time for development teams
+
+
+### Cons
+
+- **Shared host exploits:** Containers all share the same underlying hardware system below the operating system layer, it is possible that an exploit in one container could break out of the container and affect the shared hardware. Most popular container runtimes have public repositories of pre-built containers. There is a security risk in using one of these public images as they may contain exploits or may be vulnerable to being hijacked by nefarious actors.
+
+
+## Popular container providers
+
+- **Docker:** Docker is the most popular and widely used container runtime. Docker Hub is a giant public repository of popular containerized software applications. Containers on Docker Hub can instantly downloaded and deployed to a local Docker runtime.
+
+- **RKT:** Pronounced "Rocket", RKT is a security-first focused container system. RKT containers do not allow insecure container functionality unless the user explicitly enables insecure features. RKT containers aim to address the underlying cross contamination exploitive security issues that other container runtime systems suffer from.
+
+- **Linux Containers (LXC):** The Linux Containers project is an open-source Linux container runtime system. LXC is used to isolate operating, system-level processes from each other. Docker actually uses LXC behind the scenes. Linux Containers aim to offer a vender neutral open-source container runtime.
+
+- **CRI-O:** CRI-O is an implementation of the Kubernetes Container Runtime Interface (CRI) that allows the use of Open Container Initiative (OCI) compatible runtimes. It is a lightweight alternative to using Docker as the runtime for Kubernetes.
+
+
+## What is a virtual machine?
+
+Virtual machines are heavy software packages that provide complete emulation of low level hardware devices like CPU, Disk and Networking devices. Virtual machines may also include a complementary software stack to run on the emulated hardware. These hardware and software packages combined produce a fully functional snapshot of a computational system.
+
+### Pros
+
+- **Full isolation security:** Virtual machines run in isolation as  a fully standalone system. This means that virtual machines are immune to any exploits or interference from other virtual machines on a shared host. An individual virtual machine can still be hijacked by an exploit but the exploited virtual machine will be isolated and unable to contaminate any other neighboring virtual machines.
+
+- **Interactive development:** Containers are usually static definitions of the expected dependencies and configuration needed to run the container. Virtual machines are more dynamic and can be interactively developed. Once the basic hardware definition is specified for a virtual machine the virtual machine can then be treated as a bare bones computer. Software can manually be installed to the virtual machine and the virtual machine can be snapshotted to capture the current configuration state. The virtual machine snapshots can be used to restore the virtual machine to that point in time or spin up additional virtual machines with that configuration.
+
+
+### Cons
+
+- **Iteration speed:** Virtual machines are time consuming to build and regenerate because they encompass a full stack system. Any modifications to a virtual machine snapshot can take significant time to regenerate and validate they behave as expected.
+
+- **Storage size cost:** Virtual machines can take up a lot of storage space. They can quickly grow to several gigabytes in size. This can lead to disk space shortage issues on the virtual machines host machine.
+
+
+### Popular virtual machine providers
+
+- **Virtualbox** is a free and open source x86 architecture emulation system owned by Oracle. Virtualbox is one of the most popular and established virtual machine platforms with an ecosystem of supplementary tools to help develop and distribute virtual machine images.
+
+- **VMware** is a publicly traded company that has built its business on one of the first x86 hardware virtualization technologies. VMware comes included with a hypervisor which is a utility that will deploy and manage multiple virtual machines. VMware has robust UI for managing virtual machines. VMware is a great enterprise virtual machine option offering support.
+
+- **QEMU** is the most robust hardware emulation virtual machine option. It has support for any generic hardware architecture. QEMU is a command line only utility and does not offer a graphical user interface for configuration or execution. This trade-off makes QEMU one of the fastest virtual machine options.
+
+
+## Which option is better for you?
+
+If you have specific hardware requirements for your project, or you are developing on one hardware platform and need to target another like Windows vs MacOS, you will need to use a virtual machine. Most other 'software only' requirements can be met by using containers.
+
+## How can you use containers and virtual machines together?
+
+It is entirely possible to use containers and virtual machines in unison although the practical use-cases may be limited. A virtual machine can be created that emulates a unique hardware configuration. An operating system can then be installed within this virtual machine's hardware. Once the virtual machine is functional and boots the operating system, a container runtime can be installed on the operating system. At this point we have a functional computational system with emulated hardware that we can install containers on.
+
+One practical use for this configuration is experimentation for system on chip deployments. Popular system on chip computational devices like the Raspberry Pi, or BeagleBone development boards can be emulated as a virtual machine, to experiment with running containers on them before testing on the actual hardware.
+
+But the majority of the time, your needs will likely be met by one of the two. The key to deciding between containers or virtual machines for your virtualization needs is understanding your resource needs and the trade-offs you’re willing to make.
+
+## Recommended for you
+
+### Compass community
+
+[Learn more](https://community.atlassian.com/forums/Compass/ct-p/compass)
+
+### Tutorial: Create a component
+
+[Learn more](https://developer.atlassian.com/cloud/compass/components/create-view-update-and-remove-components/)
+
+### Get started with Compass for free
+
+[Learn more](https://www.atlassian.com/software/compass)
+
+reCAPTCHA
+
+Recaptcha requires verification.
+
+protected by **reCAPTCHA**
+
+---
+
+Title: Containers vs. virtual machines | Microsoft Learn
+Table of contents Exit editor mode
+
+Ask LearnAsk Learn
+
+Reading modeTable of contents[Read in English](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm)Add to CollectionsAdd to plan[Edit](https://github.com/MicrosoftDocs/Virtualization-Documentation/blob/main/virtualization/windowscontainers/about/containers-vs-vm.md)
+
+* * *
+
+Copy MarkdownPrint
+
+* * *
+
+Note
+
+Access to this page requires authorization. You can try [signing in](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm#) or changing directories.
+
+
+Access to this page requires authorization. You can try changing directories.
+
+
+# Containers vs. virtual machines
+
+Feedback
+
+Summarize this article for me
+
+
+> Applies to: Windows Server 2025, Windows Server 2022, Windows Server 2019, Windows Server 2016
+
+This topic discusses some of the key similarities and differences between containers and virtual machines (VMs), and when you might want to use each. Containers and VMs each have their uses–in fact, many deployments of containers use VMs as the host operating system rather than running directly on the hardware, especially when running containers in the cloud.
+
+For an overview of containers, see [Windows and containers](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/).
+
+[Section titled: Container architecture](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm#container-architecture)
+
+## Container architecture
+
+A container is an isolated, lightweight silo for running an application on the host operating system. Containers build on top of the host operating system's kernel (which can be thought of as the buried plumbing of the operating system), and contain only apps and some lightweight operating system APIs and services that run in user mode, as shown in this diagram.
+
+![Architectural diagram showing how containers run on top of the kernel](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/media/container-diagram.svg)
+
+[Section titled: Virtual machine architecture](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm#virtual-machine-architecture)
+
+## Virtual machine architecture
+
+In contrast to containers, VMs run a complete operating system–including its own kernel–as shown in this diagram.
+
+![Architectural diagram showing how VMs run a complete operating system beside the host operating system](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/media/virtual-machine-diagram.svg)
+
+[Section titled: Containers vs. virtual machines](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm#containers-vs-virtual-machines-1)
+
+## Containers vs. virtual machines
+
+The following table shows some of the similarities and differences of these complementary technologies.
+
+Expand table
+
+| Feature | Virtual machine | Container |
+| --- | --- | --- |
+| Isolation | Provides complete isolation from the host operating system and other VMs. This is useful when a strong security boundary is critical, such as hosting apps from competing companies on the same server or cluster. | Typically provides lightweight isolation from the host and other containers, but doesn't provide as strong a security boundary as a VM. (You can increase the security by using [Hyper-V isolation mode](https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container) to isolate each container in a lightweight VM). |
+| Operating system | Runs a complete operating system including the kernel, thus requiring more system resources (CPU, memory, and storage). | Runs the user mode portion of an operating system, and can be tailored to contain just the needed services for your app, using fewer system resources. |
+| Guest compatibility | Runs just about any operating system inside the virtual machine. | Runs on the [same operating system version as the host](https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility) (Hyper-V isolation enables you to run earlier versions of the same OS in a lightweight VM environment). |
+| Deployment | Deploy individual VMs by using Windows Admin Center or Hyper-V Manager; deploy multiple VMs by using PowerShell or System Center Virtual Machine Manager. | Deploy individual containers by using Docker via command line; deploy multiple containers by using an orchestrator such as Azure Kubernetes Service. |
+| Operating system updates and upgrades | Download and install operating system updates on each VM. Installing a new operating system version requires upgrading or often just creating an entirely new VM. This can be time-consuming, especially if you have a lot of VMs. | Updating or upgrading the operating system files within a container is the same: <br>1. Edit your container image's build file (known as a Dockerfile) to point to the latest version of the Windows base image. <br>2. Rebuild your container image with this new base image.<br>3. Push the container image to your container registry.<br>4. Redeploy using an orchestrator.<br>   <br>   The orchestrator provides powerful automation for doing this at scale. For details, see [Tutorial: Update an application in Azure Kubernetes Service](https://learn.microsoft.com/en-us/azure/aks/tutorial-kubernetes-app-update). |
+| Persistent storage | Use a virtual hard disk (VHD) for local storage for a single VM, or an SMB file share for storage shared by multiple servers. | Use Azure Disks for local storage for a single node, or Azure Files (SMB shares) for storage shared by multiple nodes or servers. |
+| Load balancing | Virtual machine load balancing moves running VMs to other servers in a failover cluster. | Containers themselves don't move; instead an orchestrator can automatically start or stop containers on cluster nodes to manage changes in load and availability. |
+| Fault tolerance | VMs can fail over to another server in a cluster, with the VM's operating system restarting on the new server. | If a cluster node fails, any containers running on it are rapidly recreated by the orchestrator on another cluster node. |
+| Networking | Uses virtual network adapters. | Uses an isolated view of a virtual network adapter, providing a little less virtualization–the host's firewall is shared with containers–while using less resources. For more, see [Windows container networking](https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/architecture). |
+
+* * *
+
+## Feedback
+
+Was this page helpful?
+
+
+YesNoNo
+
+Need help with this topic?
+
+
+Want to try using Ask Learn to clarify or guide you through this topic?
+
+
+Ask LearnAsk Learn
+
+Suggest a fix?
+
+* * *
+
+## Additional resources
+
+Training
+
+
+Module
+
+
+[Run containers on Windows Server - Training](https://learn.microsoft.com/en-us/training/modules/run-containers-windows-server/?source=recommendations)
+
+Run containers on Windows Server
+
+
+Certification
+
+
+[Microsoft Certified: Azure Virtual Desktop Specialty - Certifications](https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/?source=recommendations)
+
+Plan, deliver, manage, and monitor virtual desktop experiences and remote apps on Microsoft Azure for any device.
+
+
+* * *
+
+- Last updated on 01/22/2025
+
+Ask Learn is an AI assistant that can answer questions, clarify concepts, and define terms using trusted Microsoft documentation.
+
+Please sign in to use Ask Learn.
+
+[Sign in](https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/containers-vs-vm#)
+
+---
+
+Title: What is the difference between a container and a virtual machine?
+The best ELI5-level explanation I've seen is that a VM is a house, while a container is an apartment. That is, a VM contains all of its own ...
+
+---
+
+Title: Containers vs VM - Difference Between Deployment Technologies
+## Select your cookie preferences
+
+We use essential cookies and similar tools that are necessary to provide our site and services. We use performance cookies to collect anonymous statistics, so we can understand how customers use our site and make improvements. Essential cookies cannot be deactivated, but you can choose “Customize” or “Decline” to decline performance cookies.
+
+If you agree, AWS and approved third parties will also use cookies to provide useful site features, remember your preferences, and display relevant content, including relevant advertising. To accept or decline all non-essential cookies, choose “Accept” or “Decline.” To make more detailed choices, choose “Customize.”
+
+AcceptDeclineCustomize
+
+## Customize cookie preferences
+
+We use cookies and similar tools (collectively, "cookies") for the following purposes.
+
+### Essential
+
+Essential cookies are necessary to provide our site and services and cannot be deactivated. They are usually set in response to your actions on the site, such as setting your privacy preferences, signing in, or filling in forms.
+
+Allowed
+
+### Performance
+
+Performance cookies provide anonymous statistics about how customers navigate our site so we can improve site experience and performance. Approved third parties may perform analytics on our behalf, but they cannot use the data for their own purposes.
+
+Allowed
+
+### Functional
+
+Functional cookies help us provide useful site features, remember your preferences, and display relevant content. Approved third parties may set these cookies to provide certain site features. If you do not allow these cookies, then some or all of these services may not function properly.
+
+Allowed
+
+### Advertising
+
+Advertising cookies may be set through our site by us or our advertising partners and help us deliver relevant marketing content. If you do not allow these cookies, you will experience less relevant advertising.
+
+Allowed
+
+Blocking some types of cookies may impact your experience of our sites. You may review and change your choices at any time by selecting Cookie preferences in the footer of this site. We and selected third-parties use cookies or similar technologies as specified in the [AWS Cookie Notice](https://aws.amazon.com/legal/cookies/).
+
+CancelSave preferences
+
+## Your privacy choices
+
+We and our advertising partners (“we”) may use information we collect from or about you to show you ads on other websites and online services. Under certain laws, this activity is referred to as “cross-context behavioral advertising” or “targeted advertising.”
+
+To opt out of our use of cookies or similar technologies to engage in these activities, select “Opt out of cross-context behavioral ads” and “Save preferences” below. If you clear your browser cookies or visit this site from a different device or browser, you will need to make your selection again. For more information about cookies and how we use them, read our [Cookie Notice](https://aws.amazon.com/legal/cookies/).
+
+Allow cross-context behavioral adsOpt out of cross-context behavioral ads
+
+To opt out of the use of other identifiers, such as contact information, for these activities, fill out the form [here](https://pulse.aws/application/ZRPLWLL6?p=0).
+
+For more information about how AWS handles your information, read the [AWS Privacy Notice](https://aws.amazon.com/privacy/).
+
+CancelSave preferences
+
+## Unable to save cookie preferences
+
+We will only store essential cookies at this time, because we were unable to save your cookie preferences.
+
+If you want to change your cookie preferences, try again later using the link in the AWS console footer, or contact support if the problem persists.
+
+Dismiss
+
+ [Skip to main content](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#aws-page-content-main)
+
+- [What is Cloud Computing?](https://aws.amazon.com/what-is-cloud-computing/)
+- [Cloud Comparisons Hub](https://aws.amazon.com/compare/)
+- [AWS for Every Application](https://aws.amazon.com/aws-for-every-application/)
+- Compute
+
+# What’s the Difference Between Containers and Virtual Machines?
+
+[Create an AWS Account](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html?pg=compare_header)
+
+## Page topics
+
+- [What's the Difference Between Containers and Virtual Machines?](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#whats-the-difference-between-containers-and-virtual-machines--1rcx8gk)
+- [Where are containers and virtual machines used?](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#where-are-containers-and-virtual-machines-used--1rcx8gk)
+- [Similarities between containers and virtual machines](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#similarities-between-containers-and-virtual-machines--1rcx8gk)
+- [Key differences: containers vs. virtual machines](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#key-differences-containers-vs-virtual-machines--1rcx8gk)
+- [When to use containers vs. virtual machines](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#when-to-use-containers-vs-virtual-machines--1rcx8gk)
+- [Summary of differences: container vs. virtual machine](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#summary-of-differences-container-vs-virtual-machine--1rcx8gk)
+- [How can AWS help with your containers and virtual machines?](https://aws.amazon.com/compare/the-difference-between-containers-and-virtual-machines/#how-can-aws-help-with-your-containers-and-virtual-machines--1rcx8gk)
+
+## What's the Difference Between Containers and Virtual Machines?
+
+Containers and virtual machines are technologies that make your applications independent from your IT infrastructure resources. A container is a software code package containing an application’s code, its libraries, and other dependencies. [Containerization](https://aws.amazon.com/what-is/containerization/) makes your applications portable so that the same code can run on any device. A [virtual machine](https://aws.amazon.com/what-is/virtualization/) is a digital copy of a physical machine. You can have multiple virtual machines with their own individual operating systems running on the same host operating system. In addition you can create a virtual machine that contains everything required to run your application.
+
+## Where are containers and virtual machines used?
+
+Containers and virtual machines are both deployment technologies. In the software development lifecycle, deployment is the mechanism that makes an application run efficiently on a server or device. The application requires several additional software components called _dependencies_ that are closely related to the underlying operating system of the server. All these different software layers between the application code and the physical device are called the _application environment_.
+
+### **Challenges in software deployment**
+
+Organizations typically have to deploy applications in multiple environments—for example, developing on the Linux environment and testing on Windows—before releasing new features. Moving the application between environments can result in bugs and glitches, which lower productivity, due to missed dependencies. At the same time, building and testing the application in just one environment limits its usefulness. Here are some examples:
+
+- You may have to develop different versions for users with different operating systems
+- Your system administrators must update and maintain all environments uniformly, increasing development costs
+- You may find it challenging to move your applications from on-premises data centers to the cloud or between different cloud environments
+
+### **Purpose of virtual machines**
+
+Historically, virtual machine technology was developed to efficiently use increasing physical hardware capacity and processing power. Running a single application environment on a single physical server underutilized hardware resources. Virtual machines allow organizations to install multiple operating systems and create multiple environments on the same physical machine.
+
+### **Purpose of containers**
+
+Containers were created to package and run applications in a predictable and repeatable way across multiple environments. Instead of recreating the environment, you packaged the application to run on all types of physical or virtual environments. This is similar to putting an astronaut in a spacesuit instead of recreating the Earth's atmosphere for them on another planet.
+
+## Similarities between containers and virtual machines
+
+Containers and virtual machines allow for the full isolation of applications so that you can run them in multiple environments. They virtualize or abstract underlying infrastructure, so users don't have to worry about that. They also allow you to package your software infrastructure into a single file called an _image file_. You can use the image file to quickly set up and run your application anywhere. In addition, you can also use software processes to manage system configurations or scale to manage thousands of applications at once. However, the role and extent of use for containers and virtual machines vary depending on where and how the application is deployed.
+
+## Key differences: containers vs. virtual machines
+
+Containers virtualize the operating system so the application can run independently on any platform. Virtual machines go beyond that to virtualize physical machines, so you can use your hardware resources efficiently. We give some more differences below.
+
+### **How they work**
+
+Container technology involves building self-sufficient software packages that perform consistently, regardless of the machines they run on. Software developers create and deploy _container images_—files containing the necessary information to run the application. Container images are read-only and cannot be altered by the computer system.
+
+Virtual machine technology involves installing virtualization software on a physical server or computer. The physical computer is called the _host_ computer and the virtual machine is called the _guest_. You can configure and update the guest operating system and its applications as necessary without affecting the host operating system.
+
+### **Core technology**
+
+Virtual machines use hypervisors that communicate between the guest operating system and the host operating system. The hypervisor coordinates resource sharing, so the virtual machine runs in isolation alongside several others on the same hardware.
+
+Containers, on the other hand, use a container engine or container runtime. This is software that acts as an intermediary agent between the containers and the operating system, providing and managing system resources that the application needs. Docker is the most popular open-source container engine.
+
+### **Size**
+
+Virtual machine image files are larger in size (several GB) as they contain their own operating system. Increased resources mean you can duplicate, split, abstract, and emulate entire servers, databases, desktops, and networks. Container files are more lightweight, and you can measure them in MB. Containers only package the resources required to run a single application.
+
+## When to use containers vs. virtual machines
+
+Here, we give some factors to consider when choosing between virtual machines and containers for application deployment.
+
+### **Environment configuration**
+
+Virtual machines give developers more control over the application's environment. They can manually install system software, snapshot configuration states, and restore them to a previous state if required. They are useful for ideation and experimentation or for testing different environments to improve an application's performance.
+
+Containers provide static definitions of configurations once the best ones have been selected.
+
+### **Software development speed**
+
+Virtual machines are full-stack systems and can be laborious to build and regenerate. Any modifications are time-consuming to validate as you have to regenerate the environment.
+
+Containers are a better choice if you want to build, test, and release new features frequently. As they only include high-level software, they are very fast to modify and iterate on.
+
+### **Scalability**
+
+Virtual machines take up more storage space and require you to provision more hardware in your on-premises data centers. Switching to cloud instances reduces costs but migrating your entire environment brings its own challenges.
+
+Containers take up less space and are easier to scale. More importantly, containers provide granular control on application scalability by allowing you to use microservices. Microservices are an architectural and organizational approach to software development where software is composed of small independent services that communicate over well-defined APIs. Containers let you scale individual microservices as required.
+
+[Read about microservices »](https://aws.amazon.com/microservices/)
+
+[Read about APIs »](https://aws.amazon.com/what-is/api/)
+
+## Summary of differences: container vs. virtual machine
+
+|     |     |     |
+| --- | --- | --- |
+| Characteristics | Container | Virtual machine |
+| Definition | Software code package containing an application’s code, its libraries, and other dependencies that make up the application running environment. | Digital replica of a physical machine. Partitions the physical hardware into multiple environments. |
+| Virtualization | Virtualizes the operating system. | Virtualizes the underlying physical infrastructure. |
+| Encapsulation | Software layer above the operating system required for running the application or application component. | Operating system, all software layers above it, multiple applications. |
+| Technology | Container engine coordinates with the underlying operating system for resources. | Hypervisor coordinates with underlying operating system or hardware. |
+| Size | Lighter weight (think in terms of MB). | Much larger (think in terms of GB). |
+| Control | Less control of the environment outside the container. | More control over the entire environment. |
+| Flexibility | More flexible. You can quickly migrate between on-premises and cloud-centered environments. | Less flexible. Migration has challenges. |
+| Scalability | Highly scalable. Granular scalability possible with microservices. | Scaling can be costly. Requires switching from on-premises to cloud instances for cost-effective scale. |
+|  | Learn more about [Containers](https://aws.amazon.com/containers/) | Learn more about [V](https://aws.amazon.com/containers/) [irtual Machines](https://aws.amazon.com/vmware/) |
+
+## How can AWS help with your containers and virtual machines?
+
+AWS has several services to support all your application deployment needs. Here are some examples:
+
+- [AWS App2Container](https://aws.amazon.com/transform/) is a containerization tool that allows software developers to modernize legacy applications. Developers use AWS App2Container to turn Java and .NET applications into containerized applications.
+- [Amazon Elastic Container Registry (Amazon ECR](https://aws.amazon.com/ecr/)) is a highly available and secure private container repository that makes it easy to store and manage Docker container images.
+- [Amazon Elastic Container Service (Amazon ECS](https://aws.amazon.com/ecs/)) is a highly scalable, high-performance container orchestration service to run Docker containers on the AWS Cloud.
+- [Amazon Elastic Compute Cloud (Amazon EC2)](https://aws.amazon.com/ec2/) lets you exercise granular control over your cloud instances and choose the processors, storage, and networking you want.
+- [AWS Fargate](https://aws.amazon.com/fargate/) is a technology for Amazon ECS that lets you run Docker containers without deploying or managing infrastructure.
+- [VMWare Cloud on AWS](https://aws.amazon.com/vmware/) lets you simplify and accelerate the migration of mission-critical production workloads from on-premises virtual machines to the AWS Cloud.
+
+Get started with virtualization and containerization by [creating a free AWS account](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html) today.
+
+## Next Steps with AWS
+
+[**Start building with Containers**\\
+\\
+Learn how to get started with containers on AWS\\
+\\
+Learn more](https://aws.amazon.com/aws-for-every-application/)
+
+[**Start building with Virtual Machines**\\
+\\
+Learn how to get started with Virtual Machines on AWS\\
+\\
+Learn more](https://aws.amazon.com/aws-for-every-application/)
+
+## Browse all cloud computing concepts
+
+Browse all cloud computing concepts content here:
+
+Filter
+
+Displaying 1-8 (293)
+
+Displaying 1-8 (293)
+
+[2022-08-08\\
+\\
+**What is IaaS (Infrastructure as a Service)?** \\
+Infrastructure as a Service (IaaS) is a business model that delivers IT infrastructure like compute, storage, and network resources on a pay-as-you-go basis over the internet. You can use IaaS to request and configure the resources you require to run your applications and IT systems. You are responsible for deploying, maintaining, and supporting your applications, and the IaaS provider is responsible for maintaining the physical infrastructure. Infrastructure as a Service gives you flexibility and control over your IT resources in a cost-effective manner.\\
+\\
+Learn more](https://aws.amazon.com/what-is/iaas/?trk=faq_card)
+
+[2022-05-25\\
+\\
+**What is Machine Translation?** \\
+Machine translation is the process of using artificial intelligence to automatically translate text from one language to another without human involvement. Modern machine translation goes beyond simple word-to-word translation to communicate the full meaning of the original language text in the target language. It analyzes all text elements and recognizes how the words influence one another.\\
+\\
+Learn more](https://aws.amazon.com/what-is/machine-translation/?trk=faq_card)
+
+[2022-08-12\\
+\\
+**What is Block Storage?** \\
+Block storage is technology that controls data storage and storage devices. It takes any data, like a file or database entry, and divides it into blocks of equal sizes. The block storage system then stores the data block on underlying physical storage in a manner that is optimized for fast access and retrieval. Developers prefer block storage for applications that require efficient, fast, and reliable data access. Think of block storage as a more direct pipeline to the data as opposed to file storage which has an extra layer consisting of a file system (NFS, SMB) to process before accessing the data.\\
+\\
+Learn more](https://aws.amazon.com/what-is/block-storage/?trk=faq_card)
+
+[2021-09-29\\
+\\
+**What is a Relational Database?** \\
+A relational database is a collection of data items with pre-defined relationships between them. These items are organized as a set of tables with columns and rows. Tables are used to hold information about the objects to be represented in the database. Each column in a table holds a certain kind of data and a field stores the actual value of an attribute. The rows in the table represent a collection of related values of one object or entity. Each row in a table could be marked with a unique identifier called a primary key, and rows among multiple tables can be made related using foreign keys. This data can be accessed in many different ways without reorganizing the database tables themselves.\\
+\\
+Learn more](https://aws.amazon.com/relational-database/?trk=faq_card)
+
+[2023-10-02\\
+\\
+**What is Advanced Analytics?** \\
+Advanced analytics is the process of using complex machine learning (ML) and visualization techniques to derive data insights beyond traditional business intelligence. Modern organizations collect vast volumes of data and analyze it to discover hidden patterns and trends. They use the information to improve business process efficiency and customer satisfaction. With advanced analytics, you can take this one step further and use data for future and real-time decision-making. Advanced analytics techniques also derive meaning from unstructured data like social media comments or images. They can help your organization solve complex problems more efficiently. Advancements in cloud computing and data storage have made advanced analytics more affordable and accessible to all organizations.\\
+\\
+Learn more](https://aws.amazon.com/what-is/advanced-analytics/?trk=faq_card)
+
+[2023-10-04\\
+\\
+**What is a GPU?** \\
+A graphics processing unit (GPU) is an electronic circuit that can perform mathematical calculations at high speed. Computing tasks like graphics rendering, machine learning (ML), and video editing require the application of similar mathematical operations on a large dataset. A GPU’s design allows it to perform the same operation on multiple data values in parallel. This increases its processing efficiency for many compute-intensive tasks.\\
+\\
+Learn more](https://aws.amazon.com/what-is/gpu/?trk=faq_card)
+
+[2024-08-01\\
+\\
+**What Is Enterprise AI?** \\
+Enterprise artificial intelligence (AI) is the adoption of advanced AI technologies within large organizations. Taking AI systems from prototype to production introduces several challenges around scale, performance, data governance, ethics, and regulatory compliance. Enterprise AI includes policies, strategies, infrastructure, and technologies for widespread AI use within a large organization. Even though it requires significant investment and effort, enterprise AI is important for large organizations as AI systems become more mainstream.\\
+\\
+Learn more](https://aws.amazon.com/what-is/enterprise-ai/?trk=faq_card)
+
+[2022-05-25\\
+\\
+**What is Web Hosting?** \\
+Web hosting is a service that stores your website or web application and makes it easily accessible across different devices such as desktop, mobile, and tablets. Any web application or website is typically made of many files, such as images, videos, text, and code, that you need to store on special computers called servers. The web hosting service provider maintains, configures, and runs physical servers that you can rent for your files. Website and web application hosting services also provide additional support, such as security, website backup, and website performance, which free up your time so that you can focus on the core functions of your website.\\
+\\
+Learn more](https://aws.amazon.com/what-is/web-hosting/?trk=faq_card)
+
+Show 8 more
+
+## Did you find what you were looking for today?
+
+Let us know so we can improve the quality of the content on our pages
+
+YesNo
+
+---
+
+Title: Containers vs. VMs: Similarities, differences, and combined ...
+[Skip to content](https://www.redhat.com/en/topics/containers/containers-vs-vms#rhdc-main-content)
+
+## Navigation
+
+[Red Hat](https://www.redhat.com/)
+
+Menu
+
+ [Red Hat](https://www.redhat.com/en)
+
+ AI
+
+
+- ### Overview
+
+
+
+  - [AI news](https://www.redhat.com/en/blog/channel/artificial-intelligence)
+  - [Technical blog](https://developers.redhat.com/blog?field_tax_product_target_id%5B37288%5D=37288&extIdCarryOver=true&intcmp=7013a000003Sl59AAC&sc_cid=RHCTG0250000454096&_gl=1%2A1jal9i8%2A_gcl_au%2ANjU2NDY1NTAwLjE3NjQ2MTY4NTU.&percmp=RHCTG0250000466729)
+  - [Live AI events](https://www.redhat.com/en/events/ai)
+  - [Inference explained](https://www.redhat.com/en/ai/inference/what-you-should-know-about-inference)
+
+  - [See our approach](https://www.redhat.com/en/artificial-intelligence)
+
+- ### Products
+
+
+
+  - [Red Hat AI Enterprise](https://www.redhat.com/en/products/ai/enterprise)
+  - [Red Hat AI Inference Server](https://www.redhat.com/en/products/ai/inference-server)
+  - [Red Hat Enterprise Linux AI](https://www.redhat.com/en/products/ai/enterprise-linux-ai)
+  - [Red Hat OpenShift AI](https://www.redhat.com/en/products/ai/openshift-ai)
+
+  - [Explore Red Hat AI](https://www.redhat.com/en/products/ai)
+
+- ### Engage & learn
+
+
+  - [Learning hub](http://docs.redhat.com/en/learn/ai)
+  - [AI topics](https://www.redhat.com/en/topics/ai)
+  - [AI partners](https://catalog.redhat.com/categories/ai#ai-partners)
+  - [Services for AI](https://www.redhat.com/en/services/consulting/red-hat-consulting-for-ai)
+
+ Hybrid cloud
+
+
+- ### Platform solutions
+
+
+  - [Artificial intelligence](https://www.redhat.com/en/hybrid-cloud-solutions/ai)
+    Build, deploy, and monitor AI models and apps.
+
+  - [Linux standardization](https://www.redhat.com/en/hybrid-cloud-solutions/linux-standardization)
+    Get consistency across operating environments.
+
+  - [Application development](https://www.redhat.com/en/hybrid-cloud-solutions/application-development)
+    Simplify the way you build, deploy, and manage apps.
+
+  - [Automation](https://www.redhat.com/en/hybrid-cloud-solutions/automation)
+    Scale automation and unite tech, teams, and environments.
+
+- ### Use cases
+
+
+  - [Virtualization](https://www.redhat.com/en/hybrid-cloud-solutions/virtualization)
+    Modernize operations for virtualized and containerized workloads.
+
+  - [Digital sovereignty](https://www.redhat.com/en/products/digital-sovereignty)
+    Control and protect critical infrastructure.
+
+  - [Security](https://www.redhat.com/en/solutions/trusted-software-supply-chain)
+    Code, build, deploy, and monitor security-focused software.
+
+  - [Edge computing](https://www.redhat.com/en/products/edge)
+    Deploy workloads closer to the source with edge technology.
+
+- [Explore solutions](https://www.redhat.com/en/hybrid-cloud-solutions)
+
+- ### Solutions by industry
+
+
+  - [Automotive](https://www.redhat.com/en/solutions/automotive)
+  - [Financial services](https://www.redhat.com/en/solutions/financial-services)
+  - [Healthcare](https://www.redhat.com/en/solutions/healthcare)
+  - [Industrial sector](https://www.redhat.com/en/solutions/industrial-sector)
+  - [Media and entertainment](https://www.redhat.com/en/solutions/media-entertainment)
+  - [Public sector (Global)](https://www.redhat.com/en/solutions/public-sector)
+  - [Public sector (U.S.)](https://www.redhat.com/en/solutions/public-sector/us)
+  - [Telecommunications](https://www.redhat.com/en/solutions/telecommunications)
+
+### [Discover cloud technologies](https://www.redhat.com/en/hybrid-cloud-console)
+
+Learn how to use our cloud products and solutions at your own pace in the Red Hat® Hybrid Cloud Console.
+
+ Products
+
+
+- ### Platforms
+
+
+  - [Red Hat AI](https://www.redhat.com/en/products/ai)
+    Develop and deploy AI solutions across the hybrid cloud.
+
+  - [Red Hat Enterprise Linux](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)
+    Support hybrid cloud innovation on a flexible operating system.
+
+  - [Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift)
+    Build, modernize, and deploy apps at scale.
+
+  - [Red Hat Ansible Automation Platform](https://www.redhat.com/en/technologies/management/ansible)
+    Implement enterprise-wide automation.
+
+- ### Featured
+
+
+
+  - [Red Hat OpenShift Virtualization Engine](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization-engine)
+  - [Red Hat OpenShift Service on AWS](https://www.redhat.com/en/technologies/cloud-computing/openshift/aws)
+  - [Microsoft Azure Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/azure)
+
+  - [See all products](https://www.redhat.com/en/products)
+
+- ### Try & buy
+
+
+  - [Start a trial](https://www.redhat.com/en/products/trials)
+  - [Buy online](https://www.redhat.com/en/store)
+  - [Integrate with major cloud providers](https://www.redhat.com/en/partners/certified-cloud-and-service-providers)
+
+- ### Services & support
+
+
+
+  - [Consulting](https://www.redhat.com/en/services/consulting)
+  - [Product support](https://www.redhat.com/en/services/support)
+  - [Services for AI](https://www.redhat.com/en/services/consulting/red-hat-consulting-for-ai)
+  - [Technical Account Management](https://www.redhat.com/en/services/support/technical-account-management)
+
+  - [Explore services](https://www.redhat.com/en/services)
+
+ Training
+
+
+- ### Training & certification
+
+
+
+  - [Courses and exams](https://www.redhat.com/en/services/training/all-courses-exams)
+  - [Certifications](https://www.redhat.com/en/services/certifications)
+  - [Skills assessments](https://www.redhat.com/en/services/skills-assessment)
+  - [Red Hat Academy](https://www.redhat.com/en/services/training/red-hat-academy)
+  - [Learning subscription](https://www.redhat.com/en/services/training/learning-subscription)
+
+  - [Explore training](https://www.redhat.com/en/services/training-and-certification)
+
+- ### Featured
+
+
+  - [Red Hat Certified System Administrator exam](https://www.redhat.com/en/services/training/ex200-red-hat-certified-system-administrator-rhcsa-exam?percmp=7015Y0000048OFsQAM)
+  - [Red Hat Certified OpenShift Administrator exam](https://www.redhat.com/en/services/training/red-hat-certified-openshift-administrator-exam?percmp=7015Y0000048OFsQAM)
+  - [Red Hat Enterprise Linux Automation with Ansible](https://www.redhat.com/en/services/training/au294-red-hat-linux-automation-with-ansible?percmp=7015Y0000048OFsQAM)
+  - [Red Hat System Administration I](https://www.redhat.com/en/services/training/rh124-red-hat-system-administration-i?percmp=7015Y0000048OFsQAM)
+  - [Red Hat Certified Specialist in OpenShift Virtualization](https://www.redhat.com/en/services/training/red-hat-certified-specialist-openshift-virtualization-ex316?percmp=7015Y0000048OFsQAM)
+
+- ### Services
+
+
+  - [Consulting](https://www.redhat.com/en/services/consulting)
+  - [Partner training](https://connect.redhat.com/en/training)
+  - [Product support](https://www.redhat.com/en/services/support)
+  - [Services for AI](https://www.redhat.com/en/services/consulting/red-hat-consulting-for-ai)
+  - [Technical Account Management](https://www.redhat.com/en/services/support/technical-account-management)
+
+ Learn
+
+
+- ### Build your skills
+
+
+  - [Documentation](https://docs.redhat.com/en)
+  - [Hands-on labs](https://www.redhat.com/en/interactive-labs)
+  - [Hybrid cloud learning hub](https://cloud.redhat.com/learn)
+  - [Interactive demos](https://www.redhat.com/en/interactive-experiences)
+  - [Training and certification](https://www.redhat.com/en/services/training-and-certification)
+
+- ### More ways to learn
+
+
+  - [Blog](https://www.redhat.com/en/blog)
+  - [Events and webinars](https://www.redhat.com/en/events)
+  - [Podcasts and video series](https://www.redhat.com/en/red-hat-original-series)
+  - [Red Hat TV](https://tv.redhat.com/)
+  - [Resource library](https://www.redhat.com/en/resources)
+
+### [For developers](https://developers.redhat.com/)
+
+Discover resources and tools to help you build, deliver, and manage cloud-native applications and services.
+
+ Partners
+
+
+- ### For customers
+
+
+
+  - [Our partners](https://www.redhat.com/en/partners)
+  - [Red Hat Ecosystem Catalog](https://catalog.redhat.com/)
+
+  - [Find a partner](https://catalog.redhat.com/partners)
+
+- ### For partners
+
+
+
+  - [Partner Connect](https://connect.redhat.com/)
+  - [Become a partner](https://connect.redhat.com/en/benefits-of-being-a-partner)
+  - [Training](https://connect.redhat.com/en/training)
+  - [Support](https://connect.redhat.com/en/support)
+
+  - [Access the partner portal](https://connect.redhat.com/partner-admin/dashboard)
+
+### [Build solutions powered by trusted partners](https://catalog.redhat.com/en/solutions)
+
+Find solutions from our collaborative community of experts and technologies in the Red Hat® Ecosystem Catalog.
+
+ Search
+
+
+×
+
+### I'd like to:
+
+- [Start a trial](https://www.redhat.com/en/products/trials)
+- [Buy a learning subscription](https://www.redhat.com/en/services/training/learning-subscription/how-to-buy)
+- [Manage subscriptions](https://access.redhat.com/management)
+- [Contact sales](https://www.redhat.com/en/contact)
+- [Contact customer service](https://www.redhat.com/en/contact/customer-service)
+- [See Red Hat jobs](https://www.redhat.com/en/jobs)
+
+### Help me find:
+
+- [Documentation](https://docs.redhat.com/en)
+- [Developer resources](https://developers.redhat.com/)
+- [Tech topics](https://www.redhat.com/en/topics)
+- [Architecture center](https://www.redhat.com/architect/portfolio/)
+- [Security updates](https://access.redhat.com/security/security-updates/cve)
+- [Customer support](https://access.redhat.com/support)
+
+### I want to learn more about:
+
+- [AI](https://www.redhat.com/en/topics/ai)
+- [Application modernization](https://www.redhat.com/en/topics/application-modernization)
+- [Automation](https://www.redhat.com/en/topics/automation)
+- [Cloud-native applications](https://www.redhat.com/en/topics/cloud-native-apps)
+- [Linux](https://www.redhat.com/en/topics/linux)
+- [Virtualization](https://www.redhat.com/en/topics/virtualization)
+
+[Console](https://www.redhat.com/en/hybrid-cloud-console)
+
+[Docs](https://docs.redhat.com/en)
+
+[Support](https://access.redhat.com/)
+
+New For you
+
+
+### Recommended
+
+We'll recommend resources you may like as you browse. Try these suggestions for now.
+
+- [Product trial center](https://www.redhat.com/en/products/trials)
+- [Courses and exams](https://www.redhat.com/en/services/training/all-courses-exams)
+- [All products](https://www.redhat.com/en/products)
+- [Tech topics](https://www.redhat.com/en/topics)
+- [Resource library](https://www.redhat.com/en/resources)
+
+Log in
+
+### Get more with a Red Hat account
+
+- Console access
+- Event registration
+- Training & trials
+- World-class support
+
+A subscription may be required for some services.
+
+[Log in or register](https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/auth?client_id=rhcom&redirect_uri=https%3A%2F%2Fwww.redhat.com%2Fen%2Ftopics%2Fcontainers%2Fcontainers-vs-vms&response_type=code&scope=openid+profile_level.rh_events+id.email+id.idp+id.job.title+id.job.department+id.name+id.organization+id.sub+id.username+roles+profile+api.graphql+api.console+api.ask_red_hat&state=a7a4478a4d154495aa5653249c0bcca6&code_challenge=hWdBH7InUfY8uMXYgVQ8CL1_00D4NYKQfxSft04ZNrw&code_challenge_method=S256)
+
+Change page language简体中文EnglishFrançaisDeutschItaliano日本語한국어PortuguêsEspañol
+
+[Contact us](https://www.redhat.com/en/contact)
+
+### \[\[name\]\]
+
+[Edit avatar](https://access.redhat.com/user/edit)
+
+Login: \[\[login\]\]
+
+Account number: \[\[account\_number\]\]
+
+\[\[email\]\]
+
+Change page language简体中文EnglishFrançaisDeutschItaliano日本語한국어PortuguêsEspañol
+
+Log out
+
+- [Topics](https://www.redhat.com/en/topics "Topics")
+- Containers vs. VMs: Similarities, differences, and combined approaches
+
+# Containers vs. VMs: Similarities, differences, and combined approaches
+
+Updated  December 11, 2025•_4_-minute read
+
+Copy
+
+Copied
+
+Copy URL
+
+[Containers](https://www.redhat.com/en/topics/containers-v1-old) and [virtual machines (VMs)](https://www.redhat.com/en/topics/virtualization/what-is-a-virtual-machine) are different approaches to packaging computing components and isolating them from the rest of the system. The main difference lies in what components are isolated, which in turn affects the scale and portability of each approach.
+
+Both containerization and virtualization are mature, well-supported IT technologies. They can work together in many architectures, serving different application needs. Modern application platforms, including [Red Hat® OpenShift®](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization), support both types of technologies, encouraging flexibility.
+
+This video can't play due to privacy settings
+
+To change your settings, select the "Cookie Preferences" link in the footer and opt in to "Advertising Cookies or try disabling adblockers."
+
+Open Answers: How are VMs and containers different? Video duration: 0:36
+
+[Explore Red Hat's virtualization solution](https://www.redhat.com/en/products/virtualization)
+
+A container is a unit of software that holds together all the components and functionalities needed for an application to run. Unlike a virtual machine, a container doesn’t require a guest operating system. Most modern applications are made of multiple containers that each perform a specific function.
+
+A container packages an application and its dependencies together in a portable unit. You can deploy the container anywhere needed—a developer laptop, a datacenter, a cloud environment, or the edge—with the expectation that it will maintain consistent behavior and functionality.
+
+Compared to VMs, containers are typically smaller (measured by the megabyte). Their smaller size makes them a faster and more agile way to scale to match changes in demand.
+
+With their portability and consistency, containers are important to modern [cloud-native](https://www.redhat.com/en/topics/cloud-native-apps) software development, including [DevOps](https://www.redhat.com/en/topics/devops/what-is-devops) and [continuous integration and continuous delivery (CI/CD)](https://www.redhat.com/en/topics/devops/what-is-ci-cd) practices. They let you split applications into functions and microservices. Compared to traditional architectures, this simplifies scalability and movement of IT projects across diverse IT environments.
+
+With containers, different teams can work on individual parts of an application or service without interrupting or threatening code packaged in other containers. A modern application might rely on hundreds of containers loosely coupled together. Teams manage these large fleets of containers with a container orchestration platform such as [Kubernetes](https://www.redhat.com/en/topics/containers/what-is-kubernetes) (which is the foundation of Red Hat OpenShift).
+
+Containers also have security and resilience advantages over VMs. Using containers minimizes an environment’s attack surface (a vulnerability in 1 container is isolated from other parts of the application) and prevents configuration drift. Containers are short lived, lightweight, and frequently rebuilt from version-controlled sources. Additionally, their declarative and consistent nature enhances transparency for software teams, allowing easier vulnerability scanning compared to traditional environments and streamlined, automated security controls.
+
+[Read more about containers](https://www.redhat.com/en/topics/containers/whats-a-linux-container)
+
+A VM is an isolated computing environment with its own CPU, memory, network interface, storage, and operating system, emulating physical computers. Multiple VMs can run on a single server, with a [hypervisor](https://www.redhat.com/en/topics/virtualization/what-is-a-hypervisor) acting as a lightweight software layer positioned between the physical host and the VMs. This hypervisor efficiently manages access to resources, allowing VMs to function as distinct servers for greater flexibility and agility.
+
+By placing many VMs on each physical server, traditional virtualization technology can make better use of hardware, leading to cost savings. This orchestration abstracts physical resources (typically compute, network, and storage) so users can access them through software.
+
+VMs have served as the foundation of many early cloud computing environments, facilitating resource virtualization and supporting multi-tenancy and isolation where multiple users can run systems that share the same resources. Additionally, because VMs contain their own operating system, they can perform various resource-intensive functions at once, allowing them to abstract, split, duplicate, and emulate entire servers, operating systems, desktops, databases, and networks.
+
+With VMs, workloads that were traditionally bound to on-premise servers can run in cloud environments or in hybrid cloud configurations. This gives IT organizations even more flexibility to run workloads where they’re most efficient and manage costs.
+
+[Read more about virtual machines](https://www.redhat.com/en/topics/virtualization/what-is-a-virtual-machine)
+
+Using containers unlocks the advantages of cloud-native applications, including scalability, efficiency, and automated lifecycle management.
+
+What if you could manage VMs the same way? Open source projects like [KubeVirt](https://www.redhat.com/en/topics/virtualization/what-is-kubevirt) make it possible to run VMs side by side with containers. You can apply a consistent set of modern tools on a unified platform to manage both containers and VMs. Benefits of this include:
+
+### Unified cloud-native administration
+
+- Reduce complexity and encourage cooperation among teams by managing VMs, containers, and serverless workloads on a single platform.
+- Simplify administration with cloud-native tooling such as CI/CD pipelines, monitoring, and automation.
+- Align VM administrators and DevOps team members with consistent processes for deployment, scaling, and lifecycle management.
+- Allow self-service VM provisioning with standardized workflows and templates.
+
+### Scalability
+
+- Run VMs across different infrastructure, including in on-premise, cloud, and edge environments.
+- Dynamically scale cloud resources to meet demands for VM workloads.
+- Reduce infrastructure costs and use your resources as efficiently as possible by consolidating VMs and containers on 1 platform.
+
+### Simplified AI integration
+
+- Introduce new AI services incrementally without disrupting your existing VM workloads.
+- Build, train, and deploy artificial intelligence and machine learning (AI/ML) models on the same platform as your current applications and data.
+- Take advantage of AI-ready infrastructure to power more intelligent automation, data insights, and new AI applications.
+
+Modernizing on a cloud-native platform can be a complex journey. But in the end you’ll operate more productively and efficiently, waste fewer resources, and expand opportunities for future innovation.
+
+[Read about application modernization on Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/application-modernization)
+
+This video can't play due to privacy settings
+
+To change your settings, select the "Cookie Preferences" link in the footer and opt in to "Advertising Cookies or try disabling adblockers."
+
+Is OpenShift Virtualization right for your VMs? Video duration: 1:57
+
+### Develop, modernize, and deploy containerized applications at scale
+
+Red Hat provides enterprise platforms for container and VM deployments across a variety of environments. [Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift) is a modern application platform that brings together a comprehensive set of tools and services that streamline the entire application lifecycle—from development to delivery to management of application workloads.
+
+### Migrate your VMs and maintain your momentum
+
+Red Hat’s trusted products and [partner ecosystem](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization/partners) deliver comprehensive [virtualization solutions](https://www.redhat.com/en/products/virtualization). You can migrate your VMs to [Red Hat OpenShift Virtualization](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization), a modern application platform—based on [KVM](https://www.redhat.com/en/topics/virtualization/what-is-KVM) and [KubeVirt](https://www.redhat.com/en/topics/virtualization/what-is-kubevirt)—that integrates virtual and containerized workloads to provide flexibility without added complexity. For a dedicated virtualization solution, [Red Hat OpenShift Virtualization Engine](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization-engine) offers a streamlined, cost-effective way to deploy, manage, and scale VMs exclusively. Red Hat’s [migration toolkit for virtualization](https://developers.redhat.com/products/mta) gives you the tools to start your migration in just a few steps.
+
+Red Hat OpenShift Virtualization is available through our [cloud partners](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization/partners), including AWS, Microsoft Azure, Google Cloud, IBM Cloud, and Oracle Cloud Infrastructure.
+
+### Automate your migration
+
+Use automation to speed software delivery with [Red Hat Ansible® Automation Platform](https://www.redhat.com/en/technologies/management/ansible/virtual-infrastructure-management)—from migration at scale to Day 2 operations and remediation. With this flexible approach, you can automate tasks to improve speed and efficiency of IT operations.
+
+### Manage and modernize at your own pace
+
+Monitor the security and performance of your VMs from a single console with [Red Hat Advanced Cluster Management](https://www.redhat.com/en/technologies/management/advanced-cluster-management). With additional support options and partner integrations, you can rely on Red Hat to keep your virtual infrastructure running smoothly throughout your hybrid cloud environment—and help you modernize when you’re ready.
+
+[Explore our virtualization solution](https://www.redhat.com/en/products/virtualization)
+
+## 15 reasons to adopt Red Hat OpenShift Virtualization
+
+Discover how Red Hat OpenShift Virtualization can unify and simplify your IT operations, using one platform for both virtual machines and containers.
+
+## Get started with Red Hat OpenShift Virtualization
+
+Find out how to set up, manage, and transfer virtual machines using Red Hat OpenShift Virtualization. Examine the steps outlined in this e-book.
+
+[Get the resource](https://www.redhat.com/en/resources/get-started-with-openshift-virtualization-ebook "Get started with Red Hat OpenShift Virtualization")
+
+## Keep reading
+
+### Red Hat OpenShift for developers
+
+Develop applications without worrying about infrastructure. Red Hat® OpenShift® helps you build and deploy applications using the tools you want.
+
+
+### What is a Linux container?
+
+Find out more about Linux containers, which are a set of 1 or more processes that are isolated from the rest of the system.
+
+
+### Why choose Red Hat for Kubernetes?
+
+With Red Hat OpenShift, Red Hat provides a hybrid cloud enterprise Kubernetes platform for building and running new cloud native applications, as well as modernizing existing ones.
+
+
+## Containers resources
+
+- #### [Red Hat OpenShift Virtualization](https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization)
+
+
+A feature of Red Hat® OpenShift® that seamlessly integrates virtual machines into a modern hybrid cloud infrastructure platform.
+
+
+- Blog post
+
+[One New Zealand’s strategic shift to Red Hat OpenShift Virtualization](https://www.redhat.com/en/blog/one-new-zealands-strategic-shift-red-hat-openshift-virtualization)
+
+- Blog post
+
+[Confidential guest reset on QEMU hypervisor: Design choices and approach](https://www.redhat.com/en/blog/confidential-guest-reset-qemu-hypervisor-design-choices-and-approach)
+
+- Blog post
+
+[Customer stories and continued momentum: OpenShift Virtualization sessions at Red Hat Summit 2026](https://www.redhat.com/en/blog/openshift-virtualization-sessions-red-hat-summit-2026)
+
+- E-book
+
+[An executive’s guide to navigating insurance modernization](https://www.redhat.com/en/engage/navigating-insurance-modernization-ebook)
+
+
+- [What is microsegmentation?](https://www.redhat.com/en/topics/virtualization/microsegmentation)
+- [What is KVM?](https://www.redhat.com/en/topics/virtualization/what-is-KVM)
+- [What is an image builder?](https://www.redhat.com/en/topics/linux/what-is-an-image-builder)
+- [Red Hat OpenShift for developers](https://www.redhat.com/en/technologies/cloud-computing/openshift/developers)
+- [What is a Linux container?](https://www.redhat.com/en/topics/containers/whats-a-linux-container)
+- [Why choose Red Hat for Kubernetes?](https://www.redhat.com/en/topics/containers/why-choose-red-hat-kubernetes)
+- [What is CaaS?](https://www.redhat.com/en/topics/cloud-computing/what-is-caas)
+- [What is Podman?](https://www.redhat.com/en/topics/containers/what-is-podman)
+- [What is Podman Desktop?](https://www.redhat.com/en/topics/containers/what-is-podman-desktop)
+- [Edge computing with Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/edge-computing)
+- [How to create a virtual machine with an instance type](https://www.redhat.com/en/topics/virtualization/how-create-virtual-machine-instance-type)
+- [What is a virtual machine (VM)?](https://www.redhat.com/en/topics/virtualization/what-is-a-virtual-machine)
+- [What is container orchestration?](https://www.redhat.com/en/topics/containers/what-is-container-orchestration)
+- [Stateful vs stateless applications](https://www.redhat.com/en/topics/cloud-native-apps/stateful-vs-stateless)
+- [What's the difference between cloud and virtualization?](https://www.redhat.com/en/topics/cloud-computing/cloud-vs-virtualization)
+- [What is Kubernetes?](https://www.redhat.com/en/topics/containers/what-is-kubernetes)
+- [What is virtualization?](https://www.redhat.com/en/topics/virtualization/what-is-virtualization)
+- [What is virtualization management?](https://www.redhat.com/en/topics/virtualization/what-is-virtualization-management)
+- [Red Hat OpenShift on VMware](https://www.redhat.com/en/technologies/cloud-computing/openshift/vmware)
+- [How to migrate VMs from VMware to Red Hat OpenShift Virtualization](https://www.redhat.com/en/technologies/cloud-computing/openshift/migrate-vmware-to-openshift-virtualization)
+- [KVM vs. VMware](https://www.redhat.com/en/topics/virtualization/kvm-vs-vmware-comparison)
+- [What is virtual infrastructure management? And how can automation help?](https://www.redhat.com/en/topics/automation/virtual-infrastructure-management)
+- [How to choose a virtualization platform](https://www.redhat.com/en/topics/virtualization/how-to-choose-a-virtualization-platform)
+- [What is KubeVirt?](https://www.redhat.com/en/topics/virtualization/what-is-kubevirt)
+- [What is live migration?](https://www.redhat.com/en/topics/virtualization/what-is-live-migration)
+- [Why use Red Hat Ansible Automation Platform with Red Hat OpenShift?](https://www.redhat.com/en/technologies/cloud-computing/openshift/ansible-on-openshift)
+- [Why choose Red Hat for virtualization?](https://www.redhat.com/en/topics/virtualization/why-choose-red-hat-for-virtualization)
+- [Why migrate virtual machines to Red Hat?](https://www.redhat.com/en/topics/virtualization/why-migrate-your-virtual-machines-to-red-hat)
+- [What is the Kubernetes Java client?](https://www.redhat.com/en/topics/cloud-computing/what-is-kubernetes-java-client)
+- [What are hosted control planes?](https://www.redhat.com/en/topics/containers/what-are-hosted-control-planes)
+- [What is kubernetes security?](https://www.redhat.com/en/topics/containers/kubernetes-security)
+- [How Kubernetes can help AI/ML](https://www.redhat.com/en/topics/cloud-computing/how-kubernetes-can-help-ai)
+- [What is Kubeflow?](https://www.redhat.com/en/topics/cloud-computing/what-is-kubeflow)
+- [What are microservices?](https://www.redhat.com/en/topics/microservices/what-are-microservices)
+- [What is container security?](https://www.redhat.com/en/topics/security/container-security)
+- [OpenShift vs. OpenStack: What are the differences?](https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-vs-openstack)
+- [What is Buildah?](https://www.redhat.com/en/topics/containers/what-is-buildah)
+- [What are sandboxed containers](https://www.redhat.com/en/topics/containers/sandboxed-containers)
+- [Kubernetes vs OpenStack](https://www.redhat.com/en/topics/openstack/kubernetes-vs-openstack)
+- [What are validated patterns?](https://www.redhat.com/en/topics/cloud-computing/what-are-validated-patterns)
+- [Kubernetes on AWS: Self-Managed vs. Managed Applications Platforms](https://www.redhat.com/en/topics/containers/kubernetes-on-aws)
+- [What is a hypervisor?](https://www.redhat.com/en/topics/virtualization/what-is-a-hypervisor)
+- [Learn everything you need to know about Open RAN](https://www.redhat.com/en/topics/5g-networks/what-is-open-ran)
+- [Red Hat OpenShift vs. OKD](https://www.redhat.com/en/topics/containers/red-hat-openshift-okd)
+- [Red Hat OpenShift vs. Kubernetes: What's the difference?](https://www.redhat.com/en/technologies/cloud-computing/openshift/red-hat-openshift-kubernetes)
+- [Spring on Kubernetes with Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/spring)
+- [Why run Apache Kafka on Kubernetes?](https://www.redhat.com/en/topics/integration/why-run-apache-kafka-on-kubernetes)
+- [What is high availability and disaster recovery for containers?](https://www.redhat.com/en/topics/containers/high-availability-containers)
+- [What is a golden image?](https://www.redhat.com/en/topics/linux/what-is-a-golden-image)
+- [What are Red Hat OpenShift cloud services?](https://www.redhat.com/en/technologies/cloud-computing/openshift/what-are-red-hat-openshift-cloud-services)
+- [VNF and CNF, what’s the difference?](https://www.redhat.com/en/topics/cloud-native-apps/vnf-and-cnf-whats-the-difference)
+- [What is a container registry?](https://www.redhat.com/en/topics/cloud-native-apps/what-is-a-container-registry)
+- [What is Skopeo?](https://www.redhat.com/en/topics/containers/what-is-skopeo)
+- [What are Red Hat OpenShift Operators?](https://www.redhat.com/en/technologies/cloud-computing/openshift/what-are-openshift-operators)
+- [Using Helm with Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/helm)
+- [Kubernetes security best practices](https://www.redhat.com/en/topics/containers/kubernetes-security-best-practices)
+- [Orchestrating Windows containers on Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/windows-containers-on-red-hat-openshift)
+- [What is a Kubernetes operator?](https://www.redhat.com/en/topics/containers/what-is-a-kubernetes-operator)
+- [High performance computing with Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/high-performance-computing)
+- [What is SD-WAN?](https://www.redhat.com/en/topics/edge-computing/what-is-sd-wan)
+- [Advantages of Kubernetes-native security](https://www.redhat.com/en/topics/containers/advantages-of-kubernetes-native-security)
+- [What is KubeLinter?](https://www.redhat.com/en/topics/containers/what-is-kubelinter)
+- [Intro to Kubernetes security](https://www.redhat.com/en/topics/containers/intro-kubernetes-security)
+- [Container and Kubernetes compliance considerations](https://www.redhat.com/en/topics/containers/compliance)
+- [How microservices support IT integration in healthcare](https://www.redhat.com/en/topics/microservices/microservices-in-healthcare)
+- [Kubernetes cluster management](https://www.redhat.com/en/technologies/cloud-computing/openshift/kubernetes-cluster-management)
+- [Red Hat OpenShift on IBM IT infrastructure](https://www.redhat.com/en/technologies/cloud-computing/openshift/what-is-red-hat-openshift-on-IBM-IT-infrastructure)
+- [Red Hat OpenShift for business leaders](https://www.redhat.com/en/technologies/cloud-computing/openshift/business-leaders)
+- [How to deploy Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/deploy-red-hat-openshift)
+- [Cost management for Kubernetes on Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/cost-management)
+- [Kubernetes-native Java development with Quarkus](https://www.redhat.com/en/technologies/cloud-computing/openshift/quarkus)
+- [What is enterprise Kubernetes?](https://www.redhat.com/en/topics/containers/what-is-enterprise-kubernetes)
+- [What makes Red Hat OpenShift the right choice for IT operations?](https://www.redhat.com/en/technologies/cloud-computing/openshift/it-operations)
+- [What makes Red Hat OpenShift the right choice for SAP?](https://www.redhat.com/en/technologies/cloud-computing/openshift/sap)
+- [What is Kubernetes role-based access control (RBAC)](https://www.redhat.com/en/topics/containers/what-kubernetes-role-based-access-control-rbac)
+- [What is containerization?](https://www.redhat.com/en/topics/cloud-native-apps/what-is-containerization)
+- [What is network virtualization?](https://www.redhat.com/en/topics/virtualization/what-is-network-virtualization)
+- [What is a radio access network?](https://www.redhat.com/en/topics/5g-networks/what-is-radio-access-network)
+- [What was CoreOS and CoreOS container Linux](https://www.redhat.com/en/technologies/cloud-computing/openshift/what-was-coreos)
+- [Learning Kubernetes basics](https://www.redhat.com/en/topics/containers/learning-kubernetes-tutorial)
+- [What is service-oriented architecture?](https://www.redhat.com/en/topics/cloud-native-apps/what-is-service-oriented-architecture)
+- [What is the Kubernetes API?](https://www.redhat.com/en/topics/containers/what-is-the-kubernetes-api)
+- [What is Kubernetes cluster management?](https://www.redhat.com/en/topics/containers/what-is-kubernetes-cluster-management)
+- [What is a Kubernetes deployment?](https://www.redhat.com/en/topics/containers/what-is-kubernetes-deployment)
+- [Why choose the Red Hat build of Quarkus?](https://www.redhat.com/en/topics/cloud-native-apps/why-choose-red-hat-quarkus)
+- [What is software-defined networking?](https://www.redhat.com/en/topics/hyperconverged-infrastructure/what-is-software-defined-networking)
+- [What is hyperconverged infrastructure?](https://www.redhat.com/en/topics/hyperconverged-infrastructure/what-is-hyperconverged-infrastructure)
+- [Introduction to Kubernetes architecture](https://www.redhat.com/en/topics/containers/kubernetes-architecture)
+- [Introduction to Kubernetes patterns](https://www.redhat.com/en/topics/cloud-native-apps/introduction-to-kubernetes-patterns)
+- [What is a Kubernetes cluster?](https://www.redhat.com/en/topics/containers/what-is-a-kubernetes-cluster)
+- [What is Quarkus?](https://www.redhat.com/en/topics/cloud-native-apps/what-is-quarkus)
+- [What is Jaeger?](https://www.redhat.com/en/topics/microservices/what-is-jaeger)
+- [What is NFV?](https://www.redhat.com/en/topics/virtualization/what-is-nfv)
+- [What is etcd?](https://www.redhat.com/en/topics/containers/what-is-etcd)
+- [What is container-native virtualization?](https://www.redhat.com/en/topics/containers/what-is-container-native-virtualization)
+- [What is Knative?](https://www.redhat.com/en/topics/microservices/what-is-knative)
+- [What is Clair?](https://www.redhat.com/en/topics/containers/what-is-clair)
+- [Why choose Red Hat for microservices?](https://www.redhat.com/en/topics/microservices/why-choose-red-hat-microservices)
+- [Why choose Red Hat for containers?](https://www.redhat.com/en/topics/containers/why-choose-red-hat-containers)
+- [What is vRAN?](https://www.redhat.com/en/topics/virtualization/what-is-vran)
+- [What is Docker?](https://www.redhat.com/en/topics/containers/what-is-docker)
+- [What is a Kubernetes pod?](https://www.redhat.com/en/topics/containers/what-is-kubernetes-pod)
+
+[![Red Hat logo](https://static.redhat.com/libs/redhat/brand-assets/2/corp/logo--on-dark.svg)](https://www.redhat.com/en) [LinkedIn](https://www.linkedin.com/company/red-hat)[YouTube](https://www.youtube.com/user/RedHatVideos)[Facebook](https://www.facebook.com/RedHat/)[X](https://twitter.com/RedHat)[Instagram](https://www.instagram.com/red_hat/)
+
+### Platforms
+
+- [Red Hat AI](https://www.redhat.com/en/products/ai)
+- [Red Hat Enterprise Linux](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)
+- [Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift)
+- [Red Hat Ansible Automation Platform](https://www.redhat.com/en/technologies/management/ansible)
+- [See all products](https://www.redhat.com/en/products)
+
+### Tools
+
+- [Training and certification](https://www.redhat.com/en/services/training-and-certification)
+- [My account](https://www.redhat.com/wapps/ugc/protected/personalInfo.html)
+- [Customer support](https://access.redhat.com/)
+- [Developer resources](https://developers.redhat.com/)
+- [Find a partner](https://catalog.redhat.com/partners)
+- [Red Hat Ecosystem Catalog](https://catalog.redhat.com/)
+- [Documentation](https://docs.redhat.com/en)
+
+### Try, buy, & sell
+
+- [Product trial center](https://www.redhat.com/en/products/trials)
+- [Red Hat Store](https://www.redhat.com/en/store)
+- [Buy online (Japan)](https://www.redhat.com/en/about/japan-buy)
+- [Console](https://www.redhat.com/en/hybrid-cloud-console)
+
+### Communicate
+
+- [Contact sales](https://www.redhat.com/en/contact/sales)
+- [Contact customer service](https://www.redhat.com/en/contact/customer-service)
+- [Contact training](https://www.redhat.com/en/services/training-and-certification/contact-us)
+- [Social](https://www.redhat.com/en/about/social)
+
+### About Red Hat
+
+Red Hat is an open hybrid cloud technology leader, delivering a consistent, comprehensive foundation for transformative IT and artificial intelligence (AI) applications in the enterprise. As a [trusted adviser to the Fortune 500](https://www.redhat.com/en/about/company), Red Hat offers cloud, developer, Linux, automation, and application platform technologies, as well as [award-winning](https://access.redhat.com/recognition) services.
+
+- [Our company](https://www.redhat.com/en/about/company)
+- [How we work](https://www.redhat.com/en/about/our-culture)
+- [Customer success stories](https://www.redhat.com/en/success-stories)
+- [Analyst relations](https://www.redhat.com/en/about/analysts)
+- [Newsroom](https://www.redhat.com/en/about/newsroom)
+- [Open source commitments](https://www.redhat.com/en/about/open-source)
+- [Our social impact](https://www.redhat.com/en/about/community-social-responsibility)
+- [Jobs](https://www.redhat.com/en/jobs)
+
+### Change page language
+
+简体中文EnglishFrançaisDeutschItaliano日本語한국어PortuguêsEspañol
+
+### Red Hat legal and privacy links
+
+- [About Red Hat](https://www.redhat.com/en/about/company)
+- [Jobs](https://www.redhat.com/en/jobs)
+- [Events](https://www.redhat.com/en/events)
+- [Locations](https://www.redhat.com/en/about/office-locations)
+- [Contact Red Hat](https://www.redhat.com/en/contact)
+- [Red Hat Blog](https://www.redhat.com/en/blog)
+- [Inclusion at Red Hat](https://www.redhat.com/en/about/our-culture/inclusion)
+- [Cool Stuff Store](https://coolstuff.redhat.com/)
+- [Red Hat Summit](https://www.redhat.com/en/summit)
+
+© 2026 Red Hat
+
+### Red Hat legal and privacy links
+
+- [Privacy statement](https://www.redhat.com/en/about/privacy-policy)
+- [Terms of use](https://www.redhat.com/en/about/terms-use)
+- [All policies and guidelines](https://www.redhat.com/en/about/all-policies-guidelines)
+- [Digital accessibility](https://www.redhat.com/en/about/digital-accessibility)
+- Cookie preferences
+
+![](https://consent.trustarc.com/get?name=info-circle-solid.svg)
+
+## How we use cookies
+
+We use cookies on our websites to deliver our online services. Details about how we use cookies and how you may disable them are set out in our [Privacy Statement](http://www.redhat.com/en/about/privacy-policy#cookies). By using this website you agree to our use of cookies.
+
+![Close](https://consent.trustarc.com/get?name=redhat_close_small.svg)Accept AllMore Options
